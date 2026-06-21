@@ -280,7 +280,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Butter untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Karotten", grams: 120 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Schlagobers (NÖM)", grams: 20 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 110 } ],
+    items: [ { food: "Karotten", grams: 120 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Schlagobers", grams: 20 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 110 } ],
   },
   {
     name: "Ei-Gemüse-Brei (KetoCal)",

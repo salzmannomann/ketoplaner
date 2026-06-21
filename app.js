@@ -406,8 +406,8 @@
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
-  const FAT_OPTIONS = ["Butter", "Schlagobers (NÖM)", "Schlagobers 30 %", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl"];
-  let compose = { items: [{ food: "", grams: 60 }], fat: "Schlagobers (NÖM)", scale: true };
+  const FAT_OPTIONS = ["Butter", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
+  let compose = { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true };
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
