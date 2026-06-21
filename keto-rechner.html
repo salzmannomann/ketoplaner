@@ -204,6 +204,7 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .adjust-note { color: var(--yellow); font-size: 13px; margin-top: 8px; min-height: 0; }
 .adjust-note:empty { display: none; }
 tr.fatrow td { background: #fdf6e3; }
+.meta-sub { color: var(--accent); font-size: 13px; margin: 2px 0 6px; }
 .prep {
   background: var(--bg); border-radius: 9px; padding: 12px 14px;
   font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
@@ -1419,11 +1420,11 @@ const RECIPES_SONDE = [
   }
 
   /* Dynamische Rezept-Anpassung
-     - Portion: skaliert alle Zutaten proportional auf eine Wunsch-Kalorienzahl
-     - Verhältnis: passt die Fett-Zutat (Butter/Öl/Sahne) so an, dass das
-       eingestellte Keto-Verhältnis getroffen wird (Kalorien bleiben das Ziel)
-     Anpass-Einstellungen werden nicht gespeichert (rein zur Ansicht). */
-  const recipeAdjust = {}; // name -> {kcal:"", adjustRatio:false}
+     Jedes Rezept wird automatisch auf das in den Einstellungen gewählte
+     Keto-Verhältnis umgerechnet (die Fett-Zutat Butter/Öl/Sahne wird
+     angepasst). Die Portion (Kalorien) ist zusätzlich einstellbar.
+     Diese Einstellung wird nicht gespeichert (rein zur Ansicht). */
+  const recipeAdjust = {}; // name -> {kcal:""}
   function round1(v) { return Math.round(v * 10) / 10; }
 
   // Index der reinen Fett-Zutat (höchster Fettanteil, fettdominant)
@@ -1436,21 +1437,21 @@ const RECIPES_SONDE = [
     return idx;
   }
 
-  // Liefert {items, ratio, kcal, ok, fatIndex, note}
-  function computeAdjustedRecipe(rec, opts) {
+  // Rechnet ein Rezept automatisch auf das eingestellte Verhältnis um.
+  // targetKcal optional (sonst Original-Kalorien). Liefert {items, ratio, kcal, ok, fatIndex, note}
+  function computeAdjustedRecipe(rec, targetKcal) {
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
     const baseSum = sumMacros(base);
-    const T = (opts.kcal && opts.kcal > 0) ? opts.kcal : baseSum.kcal;
+    const T = (targetKcal && targetKcal > 0) ? targetKcal : baseSum.kcal;
 
-    if (!opts.adjustRatio) {
+    const fi = fatItemIndex(base);
+    if (fi < 0) {
+      // Ohne reines Fett kann das Verhältnis nicht angepasst werden — nur skalieren
       const s = baseSum.kcal > 0 ? T / baseSum.kcal : 1;
       const items = base.map(it => ({ food: it.food, grams: round1(it.grams * s) }));
       const sum = sumMacros(items);
-      return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: -1 };
+      return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: false, fatIndex: -1, note: "Kein reines Fett (Butter/Öl/Sahne) im Rezept — Verhältnis kann nicht automatisch angepasst werden." };
     }
-
-    const fi = fatItemIndex(base);
-    if (fi < 0) return { items: base, ratio: ratioOf(baseSum), kcal: baseSum.kcal, ok: false, fatIndex: -1, note: "Kein reines Fett (Butter/Öl/Sahne) im Rezept — Verhältnis nicht automatisch anpassbar." };
 
     const fat = lookup(base[fi].food);
     let Pn = 0, Fn = 0, Cn = 0;
@@ -1483,16 +1484,25 @@ const RECIPES_SONDE = [
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
 
-  // Karte für ein fest hinterlegtes Rezept (mit dynamischer Anpassung)
+  // Karte für ein fest hinterlegtes Rezept (automatisch ans Verhältnis angepasst)
   function renderRecipeCard(rec) {
     const card = el("div", { class: "card" });
-    if (!recipeAdjust[rec.name]) recipeAdjust[rec.name] = { kcal: "", adjustRatio: false };
+    if (!recipeAdjust[rec.name]) recipeAdjust[rec.name] = { kcal: "" };
     const opts = recipeAdjust[rec.name];
+    const targetRatio = derived().ratio;
 
     const head = el("div", { class: "saved-meal head" });
     const titleWrap = el("div");
     head.appendChild(titleWrap);
     card.appendChild(head);
+
+    // Original-Werte (laut Arbeitsblatt) als Referenz
+    const baseItems = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
+    const baseSum = sumMacros(baseItems);
+    const baseRatio = ratioOf(baseSum);
+    const subInfo = el("div", { class: "meta-sub" },
+      "Automatisch auf " + fmt(targetRatio, 0) + ":1 angepasst · Arbeitsblatt-Original: " +
+      fmt(baseSum.kcal, 0) + " kcal / " + (baseRatio === null ? "—" : fmt(baseRatio, 2)) + ":1");
 
     const wrap = el("div", { class: "tbl-wrap" });
     const table = el("table");
@@ -1501,25 +1511,15 @@ const RECIPES_SONDE = [
     table.appendChild(tb);
     wrap.appendChild(table);
 
-    // Anpass-Bedienfeld
-    const baseKcal = sumMacros(rec.items.map(it => ({ food: it.food, grams: num(it.grams) }))).kcal;
+    // Bedienfeld: nur Portionsgröße
     const panel = el("div", { class: "adjust" });
     const kcalField = el("div", { class: "adjust-field" });
     kcalField.innerHTML = "<label class='inline'>Portion (kcal)</label>";
-    const kcalInp = el("input", { type: "number", min: "0", step: "10", placeholder: fmt(baseKcal, 0) });
+    const kcalInp = el("input", { type: "number", min: "0", step: "10", placeholder: fmt(baseSum.kcal, 0) });
     kcalInp.value = opts.kcal;
     kcalField.appendChild(kcalInp);
     panel.appendChild(kcalField);
-
-    const ratioField = el("div", { class: "adjust-field checkrow" });
-    const cb = el("input", { type: "checkbox", id: "ar-" + cssId(rec.name) });
-    cb.checked = !!opts.adjustRatio;
-    const lbl = el("label", { for: "ar-" + cssId(rec.name), class: "inline" },
-      "An mein Verhältnis anpassen (" + fmt(derived().ratio, 0) + ":1)");
-    ratioField.appendChild(cb); ratioField.appendChild(lbl);
-    panel.appendChild(ratioField);
-
-    const resetBtn = el("button", { class: "btn ghost" }, "Original");
+    const resetBtn = el("button", { class: "btn ghost" }, "Standard-Portion");
     panel.appendChild(resetBtn);
 
     const noteBox = el("div", { class: "adjust-note" });
@@ -1536,16 +1536,15 @@ const RECIPES_SONDE = [
     let current = { items: rec.items, fatIndex: -1 };
 
     function redraw() {
-      const adjusted = (opts.adjustRatio || (opts.kcal && opts.kcal > 0));
-      const res = computeAdjustedRecipe(rec, opts);
+      const res = computeAdjustedRecipe(rec, opts.kcal);
       current = res;
       const items = res.items;
       tb.innerHTML = "";
       items.forEach((it, i) => {
         const m = lineMacros(it);
         const tr = el("tr");
-        if (i === res.fatIndex && opts.adjustRatio) tr.className = "fatrow";
-        tr.appendChild(el("td", { class: "name" }, it.food + (i === res.fatIndex && opts.adjustRatio ? " ⟵ Fett angepasst" : "")));
+        if (i === res.fatIndex) tr.className = "fatrow";
+        tr.appendChild(el("td", { class: "name" }, it.food + (i === res.fatIndex ? " ⟵ Fett angepasst" : "")));
         tr.appendChild(el("td", {}, fmt(it.grams, it.grams < 10 ? 1 : 0)));
         tr.appendChild(el("td", {}, fmt(m.eiweiss)));
         tr.appendChild(el("td", {}, fmt(m.fett)));
@@ -1567,33 +1566,30 @@ const RECIPES_SONDE = [
       const ketoBadge = hasKetoCal(items)
         ? '<span class="badge keto">mit KetoCal</span>'
         : '<span class="badge noketo">ohne KetoCal</span>';
-      const adjBadge = adjusted ? ' <span class="badge adj">angepasst</span>' : "";
       titleWrap.innerHTML =
         '<div class="title">' + escapeHtml(rec.name) +
-        ' <span class="badge">Sondennahrung</span>' + ketoBadge + adjBadge + '</div>' +
+        ' <span class="badge">Sondennahrung</span>' + ketoBadge + '</div>' +
         '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
         " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) +
         " g · Verhältnis " + (r === null ? "—" : fmt(r, 2)) + ":1</div>";
 
       noteBox.textContent = (!res.ok && res.note) ? "⚠️ " + res.note : "";
-      resetBtn.style.display = adjusted ? "" : "none";
+      resetBtn.style.display = (opts.kcal && opts.kcal > 0) ? "" : "none";
     }
 
     kcalInp.addEventListener("input", () => { opts.kcal = num(kcalInp.value); redraw(); });
-    cb.addEventListener("change", () => { opts.adjustRatio = cb.checked; redraw(); });
-    resetBtn.addEventListener("click", () => {
-      opts.kcal = ""; opts.adjustRatio = false; kcalInp.value = ""; cb.checked = false; redraw();
-    });
+    resetBtn.addEventListener("click", () => { opts.kcal = ""; kcalInp.value = ""; redraw(); });
     loadBtn.addEventListener("click", () => loadItemsIntoMeal(current.items, mealSel.value));
     copyBtn.addEventListener("click", () => {
       state.saved.unshift({
-        name: rec.name + ((opts.adjustRatio || (opts.kcal && opts.kcal > 0)) ? " (angepasst)" : " (Kopie)"),
+        name: rec.name + " (" + fmt(targetRatio, 0) + ":1)",
         typ: "", sonde: true,
         items: current.items.map(it => ({ food: it.food, grams: it.grams })),
       });
       save(); renderSaved();
     });
 
+    card.appendChild(subInfo);
     card.appendChild(wrap);
     card.appendChild(panel);
     card.appendChild(noteBox);
@@ -1606,8 +1602,6 @@ const RECIPES_SONDE = [
     redraw();
     return card;
   }
-
-  function cssId(s) { return s.replace(/[^a-zA-Z0-9]/g, "_"); }
 
   function loadItemsIntoMeal(items, mealId) {
     state.meals[mealId] = items.map(it => ({ food: it.food, grams: it.grams }));

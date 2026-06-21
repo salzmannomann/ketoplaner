@@ -196,6 +196,7 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .adjust-note { color: var(--yellow); font-size: 13px; margin-top: 8px; min-height: 0; }
 .adjust-note:empty { display: none; }
 tr.fatrow td { background: #fdf6e3; }
+.meta-sub { color: var(--accent); font-size: 13px; margin: 2px 0 6px; }
 .prep {
   background: var(--bg); border-radius: 9px; padding: 12px 14px;
   font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
