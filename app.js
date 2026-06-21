@@ -6,11 +6,11 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "ketoplaner.v3";
+  const STORAGE_KEY = "ketoplaner.v4";
 
   /* ---------- State ---------- */
   function defaultState() {
-    return { settings: { kcal: 1500, ratio: 1.8, mahlzeiten: 4, eiweiss: 20, ketocal: "ohne" } };
+    return { settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, ketocal: "ohne", filter: "alle" } };
   }
   let state = load();
   function load() {
@@ -76,6 +76,38 @@
       const f = lookup(it.food); const g = num(it.grams);
       return a + g / ((f && f.fett >= 50) ? 0.92 : 1.0);
     }, 0);
+  }
+
+  /* ---------- Schnellfilter ---------- */
+  const FILTERS = [
+    { id: "alle", label: "Alle" },
+    { id: "fleisch", label: "🥩 mit Fleisch" },
+    { id: "fisch", label: "🐟 mit Fisch" },
+    { id: "vegetarisch", label: "🥦 vegetarisch" },
+    { id: "obst", label: "🍓 mit Obst" },
+    { id: "ohne-obst", label: "🚫 ohne Obst" },
+  ];
+  function recipeTags(rec) {
+    let fleisch = false, fisch = false, obst = false;
+    rec.items.forEach(it => {
+      const f = lookup(it.food); if (!f) return;
+      const k = f.kategorie;
+      if (k === "Fleisch" || k === "Wurst") fleisch = true;
+      if (k === "Fisch") fisch = true;
+      if (k === "Obst") obst = true;
+    });
+    return { fleisch, fisch, obst, veg: !fleisch && !fisch };
+  }
+  function matchesFilter(rec, filter) {
+    const t = recipeTags(rec);
+    switch (filter) {
+      case "fleisch": return t.fleisch;
+      case "fisch": return t.fisch;
+      case "vegetarisch": return t.veg;
+      case "obst": return t.obst;
+      case "ohne-obst": return !t.obst;
+      default: return true;
+    }
   }
 
   /* ---------- Abgeleitete Werte ---------- */
@@ -151,9 +183,22 @@
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit</div>";
 
+    // Schnellfilter-Chips
+    const filter = s.filter || "alle";
+    const fb = $("filter-bar");
+    fb.innerHTML = "";
+    const chips = el("div", { class: "chips" });
+    FILTERS.forEach(f => {
+      const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
+      chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
+      chips.appendChild(chip);
+    });
+    fb.appendChild(chips);
+
     const mode = s.ketocal || "ohne";
     const recipes = RECIPES_SONDE
       .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
+      .filter(r => matchesFilter(r, filter))
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
@@ -162,7 +207,7 @@
 
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : " gesamt");
+      (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : "");
 
     const list = $("recipe-list");
     list.innerHTML = "";
@@ -218,15 +263,27 @@
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
+  let detailRec = null, detailPortion = "meal";
   function openRecipeDetail(rec) {
+    detailRec = rec; detailPortion = "meal";
+    renderDetail();
+    const overlay = document.getElementById("detail-overlay");
+    overlay.hidden = false;
+    document.body.classList.add("modal-open");
+  }
+  function renderDetail() {
+    const rec = detailRec;
     const d = derived();
     const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    const mult = detailPortion === "day" ? d.mahl : 1;
     const items = res.items;
-    const sum = sumMacros(items);
-    const r = ratioOf(sum);
-    const totalG = items.reduce((a, it) => a + num(it.grams), 0);
-    const ml = volumeMl(items);
-    const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+    const sumPer = sumMacros(items);
+    const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
+    const r = ratioOf(sumPer);
+    const totalG = items.reduce((a, it) => a + num(it.grams), 0) * mult;
+    const ml = volumeMl(items) * mult;
+    const proteinTarget = mult > 1 ? d.eiweiss : d.eiweissMahl;
+    const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
 
     const ketoBadge = rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
@@ -234,44 +291,48 @@
 
     let rows = "";
     items.forEach((it, i) => {
-      const m = lineMacros(it);
+      const g = num(it.grams) * mult;
+      const m = lineMacros({ food: it.food, grams: g });
       rows += "<tr" + (i === res.fatIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
         escapeHtml(it.food) + (i === res.fatIndex ? " ⟵ Fett angepasst" : "") + "</td><td>" +
-        fmt(it.grams, it.grams < 10 ? 1 : 0) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
+        fmt(g, g < 10 ? 1 : 0) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
         fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
 
+    const portionLabel = mult > 1 ? ("Ganzer Tag (" + d.mahl + " Mahlzeiten)") : "1 Mahlzeit";
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥄") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
-        '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) + " g · Fett " +
-        fmt(sum.fett) + " g · KH " + fmt(sum.kh) + ' g · <span class="ratio-pill ' + ratioClass(r, d.ratio) +
-        '">Verhältnis ' + (r === null ? "—" : fmt(r, 2)) + ":1</span></div></div></div>" +
+        '<div class="meta">Verhältnis <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' +
+        (r === null ? "—" : fmt(r, 2)) + ":1</span> · zeigt: " + portionLabel + "</div></div></div>" +
+      '<div class="seg-portion"><div class="segmented mini">' +
+        '<button type="button" data-p="meal"' + (mult === 1 ? ' class="active"' : "") + ">1 Mahlzeit</button>" +
+        '<button type="button" data-p="day"' + (mult > 1 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
+      "</div></div>" +
       '<div class="detail-tiles">' +
+        '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(d.kcalMahl, 0) + '</div><div class="l">kcal/Mahlzeit</div></div>' +
-        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
+        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
-      (!proteinOk ? '<div class="adjust-note">⚠️ Diese Mahlzeit liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         rows +
-        "<tr class='sum'><td class='name'>Summe</td><td></td><td>" + fmt(sum.eiweiss) + "</td><td>" +
+        "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(rec.thermomix) + "</div>" : "") +
       (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(rec.zubereitung) + "</div>" : "");
 
+    c.querySelectorAll(".seg-portion button").forEach(b =>
+      b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
+
     const actions = el("div", { class: "btn-row" });
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
-    printBtn.addEventListener("click", () => printRecipe(rec, res, d));
+    printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
     actions.appendChild(printBtn);
     c.appendChild(actions);
-
-    const overlay = document.getElementById("detail-overlay");
-    overlay.hidden = false;
-    document.body.classList.add("modal-open");
   }
   function closeDetail() {
     document.getElementById("detail-overlay").hidden = true;
@@ -284,34 +345,46 @@
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
   }
 
-  /* ---------- Drucken ---------- */
-  function printRecipe(rec, res, d) {
+  /* ---------- Drucken (A4 Hochformat) ---------- */
+  function printRecipe(rec, res, d, mult) {
+    mult = mult || 1;
     const items = res.items;
-    const sum = sumMacros(items);
-    const r = ratioOf(sum);
-    const totalG = items.reduce((a, it) => a + num(it.grams), 0);
-    const ml = volumeMl(items);
+    const sumPer = sumMacros(items);
+    const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
+    const r = ratioOf(sumPer);
+    const totalG = items.reduce((a, it) => a + num(it.grams), 0) * mult;
+    const ml = volumeMl(items) * mult;
+    const portionLabel = mult > 1 ? ("Ganzer Tag – " + d.mahl + " Mahlzeiten") : "1 Mahlzeit";
     const rows = items.map(it => {
-      const m = lineMacros(it);
-      return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(it.grams, it.grams < 10 ? 1 : 0) +
+      const g = num(it.grams) * mult;
+      const m = lineMacros({ food: it.food, grams: g });
+      return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(g, g < 10 ? 1 : 0) +
         " g</td><td>" + fmt(m.kcal, 0) + " kcal</td></tr>";
     }).join("");
     const html =
       "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>" + escapeHtml(rec.name) + "</title>" +
-      "<style>body{font-family:Arial,sans-serif;color:#1f2933;margin:32px;max-width:640px}" +
-      "h1{font-size:22px;margin:0 0 4px}.sub{color:#555;margin:0 0 16px}" +
-      "table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border-bottom:1px solid #ddd;padding:6px 4px;text-align:left}" +
-      "td:nth-child(2),td:nth-child(3){text-align:right}tr:last-child td{font-weight:bold;border-top:2px solid #999}" +
-      ".prep{background:#f4f6f8;border-radius:8px;padding:12px;margin:10px 0;line-height:1.5}" +
-      ".note{color:#666;font-size:12px;margin-top:18px}</style></head><body>" +
+      "<style>" +
+      "@page{size:A4 portrait;margin:18mm}" +
+      "*{box-sizing:border-box}" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:11pt;line-height:1.45}" +
+      "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}" +
+      "table{width:100%;border-collapse:collapse;margin:4mm 0}" +
+      "th,td{border-bottom:0.4pt solid #bbb;padding:1.6mm 1mm;text-align:left;font-size:10.5pt}" +
+      "td:nth-child(2),td:nth-child(3){text-align:right;white-space:nowrap}" +
+      "tr:last-child td{font-weight:bold;border-top:1pt solid #777}" +
+      ".prep{background:#f2f4f6;border-radius:2mm;padding:3mm 4mm;margin:3mm 0;line-height:1.5;break-inside:avoid}" +
+      ".prep strong{display:block;margin-bottom:1mm}" +
+      "tr{break-inside:avoid}" +
+      ".note{color:#666;font-size:8.5pt;margin-top:6mm}" +
+      "</style></head><body>" +
       "<h1>" + (rec.icon || "") + " " + escapeHtml(rec.name) + (rec.ketocal ? " (mit KetoCal)" : " (ohne KetoCal)") + "</h1>" +
-      "<p class='sub'>Pro Mahlzeit: " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
+      "<p class='sub'><strong>" + portionLabel + "</strong> · " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) + " g · Verhältnis " +
-      (r === null ? "—" : fmt(r, 2)) + ":1<br>Menge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
+      (r === null ? "—" : fmt(r, 2)) + ":1<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
-      "<tr><td>Summe</td><td></td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
-      (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong><br>" + escapeHtml(rec.thermomix) + "</div>" : "") +
-      (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong><br>" + escapeHtml(rec.zubereitung) + "</div>" : "") +
+      "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
+      (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(rec.thermomix) + "</div>" : "") +
+      (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(rec.zubereitung) + "</div>" : "") +
       "<p class='note'>Erstellt mit Keto-Sondennahrung. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
     let w = null;

@@ -28,14 +28,22 @@ python3 build-single.py
 
 Die App besteht aus einer einzigen Seite:
 
-1. Oben einstellen: **Kalorien pro Tag**, **Anzahl Mahlzeiten pro Tag**,
-   **Verhältnis** (Standard 1,8:1), **Eiweiß pro Tag** und **Ohne / Mit
-   KetoCal / Alle**. Daraus werden **kcal pro Mahlzeit** und das
-   **Eiweiß-Ziel pro Mahlzeit** angezeigt.
-2. Darunter erscheinen die passenden Rezepte als **Kacheln** mit Icon, kcal,
+1. Oben einstellen: **Kalorien pro Tag** (Standard 700), **Anzahl Mahlzeiten
+   pro Tag** (Standard 5), **Verhältnis** (Standard 1,8:1), **Eiweiß pro Tag**
+   und **Ohne / Mit KetoCal / Alle**. Daraus werden **kcal pro Mahlzeit** und
+   das **Eiweiß-Ziel pro Mahlzeit** angezeigt.
+2. **Schnellfilter** per Buttons: Alle, mit Fleisch, mit Fisch, vegetarisch,
+   mit Obst, ohne Obst.
+3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
    Verhältnis, Menge (g/ml) und Eiweiß.
-3. Klick auf eine Kachel öffnet das vollständige Rezept: Zutaten, Kennzahlen,
-   **Thermomix-TM5-Anleitung**, klassische Zubereitung und **Rezept drucken**.
+4. Klick auf eine Kachel öffnet das vollständige Rezept: Zutaten, Kennzahlen,
+   **Thermomix-TM5-Anleitung**, klassische Zubereitung und **Rezept drucken**
+   (für **A4-Hochformat** optimiert). Mit dem Umschalter **„1 Mahlzeit /
+   Ganzer Tag"** werden die Mengen direkt für den ganzen Tag (× Anzahl
+   Mahlzeiten) angezeigt – praktisch zum Vorkochen.
+
+Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
+Karfiol, Hendl, Faschiertes, Paradeiser, Marille, Schlagobers …).
 
 Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher
 erreichen. Bei Rezepten ohne KetoCal weist die App darauf hin, dass Vitamine

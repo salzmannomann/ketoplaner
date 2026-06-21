@@ -208,6 +208,20 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .segmented button:hover { background: var(--bg); }
 .segmented button.active { background: var(--brand); color: #fff; font-weight: 600; }
 
+/* Schnellfilter-Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.chip {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 14px; font-size: 14px; cursor: pointer; color: var(--ink);
+}
+.chip:hover { background: var(--bg); }
+.chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+
+/* Portions-Umschalter im Detail */
+.seg-portion { margin: 0 0 14px; }
+.segmented.mini { display: inline-flex; width: auto; }
+.segmented.mini button { padding: 7px 14px; font-size: 13px; flex: 0 0 auto; }
+
 /* Rezept-Kacheln (Übersicht) */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .tile {
