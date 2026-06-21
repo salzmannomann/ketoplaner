@@ -345,10 +345,25 @@
       b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
 
     const actions = el("div", { class: "btn-row" });
+    const editBtn = el("button", { class: "btn" }, "✏️ Zutaten anpassen / tauschen");
+    editBtn.addEventListener("click", () => { seedComposeFromRecipe(rec); closeDetail(); openCompose(); });
+    actions.appendChild(editBtn);
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
     actions.appendChild(printBtn);
     c.appendChild(actions);
+  }
+
+  // Übernimmt ein Rezept in den freien Rechner (Zutaten editierbar, Fett wird neu berechnet)
+  function seedComposeFromRecipe(rec) {
+    const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
+    const fi = fatItemIndex(base);
+    let fats, items;
+    if (fi >= 0) { fats = [{ food: base[fi].food, share: 100 }]; items = base.filter((_, i) => i !== fi); }
+    else { fats = [{ food: "Butter", share: 100 }]; items = base; }
+    if (!items.length) items = [{ food: "", grams: 30 }];
+    state.compose = { items: items.map(it => ({ food: it.food, grams: it.grams })), fats: fats, scale: true, fromRecipe: rec.name };
+    save();
   }
   function closeDetail() {
     document.getElementById("detail-overlay").hidden = true;
@@ -469,9 +484,16 @@
     const c = document.getElementById("compose-content");
     const d = derived();
     c.innerHTML =
-      '<div class="title">🧪 Eigenes Rezept zusammenstellen</div>' +
-      '<div class="meta">Wähle deine Zutat(en) und ein Fett zum Ausgleich – die App berechnet die Mengen für eine Mahlzeit (Verhältnis ' +
+      '<div class="title">🧪 Eigenes Rezept' + (compose.fromRecipe ? " (angepasst)" : " zusammenstellen") + "</div>" +
+      '<div class="meta">' + (compose.fromRecipe ? "Basierend auf „" + escapeHtml(compose.fromRecipe) + "“. " : "") +
+      "Zutaten und Fett(e) frei wählen – die App berechnet die Mengen für eine Mahlzeit (Verhältnis " +
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1, Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
+    const clearBtn = el("button", { class: "btn ghost" }, "🗑️ Leeren / neu beginnen");
+    clearBtn.addEventListener("click", () => {
+      state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers", share: 100 }], scale: true };
+      save(); closeCompose(); openCompose();
+    });
+    c.appendChild(clearBtn);
     const rowsWrap = el("div", { class: "compose-rows" });
     c.appendChild(rowsWrap);
     const addBtn = el("button", { class: "btn secondary", html: "+ Zutat hinzufügen" });
