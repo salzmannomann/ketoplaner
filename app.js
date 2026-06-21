@@ -541,15 +541,36 @@
   }
 
   /* ---------- Gespeicherte Mahlzeiten ---------- */
+  let savedFilter = "all";
+
   function renderSaved() {
+    const recipeList = document.getElementById("recipe-list");
     const list = document.getElementById("saved-list");
+    recipeList.innerHTML = "";
     list.innerHTML = "";
-    if (state.saved.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Noch keine gespeicherten Mahlzeiten. Lege oben eine neue an."));
+    savedFilter = document.getElementById("saved-filter").value;
+
+    // Built-in Sondennahrungs-Rezepte
+    if (savedFilter !== "eigene") {
+      recipeList.appendChild(el("h2", {}, "🥄 Sondennahrung – Rezepte aus dem Arbeitsblatt"));
+      RECIPES_SONDE.forEach(rec => recipeList.appendChild(renderRecipeCard(rec)));
+    }
+
+    // Eigene Mahlzeiten
+    if (savedFilter !== "sonde" || state.saved.some(s => s.sonde)) {
+      list.appendChild(el("h2", {}, "⭐ Eigene Mahlzeiten"));
+    }
+    const visible = state.saved.filter(s => savedFilter !== "sonde" || s.sonde);
+    if (visible.length === 0) {
+      list.appendChild(el("div", { class: "card empty" },
+        savedFilter === "sonde"
+          ? "Keine eigenen Mahlzeiten als Sondennahrung markiert."
+          : "Noch keine eigenen Mahlzeiten. Lege oben eine neue an."));
       return;
     }
     const d = derived();
     state.saved.forEach((sm, idx) => {
+      if (savedFilter === "sonde" && !sm.sonde) return;
       const card = el("div", { class: "card" });
       const head = el("div", { class: "saved-meal head" });
       const titleWrap = el("div");
@@ -589,6 +610,14 @@
       typField.appendChild(typSel);
       grid.appendChild(typField);
       card.appendChild(grid);
+
+      const sondeWrap = el("div", { class: "checkrow" });
+      const cb = el("input", { type: "checkbox", id: "sonde-" + idx });
+      cb.checked = !!sm.sonde;
+      cb.addEventListener("change", () => { sm.sonde = cb.checked; save(); if (savedFilter === "sonde") renderSaved(); });
+      const lbl = el("label", { for: "sonde-" + idx, class: "inline" }, "Als Sondennahrung markieren");
+      sondeWrap.appendChild(cb); sondeWrap.appendChild(lbl);
+      card.appendChild(sondeWrap);
 
       const wrap = el("div", { class: "tbl-wrap" });
       wrap.style.marginTop = "12px";
@@ -648,11 +677,87 @@
     });
   }
 
+  // Read-only card for a built-in recipe
+  function renderRecipeCard(rec) {
+    const card = el("div", { class: "card" });
+    const head = el("div", { class: "saved-meal head" });
+    const sum = sumMacros(rec.items);
+    const r = ratioOf(sum);
+    const titleWrap = el("div");
+    titleWrap.innerHTML =
+      '<div class="title">' + escapeHtml(rec.name) +
+      ' <span class="badge">Sondennahrung</span></div>' +
+      '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
+      " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) +
+      " g · Verhältnis " + (r === null ? "—" : fmt(r, 2)) + ":1</div>";
+    head.appendChild(titleWrap);
+    card.appendChild(head);
+
+    // ingredient table (read only)
+    const wrap = el("div", { class: "tbl-wrap" });
+    const table = el("table");
+    table.innerHTML = "<thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead>";
+    const tb = el("tbody");
+    rec.items.forEach(it => {
+      const m = lineMacros(it);
+      const tr = el("tr");
+      tr.appendChild(el("td", { class: "name" }, it.food));
+      tr.appendChild(el("td", {}, fmt(it.grams, 0)));
+      tr.appendChild(el("td", {}, fmt(m.eiweiss)));
+      tr.appendChild(el("td", {}, fmt(m.fett)));
+      tr.appendChild(el("td", {}, fmt(m.kh)));
+      tr.appendChild(el("td", {}, fmt(m.kcal, 0)));
+      tb.appendChild(tr);
+    });
+    const trS = el("tr", { class: "sum" });
+    trS.appendChild(el("td", { class: "name" }, "Summe"));
+    trS.appendChild(el("td", {}, ""));
+    trS.appendChild(el("td", {}, fmt(sum.eiweiss)));
+    trS.appendChild(el("td", {}, fmt(sum.fett)));
+    trS.appendChild(el("td", {}, fmt(sum.kh)));
+    trS.appendChild(el("td", {}, fmt(sum.kcal, 0)));
+    tb.appendChild(trS);
+    table.appendChild(tb);
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+
+    if (rec.zubereitung) {
+      const z = el("div", { class: "prep" });
+      z.innerHTML = "<strong>Zubereitung</strong><br>" + escapeHtml(rec.zubereitung);
+      card.appendChild(z);
+    }
+
+    // actions: choose meal + load, or copy to own meals
+    const actions = el("div", { class: "btn-row" });
+    const mealSel = el("select");
+    mealSel.style.maxWidth = "180px";
+    MEALS.forEach(m => mealSel.appendChild(el("option", { value: m.id }, m.icon + " " + m.label)));
+    actions.appendChild(mealSel);
+    const loadBtn = el("button", { class: "btn" }, "In Mahlzeit laden");
+    loadBtn.addEventListener("click", () => loadItemsIntoMeal(rec.items, mealSel.value));
+    actions.appendChild(loadBtn);
+    const copyBtn = el("button", { class: "btn secondary" }, "Als eigene Mahlzeit kopieren");
+    copyBtn.addEventListener("click", () => {
+      state.saved.unshift({
+        name: rec.name + " (Kopie)", typ: "", sonde: true,
+        items: rec.items.map(it => ({ food: it.food, grams: it.grams })),
+      });
+      save(); renderSaved();
+    });
+    actions.appendChild(copyBtn);
+    card.appendChild(actions);
+    return card;
+  }
+
+  function loadItemsIntoMeal(items, mealId) {
+    state.meals[mealId] = items.map(it => ({ food: it.food, grams: it.grams }));
+    save();
+    go("meal:" + mealId);
+  }
+
   function loadSavedIntoMeal(sm) {
     const mid = (MEALS.find(m => m.label === sm.typ) || MEALS[0]).id;
-    state.meals[mid] = sm.items.map(it => ({ food: it.food, grams: it.grams }));
-    save();
-    go("meal:" + mid);
+    loadItemsIntoMeal(sm.items, mid);
   }
 
   /* ---------- Lebensmittel ---------- */
@@ -759,9 +864,11 @@
   /* ---------- Saved: add ---------- */
   function bindSaved() {
     document.getElementById("add-saved").addEventListener("click", () => {
-      state.saved.unshift({ name: "Neue Mahlzeit", typ: "Frühstück", items: [{ food: "", grams: "" }] });
+      state.saved.unshift({ name: "Neue Mahlzeit", typ: "Frühstück", sonde: false, items: [{ food: "", grams: "" }] });
+      if (document.getElementById("saved-filter").value === "sonde") document.getElementById("saved-filter").value = "all";
       save(); renderSaved();
     });
+    document.getElementById("saved-filter").addEventListener("change", renderSaved);
   }
 
   /* ---------- shared ---------- */

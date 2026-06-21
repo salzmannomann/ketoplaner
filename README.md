@@ -21,8 +21,8 @@ Es ist keine Installation und kein Server nötig.
 | **Verhältnis korrigieren** | Eiweiß/Fett/KH einer Mahlzeit eingeben und sofort sehen, wie viel Fett (Butter) zugegeben oder weggelassen werden muss. |
 | **Mahlzeiten** (Frühstück, Snack, Mittag, Nachmittag, Abend) | Pro Mahlzeit Lebensmittel und Mengen eintragen, mit Ampel-Prüfung des Verhältnisses. |
 | **Tagesübersicht** | Alle Mahlzeiten summiert, Vergleich mit dem Tagesziel. |
-| **Gespeicherte Mahlzeiten** | Lieblings-Mahlzeiten ablegen und mit einem Klick in eine Mahlzeit laden. |
-| **Lebensmittel** | Datenbank mit 105 Lebensmitteln (Werte je 100 g); eigene Lebensmittel können ergänzt werden. |
+| **Gespeicherte Mahlzeiten** | Fest hinterlegte **Sondennahrungs-Rezepte** (aus dem Arbeitsblatt) inkl. Zutaten, Mengen, Verhältnis und Zubereitung, plus eigene Lieblings-Mahlzeiten. Mit **Filter** nach Sondennahrung / eigenen Mahlzeiten. Rezepte lassen sich mit einem Klick in eine Mahlzeit laden oder als eigene Mahlzeit kopieren. |
+| **Lebensmittel** | Datenbank mit 117 Lebensmitteln (Werte je 100 g), inkl. der Spezial-Zutaten der Sondennahrung (z. B. KetoCal 3:1, Johannisbrotkernmehl, Himmeltau Grießbrei); eigene Lebensmittel können ergänzt werden. |
 | **Daten & Sicherung** | Daten als Datei exportieren/importieren oder alles zurücksetzen. |
 
 ## Berechnungsgrundlage
@@ -40,6 +40,10 @@ Die Logik entspricht 1:1 den Formeln der ursprünglichen Excel-Datei.
 - `styles.css` – Gestaltung
 - `app.js` – Logik und Berechnungen
 - `foods.js` – Lebensmittel-Datenbank
+- `recipes.js` – Sondennahrungs-Rezepte
+
+> Hinweis: Alle Dateien müssen im selben Ordner liegen. Es genügt **nicht**,
+> nur `index.html` zu öffnen.
 
 ## Hinweis
 

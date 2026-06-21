@@ -105,5 +105,18 @@ const FOODS_DEFAULT = [
   {"kategorie": "Wurst", "name": "Wiener Würstchen", "pro": 100, "eiweiss": 14.36, "fett": 27.69, "kh": 0.19, "cholesterin": 57, "natrium": 838, "ballaststoffe": 0.05},
   {"kategorie": "Öle", "name": "Olivenöl", "pro": 100, "eiweiss": 0, "fett": 100, "kh": 0, "cholesterin": 1, "natrium": 1, "ballaststoffe": 0},
   {"kategorie": "Öle", "name": "Rapsöl", "pro": 100, "eiweiss": 0, "fett": 100, "kh": 0, "cholesterin": 2.1, "natrium": 1, "ballaststoffe": 0},
-  {"kategorie": "Öle", "name": "Walnussöl", "pro": 100, "eiweiss": 0, "fett": 92, "kh": 0, "cholesterin": 2, "natrium": 1, "ballaststoffe": 0}
+  {"kategorie": "Öle", "name": "Walnussöl", "pro": 100, "eiweiss": 0, "fett": 92, "kh": 0, "cholesterin": 2, "natrium": 1, "ballaststoffe": 0},
+  // --- Zutaten aus den Sondennahrungs-Rezepten (Werte laut Arbeitsblatt) ---
+  {"kategorie": "Sonde / Spezial", "name": "KetoCal 3:1", "pro": 100, "eiweiss": 15.4, "fett": 68.6, "kh": 7.2, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Sonde / Spezial", "name": "Johannisbrotkernmehl", "pro": 100, "eiweiss": 4.5, "fett": 1.4, "kh": 7.3, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Sonde / Spezial", "name": "Himmeltau Grießbrei", "pro": 100, "eiweiss": 10, "fett": 0.9, "kh": 68, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Sonstiges", "name": "Wasser", "pro": 100, "eiweiss": 0, "fett": 0, "kh": 0, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Obst", "name": "Banane roh", "pro": 100, "eiweiss": 1, "fett": 0.2, "kh": 20, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Obst", "name": "Apfelmus ohne Zuckerzusatz", "pro": 100, "eiweiss": 0.2, "fett": 0.1, "kh": 19.2, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Fleisch", "name": "Hühnerbrust ohne Haut", "pro": 100, "eiweiss": 22.8, "fett": 0.9, "kh": 0, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "GEMÜSE", "name": "Zucchini roh", "pro": 100, "eiweiss": 1.6, "fett": 0.4, "kh": 2.2, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "GEMÜSE", "name": "Zucchini gegart", "pro": 100, "eiweiss": 2.1, "fett": 0.3, "kh": 2.4, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "GEMÜSE", "name": "Kartoffel gekocht", "pro": 100, "eiweiss": 2, "fett": 0.1, "kh": 14.8, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "GEMÜSE", "name": "Karotte", "pro": 100, "eiweiss": 1.1, "fett": 0.2, "kh": 4.8, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
+  {"kategorie": "Milchprod.", "name": "Schlagobers (NÖM)", "pro": 100, "eiweiss": 2.3, "fett": 36, "kh": 3, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0}
 ];

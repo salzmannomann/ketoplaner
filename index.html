@@ -175,10 +175,19 @@
       <!-- GESPEICHERTE MAHLZEITEN -->
       <section class="page" data-page="gespeichert">
         <h1>Gespeicherte Mahlzeiten</h1>
-        <p class="subtitle">Speichere Lieblings-Mahlzeiten ab — beim nächsten Mal nur noch ablesen.</p>
+        <p class="subtitle">Fertige Sondennahrungs-Rezepte und eigene Lieblings-Mahlzeiten.</p>
         <div class="card">
-          <button class="btn" id="add-saved">+ Neue Mahlzeit speichern</button>
+          <div class="toolbar">
+            <label for="saved-filter" style="margin:0">Anzeigen:</label>
+            <select id="saved-filter">
+              <option value="all">Alle</option>
+              <option value="sonde">Nur Sondennahrung</option>
+              <option value="eigene">Nur eigene Mahlzeiten</option>
+            </select>
+            <button class="btn" id="add-saved" style="margin-left:auto">+ Eigene Mahlzeit speichern</button>
+          </div>
         </div>
+        <div id="recipe-list"></div>
         <div id="saved-list"></div>
       </section>
 
@@ -242,6 +251,7 @@
   </div>
 
   <script src="foods.js"></script>
+  <script src="recipes.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

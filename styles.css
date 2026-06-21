@@ -177,3 +177,19 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
+
+.badge {
+  display: inline-block; vertical-align: middle;
+  background: var(--brand-soft); color: var(--brand-dark);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+}
+.prep {
+  background: var(--bg); border-radius: 9px; padding: 12px 14px;
+  font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
+}
+.prep strong { color: var(--brand-dark); }
+.checkrow { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.checkrow input[type=checkbox] { width: 18px; height: 18px; }
+label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
+#recipe-list h2, #saved-list h2 { margin-top: 8px; }
