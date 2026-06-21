@@ -1,4 +1,4 @@
-/* Keto-Sondennahrung — Logik
+/* HamHam Keto — Logik
    Eine Seite: Einstellungen + Standard-Rezepte, die automatisch auf das
    Verhältnis und die Kalorien pro Mahlzeit umgerechnet werden.
    Einstellungen werden lokal im Browser gespeichert (localStorage). */
@@ -476,7 +476,7 @@
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(rec.thermomix) + "</div>" : "") +
       (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(rec.zubereitung) + "</div>" : "") +
-      "<p class='note'>Erstellt mit Keto-Sondennahrung. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
+      "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
     let w = null;
     try { w = window.open("", "_blank"); } catch (e) {}
