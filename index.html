@@ -4,20 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#2f855a" />
-  <title>Keto-Rechner</title>
+  <title>Keto-Sondennahrung</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app">
     <!-- Mobile top bar -->
     <div class="mobile-bar">
-      <div class="brand"><span class="logo">🥑</span> Keto-Rechner</div>
+      <div class="brand"><span class="logo">🥄</span> Keto-Sondennahrung</div>
       <select id="mobileNav" aria-label="Seite wählen"></select>
     </div>
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="brand"><span class="logo">🥑</span> Keto-Rechner</div>
+      <div class="brand"><span class="logo">🥄</span> Keto-Sonde</div>
       <nav class="nav" id="nav"></nav>
     </aside>
 
@@ -25,176 +25,58 @@
     <main class="main">
       <!-- START -->
       <section class="page" data-page="start">
-        <h1>Keto-Rechner – einfach erklärt</h1>
-        <p class="subtitle">Dein digitaler Begleiter für die ketogene Ernährung.</p>
+        <h1>Keto-Sondennahrung</h1>
+        <p class="subtitle">Rezepte für die ketogene Sondennahrung — automatisch auf dein Verhältnis und deine Kalorien berechnet.</p>
         <div class="card">
+          <h3>So funktioniert's</h3>
           <div class="start-list">
-            <div>1.&nbsp;&nbsp; Zutaten auswählen</div>
-            <div>2.&nbsp;&nbsp; Menge eingeben</div>
-            <div>3.&nbsp;&nbsp; Ergebnis prüfen</div>
+            <div>1.&nbsp;&nbsp; Oben Kalorien pro Tag, Anzahl Mahlzeiten und Verhältnis einstellen</div>
+            <div>2.&nbsp;&nbsp; Wählen: mit oder ohne KetoCal</div>
+            <div>3.&nbsp;&nbsp; Rezept aussuchen — die Mengen sind bereits passend berechnet</div>
+            <div>4.&nbsp;&nbsp; Nach klassischer Anleitung oder mit dem Thermomix TM5 zubereiten</div>
           </div>
-        </div>
-        <div class="card">
-          <h3>👉 Für den Einstieg</h3>
-          <p class="hint">Lege zuerst deine Werte unter „Einstellungen“ fest. Danach rechnet alles automatisch.</p>
           <div class="start-cta">
-            <button class="btn" data-goto="einstellungen">Einstellungen öffnen</button>
-            <button class="btn secondary" data-goto="berechnen">Mahlzeit berechnen</button>
-            <button class="btn secondary" data-goto="korrigieren">Verhältnis korrigieren</button>
+            <button class="btn" data-goto="rezepte">Zu den Rezepten</button>
           </div>
         </div>
-        <p class="footnote">Alle Daten werden nur lokal in deinem Browser gespeichert (nichts wird hochgeladen).</p>
+        <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert (nichts wird hochgeladen). Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung — die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen.</p>
       </section>
 
-      <!-- EINSTELLUNGEN -->
-      <section class="page" data-page="einstellungen">
-        <h1>Einstellungen</h1>
-        <p class="subtitle">Nur einmal ausfüllen — danach rechnet alles automatisch.</p>
-        <div class="card">
-          <h3>Was du eingibst</h3>
-          <div class="grid cols-2">
-            <div>
-              <label>Name des Kindes</label>
-              <input id="set-name" type="text" placeholder="leer lassen, falls nicht gewünscht" />
-            </div>
-            <div>
-              <label>Datum</label>
-              <input id="set-datum" type="date" />
-            </div>
+      <!-- REZEPTE -->
+      <section class="page" data-page="rezepte">
+        <h1>Rezepte</h1>
+        <p class="subtitle">Jedes Rezept wird automatisch an deine Einstellungen angepasst.</p>
+
+        <div class="card settings-bar">
+          <div class="settings-grid">
             <div>
               <label>Kalorien pro Tag</label>
-              <input id="set-kcal" type="number" min="0" step="10" />
-              <div class="field-note">wie viel pro Tag essen</div>
+              <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+            </div>
+            <div>
+              <label>Anzahl Mahlzeiten pro Tag</label>
+              <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
             </div>
             <div>
               <label>Verhältnis (z. B. 4 für 4:1)</label>
-              <input id="set-ratio" type="number" min="0" step="0.1" />
-              <div class="field-note">klassisch sind 4:1 oder 3:1</div>
+              <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
             </div>
             <div>
-              <label>Eiweiß pro Tag (g)</label>
-              <input id="set-eiweiss" type="number" min="0" step="1" />
-              <div class="field-note">tägliche Eiweißmenge</div>
-            </div>
-            <div>
-              <label>Mahlzeiten pro Tag</label>
-              <input id="set-mahlzeiten" type="number" min="1" step="1" />
-              <div class="field-note">meistens 3 oder 4</div>
+              <label>KetoCal</label>
+              <div class="segmented" id="ketocal-seg">
+                <button type="button" data-val="ohne">Ohne KetoCal</button>
+                <button type="button" data-val="mit">Mit KetoCal</button>
+                <button type="button" data-val="alle">Alle</button>
+              </div>
             </div>
           </div>
+          <div class="permeal" id="permeal"></div>
         </div>
-        <div class="card">
-          <h3>Was daraus berechnet wird – pro Tag</h3>
-          <div class="stats" id="stats-tag"></div>
-        </div>
-        <div class="card">
-          <h3>Pro Mahlzeit</h3>
-          <div class="stats" id="stats-mahlzeit"></div>
-        </div>
-      </section>
 
-      <!-- MAHLZEIT BERECHNEN -->
-      <section class="page" data-page="berechnen">
-        <h1>Mahlzeit berechnen</h1>
-        <p class="subtitle">Du wählst 3 Zutaten — der Rechner sagt dir, wie viel Gramm es werden müssen.</p>
-        <div class="card">
-          <h3>① Wähle 3 Zutaten aus</h3>
-          <div class="tbl-wrap">
-            <table id="calc-input">
-              <thead>
-                <tr><th>Rolle</th><th>Zutat</th><th>Eiweiß /100g</th><th>Fett /100g</th><th>KH /100g</th><th>Kcal /100g</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card">
-          <h3>② Wie viele Gramm der Hauptzutat?</h3>
-          <div class="grid cols-2">
-            <div>
-              <label>Gramm Hauptzutat (Zutat 1)</label>
-              <input id="calc-grams" type="number" min="0" step="1" />
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>③ Das ist deine Mahlzeit</h3>
-          <div class="tbl-wrap">
-            <table id="calc-result">
-              <thead>
-                <tr><th>Zutat</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div id="calc-status"></div>
-          <div class="tip">💡 Tipp: Die berechneten Mengen kannst du direkt in einen Mahlzeit-Tab übertragen.</div>
-        </div>
-      </section>
-
-      <!-- VERHÄLTNIS KORRIGIEREN -->
-      <section class="page" data-page="korrigieren">
-        <h1>Verhältnis korrigieren</h1>
-        <p class="subtitle">👉 Etwas stimmt nicht? Hier kannst du es sofort korrigieren.</p>
-        <div class="card">
-          <div class="grid cols-3">
-            <div><label>Eiweiß (g)</label><input id="korr-eiweiss" type="number" min="0" step="0.1" /></div>
-            <div><label>Fett (g)</label><input id="korr-fett" type="number" min="0" step="0.1" /></div>
-            <div><label>Kohlenhydrate (g)</label><input id="korr-kh" type="number" min="0" step="0.1" /></div>
-          </div>
-          <div id="korr-status"></div>
-          <div id="korr-butter" class="hint" style="margin-top:10px"></div>
-          <div class="tip">💡 Tipp: „Fett“ bedeutet Butter, Sahne oder Öl.</div>
-        </div>
-      </section>
-
-      <!-- TAGESÜBERSICHT -->
-      <section class="page" data-page="tag">
-        <h1>Tagesübersicht</h1>
-        <p class="subtitle">Alle Mahlzeiten zusammen — passt das Tagesziel?</p>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table id="day-table">
-              <thead>
-                <tr><th>Mahlzeit</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th><th>Verhältnis</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div id="day-status"></div>
-        </div>
-      </section>
-
-      <!-- MAHLZEITEN-TABS -->
-      <section class="page" data-page="meal" data-meal="fruehstueck"></section>
-      <section class="page" data-page="meal" data-meal="snack"></section>
-      <section class="page" data-page="meal" data-meal="mittag"></section>
-      <section class="page" data-page="meal" data-meal="nachmittag"></section>
-      <section class="page" data-page="meal" data-meal="abend"></section>
-
-      <!-- GESPEICHERTE MAHLZEITEN -->
-      <section class="page" data-page="gespeichert">
-        <h1>Gespeicherte Mahlzeiten</h1>
-        <p class="subtitle">Fertige Sondennahrungs-Rezepte und eigene Lieblings-Mahlzeiten.</p>
-        <div class="card">
-          <div class="toolbar">
-            <label for="saved-filter" style="margin:0">Anzeigen:</label>
-            <select id="saved-filter">
-              <option value="all">Alle</option>
-              <option value="sonde">Nur Sondennahrung</option>
-              <option value="eigene">Nur eigene Mahlzeiten</option>
-            </select>
-            <label for="keto-filter" style="margin:0">KetoCal:</label>
-            <select id="keto-filter">
-              <option value="all">Egal</option>
-              <option value="ohne">Ohne KetoCal</option>
-              <option value="mit">Mit KetoCal</option>
-            </select>
-            <button class="btn" id="add-saved" style="margin-left:auto">+ Eigene Mahlzeit speichern</button>
-          </div>
+        <div class="toolbar">
+          <span class="hint" id="recipe-count"></span>
         </div>
         <div id="recipe-list"></div>
-        <div id="saved-list"></div>
       </section>
 
       <!-- LEBENSMITTEL -->
@@ -238,7 +120,7 @@
         <p class="subtitle">Deine Eingaben werden lokal im Browser gespeichert.</p>
         <div class="card">
           <h3>Sichern &amp; Wiederherstellen</h3>
-          <p class="hint">Exportiere deine Daten als Datei (z. B. um sie auf ein anderes Gerät zu übertragen) oder lade eine Sicherung wieder.</p>
+          <p class="hint">Exportiere deine Daten als Datei oder lade eine Sicherung wieder.</p>
           <div class="btn-row">
             <button class="btn" id="data-export">Daten exportieren</button>
             <button class="btn secondary" id="data-import-btn">Daten importieren</button>

@@ -178,6 +178,57 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
 
+/* Einstellungsleiste auf der Rezepte-Seite */
+.settings-bar { border: 2px solid var(--brand-soft); }
+.settings-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
+}
+.permeal {
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px;
+}
+.permeal-main { font-size: 22px; font-weight: 700; color: var(--brand-dark); }
+.permeal-main .u { font-size: 14px; font-weight: 400; color: var(--muted); }
+.permeal-sub { color: var(--muted); font-size: 14px; }
+
+/* Segmentierte Auswahl (KetoCal) */
+.segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; width: 100%; }
+.segmented button {
+  flex: 1; border: 0; background: #fff; color: var(--ink); padding: 9px 8px;
+  cursor: pointer; font-size: 14px; border-right: 1px solid var(--line);
+}
+.segmented button:last-child { border-right: 0; }
+.segmented button:hover { background: var(--bg); }
+.segmented button.active { background: var(--brand); color: #fff; font-weight: 600; }
+
+/* Rezeptkarte */
+.recipe .title { font-weight: 700; font-size: 17px; }
+.recipe .meta { color: var(--muted); font-size: 14px; margin-top: 3px; }
+.recipe .meta-sub { color: var(--accent); font-size: 13px; margin: 4px 0 10px; }
+
+.badge.keto { background: var(--yellow-bg); color: var(--yellow); }
+.badge.noketo { background: var(--green-bg); color: var(--green); }
+.prep {
+  background: var(--bg); border-radius: 9px; padding: 12px 14px;
+  font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
+}
+.prep.thermomix { background: #eef4fb; }
+.prep strong { color: var(--brand-dark); }
+.prep.thermomix strong { color: var(--accent); }
+.adjust-note { color: var(--yellow); font-size: 13px; margin-top: 8px; }
+.adjust-note:empty { display: none; }
+tr.fatrow td { background: #fdf6e3; }
+
+label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
+
+@media (max-width: 820px) {
+  .settings-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .settings-grid { grid-template-columns: 1fr; }
+  .segmented button { padding: 9px 4px; font-size: 13px; }
+}
+
 .badge {
   display: inline-block; vertical-align: middle;
   background: var(--brand-soft); color: var(--brand-dark);

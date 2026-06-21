@@ -1,7 +1,9 @@
-# Keto-Rechner
+# Keto-Sondennahrung
 
-Eine Web-App zur Planung der ketogenen Ernährung – die digitale Umsetzung der
-Excel-Datei *Keto_Rechner_Final.xlsx*.
+Eine Web-App für die **ketogene Sondennahrung**. Sie zeigt fertige Rezepte, die
+automatisch auf das gewünschte Keto-Verhältnis und die Kalorien pro Mahlzeit
+berechnet werden – wahlweise **mit oder ohne KetoCal** und mit Anleitung für die
+klassische Zubereitung sowie den **Thermomix TM5**.
 
 Die App läuft komplett im Browser, ohne Server und ohne Internetverbindung.
 Alle Eingaben werden **lokal im Browser gespeichert** (localStorage) – es wird
@@ -35,24 +37,29 @@ python3 build-single.py
 
 | Bereich | Beschreibung |
 | --- | --- |
-| **Einstellungen** | Kalorien/Tag, Verhältnis (z. B. 4:1), Eiweiß/Tag und Mahlzeiten/Tag eingeben. Daraus werden Fett, Eiweiß und Kohlenhydrate pro Tag und pro Mahlzeit berechnet. |
-| **Mahlzeit berechnen** | 3 Zutaten wählen und die Gramm der Hauptzutat eingeben – die App berechnet automatisch die nötigen Mengen der anderen zwei Zutaten, damit Verhältnis **und** Kalorien stimmen. |
-| **Verhältnis korrigieren** | Eiweiß/Fett/KH einer Mahlzeit eingeben und sofort sehen, wie viel Fett (Butter) zugegeben oder weggelassen werden muss. |
-| **Mahlzeiten** (Frühstück, Snack, Mittag, Nachmittag, Abend) | Pro Mahlzeit Lebensmittel und Mengen eintragen, mit Ampel-Prüfung des Verhältnisses. |
-| **Tagesübersicht** | Alle Mahlzeiten summiert, Vergleich mit dem Tagesziel. |
-| **Gespeicherte Mahlzeiten** | Fest hinterlegte **Sondennahrungs-Rezepte** (aus dem Arbeitsblatt) inkl. Zutaten, Mengen, Verhältnis und Zubereitung, plus eigene Lieblings-Mahlzeiten. Mit **Filter** nach Sondennahrung / eigenen Mahlzeiten und nach **mit / ohne KetoCal**. Rezepte lassen sich mit einem Klick in eine Mahlzeit laden oder als eigene Mahlzeit kopieren. |
-| **Rezepte dynamisch anpassen** | Jedes Rezept wird **automatisch** auf das in den Einstellungen gewählte Keto-Verhältnis umgerechnet (die Fett-Zutat Butter/Öl/Sahne wird passend angepasst und in der Tabelle hervorgehoben). Zusätzlich lässt sich die **Portion (kcal)** frei einstellen; das Verhältnis bleibt dabei erhalten. Zur Referenz werden die Original-Werte des Arbeitsblatts mit angezeigt. |
+| **Einstellungsleiste** | Direkt über den Rezepten: **Kalorien pro Tag**, **Anzahl Mahlzeiten pro Tag**, **Verhältnis** und die Auswahl **Ohne / Mit KetoCal / Alle**. Daraus werden die **Kalorien pro Mahlzeit** berechnet und angezeigt. |
+| **Rezepte** | Fertige Sondennahrungs-Rezepte. Jedes Rezept wird **automatisch** auf das eingestellte Verhältnis und die Kalorien pro Mahlzeit umgerechnet (die Fett-Zutat Butter/Öl/Sahne wird passend angepasst und in der Tabelle hervorgehoben). Pro Rezept gibt es eine **Thermomix-TM5-Anleitung** und eine klassische Zubereitung. Über **Rezept drucken** lässt sich ein sauberes Rezeptblatt für die Küche ausgeben. |
+| **Mit / ohne KetoCal** | Über die Auswahl lassen sich gezielt Rezepte **ohne KetoCal** anzeigen (Standard) – aktuell stehen mehrere KetoCal-freie Rezepte zur Verfügung. |
 | **Lebensmittel** | Datenbank mit 117 Lebensmitteln (Werte je 100 g), inkl. der Spezial-Zutaten der Sondennahrung (z. B. KetoCal 3:1, Johannisbrotkernmehl, Himmeltau Grießbrei); eigene Lebensmittel können ergänzt werden. |
 | **Daten & Sicherung** | Daten als Datei exportieren/importieren oder alles zurücksetzen. |
+
+## Rezepte
+
+Ohne KetoCal: Gemüse-Fleischbrei (Zucchini / Karotte), Avocado-Ei-Creme,
+Fisch-Brokkoli-Püree, Hähnchen-Karotte-Creme, Rührei-Sahne-Creme,
+Beeren-Sahne-Creme, Thunfisch-Zucchini-Püree, Kartoffel-Gemüse-Creme.
+
+Mit KetoCal: Obstbrei (Banane / Apfelmus / Banane & Apfelmus),
+Gemüse-Kartoffelbrei (2 Varianten), Milch-Grieß-Obstbrei, Karottensuppe.
 
 ## Berechnungsgrundlage
 
 - Kalorien je Gramm: Eiweiß 4 kcal, Fett 9 kcal, Kohlenhydrate 4 kcal.
 - Keto-Verhältnis = Fett ÷ (Eiweiß + Kohlenhydrate).
-- Fett pro Tag = Verhältnis × Kalorien ÷ (9 × Verhältnis + 4).
-- Kohlenhydrate pro Tag = Kalorien ÷ (9 × Verhältnis + 4) − Eiweiß.
-
-Die Logik entspricht 1:1 den Formeln der ursprünglichen Excel-Datei.
+- Kalorien pro Mahlzeit = Kalorien pro Tag ÷ Anzahl Mahlzeiten.
+- Zur Anpassung wird die Fett-Zutat so berechnet, dass das gewählte Verhältnis
+  und die Ziel-Kalorien gleichzeitig getroffen werden; die übrigen Zutaten
+  werden proportional skaliert.
 
 ## Dateien
 
@@ -61,12 +68,15 @@ Die Logik entspricht 1:1 den Formeln der ursprünglichen Excel-Datei.
 - `app.js` – Logik und Berechnungen
 - `foods.js` – Lebensmittel-Datenbank
 - `recipes.js` – Sondennahrungs-Rezepte
+- `build-single.py` – erzeugt die Einzeldatei `keto-rechner.html`
 
-> Hinweis: Alle Dateien müssen im selben Ordner liegen. Es genügt **nicht**,
-> nur `index.html` zu öffnen.
+> Hinweis: In der Mehrdatei-Variante müssen alle Dateien im selben Ordner
+> liegen. Es genügt **nicht**, nur `index.html` zu öffnen. Alternativ die
+> Einzeldatei `keto-rechner.html` verwenden.
 
 ## Hinweis
 
 Dieses Werkzeug dient der Planung und ersetzt keine ärztliche oder
-diätologische Beratung. Die ketogene Ernährung sollte – besonders bei Kindern –
-nur in Absprache mit Fachpersonal durchgeführt werden.
+diätologische Beratung. Die ketogene Ernährung über Sonde sollte – besonders
+bei Kindern – nur in Absprache mit dem Behandlungsteam durchgeführt werden.
+Die berechneten Mengen vor der Zubereitung bitte fachlich prüfen lassen.
