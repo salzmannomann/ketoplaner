@@ -290,7 +290,7 @@
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
       '<div class="tile-head">' +
-        '<span class="tile-icon">' + (rec.icon || "🥄") + "</span>" +
+        '<span class="tile-icon">' + (rec.icon || "🥑") + "</span>" +
         '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       "</div>" +
       '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
@@ -352,7 +352,7 @@
     const portionLabel = mult > 1 ? ("Ganzer Tag (" + d.mahl + " Mahlzeiten)") : "1 Mahlzeit";
     const c = document.getElementById("detail-content");
     c.innerHTML =
-      '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥄") + "</span>" +
+      '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
         '<div class="meta">Verhältnis <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' +
         (r === null ? "—" : fmt(r, 2)) + ":1</span> · zeigt: " + portionLabel + "</div></div></div>" +
