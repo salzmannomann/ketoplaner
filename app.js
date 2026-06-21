@@ -542,6 +542,18 @@
 
   /* ---------- Gespeicherte Mahlzeiten ---------- */
   let savedFilter = "all";
+  let ketoFilter = "all";
+
+  // Enthält die Zutatenliste KetoCal (egal welche Variante)?
+  function hasKetoCal(items) {
+    return items.some(it => (it.food || "").toLowerCase().includes("ketocal"));
+  }
+  // true, wenn die Mahlzeit nach dem KetoCal-Filter angezeigt werden soll
+  function passesKeto(items) {
+    if (ketoFilter === "ohne") return !hasKetoCal(items);
+    if (ketoFilter === "mit") return hasKetoCal(items);
+    return true;
+  }
 
   function renderSaved() {
     const recipeList = document.getElementById("recipe-list");
@@ -549,34 +561,40 @@
     recipeList.innerHTML = "";
     list.innerHTML = "";
     savedFilter = document.getElementById("saved-filter").value;
+    ketoFilter = document.getElementById("keto-filter").value;
 
     // Built-in Sondennahrungs-Rezepte
     if (savedFilter !== "eigene") {
       recipeList.appendChild(el("h2", {}, "🥄 Sondennahrung – Rezepte aus dem Arbeitsblatt"));
-      RECIPES_SONDE.forEach(rec => recipeList.appendChild(renderRecipeCard(rec)));
+      const recipes = RECIPES_SONDE.filter(rec => passesKeto(rec.items));
+      if (recipes.length === 0) {
+        recipeList.appendChild(el("div", { class: "card empty" },
+          ketoFilter === "ohne" ? "Keine Rezepte ohne KetoCal vorhanden." : "Keine Rezepte mit KetoCal vorhanden."));
+      } else {
+        recipes.forEach(rec => recipeList.appendChild(renderRecipeCard(rec)));
+      }
     }
 
     // Eigene Mahlzeiten
-    if (savedFilter !== "sonde" || state.saved.some(s => s.sonde)) {
-      list.appendChild(el("h2", {}, "⭐ Eigene Mahlzeiten"));
-    }
-    const visible = state.saved.filter(s => savedFilter !== "sonde" || s.sonde);
+    const visible = state.saved.filter(s => (savedFilter !== "sonde" || s.sonde) && passesKeto(s.items));
+    list.appendChild(el("h2", {}, "⭐ Eigene Mahlzeiten"));
     if (visible.length === 0) {
-      list.appendChild(el("div", { class: "card empty" },
-        savedFilter === "sonde"
-          ? "Keine eigenen Mahlzeiten als Sondennahrung markiert."
-          : "Noch keine eigenen Mahlzeiten. Lege oben eine neue an."));
+      let msg = "Noch keine eigenen Mahlzeiten. Lege oben eine neue an.";
+      if (savedFilter === "sonde") msg = "Keine eigenen Mahlzeiten als Sondennahrung markiert.";
+      if (ketoFilter !== "all") msg = "Keine passenden eigenen Mahlzeiten für diesen Filter.";
+      list.appendChild(el("div", { class: "card empty" }, msg));
       return;
     }
     const d = derived();
     state.saved.forEach((sm, idx) => {
       if (savedFilter === "sonde" && !sm.sonde) return;
+      if (!passesKeto(sm.items)) return;
       const card = el("div", { class: "card" });
       const head = el("div", { class: "saved-meal head" });
       const titleWrap = el("div");
       const sum = sumMacros(sm.items);
       const r = ratioOf(sum);
-      titleWrap.innerHTML = '<div class="title">' + escapeHtml(sm.name || "Ohne Namen") + "</div>" +
+      titleWrap.innerHTML = '<div class="title"><span class="tname">' + escapeHtml(sm.name || "Ohne Namen") + '</span> <span class="kcbadge"></span></div>' +
         '<div class="meta">' + escapeHtml(sm.typ || "—") + " · " + fmt(sum.kcal, 0) + " kcal · Verhältnis " +
         (r === null ? "—" : fmt(r, 2)) + "</div>";
       head.appendChild(titleWrap);
@@ -664,7 +682,10 @@
         tb.appendChild(trS);
         titleWrap.querySelector(".meta").textContent =
           (sm.typ || "—") + " · " + fmt(sum2.kcal, 0) + " kcal · Verhältnis " + (r2 === null ? "—" : fmt(r2, 2));
-        titleWrap.querySelector(".title").textContent = sm.name || "Ohne Namen";
+        titleWrap.querySelector(".tname").textContent = sm.name || "Ohne Namen";
+        titleWrap.querySelector(".kcbadge").innerHTML = sm.items.length && sm.items.some(it => it.food)
+          ? (hasKetoCal(sm.items) ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>')
+          : "";
       }
       wrap.appendChild(table);
       card.appendChild(wrap);
@@ -684,9 +705,12 @@
     const sum = sumMacros(rec.items);
     const r = ratioOf(sum);
     const titleWrap = el("div");
+    const ketoBadge = hasKetoCal(rec.items)
+      ? '<span class="badge keto">mit KetoCal</span>'
+      : '<span class="badge noketo">ohne KetoCal</span>';
     titleWrap.innerHTML =
       '<div class="title">' + escapeHtml(rec.name) +
-      ' <span class="badge">Sondennahrung</span></div>' +
+      ' <span class="badge">Sondennahrung</span>' + ketoBadge + '</div>' +
       '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) +
       " g · Verhältnis " + (r === null ? "—" : fmt(r, 2)) + ":1</div>";
@@ -869,6 +893,7 @@
       save(); renderSaved();
     });
     document.getElementById("saved-filter").addEventListener("change", renderSaved);
+    document.getElementById("keto-filter").addEventListener("change", renderSaved);
   }
 
   /* ---------- shared ---------- */
