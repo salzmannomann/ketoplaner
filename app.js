@@ -6,19 +6,25 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "ketoplaner.v4";
+  const STORAGE_KEY = "ketoplaner.v5";
 
   /* ---------- State ---------- */
   function defaultState() {
-    return { settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: "", proteinPerKg: 0, ketocal: "ohne", filter: "alle" } };
+    return {
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
+      compose: { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true },
+    };
   }
   let state = load();
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
-      const p = JSON.parse(raw);
-      return { settings: Object.assign(defaultState().settings, p.settings || {}) };
+      const p = JSON.parse(raw), d = defaultState();
+      return {
+        settings: Object.assign(d.settings, p.settings || {}),
+        compose: Object.assign(d.compose, p.compose || {}),
+      };
     } catch (e) { return defaultState(); }
   }
   function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
@@ -407,7 +413,6 @@
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
   const FAT_OPTIONS = ["Butter", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
-  let compose = { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true };
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
@@ -451,6 +456,7 @@
   }
 
   function openCompose() {
+    const compose = state.compose;
     const c = document.getElementById("compose-content");
     const d = derived();
     c.innerHTML =
@@ -499,6 +505,7 @@
       });
     }
     function recompute() {
+      save();
       const d = derived();
       const res = computeFreeMeal(compose.items, compose.fat, d.ratio);
       const box = document.getElementById("compose-result");

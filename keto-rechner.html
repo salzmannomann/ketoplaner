@@ -34,6 +34,7 @@ body {
   color: var(--ink);
   font-size: 16px;
   line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Layout */
@@ -102,7 +103,7 @@ h1 { font-size: 26px; margin: 0 0 4px; }
 /* Forms */
 label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
 input, select {
-  width: 100%; padding: 9px 11px; font-size: 15px;
+  width: 100%; padding: 10px 11px; font-size: 16px;
   border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink);
 }
 input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
@@ -175,19 +176,21 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 /* Mobile */
 .mobile-bar { display: none; }
 @media (max-width: 820px) {
-  .app { flex-direction: column; }
-  .sidebar { display: none; }
-  .mobile-bar {
-    display: flex; position: sticky; top: 0; z-index: 20;
-    background: var(--panel); border-bottom: 1px solid var(--line);
-    align-items: center; gap: 10px; padding: 10px 14px;
-  }
-  .mobile-bar .brand { padding: 0; font-size: 16px; }
-  .mobile-bar select { margin-left: auto; max-width: 200px; }
-  .main { padding: 18px 16px 90px; }
+  .topbar { padding: 10px 14px; }
+  .main { padding: 16px 14px 90px; }
   .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; }
   h1 { font-size: 22px; }
+  .card { padding: 16px; }
+  .overlay { padding: 0; }
+  .overlay-card { border-radius: 0; min-height: 100vh; padding: 18px 14px 28px; }
+  .tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { padding: 12px; }
+  .tile-icon { font-size: 28px; }
+  .tile-name { font-size: 15px; }
+}
+@media (max-width: 420px) {
+  .tiles { grid-template-columns: 1fr; }
 }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
@@ -895,19 +898,25 @@ const RECIPES_SONDE = [
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "ketoplaner.v4";
+  const STORAGE_KEY = "ketoplaner.v5";
 
   /* ---------- State ---------- */
   function defaultState() {
-    return { settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: "", proteinPerKg: 0, ketocal: "ohne", filter: "alle" } };
+    return {
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
+      compose: { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true },
+    };
   }
   let state = load();
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
-      const p = JSON.parse(raw);
-      return { settings: Object.assign(defaultState().settings, p.settings || {}) };
+      const p = JSON.parse(raw), d = defaultState();
+      return {
+        settings: Object.assign(d.settings, p.settings || {}),
+        compose: Object.assign(d.compose, p.compose || {}),
+      };
     } catch (e) { return defaultState(); }
   }
   function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
@@ -1296,7 +1305,6 @@ const RECIPES_SONDE = [
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
   const FAT_OPTIONS = ["Butter", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
-  let compose = { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true };
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
@@ -1340,6 +1348,7 @@ const RECIPES_SONDE = [
   }
 
   function openCompose() {
+    const compose = state.compose;
     const c = document.getElementById("compose-content");
     const d = derived();
     c.innerHTML =
@@ -1388,6 +1397,7 @@ const RECIPES_SONDE = [
       });
     }
     function recompute() {
+      save();
       const d = derived();
       const res = computeFreeMeal(compose.items, compose.fat, d.ratio);
       const box = document.getElementById("compose-result");

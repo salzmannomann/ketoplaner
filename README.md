@@ -6,8 +6,12 @@ die Kalorien pro Mahlzeit berechnet werden – wahlweise **mit oder ohne KetoCal
 mit **Icon** zur schnellen Erkennung und mit Anleitung für die klassische
 Zubereitung sowie den **Thermomix TM5**.
 
-Die App läuft komplett im Browser, ohne Server und ohne Internetverbindung.
-Einstellungen werden **lokal im Browser gespeichert** (localStorage).
+Die App läuft komplett im Browser, ohne Server und ohne Internetverbindung,
+und funktioniert auch am **Smartphone**. Alle Eingaben (Einstellungen und das
+zuletzt zusammengestellte eigene Rezept) werden **lokal im Browser gespeichert**
+(localStorage) und beim nächsten Aufruf automatisch wieder vorausgefüllt.
+Standardmäßig sind 700 kcal/Tag, 5 Mahlzeiten, 1,8:1 und 8 kg Körpergewicht
+(Eiweiß automatisch nach Gewicht) eingestellt.
 
 ## Starten
 
