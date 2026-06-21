@@ -9,7 +9,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Öle", "name": "MCT-Öl", "pro": 100, "eiweiss": 0, "fett": 100, "kh": 0, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
   {"kategorie": "Öle", "name": "Kokosfett", "pro": 100, "eiweiss": 0, "fett": 100, "kh": 0, "cholesterin": 0, "natrium": 0, "ballaststoffe": 0},
   {"kategorie": "Eier", "name": "Hühnerei, Vollei, frisch", "pro": 100, "eiweiss": 12.9, "fett": 11.2, "kh": 0.7, "cholesterin": 396, "natrium": 144, "ballaststoffe": 0},
-  {"kategorie": "Fett", "name": "Butter", "pro": 100, "eiweiss": 0.67, "fett": 83.2, "kh": 0, "cholesterin": 240, "natrium": 5, "ballaststoffe": 0},
+  {"kategorie": "Fett", "name": "Butter", "pro": 100, "eiweiss": 0.7, "fett": 82, "kh": 0.6, "cholesterin": 240, "natrium": 5, "ballaststoffe": 0},
   {"kategorie": "Fett", "name": "Margarine (pflanzlich)", "pro": 100, "eiweiss": 0.2, "fett": 80, "kh": 0.4, "cholesterin": 7, "natrium": 101, "ballaststoffe": 0},
   {"kategorie": "Fett", "name": "Schweineschmalz", "pro": 100, "eiweiss": 0.1, "fett": 99.7, "kh": 0, "cholesterin": 86, "natrium": 1, "ballaststoffe": 0},
   {"kategorie": "Fisch", "name": "Forelle, gegart", "pro": 100, "eiweiss": 23.84, "fett": 2.9, "kh": 0, "cholesterin": 69, "natrium": 58, "ballaststoffe": 0},
