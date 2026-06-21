@@ -201,7 +201,7 @@ const RECIPES_SONDE = [
     ],
   },
   {
-    name: "Kartoffel-Gemüse-Creme (ohne KetoCal)",
+    name: "Kartoffel-Gemüse-Creme",
     ketocal: false,
     zubereitung: "Kartoffel und Zucchini garen, mit Wasser fein pürieren und das Rapsöl untermischen.",
     thermomix: "Gegarte Kartoffel und Zucchini mit Wasser in den Mixtopf geben, 8 Min./90 °C/Stufe 1 erwärmen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",

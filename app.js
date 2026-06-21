@@ -8,7 +8,6 @@
   const STORAGE_KEY = "ketoplaner.v2";
 
   const NAV = [
-    { page: "start",        label: "Start",            icon: "🏠" },
     { page: "rezepte",      label: "Rezepte",          icon: "🥄" },
     { page: "lebensmittel", label: "Lebensmittel",     icon: "🥗" },
     { page: "daten",        label: "Daten & Sicherung", icon: "💾" },
@@ -17,7 +16,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 1500, ratio: 4, mahlzeiten: 4, ketocal: "ohne" },
+      settings: { kcal: 1500, ratio: 1.8, mahlzeiten: 4, ketocal: "ohne" },
       customFoods: [],
     };
   }
@@ -192,17 +191,32 @@
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div>";
 
     const mode = s.ketocal || "ohne";
-    const recipes = RECIPES_SONDE.filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal));
+    // Nur Rezepte, die das eingestellte Verhältnis bei der Ziel-Kalorienzahl
+    // sicher erreichen (die Fett-Anpassung muss lösbar sein).
+    const recipes = RECIPES_SONDE
+      .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
+      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
+      .filter(x => x.res.ok);
+
+    // Sicherheitshinweis (Mikronährstoffe) – relevant, sobald Rezepte ohne KetoCal genutzt werden
+    const noteBox = document.getElementById("info-note");
+    if (mode === "mit") {
+      noteBox.innerHTML = "";
+    } else {
+      noteBox.innerHTML = '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
+    }
+
     const list = document.getElementById("recipe-list");
     list.innerHTML = "";
     document.getElementById("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : " gesamt");
+      (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : " gesamt") +
+      ", die " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 erreichen";
     if (recipes.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte für diese Auswahl."));
+      list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte erreichen das eingestellte Verhältnis. Bitte Verhältnis oder Kalorien anpassen."));
       return;
     }
-    recipes.forEach(rec => list.appendChild(renderRecipeCard(rec)));
+    recipes.forEach(x => list.appendChild(renderRecipeCard(x.rec, x.res)));
   }
 
   function bindSettingsBar() {
@@ -218,12 +232,13 @@
   }
 
   /* ---------- Rezept-Karte ---------- */
-  function renderRecipeCard(rec) {
+  function renderRecipeCard(rec, res) {
     const d = derived();
-    const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    if (!res) res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     const items = res.items;
     const sum = sumMacros(items);
     const r = ratioOf(sum);
+    const totalG = items.reduce((a, it) => a + num(it.grams), 0);
 
     const card = el("div", { class: "card recipe" });
 
@@ -237,7 +252,7 @@
       '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) +
       ' g · <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">Verhältnis ' + (r === null ? "—" : fmt(r, 2)) + ":1</span></div>" +
-      '<div class="meta-sub">Automatisch berechnet für ' + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit und Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div>";
+      '<div class="meta-sub">Ergibt ca. <strong>' + fmt(totalG, 0) + " g</strong> pro Mahlzeit · berechnet für " + fmt(d.kcalMahl, 0) + " kcal und Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div>";
     card.appendChild(head);
 
     // Zutaten

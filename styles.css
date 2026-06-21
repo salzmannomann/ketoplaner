@@ -215,6 +215,12 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .prep.thermomix { background: #eef4fb; }
 .prep strong { color: var(--brand-dark); }
 .prep.thermomix strong { color: var(--accent); }
+.diet-note {
+  background: var(--yellow-bg); color: var(--yellow);
+  border-radius: 9px; padding: 12px 14px; font-size: 14px; line-height: 1.5;
+  margin: 0 0 16px;
+}
+.diet-note strong { color: var(--yellow); }
 .adjust-note { color: var(--yellow); font-size: 13px; margin-top: 8px; }
 .adjust-note:empty { display: none; }
 tr.fatrow td { background: #fdf6e3; }
