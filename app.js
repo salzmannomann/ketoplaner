@@ -10,7 +10,7 @@
 
   /* ---------- State ---------- */
   function defaultState() {
-    return { settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, ketocal: "ohne", filter: "alle" } };
+    return { settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: "", proteinPerKg: 0, ketocal: "ohne", filter: "alle" } };
   }
   let state = load();
   function load() {
@@ -113,9 +113,12 @@
   /* ---------- Abgeleitete Werte ---------- */
   function derived() {
     const s = state.settings;
-    const kcal = num(s.kcal), ratio = num(s.ratio), eiweiss = num(s.eiweiss);
+    const kcal = num(s.kcal), ratio = num(s.ratio);
     const mahl = Math.max(1, num(s.mahlzeiten) || 1);
-    return { kcal, ratio, mahl, eiweiss, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl };
+    const perKg = num(s.proteinPerKg), weight = num(s.weight);
+    const autoProtein = perKg > 0 && weight > 0;
+    const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
+    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -173,15 +176,19 @@
     $("set-kcal").value = s.kcal;
     $("set-mahlzeiten").value = s.mahlzeiten;
     $("set-ratio").value = s.ratio;
-    $("set-eiweiss").value = s.eiweiss;
+    $("set-weight").value = s.weight;
+    $("set-proteinmode").value = String(s.proteinPerKg || 0);
     document.querySelectorAll("#ketocal-seg button").forEach(b =>
       b.classList.toggle("active", b.dataset.val === (s.ketocal || "ohne")));
 
     const d = derived();
+    $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
+    $("set-eiweiss").disabled = d.autoProtein;
     $("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
-      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit</div>";
+      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") + "</div>";
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
@@ -221,11 +228,14 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight" };
     Object.keys(map).forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save(); renderRezepte();
       });
+    });
+    document.getElementById("set-proteinmode").addEventListener("change", e => {
+      state.settings.proteinPerKg = num(e.target.value); save(); renderRezepte();
     });
     document.querySelectorAll("#ketocal-seg button").forEach(b => {
       b.addEventListener("click", () => { state.settings.ketocal = b.dataset.val; save(); renderRezepte(); });

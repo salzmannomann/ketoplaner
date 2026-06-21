@@ -30,6 +30,20 @@
           <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
         </div>
         <div>
+          <label>Körpergewicht (kg)</label>
+          <input id="set-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="optional" />
+        </div>
+        <div>
+          <label>Eiweiß-Bedarf</label>
+          <select id="set-proteinmode">
+            <option value="0">manuell eingeben</option>
+            <option value="1">1,0 g/kg/Tag</option>
+            <option value="1.2">1,2 g/kg/Tag</option>
+            <option value="1.5">1,5 g/kg/Tag</option>
+            <option value="2">2,0 g/kg/Tag</option>
+          </select>
+        </div>
+        <div>
           <label>Eiweiß pro Tag (g)</label>
           <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
         </div>

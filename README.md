@@ -29,9 +29,12 @@ python3 build-single.py
 Die App besteht aus einer einzigen Seite:
 
 1. Oben einstellen: **Kalorien pro Tag** (Standard 700), **Anzahl Mahlzeiten
-   pro Tag** (Standard 5), **Verhältnis** (Standard 1,8:1), **Eiweiß pro Tag**
-   und **Ohne / Mit KetoCal / Alle**. Daraus werden **kcal pro Mahlzeit** und
-   das **Eiweiß-Ziel pro Mahlzeit** angezeigt.
+   pro Tag** (Standard 5), **Verhältnis** (Standard 1,8:1) und **Ohne / Mit
+   KetoCal / Alle**. Beim **Eiweiß** kann man entweder einen Wert pro Tag
+   eingeben oder **automatisch nach Körpergewicht** berechnen lassen
+   (Körpergewicht × g/kg, z. B. 1,5 g/kg/Tag – Richtwert für Kinder, bitte mit
+   dem Behandlungsteam abstimmen). Daraus werden **kcal pro Mahlzeit** und das
+   **Eiweiß-Ziel pro Mahlzeit** angezeigt.
 2. **Schnellfilter** per Buttons: Alle, mit Fleisch, mit Fisch, vegetarisch,
    mit Obst, ohne Obst.
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
@@ -49,18 +52,14 @@ Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher
 erreichen. Bei Rezepten ohne KetoCal weist die App darauf hin, dass Vitamine
 und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (ca. 20, vielfältig)
+## Rezepte (40 insgesamt: 20 mit / 20 ohne KetoCal)
 
-Ohne KetoCal: Gemüse-Fleischbrei (Zucchini / Karotte), Fisch-Brokkoli-Püree,
-Hähnchen-Karotte-/Hähnchen-Zucchini-/Blumenkohl-Hähnchen-Creme,
-Pute-Karotte-Creme, Rindfleisch-Gemüse-Püree, Forelle-Kartoffel-Püree,
-Thunfisch-Zucchini-Püree, Kartoffel-Gemüse-Creme, **Avocado-Hähnchen-Creme**,
-**Ei-Gemüse-Creme**.
+Ausgewogen über die Kategorien – je Seite etwa 6 mit Fleisch, 4 mit Fisch,
+10 vegetarisch (inkl. Ei-, Erdäpfel- und Gemüsegerichte) und 4 mit Obst
+(etwas mehr Fleisch- als Fischgerichte). Enthalten sind u. a. mehrere
+Erdäpfel-Rezepte und Obstbreie (Banane, Apfelmus, Marille, Heidelbeeren).
 
-Mit KetoCal: Obstbrei (Banane / Apfelmus / Banane & Apfelmus),
-Gemüse-Kartoffelbrei (2 Varianten), Milch-Grieß-Obstbrei, Karottensuppe.
-
-Enthalten sind also Obst-Rezepte (Banane/Apfel) und ein Avocado-Rezept.
+Alle Rezepte erreichen das Verhältnis 1,8:1 sicher.
 
 ## Berechnungsgrundlage
 
