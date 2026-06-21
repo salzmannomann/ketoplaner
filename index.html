@@ -60,6 +60,10 @@
     </div>
 
     <div id="info-note"></div>
+    <div class="compose-launch">
+      <button id="compose-btn" class="btn">🧪 Eigenes Rezept zusammenstellen</button>
+      <span class="hint">z. B. Erdbeeren wählen → die App berechnet das Fett (Schlagobers, Butter …)</span>
+    </div>
     <div id="filter-bar"></div>
     <div class="toolbar">
       <span class="hint" id="recipe-count"></span>
@@ -68,6 +72,14 @@
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen.</p>
   </main>
+
+  <!-- Eigenes Rezept zusammenstellen -->
+  <div id="compose-overlay" class="overlay" hidden>
+    <div class="overlay-card">
+      <button class="overlay-close" id="compose-close" aria-label="Schließen">✕</button>
+      <div id="compose-content"></div>
+    </div>
+  </div>
 
   <!-- Detail-Ansicht eines Rezepts -->
   <div id="detail-overlay" class="overlay" hidden>

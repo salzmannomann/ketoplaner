@@ -84,7 +84,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Obst", "name": "Marille", "pro": 100, "eiweiss": 0.9, "fett": 0.1, "kh": 8.54, "cholesterin": 0, "natrium": 2, "ballaststoffe": 1.9},
   {"kategorie": "Obst", "name": "Beerenobst", "pro": 100, "eiweiss": 0.82, "fett": 0.4, "kh": 5.51, "cholesterin": 0, "natrium": 2, "ballaststoffe": 1.63},
   {"kategorie": "Obst", "name": "Birne", "pro": 100, "eiweiss": 0.5, "fett": 0.3, "kh": 12.4, "cholesterin": 0, "natrium": 2, "ballaststoffe": 2.8},
-  {"kategorie": "Obst", "name": "Erbeeren", "pro": 100, "eiweiss": 0.82, "fett": 0.4, "kh": 5.51, "cholesterin": 0, "natrium": 3, "ballaststoffe": 1.63},
+  {"kategorie": "Obst", "name": "Erdbeeren", "pro": 100, "eiweiss": 0.82, "fett": 0.4, "kh": 5.51, "cholesterin": 0, "natrium": 3, "ballaststoffe": 1.63},
   {"kategorie": "Obst", "name": "Grapefruit", "pro": 100, "eiweiss": 0.6, "fett": 0.15, "kh": 8.95, "cholesterin": 0, "natrium": 2, "ballaststoffe": 0.58},
   {"kategorie": "Obst", "name": "Heidelbeeren", "pro": 100, "eiweiss": 0.6, "fett": 0.6, "kh": 7.4, "cholesterin": 0, "natrium": 1, "ballaststoffe": 4.9},
   {"kategorie": "Obst", "name": "Himbeere", "pro": 100, "eiweiss": 1.3, "fett": 0.3, "kh": 4.8, "cholesterin": 0, "natrium": 1, "ballaststoffe": 6.7},

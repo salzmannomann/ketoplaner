@@ -208,6 +208,18 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .segmented button:hover { background: var(--bg); }
 .segmented button.active { background: var(--brand); color: #fff; font-weight: 600; }
 
+/* Eigenes Rezept (Composer) */
+.compose-launch { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.compose-rows { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.compose-row { display: flex; align-items: center; gap: 8px; }
+.compose-row .food-select { flex: 1; min-width: 0; }
+.compose-row .compose-grams { width: 90px; flex: 0 0 auto; }
+.compose-row .unit { color: var(--muted); font-size: 14px; }
+.compose-fat { margin: 12px 0 4px; }
+.compose-fat select { max-width: 320px; }
+#compose-content .title { font-weight: 700; font-size: 20px; padding-right: 40px; }
+#compose-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 14px; }
+
 /* Schnellfilter-Chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chip {

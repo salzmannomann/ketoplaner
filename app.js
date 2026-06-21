@@ -405,11 +405,165 @@
     setTimeout(() => { try { w.print(); } catch (e) {} }, 250);
   }
 
+  /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
+  const FAT_OPTIONS = ["Butter", "Schlagobers (NÖM)", "Schlagobers 30 %", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl"];
+  let compose = { items: [{ food: "", grams: 60 }], fat: "Schlagobers (NÖM)", scale: true };
+
+  function buildFoodSelect(value, onChange) {
+    const sel = el("select", { class: "food-select" });
+    sel.appendChild(el("option", { value: "" }, "— Lebensmittel wählen —"));
+    const byCat = {};
+    FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
+    Object.keys(byCat).sort().forEach(cat => {
+      const og = el("optgroup", { label: cat });
+      byCat[cat].forEach(f => {
+        const o = el("option", { value: f.name }, f.name);
+        if (f.name === value) o.selected = true;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    sel.value = value || "";
+    sel.addEventListener("change", () => onChange(sel.value));
+    return sel;
+  }
+
+  // Berechnet die Menge des Fetts, damit das Verhältnis bei fixen Basismengen stimmt.
+  function computeFreeMeal(baseItems, leverFood, ratio) {
+    let Pb = 0, Fb = 0, Cb = 0, hasBase = false;
+    baseItems.forEach(it => {
+      const f = lookup(it.food); const g = num(it.grams);
+      if (!f || g <= 0) return; hasBase = true;
+      Pb += f.eiweiss * g / 100; Fb += f.fett * g / 100; Cb += f.kh * g / 100;
+    });
+    const fat = lookup(leverFood);
+    if (!hasBase) return { ok: false, note: "Bitte mindestens ein Lebensmittel wählen." };
+    if (!fat) return { ok: false, note: "Bitte ein Fett zum Ausgleich wählen." };
+    const fp = fat.eiweiss, ff = fat.fett, fc = fat.kh;
+    const denom = ff - ratio * (fp + fc);
+    if (denom <= 0) return { ok: false, note: "Dieses Fett ist nicht fettreich genug für das Verhältnis. Bitte ein anderes wählen (z. B. Butter oder Öl)." };
+    const x = 100 * (ratio * (Pb + Cb) - Fb) / denom;
+    if (x < 0) return { ok: false, note: "Die gewählten Zutaten sind bereits zu fettreich für dieses Verhältnis. Bitte fettärmere Zutaten verwenden." };
+    const items = baseItems.filter(it => lookup(it.food) && num(it.grams) > 0)
+      .map(it => ({ food: it.food, grams: round1(num(it.grams)) }));
+    items.push({ food: leverFood, grams: round1(x), isFat: true });
+    return { ok: true, items };
+  }
+
+  function openCompose() {
+    const c = document.getElementById("compose-content");
+    const d = derived();
+    c.innerHTML =
+      '<div class="title">🧪 Eigenes Rezept zusammenstellen</div>' +
+      '<div class="meta">Wähle deine Zutat(en) und ein Fett zum Ausgleich – die App berechnet die Mengen für eine Mahlzeit (Verhältnis ' +
+      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1, Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
+    const rowsWrap = el("div", { class: "compose-rows" });
+    c.appendChild(rowsWrap);
+    const addBtn = el("button", { class: "btn secondary", html: "+ Zutat hinzufügen" });
+    addBtn.style.marginTop = "4px";
+    addBtn.addEventListener("click", () => { compose.items.push({ food: "", grams: 30 }); renderRows(); recompute(); });
+    c.appendChild(addBtn);
+
+    const fatField = el("div", { class: "compose-fat" });
+    fatField.innerHTML = "<label>Fett zum Ausgleich</label>";
+    const fatSel = el("select");
+    FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === compose.fat) o.selected = true; fatSel.appendChild(o); });
+    fatSel.value = compose.fat;
+    fatSel.addEventListener("change", () => { compose.fat = fatSel.value; recompute(); });
+    fatField.appendChild(fatSel);
+    c.appendChild(fatField);
+
+    const scaleRow = el("div", { class: "checkrow" });
+    const cb = el("input", { type: "checkbox", id: "compose-scale" }); cb.checked = compose.scale;
+    cb.addEventListener("change", () => { compose.scale = cb.checked; recompute(); });
+    const lbl = el("label", { for: "compose-scale", class: "inline" }, "Mengen automatisch für eine Mahlzeit (≈" + fmt(d.kcalMahl, 0) + " kcal) berechnen");
+    scaleRow.appendChild(cb); scaleRow.appendChild(lbl);
+    c.appendChild(scaleRow);
+
+    const result = el("div", { id: "compose-result" });
+    c.appendChild(result);
+
+    function renderRows() {
+      rowsWrap.innerHTML = "";
+      compose.items.forEach((it, i) => {
+        const row = el("div", { class: "compose-row" });
+        row.appendChild(buildFoodSelect(it.food, v => { it.food = v; recompute(); }));
+        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams" });
+        g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
+        row.appendChild(g);
+        row.appendChild(el("span", { class: "unit" }, "g"));
+        const del = el("button", { class: "btn ghost", title: "Entfernen" }, "✕");
+        del.addEventListener("click", () => { compose.items.splice(i, 1); if (!compose.items.length) compose.items.push({ food: "", grams: 30 }); renderRows(); recompute(); });
+        row.appendChild(del);
+        rowsWrap.appendChild(row);
+      });
+    }
+    function recompute() {
+      const d = derived();
+      const res = computeFreeMeal(compose.items, compose.fat, d.ratio);
+      const box = document.getElementById("compose-result");
+      if (!res.ok) { box.innerHTML = '<div class="adjust-note">⚠️ ' + res.note + "</div>"; return; }
+      let items = res.items;
+      let sum = sumMacros(items);
+      if (compose.scale && sum.kcal > 0) {
+        const factor = d.kcalMahl / sum.kcal;
+        items = items.map(it => ({ food: it.food, grams: round1(num(it.grams) * factor), isFat: it.isFat }));
+        sum = sumMacros(items);
+      }
+      const r = ratioOf(sum);
+      const totalG = items.reduce((a, it) => a + num(it.grams), 0);
+      const ml = volumeMl(items);
+      const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+      let rows = "";
+      items.forEach(it => {
+        const m = lineMacros(it);
+        rows += "<tr" + (it.isFat ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
+          (it.isFat ? " ⟵ Fett (berechnet)" : "") + "</td><td>" + fmt(it.grams, it.grams < 10 ? 1 : 0) +
+          "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+      });
+      box.innerHTML =
+        '<div class="detail-tiles">' +
+          '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
+          '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ':1</span></div><div class="l">Verhältnis</div></div>' +
+          '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge (' + fmt(ml, 0) + ' ml)</div></div>' +
+          '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
+        "</div>" +
+        '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+        rows +
+        "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
+        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
+        "</tbody></table></div>";
+      const pr = el("div", { class: "btn-row" });
+      const pb = el("button", { class: "btn secondary" }, "🖨️ Drucken");
+      const recForPrint = { name: "Eigenes Rezept", icon: "🧪", ketocal: false,
+        thermomix: "Zutaten garen bzw. vorbereiten, gemeinsam fein pürieren und das Fett glatt unterrühren.",
+        zubereitung: "Zutaten vorbereiten, fein pürieren und das berechnete Fett untermischen." };
+      pb.addEventListener("click", () => printRecipe(recForPrint, { items }, d, 1));
+      pr.appendChild(pb); box.appendChild(pr);
+    }
+
+    renderRows(); recompute();
+    document.getElementById("compose-overlay").hidden = false;
+    document.body.classList.add("modal-open");
+  }
+  function closeCompose() {
+    document.getElementById("compose-overlay").hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+  function bindCompose() {
+    document.getElementById("compose-btn").addEventListener("click", openCompose);
+    document.getElementById("compose-close").addEventListener("click", closeCompose);
+    const ov = document.getElementById("compose-overlay");
+    ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
+  }
+
   /* ---------- Init ---------- */
   function init() {
     rebuildFoodIndex();
     bindSettingsBar();
     bindDetail();
+    bindCompose();
     renderRezepte();
   }
   document.addEventListener("DOMContentLoaded", init);
