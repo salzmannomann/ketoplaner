@@ -16,7 +16,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 1500, ratio: 1.8, mahlzeiten: 4, ketocal: "ohne" },
+      settings: { kcal: 1500, ratio: 1.8, mahlzeiten: 4, eiweiss: 20, ketocal: "ohne" },
       customFoods: [],
     };
   }
@@ -90,9 +90,18 @@
   /* ---------- Einstellungen / abgeleitete Werte ---------- */
   function derived() {
     const s = state.settings;
-    const kcal = num(s.kcal), ratio = num(s.ratio);
+    const kcal = num(s.kcal), ratio = num(s.ratio), eiweiss = num(s.eiweiss);
     const mahl = Math.max(1, num(s.mahlzeiten) || 1);
-    return { kcal, ratio, mahl, kcalMahl: kcal / mahl };
+    return { kcal, ratio, mahl, eiweiss, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl };
+  }
+
+  // Ungefähres Volumen in ml (Fett ~0,92 g/ml, sonst ~1,0 g/ml)
+  function volumeMl(items) {
+    return items.reduce((a, it) => {
+      const f = lookup(it.food); const g = num(it.grams);
+      const dens = (f && f.fett >= 50) ? 0.92 : 1.0;
+      return a + g / dens;
+    }, 0);
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -182,13 +191,15 @@
     $("set-kcal").value = s.kcal;
     $("set-mahlzeiten").value = s.mahlzeiten;
     $("set-ratio").value = s.ratio;
+    $("set-eiweiss").value = s.eiweiss;
     document.querySelectorAll("#ketocal-seg button").forEach(b =>
       b.classList.toggle("active", b.dataset.val === (s.ketocal || "ohne")));
 
     const d = derived();
     document.getElementById("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
-      '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div>";
+      '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
+      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit</div>";
 
     const mode = s.ketocal || "ohne";
     // Nur Rezepte, die das eingestellte Verhältnis bei der Ziel-Kalorienzahl
@@ -216,11 +227,13 @@
       list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte erreichen das eingestellte Verhältnis. Bitte Verhältnis oder Kalorien anpassen."));
       return;
     }
-    recipes.forEach(x => list.appendChild(renderRecipeCard(x.rec, x.res)));
+    const grid = el("div", { class: "tiles" });
+    recipes.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+    list.appendChild(grid);
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss" };
     Object.keys(map).forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save(); renderRezepte();
@@ -231,87 +244,106 @@
     });
   }
 
-  /* ---------- Rezept-Karte ---------- */
-  function renderRecipeCard(rec, res) {
+  /* ---------- Rezept-Kachel (Übersicht) ---------- */
+  function renderRecipeTile(rec, res, d) {
+    const sum = sumMacros(res.items);
+    const r = ratioOf(sum);
+    const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
+    const ml = volumeMl(res.items);
+    const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+
+    const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
+    tile.innerHTML =
+      '<div class="tile-top">' +
+        (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
+        '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
+      '</div>' +
+      '<div class="tile-name">' + escapeHtml(rec.name) + '</div>' +
+      '<div class="tile-stats">' +
+        '<span>' + fmt(sum.kcal, 0) + " kcal</span>" +
+        '<span>≈ ' + fmt(totalG, 0) + " g / " + fmt(ml, 0) + " ml</span>" +
+        '<span class="' + (proteinOk ? "prot-ok" : "prot-low") + '">Eiweiß ' + fmt(sum.eiweiss) + " g</span>" +
+      '</div>' +
+      '<div class="tile-cta">Rezept ansehen →</div>';
+    const open = () => openRecipeDetail(rec);
+    tile.addEventListener("click", open);
+    tile.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    return tile;
+  }
+
+  /* ---------- Detailansicht (Overlay) ---------- */
+  function openRecipeDetail(rec) {
     const d = derived();
-    if (!res) res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     const items = res.items;
     const sum = sumMacros(items);
     const r = ratioOf(sum);
     const totalG = items.reduce((a, it) => a + num(it.grams), 0);
+    const ml = volumeMl(items);
+    const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
 
-    const card = el("div", { class: "card recipe" });
-
-    // Kopf
+    const c = document.getElementById("detail-content");
     const ketoBadge = rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
       : '<span class="badge noketo">ohne KetoCal</span>';
-    const head = el("div");
-    head.innerHTML =
-      '<div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + '</div>' +
-      '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
-      " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) +
-      ' g · <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">Verhältnis ' + (r === null ? "—" : fmt(r, 2)) + ":1</span></div>" +
-      '<div class="meta-sub">Ergibt ca. <strong>' + fmt(totalG, 0) + " g</strong> pro Mahlzeit · berechnet für " + fmt(d.kcalMahl, 0) + " kcal und Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div>";
-    card.appendChild(head);
 
-    // Zutaten
-    const wrap = el("div", { class: "tbl-wrap" });
-    const table = el("table");
-    table.innerHTML = "<thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead>";
-    const tb = el("tbody");
+    let rows = "";
     items.forEach((it, i) => {
       const m = lineMacros(it);
-      const tr = el("tr");
-      if (i === res.fatIndex) tr.className = "fatrow";
-      tr.appendChild(el("td", { class: "name" }, it.food + (i === res.fatIndex ? " ⟵ Fett angepasst" : "")));
-      tr.appendChild(el("td", {}, fmt(it.grams, it.grams < 10 ? 1 : 0)));
-      tr.appendChild(el("td", {}, fmt(m.eiweiss)));
-      tr.appendChild(el("td", {}, fmt(m.fett)));
-      tr.appendChild(el("td", {}, fmt(m.kh)));
-      tr.appendChild(el("td", {}, fmt(m.kcal, 0)));
-      tb.appendChild(tr);
+      rows += '<tr' + (i === res.fatIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
+        escapeHtml(it.food) + (i === res.fatIndex ? " ⟵ Fett angepasst" : "") + "</td><td>" +
+        fmt(it.grams, it.grams < 10 ? 1 : 0) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
+        fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
-    const trS = el("tr", { class: "sum" });
-    trS.appendChild(el("td", { class: "name" }, "Summe"));
-    trS.appendChild(el("td", {}, ""));
-    trS.appendChild(el("td", {}, fmt(sum.eiweiss)));
-    trS.appendChild(el("td", {}, fmt(sum.fett)));
-    trS.appendChild(el("td", {}, fmt(sum.kh)));
-    trS.appendChild(el("td", {}, fmt(sum.kcal, 0)));
-    tb.appendChild(trS);
-    table.appendChild(tb);
-    wrap.appendChild(table);
-    card.appendChild(wrap);
 
-    if (!res.ok && res.note) card.appendChild(el("div", { class: "adjust-note" }, "⚠️ " + res.note));
+    c.innerHTML =
+      '<div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + '</div>' +
+      '<div class="meta">' + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) + " g · Fett " +
+      fmt(sum.fett) + " g · KH " + fmt(sum.kh) + ' g · <span class="ratio-pill ' + ratioClass(r, d.ratio) +
+      '">Verhältnis ' + (r === null ? "—" : fmt(r, 2)) + ":1</span></div>" +
+      '<div class="detail-tiles">' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
+        '<div class="dstat"><div class="v">' + fmt(d.kcalMahl, 0) + '</div><div class="l">kcal/Mahlzeit</div></div>' +
+        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
+      '</div>' +
+      (!proteinOk ? '<div class="adjust-note">⚠️ Diese Mahlzeit liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+        rows +
+        "<tr class='sum'><td class='name'>Summe</td><td></td><td>" + fmt(sum.eiweiss) + "</td><td>" +
+        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
+      "</tbody></table></div>" +
+      (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(rec.thermomix) + "</div>" : "") +
+      (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(rec.zubereitung) + "</div>" : "");
 
-    // Zubereitung: Thermomix + klassisch
-    if (rec.thermomix) {
-      const t = el("div", { class: "prep thermomix" });
-      t.innerHTML = "<strong>🤖 Zubereitung mit Thermomix TM5</strong><br>" + escapeHtml(rec.thermomix);
-      card.appendChild(t);
-    }
-    if (rec.zubereitung) {
-      const z = el("div", { class: "prep" });
-      z.innerHTML = "<strong>Zubereitung (klassisch)</strong><br>" + escapeHtml(rec.zubereitung);
-      card.appendChild(z);
-    }
-
-    // Aktionen
     const actions = el("div", { class: "btn-row" });
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d));
     actions.appendChild(printBtn);
-    card.appendChild(actions);
+    c.appendChild(actions);
 
-    return card;
+    const overlay = document.getElementById("detail-overlay");
+    overlay.hidden = false;
+    document.body.classList.add("modal-open");
+    if (overlay.scrollTop !== undefined) overlay.scrollTop = 0;
+  }
+  function closeDetail() {
+    document.getElementById("detail-overlay").hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+  function bindDetail() {
+    const overlay = document.getElementById("detail-overlay");
+    document.getElementById("detail-close").addEventListener("click", closeDetail);
+    overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
   }
 
   function printRecipe(rec, res, d) {
     const items = res.items;
     const sum = sumMacros(items);
     const r = ratioOf(sum);
+    const totalG = items.reduce((a, it) => a + num(it.grams), 0);
+    const ml = volumeMl(items);
     const rows = items.map(it => {
       const m = lineMacros(it);
       return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(it.grams, it.grams < 10 ? 1 : 0) +
@@ -328,7 +360,7 @@
       "<h1>" + escapeHtml(rec.name) + (rec.ketocal ? " (mit KetoCal)" : " (ohne KetoCal)") + "</h1>" +
       "<p class='sub'>Pro Mahlzeit: " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) + " g · Verhältnis " +
-      (r === null ? "—" : fmt(r, 2)) + ":1</p>" +
+      (r === null ? "—" : fmt(r, 2)) + ":1<br>Menge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td></td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong><br>" + escapeHtml(rec.thermomix) + "</div>" : "") +
@@ -439,6 +471,7 @@
     rebuildFoodIndex();
     buildNav();
     bindSettingsBar();
+    bindDetail();
     bindFoods();
     bindData();
     document.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => go(b.dataset.goto)));

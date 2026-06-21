@@ -39,8 +39,12 @@
               <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
             </div>
             <div>
-              <label>Verhältnis (z. B. 4 für 4:1)</label>
+              <label>Verhältnis (z. B. 1,8 für 1,8:1)</label>
               <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
+            </div>
+            <div>
+              <label>Eiweiß pro Tag (g)</label>
+              <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
             </div>
             <div>
               <label>KetoCal</label>
@@ -118,6 +122,14 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Detail-Ansicht eines Rezepts -->
+  <div id="detail-overlay" class="overlay" hidden>
+    <div class="overlay-card">
+      <button class="overlay-close" id="detail-close" aria-label="Schließen">✕</button>
+      <div id="detail-content"></div>
+    </div>
   </div>
 
   <script src="foods.js"></script>

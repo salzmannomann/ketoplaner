@@ -37,20 +37,28 @@ python3 build-single.py
 
 | Bereich | Beschreibung |
 | --- | --- |
-| **Einstellungsleiste** | Direkt über den Rezepten: **Kalorien pro Tag**, **Anzahl Mahlzeiten pro Tag**, **Verhältnis** und die Auswahl **Ohne / Mit KetoCal / Alle**. Daraus werden die **Kalorien pro Mahlzeit** berechnet und angezeigt. |
-| **Rezepte** | Fertige Sondennahrungs-Rezepte. Jedes Rezept wird **automatisch** auf das eingestellte Verhältnis und die Kalorien pro Mahlzeit umgerechnet (die Fett-Zutat Butter/Öl/Sahne wird passend angepasst und in der Tabelle hervorgehoben). Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher erreichen (Standard 1,8:1). Pro Rezept gibt es eine **Thermomix-TM5-Anleitung** und eine klassische Zubereitung, die Gesamtmenge pro Mahlzeit sowie **Rezept drucken** für ein sauberes Küchenblatt. Alle Nährwerte stammen aus der Lebensmittel-Datenbank. |
-| **Mit / ohne KetoCal** | Über die Auswahl lassen sich gezielt Rezepte **ohne KetoCal** anzeigen (Standard) – aktuell stehen mehrere KetoCal-freie Rezepte zur Verfügung. |
+| **Einstellungsleiste** | Direkt über den Rezepten: **Kalorien pro Tag**, **Anzahl Mahlzeiten pro Tag**, **Verhältnis**, **Eiweiß pro Tag** und die Auswahl **Ohne / Mit KetoCal / Alle**. Daraus werden **Kalorien pro Mahlzeit** und das **Eiweiß-Ziel pro Mahlzeit** berechnet. |
+| **Rezepte (Übersicht + Detail)** | Kompakte Kacheln zum schnellen Durchschauen (Name, kcal, Verhältnis, Menge in g/ml, Eiweiß). Klick öffnet das vollständige Rezept mit Zutatentabelle, Kennzahlen, **Thermomix-TM5-Anleitung**, klassischer Zubereitung und **Rezept drucken**. |
+| **Automatische Anpassung** | Jedes Rezept wird **automatisch** auf das eingestellte Verhältnis und die Kalorien pro Mahlzeit umgerechnet (die Fett-Zutat Butter/Öl/Sahne wird passend angepasst). Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher erreichen (Standard **1,8:1**). Alle Nährwerte stammen aus der Lebensmittel-Datenbank. |
+| **Eiweiß-Kontrolle** | Pro Rezept wird das Eiweiß mit dem Ziel verglichen; liegt es darunter, erscheint ein Hinweis. |
+| **Mit / ohne KetoCal** | Über die Auswahl lassen sich gezielt Rezepte **ohne KetoCal** anzeigen (Standard) – mehrere KetoCal-freie Rezepte stehen zur Verfügung. Bei Rezepten ohne KetoCal wird auf die nötige Ergänzung von Vitaminen/Mineralstoffen hingewiesen. |
 | **Lebensmittel** | Datenbank mit 117 Lebensmitteln (Werte je 100 g), inkl. der Spezial-Zutaten der Sondennahrung (z. B. KetoCal 3:1, Johannisbrotkernmehl, Himmeltau Grießbrei); eigene Lebensmittel können ergänzt werden. |
 | **Daten & Sicherung** | Daten als Datei exportieren/importieren oder alles zurücksetzen. |
 
 ## Rezepte
 
-Ohne KetoCal: Gemüse-Fleischbrei (Zucchini / Karotte), Avocado-Ei-Creme,
-Fisch-Brokkoli-Püree, Hähnchen-Karotte-Creme, Rührei-Sahne-Creme,
-Beeren-Sahne-Creme, Thunfisch-Zucchini-Püree, Kartoffel-Gemüse-Creme.
+Ohne KetoCal: Gemüse-Fleischbrei (Zucchini / Karotte), Fisch-Brokkoli-Püree,
+Hähnchen-Karotte-Creme, Hähnchen-Zucchini-Creme, Blumenkohl-Hähnchen-Creme,
+Pute-Karotte-Creme, Rindfleisch-Gemüse-Püree, Forelle-Kartoffel-Püree,
+Thunfisch-Zucchini-Püree, Kartoffel-Gemüse-Creme, Avocado-Ei-Creme,
+Rührei-Sahne-Creme, Beeren-Sahne-Creme.
 
 Mit KetoCal: Obstbrei (Banane / Apfelmus / Banane & Apfelmus),
 Gemüse-Kartoffelbrei (2 Varianten), Milch-Grieß-Obstbrei, Karottensuppe.
+
+Hinweis: Sehr fettreiche Rezepte (z. B. Avocado-Ei-, Rührei-Sahne-,
+Beeren-Sahne-Creme) erscheinen erst ab einem höheren Verhältnis, da sie ein
+Verhältnis von 1,8:1 nicht erreichen können.
 
 ## Berechnungsgrundlage
 
