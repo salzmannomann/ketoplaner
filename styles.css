@@ -57,17 +57,23 @@ body {
 }
 .nav button:hover { background: var(--bg); }
 .nav button.active { background: var(--brand-soft); color: var(--brand-dark); font-weight: 600; }
-.nav .ico { width: 22px; text-align: center; }
-.nav .sep { height: 1px; background: var(--line); margin: 8px 6px; }
+.main { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
 
-.main { flex: 1; min-width: 0; padding: 28px 32px 80px; max-width: 1040px; }
-.page { display: none; }
-.page.active { display: block; animation: fade .18s ease; }
-@keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+/* Kopfleiste */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 12px 24px;
+}
+.topbar .brand { padding: 0; font-size: 19px; }
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 18px; color: var(--brand-dark);
+}
+.brand .logo { font-size: 24px; }
 
 h1 { font-size: 26px; margin: 0 0 4px; }
 .subtitle { color: var(--muted); margin: 0 0 22px; }
-h2 { font-size: 18px; margin: 26px 0 12px; }
 
 /* Cards */
 .card {
@@ -183,6 +189,7 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .settings-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
 }
+.seg-field { grid-column: span 2; }
 .permeal {
   margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px;
@@ -210,8 +217,10 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .tile:hover { border-color: var(--brand); box-shadow: 0 4px 12px rgba(16,24,40,.12); transform: translateY(-1px); }
 .tile:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
-.tile-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tile-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tile-icon { font-size: 34px; line-height: 1; }
 .tile-name { font-weight: 700; font-size: 16px; line-height: 1.3; }
+.tile-badge { margin-top: -2px; }
 .tile-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; }
 .tile-stats .prot-ok { color: var(--green); }
 .tile-stats .prot-low { color: var(--yellow); }
@@ -234,8 +243,10 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .overlay-close:hover { background: var(--line); }
 body.modal-open { overflow: hidden; }
-#detail-content .title { font-weight: 700; font-size: 20px; padding-right: 40px; }
-#detail-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 14px; }
+.detail-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 14px; }
+.detail-icon { font-size: 40px; line-height: 1; }
+#detail-content .title { font-weight: 700; font-size: 20px; }
+#detail-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
 .detail-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
 .dstat { background: var(--bg); border-radius: 10px; padding: 12px; text-align: center; }
 .dstat .v { font-size: 18px; font-weight: 700; color: var(--brand-dark); }

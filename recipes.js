@@ -1,14 +1,13 @@
-// Sondennahrungs-Rezepte für die ketogene Ernährung.
-// Mengen in Gramm (Basis/Arbeitsblatt). Die Software rechnet jedes Rezept
-// automatisch auf das eingestellte Verhältnis und die Kalorien pro Mahlzeit um.
-// Felder:
-//   name, kategorie, ketocal (true/false – nur zur Info),
-//   zubereitung   = klassische Zubereitung
-//   thermomix     = Zubereitung mit Thermomix TM5
-//   items         = Zutaten [{food, grams}]
+// Standard-Rezepte für die ketogene Sondennahrung (ca. 20 Stück, vielfältig).
+// Alle Rezepte sind so gewählt, dass sie ein Verhältnis von 1,8:1 sicher
+// erreichen. Die Software rechnet jedes Rezept automatisch auf das eingestellte
+// Verhältnis und die Kalorien pro Mahlzeit um.
+// Felder: name, icon, ketocal, zubereitung (klassisch), thermomix (TM5), items.
 const RECIPES_SONDE = [
+  // ---------- Mit KetoCal ----------
   {
     name: "Obstbrei – Banane",
+    icon: "🍌",
     ketocal: true,
     zubereitung: "Das kalte Wasser in einen Topf geben und das Johannisbrotkernmehl mit dem Schneebesen einrühren. Unter gelegentlichem Rühren erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 glatt unterrühren und Butter sowie Banane zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl in den Mixtopf geben, 8 Sek./Stufe 4 verrühren. 6 Min./90 °C/Stufe 2 andicken. Ca. 5 Min. auf 45–50 °C abkühlen lassen, dann KetoCal 3:1, Butter und Banane zugeben und 20 Sek./Stufe 6 glatt pürieren.",
@@ -22,6 +21,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Obstbrei – Apfelmus",
+    icon: "🍎",
     ketocal: true,
     zubereitung: "Das kalte Wasser in einen Topf geben und das Johannisbrotkernmehl mit dem Schneebesen einrühren. Unter gelegentlichem Rühren erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 glatt unterrühren und Butter sowie Apfelmus zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl in den Mixtopf geben, 8 Sek./Stufe 4 verrühren. 6 Min./90 °C/Stufe 2 andicken. Ca. 5 Min. auf 45–50 °C abkühlen lassen, dann KetoCal 3:1, Butter und Apfelmus zugeben und 20 Sek./Stufe 6 glatt pürieren.",
@@ -35,6 +35,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Obstbrei – Banane & Apfelmus",
+    icon: "🍏",
     ketocal: true,
     zubereitung: "Das kalte Wasser in einen Topf geben und das Johannisbrotkernmehl mit dem Schneebesen einrühren. Unter gelegentlichem Rühren erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 glatt unterrühren und Butter sowie das Obst zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl in den Mixtopf geben, 8 Sek./Stufe 4 verrühren. 6 Min./90 °C/Stufe 2 andicken. Ca. 5 Min. abkühlen lassen, dann KetoCal 3:1, Butter, Banane und Apfelmus zugeben und 20 Sek./Stufe 6 glatt pürieren.",
@@ -48,31 +49,8 @@ const RECIPES_SONDE = [
     ],
   },
   {
-    name: "Gemüse-Fleischbrei – Zucchini",
-    ketocal: false,
-    zubereitung: "Das Gemüse abwiegen, in wenig Wasser weich dünsten und mit dem gegarten Fleisch pürieren. Anschließend das Rapsöl untermischen.",
-    thermomix: "Zucchini in groben Stücken in den Mixtopf geben, 5 Sek./Stufe 5 zerkleinern. Wasser und gegartes Hühnerfleisch zugeben, 10 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [
-      { food: "Hühnerbrust ohne Haut", grams: 20 },
-      { food: "Rapsöl", grams: 13 },
-      { food: "Wasser", grams: 60 },
-      { food: "Zucchini roh", grams: 80 },
-    ],
-  },
-  {
-    name: "Gemüse-Fleischbrei – Karotte",
-    ketocal: false,
-    zubereitung: "Das Gemüse abwiegen, in wenig Wasser weich dünsten und mit dem gegarten Fleisch pürieren. Anschließend das Rapsöl untermischen.",
-    thermomix: "Karotte in Stücken 5 Sek./Stufe 5 zerkleinern. Wasser und gegartes Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [
-      { food: "Karotte", grams: 45 },
-      { food: "Hühnerbrust ohne Haut", grams: 20 },
-      { food: "Rapsöl", grams: 12 },
-      { food: "Wasser", grams: 60 },
-    ],
-  },
-  {
     name: "Gemüse-Kartoffelbrei (Variante 1)",
+    icon: "🥔",
     ketocal: true,
     zubereitung: "Kartoffel und Zucchini garen, mit dem Wasser und KetoCal 3:1 fein pürieren und das Rapsöl untermischen.",
     thermomix: "Gegarte Kartoffel und Zucchini mit Wasser und KetoCal 3:1 in den Mixtopf geben, 8 Min./90 °C/Stufe 1 erwärmen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -86,6 +64,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Kartoffelbrei (Variante 2)",
+    icon: "🥔",
     ketocal: true,
     zubereitung: "Kartoffel und Zucchini garen, mit dem Wasser und KetoCal 3:1 fein pürieren und das Rapsöl untermischen.",
     thermomix: "Gegarte Kartoffel und Zucchini mit Wasser und KetoCal 3:1 in den Mixtopf geben, 8 Min./90 °C/Stufe 1 erwärmen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -99,6 +78,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Milch-Grieß-Obstbrei",
+    icon: "🥣",
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann Grießbrei und KetoCal 3:1 glatt unterrühren. Zum Schluss Butter und Apfelmus zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl in den Mixtopf geben, 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann Grießbrei, KetoCal 3:1, Butter und Apfelmus zugeben und 20 Sek./Stufe 6 glatt rühren.",
@@ -113,6 +93,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Karottensuppe",
+    icon: "🥕",
     ketocal: true,
     zubereitung: "Karotten und Zwiebel in Wasser oder – ganz bzw. teilweise – in klarer Gemüsebrühe weich kochen und fein pürieren. KetoCal 3:1, Schlagobers und Butter unterrühren.",
     thermomix: "Karotten und Zwiebel grob 5 Sek./Stufe 5 zerkleinern. Wasser (oder Gemüsebrühe) zugeben, 15 Min./100 °C/Stufe 1 weich garen. KetoCal 3:1, Schlagobers und Butter zugeben und 45 Sek./Stufe 8 fein pürieren.",
@@ -126,21 +107,36 @@ const RECIPES_SONDE = [
     ],
   },
 
-  // ---------- Zusätzliche Rezepte OHNE KetoCal ----------
+  // ---------- Ohne KetoCal ----------
   {
-    name: "Avocado-Ei-Creme",
+    name: "Gemüse-Fleischbrei – Zucchini",
+    icon: "🥒",
     ketocal: false,
-    zubereitung: "Ei hart kochen, schälen und mit Avocado, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Ei in den Varoma legen, 1 Liter Wasser in den Mixtopf, 15 Min./Varoma/Stufe 1 hart garen. Mixtopf leeren. Geschältes Ei, Avocado, Wasser und Rapsöl einfüllen und 30 Sek./Stufe 7 cremig pürieren.",
+    zubereitung: "Das Gemüse abwiegen, in wenig Wasser weich dünsten und mit dem gegarten Fleisch pürieren. Anschließend das Rapsöl untermischen.",
+    thermomix: "Zucchini in groben Stücken in den Mixtopf geben, 5 Sek./Stufe 5 zerkleinern. Wasser und gegartes Hühnerfleisch zugeben, 10 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [
-      { food: "Hühnerei, Vollei, frisch", grams: 30 },
-      { food: "Avocado", grams: 40 },
-      { food: "Rapsöl", grams: 10 },
-      { food: "Wasser", grams: 40 },
+      { food: "Hühnerbrust ohne Haut", grams: 20 },
+      { food: "Rapsöl", grams: 13 },
+      { food: "Wasser", grams: 60 },
+      { food: "Zucchini roh", grams: 80 },
+    ],
+  },
+  {
+    name: "Gemüse-Fleischbrei – Karotte",
+    icon: "🥕",
+    ketocal: false,
+    zubereitung: "Das Gemüse abwiegen, in wenig Wasser weich dünsten und mit dem gegarten Fleisch pürieren. Anschließend das Rapsöl untermischen.",
+    thermomix: "Karotte in Stücken 5 Sek./Stufe 5 zerkleinern. Wasser und gegartes Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    items: [
+      { food: "Karotte", grams: 45 },
+      { food: "Hühnerbrust ohne Haut", grams: 20 },
+      { food: "Rapsöl", grams: 12 },
+      { food: "Wasser", grams: 60 },
     ],
   },
   {
     name: "Fisch-Brokkoli-Püree",
+    icon: "🐟",
     ketocal: false,
     zubereitung: "Brokkoli weich garen und mit gegartem Fisch, Wasser und Rapsöl fein pürieren.",
     thermomix: "Brokkoli in den Mixtopf geben, 5 Sek./Stufe 5 zerkleinern. Wasser zugeben, 8 Min./100 °C/Stufe 1 garen. Gegarten Fisch und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -153,6 +149,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hähnchen-Karotte-Creme",
+    icon: "🍗",
     ketocal: false,
     zubereitung: "Karotten weich garen, mit gegartem Hähnchen, Wasser und Rapsöl fein pürieren.",
     thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -164,32 +161,73 @@ const RECIPES_SONDE = [
     ],
   },
   {
-    name: "Rührei-Sahne-Creme",
+    name: "Hähnchen-Zucchini-Creme",
+    icon: "🍗",
     ketocal: false,
-    zubereitung: "Ei, Sahne, Butter und Wasser verquirlen, unter Rühren stocken lassen und glatt pürieren.",
-    thermomix: "Alle Zutaten in den Mixtopf geben, 10 Sek./Stufe 4 verrühren. 6 Min./90 °C/Stufe 2 unter Rühren stocken lassen, dann 20 Sek./Stufe 6 cremig pürieren.",
+    zubereitung: "Zucchini weich garen, mit gegartem Hähnchen, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [
-      { food: "Hühnerei, Vollei, frisch", grams: 40 },
-      { food: "Schlagsahne 30 % Fett", grams: 40 },
-      { food: "Butter", grams: 8 },
-      { food: "Wasser", grams: 20 },
+      { food: "Hähnchenbrust ohne Haut", grams: 25 },
+      { food: "Zucchini gegart", grams: 70 },
+      { food: "Rapsöl", grams: 12 },
+      { food: "Wasser", grams: 40 },
     ],
   },
   {
-    name: "Beeren-Sahne-Creme",
+    name: "Blumenkohl-Hähnchen-Creme",
+    icon: "🥦",
     ketocal: false,
-    zubereitung: "Wasser mit Johannisbrotkernmehl andicken, abkühlen lassen und mit Sahne, Butter und Himbeeren fein pürieren.",
-    thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 5 Min./90 °C/Stufe 2 andicken. Abkühlen lassen, dann Sahne, Butter und Himbeeren zugeben und 20 Sek./Stufe 6 fein pürieren.",
+    zubereitung: "Blumenkohl weich garen, mit gegartem Hähnchen, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Blumenkohl 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [
-      { food: "Schlagsahne 30 % Fett", grams: 60 },
-      { food: "Himbeere", grams: 25 },
-      { food: "Butter", grams: 8 },
+      { food: "Hähnchenbrust ohne Haut", grams: 25 },
+      { food: "Blumenkohl, gekocht", grams: 60 },
+      { food: "Rapsöl", grams: 12 },
       { food: "Wasser", grams: 40 },
-      { food: "Johannisbrotkernmehl", grams: 1 },
+    ],
+  },
+  {
+    name: "Pute-Karotte-Creme",
+    icon: "🦃",
+    ketocal: false,
+    zubereitung: "Karotten weich garen, mit gegarter Putenbrust, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Putenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    items: [
+      { food: "Putenbrust ohne Haut", grams: 25 },
+      { food: "Möhren, gekocht", grams: 50 },
+      { food: "Rapsöl", grams: 12 },
+      { food: "Wasser", grams: 50 },
+    ],
+  },
+  {
+    name: "Rindfleisch-Gemüse-Püree",
+    icon: "🥩",
+    ketocal: false,
+    zubereitung: "Gemüse weich garen, mit gegartem Rinderhackfleisch, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderhackfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    items: [
+      { food: "Rinderhackfleisch", grams: 25 },
+      { food: "Möhren, gekocht", grams: 50 },
+      { food: "Rapsöl", grams: 10 },
+      { food: "Wasser", grams: 50 },
+    ],
+  },
+  {
+    name: "Forelle-Kartoffel-Püree",
+    icon: "🐟",
+    ketocal: false,
+    zubereitung: "Kartoffel garen, mit gegarter Forelle, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Kartoffel grob zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Gegarte Forelle und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    items: [
+      { food: "Forelle, gegart", grams: 30 },
+      { food: "Kartoffel gekocht", grams: 30 },
+      { food: "Rapsöl", grams: 12 },
+      { food: "Wasser", grams: 50 },
     ],
   },
   {
     name: "Thunfisch-Zucchini-Püree",
+    icon: "🐟",
     ketocal: false,
     zubereitung: "Zucchini weich garen, abgetropften Thunfisch, Wasser und Olivenöl zugeben und fein pürieren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern, Wasser zugeben, 8 Min./100 °C/Stufe 1 garen. Abgetropften Thunfisch und Olivenöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -202,6 +240,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Kartoffel-Gemüse-Creme",
+    icon: "🥔",
     ketocal: false,
     zubereitung: "Kartoffel und Zucchini garen, mit Wasser fein pürieren und das Rapsöl untermischen.",
     thermomix: "Gegarte Kartoffel und Zucchini mit Wasser in den Mixtopf geben, 8 Min./90 °C/Stufe 1 erwärmen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -213,62 +252,29 @@ const RECIPES_SONDE = [
     ],
   },
   {
-    name: "Pute-Karotte-Creme",
+    name: "Avocado-Hähnchen-Creme",
+    icon: "🥑",
     ketocal: false,
-    zubereitung: "Karotten weich garen, mit gegarter Putenbrust, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Putenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    zubereitung: "Hähnchen und Karotten garen, mit Avocado, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Avocado und Rapsöl zugeben und 40 Sek./Stufe 7 cremig pürieren.",
     items: [
-      { food: "Putenbrust ohne Haut", grams: 25 },
-      { food: "Möhren, gekocht", grams: 50 },
-      { food: "Rapsöl", grams: 12 },
-      { food: "Wasser", grams: 50 },
-    ],
-  },
-  {
-    name: "Forelle-Kartoffel-Püree",
-    ketocal: false,
-    zubereitung: "Kartoffel garen, mit gegarter Forelle, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Kartoffel grob zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Gegarte Forelle und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [
-      { food: "Forelle, gegart", grams: 30 },
-      { food: "Kartoffel gekocht", grams: 30 },
-      { food: "Rapsöl", grams: 12 },
-      { food: "Wasser", grams: 50 },
-    ],
-  },
-  {
-    name: "Hähnchen-Zucchini-Creme",
-    ketocal: false,
-    zubereitung: "Zucchini weich garen, mit gegartem Hähnchen, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [
-      { food: "Hähnchenbrust ohne Haut", grams: 25 },
-      { food: "Zucchini gegart", grams: 70 },
-      { food: "Rapsöl", grams: 12 },
+      { food: "Hähnchenbrust ohne Haut", grams: 30 },
+      { food: "Avocado", grams: 20 },
+      { food: "Möhren, gekocht", grams: 40 },
+      { food: "Rapsöl", grams: 6 },
       { food: "Wasser", grams: 40 },
     ],
   },
   {
-    name: "Rindfleisch-Gemüse-Püree",
+    name: "Ei-Gemüse-Creme",
+    icon: "🥚",
     ketocal: false,
-    zubereitung: "Gemüse weich garen, mit gegartem Rinderhackfleisch, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Möhren 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderhackfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    zubereitung: "Ei hart kochen, mit gegarter Zucchini, Wasser und Rapsöl fein pürieren.",
+    thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
     items: [
-      { food: "Rinderhackfleisch", grams: 25 },
-      { food: "Möhren, gekocht", grams: 50 },
-      { food: "Rapsöl", grams: 10 },
-      { food: "Wasser", grams: 50 },
-    ],
-  },
-  {
-    name: "Blumenkohl-Hähnchen-Creme",
-    ketocal: false,
-    zubereitung: "Blumenkohl weich garen, mit gegartem Hähnchen, Wasser und Rapsöl fein pürieren.",
-    thermomix: "Blumenkohl 5 Sek./Stufe 5 zerkleinern. Wasser und Hähnchenbrust zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [
-      { food: "Hähnchenbrust ohne Haut", grams: 25 },
-      { food: "Blumenkohl, gekocht", grams: 60 },
-      { food: "Rapsöl", grams: 12 },
+      { food: "Hühnerei, Vollei, frisch", grams: 40 },
+      { food: "Zucchini gegart", grams: 60 },
+      { food: "Rapsöl", grams: 8 },
       { food: "Wasser", grams: 40 },
     ],
   },

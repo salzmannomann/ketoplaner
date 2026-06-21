@@ -8,121 +8,51 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
-    <!-- Mobile top bar -->
-    <div class="mobile-bar">
-      <div class="brand"><span class="logo">🥄</span> Keto-Sondennahrung</div>
-      <select id="mobileNav" aria-label="Seite wählen"></select>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🥄</span> Keto-Sondennahrung</div>
+  </header>
+
+  <main class="main">
+    <p class="subtitle">Standard-Rezepte – automatisch auf dein Verhältnis und deine Kalorien pro Mahlzeit berechnet.</p>
+
+    <div class="card settings-bar">
+      <div class="settings-grid">
+        <div>
+          <label>Kalorien pro Tag</label>
+          <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Anzahl Mahlzeiten pro Tag</label>
+          <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Verhältnis (z. B. 1,8 für 1,8:1)</label>
+          <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
+        </div>
+        <div>
+          <label>Eiweiß pro Tag (g)</label>
+          <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
+        </div>
+        <div class="seg-field">
+          <label>KetoCal</label>
+          <div class="segmented" id="ketocal-seg">
+            <button type="button" data-val="ohne">Ohne KetoCal</button>
+            <button type="button" data-val="mit">Mit KetoCal</button>
+            <button type="button" data-val="alle">Alle</button>
+          </div>
+        </div>
+      </div>
+      <div class="permeal" id="permeal"></div>
     </div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand"><span class="logo">🥄</span> Keto-Sonde</div>
-      <nav class="nav" id="nav"></nav>
-    </aside>
+    <div id="info-note"></div>
+    <div class="toolbar">
+      <span class="hint" id="recipe-count"></span>
+    </div>
+    <div id="recipe-list"></div>
 
-    <!-- Content -->
-    <main class="main">
-      <!-- REZEPTE -->
-      <section class="page" data-page="rezepte">
-        <h1>Rezepte</h1>
-        <p class="subtitle">Jedes Rezept wird automatisch an deine Einstellungen angepasst.</p>
-
-        <div class="card settings-bar">
-          <div class="settings-grid">
-            <div>
-              <label>Kalorien pro Tag</label>
-              <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
-            </div>
-            <div>
-              <label>Anzahl Mahlzeiten pro Tag</label>
-              <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
-            </div>
-            <div>
-              <label>Verhältnis (z. B. 1,8 für 1,8:1)</label>
-              <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
-            </div>
-            <div>
-              <label>Eiweiß pro Tag (g)</label>
-              <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
-            </div>
-            <div>
-              <label>KetoCal</label>
-              <div class="segmented" id="ketocal-seg">
-                <button type="button" data-val="ohne">Ohne KetoCal</button>
-                <button type="button" data-val="mit">Mit KetoCal</button>
-                <button type="button" data-val="alle">Alle</button>
-              </div>
-            </div>
-          </div>
-          <div class="permeal" id="permeal"></div>
-        </div>
-
-        <div id="info-note"></div>
-        <div class="toolbar">
-          <span class="hint" id="recipe-count"></span>
-        </div>
-        <div id="recipe-list"></div>
-      </section>
-
-      <!-- LEBENSMITTEL -->
-      <section class="page" data-page="lebensmittel">
-        <h1>Lebensmittel</h1>
-        <p class="subtitle">Alle Werte beziehen sich auf 100 g — du kannst eigene Lebensmittel ergänzen.</p>
-        <div class="card">
-          <h3>Eigenes Lebensmittel hinzufügen</h3>
-          <div class="grid cols-4">
-            <div><label>Kategorie</label><input id="lm-kat" type="text" placeholder="z. B. Eigene" /></div>
-            <div><label>Lebensmittel</label><input id="lm-name" type="text" /></div>
-            <div><label>Eiweiß /100g</label><input id="lm-eiweiss" type="number" step="0.1" /></div>
-            <div><label>Fett /100g</label><input id="lm-fett" type="number" step="0.1" /></div>
-            <div><label>KH /100g</label><input id="lm-kh" type="number" step="0.1" /></div>
-            <div><label>Cholesterin (mg)</label><input id="lm-chol" type="number" step="1" /></div>
-            <div><label>Natrium (mg)</label><input id="lm-natrium" type="number" step="1" /></div>
-            <div><label>Ballaststoffe (g)</label><input id="lm-ballast" type="number" step="0.1" /></div>
-          </div>
-          <div class="btn-row"><button class="btn" id="lm-add">Hinzufügen</button></div>
-        </div>
-        <div class="card">
-          <div class="toolbar">
-            <input type="search" id="lm-search" placeholder="Suchen…" />
-            <select id="lm-filter"></select>
-            <span class="hint" id="lm-count"></span>
-          </div>
-          <div class="tbl-wrap">
-            <table id="lm-table">
-              <thead>
-                <tr><th>Kategorie</th><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th><th></th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- DATEN -->
-      <section class="page" data-page="daten">
-        <h1>Daten &amp; Sicherung</h1>
-        <p class="subtitle">Deine Eingaben werden lokal im Browser gespeichert.</p>
-        <div class="card">
-          <h3>Sichern &amp; Wiederherstellen</h3>
-          <p class="hint">Exportiere deine Daten als Datei oder lade eine Sicherung wieder.</p>
-          <div class="btn-row">
-            <button class="btn" id="data-export">Daten exportieren</button>
-            <button class="btn secondary" id="data-import-btn">Daten importieren</button>
-            <input type="file" id="data-import" accept="application/json" style="display:none" />
-          </div>
-        </div>
-        <div class="card">
-          <h3>Zurücksetzen</h3>
-          <p class="hint">Setzt alle Eingaben und die Lebensmittel-Datenbank auf den Auslieferungszustand zurück.</p>
-          <div class="btn-row">
-            <button class="btn ghost" id="data-reset">Alles zurücksetzen</button>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+    <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen.</p>
+  </main>
 
   <!-- Detail-Ansicht eines Rezepts -->
   <div id="detail-overlay" class="overlay" hidden>
