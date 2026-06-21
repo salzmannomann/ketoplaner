@@ -186,6 +186,16 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .badge.keto { background: var(--yellow-bg); color: var(--yellow); }
 .badge.noketo { background: var(--green-bg); color: var(--green); }
+.badge.adj { background: #e6effb; color: var(--accent); }
+.adjust {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+  background: var(--bg); border-radius: 9px; padding: 12px 14px; margin-top: 12px;
+}
+.adjust-field { display: flex; align-items: center; gap: 8px; }
+.adjust-field input[type=number] { width: 110px; }
+.adjust-note { color: var(--yellow); font-size: 13px; margin-top: 8px; min-height: 0; }
+.adjust-note:empty { display: none; }
+tr.fatrow td { background: #fdf6e3; }
 .prep {
   background: var(--bg); border-radius: 9px; padding: 12px 14px;
   font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;

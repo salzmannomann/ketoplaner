@@ -40,7 +40,8 @@ python3 build-single.py
 | **Verhältnis korrigieren** | Eiweiß/Fett/KH einer Mahlzeit eingeben und sofort sehen, wie viel Fett (Butter) zugegeben oder weggelassen werden muss. |
 | **Mahlzeiten** (Frühstück, Snack, Mittag, Nachmittag, Abend) | Pro Mahlzeit Lebensmittel und Mengen eintragen, mit Ampel-Prüfung des Verhältnisses. |
 | **Tagesübersicht** | Alle Mahlzeiten summiert, Vergleich mit dem Tagesziel. |
-| **Gespeicherte Mahlzeiten** | Fest hinterlegte **Sondennahrungs-Rezepte** (aus dem Arbeitsblatt) inkl. Zutaten, Mengen, Verhältnis und Zubereitung, plus eigene Lieblings-Mahlzeiten. Mit **Filter** nach Sondennahrung / eigenen Mahlzeiten. Rezepte lassen sich mit einem Klick in eine Mahlzeit laden oder als eigene Mahlzeit kopieren. |
+| **Gespeicherte Mahlzeiten** | Fest hinterlegte **Sondennahrungs-Rezepte** (aus dem Arbeitsblatt) inkl. Zutaten, Mengen, Verhältnis und Zubereitung, plus eigene Lieblings-Mahlzeiten. Mit **Filter** nach Sondennahrung / eigenen Mahlzeiten und nach **mit / ohne KetoCal**. Rezepte lassen sich mit einem Klick in eine Mahlzeit laden oder als eigene Mahlzeit kopieren. |
+| **Rezepte dynamisch anpassen** | Jedes Rezept kann live umgerechnet werden: **Portion (kcal)** skaliert alle Zutaten proportional, und **„An mein Verhältnis anpassen"** passt die Fett-Zutat (Butter/Öl/Sahne) automatisch so an, dass das in den Einstellungen gewählte Keto-Verhältnis getroffen wird. Beides ist kombinierbar; „Original" stellt das ursprüngliche Rezept wieder her. |
 | **Lebensmittel** | Datenbank mit 117 Lebensmitteln (Werte je 100 g), inkl. der Spezial-Zutaten der Sondennahrung (z. B. KetoCal 3:1, Johannisbrotkernmehl, Himmeltau Grießbrei); eigene Lebensmittel können ergänzt werden. |
 | **Daten & Sicherung** | Daten als Datei exportieren/importieren oder alles zurücksetzen. |
 
