@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f855a" />
+  <title>Keto-Rechner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Mobile top bar -->
+    <div class="mobile-bar">
+      <div class="brand"><span class="logo">🥑</span> Keto-Rechner</div>
+      <select id="mobileNav" aria-label="Seite wählen"></select>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand"><span class="logo">🥑</span> Keto-Rechner</div>
+      <nav class="nav" id="nav"></nav>
+    </aside>
+
+    <!-- Content -->
+    <main class="main">
+      <!-- START -->
+      <section class="page" data-page="start">
+        <h1>Keto-Rechner – einfach erklärt</h1>
+        <p class="subtitle">Dein digitaler Begleiter für die ketogene Ernährung.</p>
+        <div class="card">
+          <div class="start-list">
+            <div>1.&nbsp;&nbsp; Zutaten auswählen</div>
+            <div>2.&nbsp;&nbsp; Menge eingeben</div>
+            <div>3.&nbsp;&nbsp; Ergebnis prüfen</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>👉 Für den Einstieg</h3>
+          <p class="hint">Lege zuerst deine Werte unter „Einstellungen“ fest. Danach rechnet alles automatisch.</p>
+          <div class="start-cta">
+            <button class="btn" data-goto="einstellungen">Einstellungen öffnen</button>
+            <button class="btn secondary" data-goto="berechnen">Mahlzeit berechnen</button>
+            <button class="btn secondary" data-goto="korrigieren">Verhältnis korrigieren</button>
+          </div>
+        </div>
+        <p class="footnote">Alle Daten werden nur lokal in deinem Browser gespeichert (nichts wird hochgeladen).</p>
+      </section>
+
+      <!-- EINSTELLUNGEN -->
+      <section class="page" data-page="einstellungen">
+        <h1>Einstellungen</h1>
+        <p class="subtitle">Nur einmal ausfüllen — danach rechnet alles automatisch.</p>
+        <div class="card">
+          <h3>Was du eingibst</h3>
+          <div class="grid cols-2">
+            <div>
+              <label>Name des Kindes</label>
+              <input id="set-name" type="text" placeholder="leer lassen, falls nicht gewünscht" />
+            </div>
+            <div>
+              <label>Datum</label>
+              <input id="set-datum" type="date" />
+            </div>
+            <div>
+              <label>Kalorien pro Tag</label>
+              <input id="set-kcal" type="number" min="0" step="10" />
+              <div class="field-note">wie viel pro Tag essen</div>
+            </div>
+            <div>
+              <label>Verhältnis (z. B. 4 für 4:1)</label>
+              <input id="set-ratio" type="number" min="0" step="0.1" />
+              <div class="field-note">klassisch sind 4:1 oder 3:1</div>
+            </div>
+            <div>
+              <label>Eiweiß pro Tag (g)</label>
+              <input id="set-eiweiss" type="number" min="0" step="1" />
+              <div class="field-note">tägliche Eiweißmenge</div>
+            </div>
+            <div>
+              <label>Mahlzeiten pro Tag</label>
+              <input id="set-mahlzeiten" type="number" min="1" step="1" />
+              <div class="field-note">meistens 3 oder 4</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Was daraus berechnet wird – pro Tag</h3>
+          <div class="stats" id="stats-tag"></div>
+        </div>
+        <div class="card">
+          <h3>Pro Mahlzeit</h3>
+          <div class="stats" id="stats-mahlzeit"></div>
+        </div>
+      </section>
+
+      <!-- MAHLZEIT BERECHNEN -->
+      <section class="page" data-page="berechnen">
+        <h1>Mahlzeit berechnen</h1>
+        <p class="subtitle">Du wählst 3 Zutaten — der Rechner sagt dir, wie viel Gramm es werden müssen.</p>
+        <div class="card">
+          <h3>① Wähle 3 Zutaten aus</h3>
+          <div class="tbl-wrap">
+            <table id="calc-input">
+              <thead>
+                <tr><th>Rolle</th><th>Zutat</th><th>Eiweiß /100g</th><th>Fett /100g</th><th>KH /100g</th><th>Kcal /100g</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>② Wie viele Gramm der Hauptzutat?</h3>
+          <div class="grid cols-2">
+            <div>
+              <label>Gramm Hauptzutat (Zutat 1)</label>
+              <input id="calc-grams" type="number" min="0" step="1" />
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>③ Das ist deine Mahlzeit</h3>
+          <div class="tbl-wrap">
+            <table id="calc-result">
+              <thead>
+                <tr><th>Zutat</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="calc-status"></div>
+          <div class="tip">💡 Tipp: Die berechneten Mengen kannst du direkt in einen Mahlzeit-Tab übertragen.</div>
+        </div>
+      </section>
+
+      <!-- VERHÄLTNIS KORRIGIEREN -->
+      <section class="page" data-page="korrigieren">
+        <h1>Verhältnis korrigieren</h1>
+        <p class="subtitle">👉 Etwas stimmt nicht? Hier kannst du es sofort korrigieren.</p>
+        <div class="card">
+          <div class="grid cols-3">
+            <div><label>Eiweiß (g)</label><input id="korr-eiweiss" type="number" min="0" step="0.1" /></div>
+            <div><label>Fett (g)</label><input id="korr-fett" type="number" min="0" step="0.1" /></div>
+            <div><label>Kohlenhydrate (g)</label><input id="korr-kh" type="number" min="0" step="0.1" /></div>
+          </div>
+          <div id="korr-status"></div>
+          <div id="korr-butter" class="hint" style="margin-top:10px"></div>
+          <div class="tip">💡 Tipp: „Fett“ bedeutet Butter, Sahne oder Öl.</div>
+        </div>
+      </section>
+
+      <!-- TAGESÜBERSICHT -->
+      <section class="page" data-page="tag">
+        <h1>Tagesübersicht</h1>
+        <p class="subtitle">Alle Mahlzeiten zusammen — passt das Tagesziel?</p>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table id="day-table">
+              <thead>
+                <tr><th>Mahlzeit</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th><th>Verhältnis</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="day-status"></div>
+        </div>
+      </section>
+
+      <!-- MAHLZEITEN-TABS -->
+      <section class="page" data-page="meal" data-meal="fruehstueck"></section>
+      <section class="page" data-page="meal" data-meal="snack"></section>
+      <section class="page" data-page="meal" data-meal="mittag"></section>
+      <section class="page" data-page="meal" data-meal="nachmittag"></section>
+      <section class="page" data-page="meal" data-meal="abend"></section>
+
+      <!-- GESPEICHERTE MAHLZEITEN -->
+      <section class="page" data-page="gespeichert">
+        <h1>Gespeicherte Mahlzeiten</h1>
+        <p class="subtitle">Speichere Lieblings-Mahlzeiten ab — beim nächsten Mal nur noch ablesen.</p>
+        <div class="card">
+          <button class="btn" id="add-saved">+ Neue Mahlzeit speichern</button>
+        </div>
+        <div id="saved-list"></div>
+      </section>
+
+      <!-- LEBENSMITTEL -->
+      <section class="page" data-page="lebensmittel">
+        <h1>Lebensmittel</h1>
+        <p class="subtitle">Alle Werte beziehen sich auf 100 g — du kannst eigene Lebensmittel ergänzen.</p>
+        <div class="card">
+          <h3>Eigenes Lebensmittel hinzufügen</h3>
+          <div class="grid cols-4">
+            <div><label>Kategorie</label><input id="lm-kat" type="text" placeholder="z. B. Eigene" /></div>
+            <div><label>Lebensmittel</label><input id="lm-name" type="text" /></div>
+            <div><label>Eiweiß /100g</label><input id="lm-eiweiss" type="number" step="0.1" /></div>
+            <div><label>Fett /100g</label><input id="lm-fett" type="number" step="0.1" /></div>
+            <div><label>KH /100g</label><input id="lm-kh" type="number" step="0.1" /></div>
+            <div><label>Cholesterin (mg)</label><input id="lm-chol" type="number" step="1" /></div>
+            <div><label>Natrium (mg)</label><input id="lm-natrium" type="number" step="1" /></div>
+            <div><label>Ballaststoffe (g)</label><input id="lm-ballast" type="number" step="0.1" /></div>
+          </div>
+          <div class="btn-row"><button class="btn" id="lm-add">Hinzufügen</button></div>
+        </div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="search" id="lm-search" placeholder="Suchen…" />
+            <select id="lm-filter"></select>
+            <span class="hint" id="lm-count"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table id="lm-table">
+              <thead>
+                <tr><th>Kategorie</th><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATEN -->
+      <section class="page" data-page="daten">
+        <h1>Daten &amp; Sicherung</h1>
+        <p class="subtitle">Deine Eingaben werden lokal im Browser gespeichert.</p>
+        <div class="card">
+          <h3>Sichern &amp; Wiederherstellen</h3>
+          <p class="hint">Exportiere deine Daten als Datei (z. B. um sie auf ein anderes Gerät zu übertragen) oder lade eine Sicherung wieder.</p>
+          <div class="btn-row">
+            <button class="btn" id="data-export">Daten exportieren</button>
+            <button class="btn secondary" id="data-import-btn">Daten importieren</button>
+            <input type="file" id="data-import" accept="application/json" style="display:none" />
+          </div>
+        </div>
+        <div class="card">
+          <h3>Zurücksetzen</h3>
+          <p class="hint">Setzt alle Eingaben und die Lebensmittel-Datenbank auf den Auslieferungszustand zurück.</p>
+          <div class="btn-row">
+            <button class="btn ghost" id="data-reset">Alles zurücksetzen</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="foods.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
