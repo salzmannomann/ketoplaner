@@ -9,8 +9,27 @@ nichts hochgeladen.
 
 ## Starten
 
-Einfach die Datei **`index.html`** im Browser öffnen (Doppelklick).
+Es gibt zwei Möglichkeiten:
+
+1. **Einzeldatei (empfohlen, am einfachsten):** Lade nur die Datei
+   **`keto-rechner.html`** herunter und öffne sie per Doppelklick. Sie enthält
+   bereits alles (Design, Logik, Lebensmittel, Rezepte) – sonst wird nichts
+   benötigt. Ideal zum Verschicken oder Kopieren auf mehrere Geräte.
+
+2. **Mehrere Dateien:** Öffne **`index.html`**. Dafür müssen `index.html`,
+   `styles.css`, `app.js`, `foods.js` und `recipes.js` im selben Ordner liegen.
+
 Es ist keine Installation und kein Server nötig.
+
+### Einzeldatei neu erzeugen
+
+Die Datei `keto-rechner.html` wird aus den Einzeldateien gebaut. Nach
+Änderungen an `index.html`, `styles.css`, `app.js`, `foods.js` oder
+`recipes.js` einfach neu erzeugen mit:
+
+```
+python3 build-single.py
+```
 
 ## Funktionen
 
