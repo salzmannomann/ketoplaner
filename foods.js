@@ -1,6 +1,7 @@
 // Lebensmittel-Datenbank (aus Keto_Rechner_Final.xlsx, 105 Einträge)
 // Alle Nährwerte beziehen sich auf 100 g.
 const FOODS_DEFAULT = [
+  {"kategorie": "Fett", "name": "Streichgenuss (Schärdinger)", "pro": 100, "eiweiss": 0.5, "fett": 75, "kh": 0.6, "cholesterin": 120, "natrium": 300, "ballaststoffe": 0},
   {"kategorie": "Milchprodukte", "name": "Magertopfen", "pro": 100, "eiweiss": 11, "fett": 0.2, "kh": 4, "cholesterin": 1, "natrium": 40, "ballaststoffe": 0},
   {"kategorie": "Milchprodukte", "name": "Topfen 20 %", "pro": 100, "eiweiss": 11, "fett": 8.5, "kh": 3, "cholesterin": 30, "natrium": 40, "ballaststoffe": 0},
   {"kategorie": "Fisch", "name": "Lachs, gegart", "pro": 100, "eiweiss": 20, "fett": 13, "kh": 0, "cholesterin": 60, "natrium": 50, "ballaststoffe": 0},

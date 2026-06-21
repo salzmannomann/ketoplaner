@@ -50,11 +50,13 @@ Die App besteht aus einer einzigen Seite:
    Mahlzeiten) angezeigt – praktisch zum Vorkochen.
 
 **Eigenes Rezept zusammenstellen:** Über den Button „🧪 Eigenes Rezept" kann man
-z. B. ein saisonales Lebensmittel (etwa Erdbeeren) wählen und ein Fett zum
-Ausgleich (Schlagobers, Butter, Öl …). Die App berechnet automatisch die Menge
-des Fetts, damit das eingestellte Verhältnis stimmt – wahlweise für eine fixe
-Zutatenmenge oder automatisch hochgerechnet auf eine ganze Mahlzeit. Beliebig
-viele Zutaten kombinierbar.
+z. B. ein saisonales Lebensmittel (etwa Erdbeeren) wählen und ein oder **mehrere
+Fette zum Ausgleich** (Schlagobers, Butter, Streichgenuss, Öl …). Bei mehreren
+Fetten gibt man je einen Anteil in % an, nach dem die berechnete Fettmenge
+aufgeteilt wird. Die App berechnet automatisch die Menge des Fetts, damit das
+eingestellte Verhältnis stimmt – wahlweise für eine fixe Zutatenmenge oder
+automatisch hochgerechnet auf eine ganze Mahlzeit. Beliebig viele Zutaten
+kombinierbar.
 
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
 Karfiol, Hendl, Faschiertes, Paradeiser, Marille, Schlagobers …).

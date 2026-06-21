@@ -12,7 +12,7 @@
   function defaultState() {
     return {
       settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
-      compose: { items: [{ food: "", grams: 60 }], fat: "Schlagobers", scale: true },
+      compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers", share: 100 }], scale: true },
     };
   }
   let state = load();
@@ -412,7 +412,7 @@
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
-  const FAT_OPTIONS = ["Butter", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
+  const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
@@ -433,25 +433,34 @@
     return sel;
   }
 
-  // Berechnet die Menge des Fetts, damit das Verhältnis bei fixen Basismengen stimmt.
-  function computeFreeMeal(baseItems, leverFood, ratio) {
+  // Berechnet die Gesamtmenge der (ggf. mehreren) Ausgleichsfette, damit das
+  // Verhältnis bei fixen Basismengen stimmt. Die Fette werden gemäß ihren
+  // Anteilen (share) aufgeteilt.
+  function computeFreeMeal(baseItems, fats, ratio) {
     let Pb = 0, Fb = 0, Cb = 0, hasBase = false;
     baseItems.forEach(it => {
       const f = lookup(it.food); const g = num(it.grams);
       if (!f || g <= 0) return; hasBase = true;
       Pb += f.eiweiss * g / 100; Fb += f.fett * g / 100; Cb += f.kh * g / 100;
     });
-    const fat = lookup(leverFood);
     if (!hasBase) return { ok: false, note: "Bitte mindestens ein Lebensmittel wählen." };
-    if (!fat) return { ok: false, note: "Bitte ein Fett zum Ausgleich wählen." };
-    const fp = fat.eiweiss, ff = fat.fett, fc = fat.kh;
-    const denom = ff - ratio * (fp + fc);
-    if (denom <= 0) return { ok: false, note: "Dieses Fett ist nicht fettreich genug für das Verhältnis. Bitte ein anderes wählen (z. B. Butter oder Öl)." };
-    const x = 100 * (ratio * (Pb + Cb) - Fb) / denom;
-    if (x < 0) return { ok: false, note: "Die gewählten Zutaten sind bereits zu fettreich für dieses Verhältnis. Bitte fettärmere Zutaten verwenden." };
+
+    // gültige Fette mit Anteil
+    const valid = (fats || []).filter(x => lookup(x.food) && num(x.share) > 0);
+    if (!valid.length) return { ok: false, note: "Bitte mindestens ein Fett zum Ausgleich wählen." };
+    const totShare = valid.reduce((a, x) => a + num(x.share), 0);
+    const w = valid.map(x => num(x.share) / totShare);
+    // gemischte Nährwerte pro 100 g
+    let bp = 0, bf = 0, bc = 0;
+    valid.forEach((x, i) => { const f = lookup(x.food); bp += w[i] * f.eiweiss; bf += w[i] * f.fett; bc += w[i] * f.kh; });
+    const denom = bf - ratio * (bp + bc);
+    if (denom <= 0) return { ok: false, note: "Das gewählte Fett ist nicht fettreich genug für das Verhältnis. Bitte ein fettreicheres Fett wählen (z. B. Butter oder Öl)." };
+    const xTot = 100 * (ratio * (Pb + Cb) - Fb) / denom;
+    if (xTot < 0) return { ok: false, note: "Die gewählten Zutaten sind bereits zu fettreich für dieses Verhältnis. Bitte fettärmere Zutaten verwenden." };
+
     const items = baseItems.filter(it => lookup(it.food) && num(it.grams) > 0)
       .map(it => ({ food: it.food, grams: round1(num(it.grams)) }));
-    items.push({ food: leverFood, grams: round1(x), isFat: true });
+    valid.forEach((x, i) => items.push({ food: x.food, grams: round1(w[i] * xTot), isFat: true }));
     return { ok: true, items };
   }
 
@@ -471,13 +480,36 @@
     c.appendChild(addBtn);
 
     const fatField = el("div", { class: "compose-fat" });
-    fatField.innerHTML = "<label>Fett zum Ausgleich</label>";
-    const fatSel = el("select");
-    FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === compose.fat) o.selected = true; fatSel.appendChild(o); });
-    fatSel.value = compose.fat;
-    fatSel.addEventListener("change", () => { compose.fat = fatSel.value; recompute(); });
-    fatField.appendChild(fatSel);
+    fatField.innerHTML = "<label>Fett(e) zum Ausgleich</label>";
+    const fatsWrap = el("div", { class: "compose-rows" });
+    fatField.appendChild(fatsWrap);
+    const addFatBtn = el("button", { class: "btn secondary", html: "+ weiteres Fett" });
+    addFatBtn.addEventListener("click", () => { compose.fats.push({ food: "Butter", share: 50 }); renderFats(); recompute(); });
+    fatField.appendChild(addFatBtn);
     c.appendChild(fatField);
+
+    function renderFats() {
+      fatsWrap.innerHTML = "";
+      const multi = compose.fats.length > 1;
+      compose.fats.forEach((ft, i) => {
+        const row = el("div", { class: "compose-row" });
+        const sel = el("select", { class: "food-select" });
+        FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
+        sel.value = ft.food;
+        sel.addEventListener("change", () => { ft.food = sel.value; recompute(); });
+        row.appendChild(sel);
+        if (multi) {
+          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams" });
+          sh.addEventListener("input", e => { ft.share = e.target.value; recompute(); });
+          row.appendChild(sh);
+          row.appendChild(el("span", { class: "unit" }, "%"));
+          const del = el("button", { class: "btn ghost", title: "Entfernen" }, "✕");
+          del.addEventListener("click", () => { compose.fats.splice(i, 1); renderFats(); recompute(); });
+          row.appendChild(del);
+        }
+        fatsWrap.appendChild(row);
+      });
+    }
 
     const scaleRow = el("div", { class: "checkrow" });
     const cb = el("input", { type: "checkbox", id: "compose-scale" }); cb.checked = compose.scale;
@@ -507,7 +539,7 @@
     function recompute() {
       save();
       const d = derived();
-      const res = computeFreeMeal(compose.items, compose.fat, d.ratio);
+      const res = computeFreeMeal(compose.items, compose.fats, d.ratio);
       const box = document.getElementById("compose-result");
       if (!res.ok) { box.innerHTML = '<div class="adjust-note">⚠️ ' + res.note + "</div>"; return; }
       let items = res.items;
@@ -549,7 +581,7 @@
       pr.appendChild(pb); box.appendChild(pr);
     }
 
-    renderRows(); recompute();
+    renderRows(); renderFats(); recompute();
     document.getElementById("compose-overlay").hidden = false;
     document.body.classList.add("modal-open");
   }

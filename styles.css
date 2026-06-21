@@ -218,8 +218,9 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .compose-row .food-select { flex: 1; min-width: 0; }
 .compose-row .compose-grams { width: 90px; flex: 0 0 auto; }
 .compose-row .unit { color: var(--muted); font-size: 14px; }
-.compose-fat { margin: 12px 0 4px; }
-.compose-fat select { max-width: 320px; }
+.compose-fat { margin: 14px 0 4px; }
+.compose-fat > label { display: block; margin-bottom: 6px; }
+.compose-fat .btn.secondary { margin-top: 4px; }
 #compose-content .title { font-weight: 700; font-size: 20px; padding-right: 40px; }
 #compose-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 14px; }
 
