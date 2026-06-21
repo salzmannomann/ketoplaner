@@ -255,8 +255,17 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .tile:hover { border-color: var(--brand); box-shadow: 0 4px 12px rgba(16,24,40,.12); transform: translateY(-1px); }
 .tile:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
-.tile-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tile-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .tile-icon { font-size: 34px; line-height: 1; }
+.favbtn {
+  border: 0; background: transparent; cursor: pointer; font-size: 22px; line-height: 1;
+  color: var(--muted); padding: 0 2px;
+}
+.favbtn.on { color: #e2b007; }
+.favbtn:hover { color: #e2b007; }
+.badge.custom { background: #e6effb; color: var(--accent); }
+.compose-save { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.compose-save input { flex: 1; min-width: 160px; }
 .tile-name { font-weight: 700; font-size: 16px; line-height: 1.3; }
 .tile-badge { margin-top: -2px; }
 .tile-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; }
@@ -907,6 +916,8 @@ const RECIPES_SONDE = [
     return {
       settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers", share: 100 }], scale: true },
+      favorites: [],
+      savedRecipes: [],
     };
   }
   let state = load();
@@ -918,6 +929,8 @@ const RECIPES_SONDE = [
       return {
         settings: Object.assign(d.settings, p.settings || {}),
         compose: Object.assign(d.compose, p.compose || {}),
+        favorites: p.favorites || [],
+        savedRecipes: p.savedRecipes || [],
       };
     } catch (e) { return defaultState(); }
   }
@@ -1022,11 +1035,15 @@ const RECIPES_SONDE = [
   }
 
   /* ---------- Rezept-Anpassung ---------- */
+  // Stell-Zutat zum Ausgleich = am stärksten fettdominante Zutat
+  // (höchstes Fett/(Eiweiß+KH)). Erkennt Butter/Öl wie auch Sahne/Streichgenuss.
   function fatItemIndex(items) {
     let idx = -1, best = -1;
     items.forEach((it, i) => {
-      const f = lookup(it.food);
-      if (f && f.fett >= 50 && (f.eiweiss + f.kh) < f.fett && f.fett > best) { best = f.fett; idx = i; }
+      const f = lookup(it.food); if (!f || f.fett <= 0) return;
+      const denom = f.eiweiss + f.kh;
+      const rr = denom > 0 ? f.fett / denom : Infinity;
+      if (rr > best) { best = rr; idx = i; }
     });
     return idx;
   }
@@ -1069,6 +1086,26 @@ const RECIPES_SONDE = [
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
 
+  /* ---------- Favoriten & Rezeptquellen ---------- */
+  function hasKetoCal(items) { return items.some(it => (it.food || "").toLowerCase().indexOf("ketocal") !== -1); }
+  function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
+  function isFav(rec) { return state.favorites.indexOf(recipeKey(rec)) !== -1; }
+  function toggleFav(rec) {
+    const k = recipeKey(rec), i = state.favorites.indexOf(k);
+    if (i === -1) state.favorites.push(k); else state.favorites.splice(i, 1);
+    save();
+  }
+  // Alle Rezepte: zuerst eigene, dann Standard; ketocal/Tags abgeleitet
+  function allRecipes() {
+    const saved = state.savedRecipes.map(sr => ({
+      custom: true, key: sr.key, name: sr.name, icon: sr.icon || "📝",
+      ketocal: hasKetoCal(sr.items), items: sr.items,
+      thermomix: sr.thermomix || "Zutaten vorbereiten, gemeinsam fein pürieren und das Fett glatt unterrühren.",
+      zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten, fein pürieren und das Fett untermischen.",
+    }));
+    return saved.concat(RECIPES_SONDE);
+  }
+
   /* ---------- Rezepte rendern ---------- */
   function renderRezepte() {
     const s = state.settings;
@@ -1103,11 +1140,13 @@ const RECIPES_SONDE = [
     fb.appendChild(chips);
 
     const mode = s.ketocal || "ohne";
-    const recipes = RECIPES_SONDE
+    const recipes = allRecipes()
       .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
       .filter(r => matchesFilter(r, filter))
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
+    // Favoriten nach oben (stabil)
+    recipes.sort((a, b) => (isFav(b.rec) ? 1 : 0) - (isFav(a.rec) ? 1 : 0));
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
       '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
@@ -1150,15 +1189,18 @@ const RECIPES_SONDE = [
     const ml = volumeMl(res.items);
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
 
+    const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
       '<div class="tile-head">' +
         '<span class="tile-icon">' + (rec.icon || "🥄") + "</span>" +
-        '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
+        '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       "</div>" +
       '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
       '<div class="tile-badge">' +
         (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
+        (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
+        '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
       "</div>" +
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
@@ -1169,6 +1211,7 @@ const RECIPES_SONDE = [
     const open = () => openRecipeDetail(rec);
     tile.addEventListener("click", open);
     tile.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    tile.querySelector(".favbtn").addEventListener("click", e => { e.stopPropagation(); toggleFav(rec); renderRezepte(); });
     return tile;
   }
 
@@ -1239,13 +1282,39 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
 
     const actions = el("div", { class: "btn-row" });
-    const editBtn = el("button", { class: "btn" }, "✏️ Zutaten anpassen / tauschen");
-    editBtn.addEventListener("click", () => { seedComposeFromRecipe(rec); closeDetail(); openCompose(); });
+    const fav = isFav(rec);
+    const favBtn = el("button", { class: "btn secondary" }, (fav ? "★ Favorit (aktiv)" : "☆ Als Favorit"));
+    favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
+    actions.appendChild(favBtn);
+    const editBtn = el("button", { class: "btn" }, rec.custom ? "✏️ Bearbeiten" : "✏️ Zutaten anpassen / tauschen");
+    editBtn.addEventListener("click", () => { (rec.custom ? seedComposeFromSaved(rec) : seedComposeFromRecipe(rec)); closeDetail(); openCompose(); });
     actions.appendChild(editBtn);
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
     actions.appendChild(printBtn);
+    if (rec.custom) {
+      const delBtn = el("button", { class: "btn ghost" }, "🗑️ Löschen");
+      delBtn.addEventListener("click", () => {
+        if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
+          state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
+          const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
+          save(); closeDetail(); renderRezepte();
+        }
+      });
+      actions.appendChild(delBtn);
+    }
     c.appendChild(actions);
+  }
+
+  function seedComposeFromSaved(sr) {
+    const base = sr.items.map(it => ({ food: it.food, grams: num(it.grams) }));
+    const fi = fatItemIndex(base);
+    let fats, items;
+    if (fi >= 0) { fats = [{ food: base[fi].food, share: 100 }]; items = base.filter((_, i) => i !== fi); }
+    else { fats = [{ food: "Butter", share: 100 }]; items = base; }
+    if (!items.length) items = [{ food: "", grams: 30 }];
+    state.compose = { items: items.map(it => ({ food: it.food, grams: it.grams })), fats: fats, scale: true, fromRecipe: sr.name, editKey: sr.key };
+    save();
   }
 
   // Übernimmt ein Rezept in den freien Rechner (Zutaten editierbar, Fett wird neu berechnet)
@@ -1437,6 +1506,30 @@ const RECIPES_SONDE = [
     const result = el("div", { id: "compose-result" });
     c.appendChild(result);
 
+    // Speichern als eigenes Rezept
+    let lastItems = [], lastOk = false;
+    const saveBox = el("div", { class: "compose-save" });
+    const nameInp = el("input", { type: "text", placeholder: "Name für dein Rezept", value: compose.fromRecipe || "" });
+    const saveBtn = el("button", { class: "btn" }, compose.editKey ? "Änderungen speichern" : "💾 Als eigenes Rezept speichern");
+    saveBtn.addEventListener("click", () => {
+      const nm = nameInp.value.trim();
+      if (!nm) { alert("Bitte einen Namen für das Rezept eingeben."); return; }
+      if (!lastOk || !lastItems.length) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
+      const items = lastItems.map(it => ({ food: it.food, grams: it.grams }));
+      if (compose.editKey) {
+        const sr = state.savedRecipes.find(s => s.key === compose.editKey);
+        if (sr) { sr.name = nm; sr.items = items; }
+      } else {
+        const key = "custom:" + Date.now();
+        state.savedRecipes.unshift({ key, name: nm, icon: "📝", items });
+        compose.editKey = key; compose.fromRecipe = nm;
+      }
+      save();
+      saveBtn.textContent = "✓ Gespeichert"; setTimeout(() => { saveBtn.textContent = "Änderungen speichern"; }, 1500);
+    });
+    saveBox.appendChild(nameInp); saveBox.appendChild(saveBtn);
+    c.appendChild(saveBox);
+
     function renderRows() {
       rowsWrap.innerHTML = "";
       compose.items.forEach((it, i) => {
@@ -1457,7 +1550,7 @@ const RECIPES_SONDE = [
       const d = derived();
       const res = computeFreeMeal(compose.items, compose.fats, d.ratio);
       const box = document.getElementById("compose-result");
-      if (!res.ok) { box.innerHTML = '<div class="adjust-note">⚠️ ' + res.note + "</div>"; return; }
+      if (!res.ok) { lastOk = false; lastItems = []; box.innerHTML = '<div class="adjust-note">⚠️ ' + res.note + "</div>"; return; }
       let items = res.items;
       let sum = sumMacros(items);
       if (compose.scale && sum.kcal > 0) {
@@ -1465,6 +1558,7 @@ const RECIPES_SONDE = [
         items = items.map(it => ({ food: it.food, grams: round1(num(it.grams) * factor), isFat: it.isFat }));
         sum = sumMacros(items);
       }
+      lastOk = true; lastItems = items;
       const r = ratioOf(sum);
       const totalG = items.reduce((a, it) => a + num(it.grams), 0);
       const ml = volumeMl(items);
@@ -1504,6 +1598,7 @@ const RECIPES_SONDE = [
   function closeCompose() {
     document.getElementById("compose-overlay").hidden = true;
     document.body.classList.remove("modal-open");
+    renderRezepte();
   }
   function bindCompose() {
     document.getElementById("compose-btn").addEventListener("click", openCompose);

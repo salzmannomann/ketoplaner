@@ -64,6 +64,14 @@ kombinierbar.
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
 Karfiol, Hendl, Faschiertes, Paradeiser, Marille, Schlagobers …).
 
+**Favoriten:** Jede Kachel hat einen Stern (☆/★). Als Favorit markierte Rezepte
+erscheinen immer ganz oben.
+
+**Eigene Rezepte:** Eine im freien Rechner zusammengestellte Mahlzeit kann mit
+Namen **gespeichert** werden. Sie erscheint dann mit dem Hinweis „eigenes" in der
+Liste und kann jederzeit **bearbeitet** (Zutaten/Fette ändern, Menge wird neu
+berechnet), als Favorit markiert oder **gelöscht** werden.
+
 Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher
 erreichen. Bei Rezepten ohne KetoCal weist die App darauf hin, dass Vitamine
 und Mineralstoffe separat ergänzt werden müssen.
