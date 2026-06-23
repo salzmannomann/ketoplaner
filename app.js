@@ -15,6 +15,7 @@
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
+      meat: {},
     };
   }
   let state = load();
@@ -28,6 +29,7 @@
         compose: Object.assign(d.compose, p.compose || {}),
         favorites: p.favorites || [],
         savedRecipes: p.savedRecipes || [],
+        meat: p.meat || {},
       };
     } catch (e) { return defaultState(); }
   }
@@ -183,6 +185,43 @@
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
 
+  /* ---------- Fleisch-Tausch ----------
+     Diätologin: 20 g Huhn ≙ 30 g Rind(erhack/Faschiertes) ≙ 18 g Pute.
+     Faktoren relativ zu Huhn. Die Fleischmenge eines Rezepts wird in
+     „Huhn-Äquivalent" umgerechnet und auf das gewählte Fleisch angepasst.
+     Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
+  const MEATS = {
+    huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗" },
+    rind: { food: "Rinder-Faschiertes", factor: 1.5, label: "Rind", icon: "🥩" },
+    pute: { food: "Pute (Brust ohne Haut)", factor: 0.9, label: "Pute", icon: "🦃" },
+  };
+  function meatKeyOfFood(name) { for (const k in MEATS) if (MEATS[k].food === name) return k; return null; }
+  function recipeMeatSlot(rec) {
+    for (let i = 0; i < rec.items.length; i++) {
+      const k = meatKeyOfFood(rec.items[i].food);
+      if (k) return { index: i, baseKey: k, baseGrams: num(rec.items[i].grams) };
+    }
+    return null;
+  }
+  function meatGramsFor(slot, key) {
+    const chickenEquiv = slot.baseGrams / MEATS[slot.baseKey].factor;
+    return round1(chickenEquiv * MEATS[key].factor);
+  }
+  function applyMeat(rec) {
+    const slot = recipeMeatSlot(rec); if (!slot) return rec;
+    const choice = state.meat[recipeKey(rec)];
+    if (!choice || choice === slot.baseKey) return rec;
+    const grams = meatGramsFor(slot, choice);
+    const items = rec.items.map((it, i) => i === slot.index ? { food: MEATS[choice].food, grams: grams } : it);
+    return Object.assign({}, rec, { items: items });
+  }
+  function setMeatChoice(rec, key) {
+    const slot = recipeMeatSlot(rec); if (!slot) return;
+    if (key === slot.baseKey) delete state.meat[recipeKey(rec)];
+    else state.meat[recipeKey(rec)] = key;
+    save();
+  }
+
   /* ---------- Favoriten & Rezeptquellen ---------- */
   function hasKetoCal(items) { return items.some(it => (it.food || "").toLowerCase().indexOf("ketocal") !== -1); }
   function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
@@ -251,7 +290,7 @@
     const recipes = allRecipes()
       .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
       .filter(r => matchesFilter(r, filter))
-      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
+      .map(rec => ({ rec, res: computeAdjustedRecipe(applyMeat(rec), d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
@@ -351,6 +390,10 @@
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
 
     const fav = isFav(rec);
+    const slot = recipeMeatSlot(rec);
+    const meatChoice = slot ? (state.meat[recipeKey(rec)] || slot.baseKey) : null;
+    const meatPill = (slot && meatChoice !== slot.baseKey)
+      ? '<span class="badge meat">' + MEATS[meatChoice].icon + " " + MEATS[meatChoice].label + "</span>" : "";
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
       '<div class="tile-head">' +
@@ -361,6 +404,7 @@
       '<div class="tile-badge">' +
         (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
+        meatPill +
         '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
       "</div>" +
       '<div class="tile-stats">' +
@@ -388,7 +432,7 @@
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
-    const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    const res = computeAdjustedRecipe(applyMeat(rec), d.kcalMahl, d.ratio);
     const mult = detailPortion === "day" ? d.mahl : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -402,6 +446,18 @@
     const ketoBadge = rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
       : '<span class="badge noketo">ohne KetoCal</span>';
+
+    const meatSlot = recipeMeatSlot(rec);
+    let meatSeg = "";
+    if (meatSlot) {
+      const cur = state.meat[recipeKey(rec)] || meatSlot.baseKey;
+      meatSeg = '<div class="meat-swap"><div class="seg-label">🍖 Fleisch tauschen</div><div class="segmented mini">' +
+        ["huhn", "rind", "pute"].map(k =>
+          '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
+          MEATS[k].icon + " " + MEATS[k].label + "</button>"
+        ).join("") +
+        '</div><div class="meat-note">20 g Huhn ≙ 30 g Rind ≙ 18 g Pute – die Menge wird automatisch umgerechnet, das Fett neu berechnet.</div></div>';
+    }
 
     let rows = "";
     items.forEach((it, i) => {
@@ -424,6 +480,7 @@
         '<button type="button" data-p="meal"' + (mult === 1 ? ' class="active"' : "") + ">1 Mahlzeit</button>" +
         '<button type="button" data-p="day"' + (mult > 1 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
       "</div></div>" +
+      meatSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
@@ -441,6 +498,8 @@
 
     c.querySelectorAll(".seg-portion button").forEach(b =>
       b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
+    c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
+      b.addEventListener("click", () => { setMeatChoice(rec, b.dataset.meat); renderDetail(); renderRezepte(); }));
 
     const actions = el("div", { class: "btn-row" });
     const fav = isFav(rec);
@@ -448,7 +507,7 @@
     favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
     actions.appendChild(favBtn);
     const editBtn = el("button", { class: "btn" }, rec.custom ? "✏️ Bearbeiten" : "✏️ Zutaten anpassen / tauschen");
-    editBtn.addEventListener("click", () => { (rec.custom ? seedComposeFromSaved(rec) : seedComposeFromRecipe(rec)); closeDetail(); openCompose(); });
+    editBtn.addEventListener("click", () => { (rec.custom ? seedComposeFromSaved(applyMeat(rec)) : seedComposeFromRecipe(applyMeat(rec))); closeDetail(); openCompose(); });
     actions.appendChild(editBtn);
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));

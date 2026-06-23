@@ -70,6 +70,15 @@ kombinierbar.
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
 Karfiol, Hendl, Faschiertes, Paradeiser, Marille, Schlagobers …).
 
+**Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind (Faschiertes)
+oder Pute gibt es in der Detailansicht einen Umschalter **🍗 Huhn / 🥩 Rind /
+🦃 Pute**. Laut Diätologin sind **20 g Huhn ≙ 30 g Rind ≙ 18 g Pute**
+austauschbar; die App rechnet die Fleischmenge automatisch um und passt das
+Fett neu an (Verhältnis und Kalorien bleiben gleich). So kann man rasch
+umstellen, wenn eine Sorte gerade nicht zu Hause ist. Eine getauschte Sorte
+wird auf der Kachel mit einem kleinen Hinweis (z. B. „🥩 Rind") angezeigt; die
+Auswahl bleibt gespeichert.
+
 **Favoriten:** Jede Kachel hat einen Stern (☆/★). Als Favorit markierte Rezepte
 erscheinen immer ganz oben.
 
