@@ -54,7 +54,9 @@ Die App besteht aus einer einzigen Seite:
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
    Verhältnis, Menge (g/ml) und Eiweiß.
 4. Klick auf eine Kachel öffnet das vollständige Rezept: Zutaten, Kennzahlen,
-   **Thermomix-TM5-Anleitung**, klassische Zubereitung, **Rezept drucken** und
+   **Thermomix-TM5-Anleitung**, bei geeigneten Rezepten (Fleisch-, Fisch- und
+   Gemüsegerichten) zusätzlich eine **Varoma-Zubereitung (Dämpfen)**,
+   klassische Zubereitung, **Rezept drucken** und
    **„Zutaten anpassen / tauschen"** (öffnet das Rezept im freien Rechner – dort
    kann man Zutaten oder Fette entfernen, tauschen oder ergänzen, z. B. Rapsöl
    durch Butter ersetzen; die Mengen werden automatisch neu berechnet)

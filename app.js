@@ -550,6 +550,7 @@
       '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
+      (rec.varoma ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>" : "") +
       (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "");
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
@@ -672,6 +673,7 @@
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Thermomix-Zeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
       (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
+      (rec.varoma ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>" : "") +
       (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "") +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";

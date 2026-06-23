@@ -393,6 +393,8 @@ body.modal-open { overflow: hidden; }
   font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
 }
 .prep.thermomix { background: #eef4fb; }
+.prep.varoma { background: #eef7ef; }
+.prep.varoma strong { color: var(--brand-dark); }
 .prep strong { color: var(--brand-dark); }
 .prep.thermomix strong { color: var(--accent); }
 .diet-note {
