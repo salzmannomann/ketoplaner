@@ -44,8 +44,8 @@ Die App besteht aus einer einzigen Seite:
    (Körpergewicht × g/kg, z. B. 1,5 g/kg/Tag – Richtwert für Kinder, bitte mit
    dem Behandlungsteam abstimmen). Daraus werden **kcal pro Mahlzeit** und das
    **Eiweiß-Ziel pro Mahlzeit** angezeigt.
-2. **Schnellfilter** per Buttons: Alle, mit Fleisch, mit Fisch, vegetarisch,
-   mit Obst, ohne Obst. Zusätzlich **Sortierung/Gruppierung**: nach Kategorie
+2. **Schnellfilter** per Buttons: Alle, Fleisch, Fisch, Vegetarisch,
+   Obst. Zusätzlich **Sortierung/Gruppierung**: nach Kategorie
    (mit Überschriften, Favoriten oben), Name (A–Z) oder Eiweiß.
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
    Verhältnis, Menge (g/ml) und Eiweiß.
@@ -68,10 +68,13 @@ automatisch hochgerechnet auf eine ganze Mahlzeit. Beliebig viele Zutaten
 kombinierbar.
 
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
-Karfiol, Hendl, Faschiertes, Paradeiser, Marille, Schlagobers …).
+Karfiol, Hendl, Paradeiser, Marille, Schlagobers …). Beim Fleisch wird
+einheitlich **stückiges Fleisch ohne Haut** verwendet (Hühnerbrust,
+Putenbrust und Rindfleisch – kein Faschiertes).
 
-**Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind (Faschiertes)
-oder Pute gibt es in der Detailansicht einen Umschalter **🍗 Huhn / 🥩 Rind /
+**Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind oder Pute
+(jeweils stückiges Fleisch ohne Haut) gibt es in der Detailansicht einen
+Umschalter **🍗 Huhn / 🥩 Rind /
 🦃 Pute**. Laut Diätologin sind **20 g Huhn ≙ 30 g Rind ≙ 18 g Pute**
 austauschbar; die App rechnet die Fleischmenge automatisch um und passt das
 Fett neu an (Verhältnis und Kalorien bleiben gleich). So kann man rasch

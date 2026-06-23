@@ -93,11 +93,10 @@
   /* ---------- Schnellfilter ---------- */
   const FILTERS = [
     { id: "alle", label: "Alle" },
-    { id: "fleisch", label: "🥩 mit Fleisch" },
-    { id: "fisch", label: "🐟 mit Fisch" },
-    { id: "vegetarisch", label: "🥦 vegetarisch" },
-    { id: "obst", label: "🍓 mit Obst" },
-    { id: "ohne-obst", label: "🚫 ohne Obst" },
+    { id: "fleisch", label: "🥩 Fleisch" },
+    { id: "fisch", label: "🐟 Fisch" },
+    { id: "vegetarisch", label: "🥦 Vegetarisch" },
+    { id: "obst", label: "🍓 Obst" },
   ];
   function recipeTags(rec) {
     let fleisch = false, fisch = false, obst = false;
@@ -117,7 +116,6 @@
       case "fisch": return t.fisch;
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
-      case "ohne-obst": return !t.obst;
       default: return true;
     }
   }
@@ -192,8 +190,8 @@
      Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
   const MEATS = {
     huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗" },
-    rind: { food: "Rinder-Faschiertes", factor: 1.5, label: "Rind", icon: "🥩" },
-    pute: { food: "Pute (Brust ohne Haut)", factor: 0.9, label: "Pute", icon: "🦃" },
+    rind: { food: "Rindfleisch ohne Haut", factor: 1.5, label: "Rind", icon: "🥩" },
+    pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃" },
   };
   function meatKeyOfFood(name) { for (const k in MEATS) if (MEATS[k].food === name) return k; return null; }
   function recipeMeatSlot(rec) {
