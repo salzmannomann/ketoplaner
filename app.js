@@ -365,6 +365,8 @@
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
+        : sort === "volumen"
+        ? x => volumeMl(x.res.items)
         : x => x.rec.name.toLowerCase();
       const sorted = recipes.slice().sort((a, b) => {
         const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1;

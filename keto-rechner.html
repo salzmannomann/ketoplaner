@@ -522,6 +522,7 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
             <option value="kategorie">Nach Kategorie</option>
             <option value="name">Name (A–Z)</option>
             <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+            <option value="volumen">Menge (wenig zuerst)</option>
           </select>
         </span>
       </div>
@@ -1493,6 +1494,8 @@ const RECIPES_SONDE = [
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
+        : sort === "volumen"
+        ? x => volumeMl(x.res.items)
         : x => x.rec.name.toLowerCase();
       const sorted = recipes.slice().sort((a, b) => {
         const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1;
