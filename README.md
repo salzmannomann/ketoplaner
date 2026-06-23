@@ -44,10 +44,11 @@ Die App besteht aus einer einzigen Seite:
    (Körpergewicht × g/kg, z. B. 1,5 g/kg/Tag – Richtwert für Kinder, bitte mit
    dem Behandlungsteam abstimmen). Daraus werden **kcal pro Mahlzeit** und das
    **Eiweiß-Ziel pro Mahlzeit** angezeigt.
-2. **Schnellfilter** per Buttons – direkt über den Rezepten: **KetoCal**
-   (Ohne / Mit / Mit & ohne), **Kategorie** (Alle, Fleisch, Fisch,
-   Vegetarisch, Obst) und der unabhängige Schalter **👩‍⚕️ Diätologie** (nur
-   die Original-Rezepte aus den Vorlagen, mit jeder Kategorie kombinierbar).
+2. **Schnellfilter** per Buttons – direkt über den Rezepten: zwei
+   unabhängige KetoCal-Schalter **Ohne KetoCal** / **Mit KetoCal** (keiner
+   aktiv = alle), **Kategorie** (Alle, Fleisch, Fisch, Vegetarisch, Obst) und
+   der unabhängige Schalter **👩‍⚕️ Diätologie** (nur die Original-Rezepte aus
+   den Vorlagen). Alle Schalter sind frei kombinierbar.
    Zusätzlich **Sortierung/Gruppierung**: nach Kategorie
    (mit Überschriften, Favoriten oben), Name (A–Z) oder Eiweiß.
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,

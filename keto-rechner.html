@@ -1092,7 +1092,7 @@ const RECIPES_SONDE = [
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, showOhneKeto: true, showMitKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -1104,8 +1104,14 @@ const RECIPES_SONDE = [
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
+      const settings = Object.assign(d.settings, p.settings || {});
+      // Migration: alte 3-fach-Auswahl "ketocal" -> zwei Schalter
+      if (p.settings && p.settings.ketocal && p.settings.showOhneKeto === undefined && p.settings.showMitKeto === undefined) {
+        settings.showOhneKeto = p.settings.ketocal !== "mit";
+        settings.showMitKeto = p.settings.ketocal !== "ohne";
+      }
       return {
-        settings: Object.assign(d.settings, p.settings || {}),
+        settings: settings,
         compose: Object.assign(d.compose, p.compose || {}),
         favorites: p.favorites || [],
         savedRecipes: p.savedRecipes || [],
@@ -1352,7 +1358,12 @@ const RECIPES_SONDE = [
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
-    const warn = (s.ketocal || "ohne") !== "mit";
+    // KetoCal als zwei unabhängige Schalter; keiner aktiv = alle zeigen
+    const wantOhne = !!s.showOhneKeto, wantMit = !!s.showMitKeto;
+    const ketoAny = wantOhne || wantMit;
+    const showOhne = !ketoAny || wantOhne;
+    const showMit = !ketoAny || wantMit;
+    const warn = showOhne; // Hinweis nur wenn Rezepte ohne KetoCal sichtbar sind
     $("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
@@ -1371,14 +1382,13 @@ const RECIPES_SONDE = [
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
     const onlyQuelle = !!s.onlyQuelle;
-    const keto = s.ketocal || "ohne";
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    // KetoCal-Auswahl (entweder/oder)
+    // KetoCal: zwei unabhängige Ein/Aus-Schalter (wie Diätologie)
     const ketoRow = el("div", { class: "chips" });
-    [["ohne", "Ohne KetoCal"], ["mit", "Mit KetoCal"], ["alle", "Mit & ohne"]].forEach(([val, label]) => {
-      const c = el("button", { class: "chip keto-chip" + (val === keto ? " active" : "") }, label);
-      c.addEventListener("click", () => { state.settings.ketocal = val; save(); renderRezepte(); });
+    [["showOhneKeto", "Ohne KetoCal", wantOhne], ["showMitKeto", "Mit KetoCal", wantMit]].forEach(([key, label, on]) => {
+      const c = el("button", { class: "chip keto-chip" + (on ? " active" : "") }, label);
+      c.addEventListener("click", () => { state.settings[key] = !state.settings[key]; save(); renderRezepte(); });
       ketoRow.appendChild(c);
     });
     fb.appendChild(ketoRow);
@@ -1395,21 +1405,20 @@ const RECIPES_SONDE = [
     chips.appendChild(qChip);
     fb.appendChild(chips);
 
-    const mode = s.ketocal || "ohne";
     const recipes = allRecipes()
-      .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
+      .filter(r => (r.ketocal ? showMit : showOhne))
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
-    $("info-note").innerHTML = (mode === "mit") ? "" :
+    $("info-note").innerHTML = !warn ? "" :
       '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
     $("info-note").hidden = !(warn && infoOpen);
 
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : "");
+      (showOhne && !showMit ? " ohne KetoCal" : showMit && !showOhne ? " mit KetoCal" : "");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
