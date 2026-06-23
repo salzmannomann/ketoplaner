@@ -256,9 +256,9 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .chip:hover { background: var(--bg); }
 .chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
-/* Diätologie: eigener, kombinierbarer Schalter – optisch abgesetzt */
-.chip.quelle-chip { margin-left: auto; }
-.chip.quelle-chip.active { background: #6d28d9; border-color: #6d28d9; color: #fff; }
+/* Unabhängige Schalter (KetoCal + Diätologie) – rechts abgesetzt, eigene Farbe */
+.chip.toggle-start { margin-left: auto; }
+.chip.switch.active { background: #6d28d9; border-color: #6d28d9; color: #fff; }
 
 /* Portions-Umschalter im Detail */
 .seg-portion { margin: 0 0 14px; }

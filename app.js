@@ -303,25 +303,23 @@
     const onlyQuelle = !!s.onlyQuelle;
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    // KetoCal: zwei unabhängige Ein/Aus-Schalter (wie Diätologie)
-    const ketoRow = el("div", { class: "chips" });
-    [["showOhneKeto", "Ohne KetoCal", wantOhne], ["showMitKeto", "Mit KetoCal", wantMit]].forEach(([key, label, on]) => {
-      const c = el("button", { class: "chip keto-chip" + (on ? " active" : "") }, label);
-      c.addEventListener("click", () => { state.settings[key] = !state.settings[key]; save(); renderRezepte(); });
-      ketoRow.appendChild(c);
-    });
-    fb.appendChild(ketoRow);
-    // Kategorie (entweder/oder) + Diätologie (Schalter)
     const chips = el("div", { class: "chips" });
+    // Kategorie (entweder/oder)
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
       chips.appendChild(chip);
     });
-    // Diätologie = unabhängiger Schalter, mit jeder Kategorie kombinierbar
-    const qChip = el("button", { class: "chip quelle-chip" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
-    qChip.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
-    chips.appendChild(qChip);
+    // Unabhängige Schalter (rechts): KetoCal + Diätologie – jeder einzeln ein/aus
+    [
+      { key: "showOhneKeto", label: "Ohne KetoCal", on: wantOhne, start: true },
+      { key: "showMitKeto", label: "Mit KetoCal", on: wantMit },
+      { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
+    ].forEach(t => {
+      const c = el("button", { class: "chip switch" + (t.start ? " toggle-start" : "") + (t.on ? " active" : "") }, t.label);
+      c.addEventListener("click", () => { state.settings[t.key] = !state.settings[t.key]; save(); renderRezepte(); });
+      chips.appendChild(c);
+    });
     fb.appendChild(chips);
 
     const recipes = allRecipes()
