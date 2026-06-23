@@ -959,17 +959,6 @@
       renderTimerBar();
     }, 1000);
   }
-  // Zeit-Token in einem Schritt finden (z. B. "8 Min.", "30–40 Sek.")
-  function timeTokens(text) {
-    const re = /(\d+)\s*(?:[–-]\s*(\d+))?\s*(Sek|Min)\b\.?/g;
-    const out = []; let m;
-    while ((m = re.exec(text)) !== null) {
-      const hi = m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
-      const sec = m[3] === "Min" ? hi * 60 : hi;
-      out.push({ label: m[0].replace(/\s+/g, " ").trim(), sec });
-    }
-    return out;
-  }
   function splitSteps(text) {
     // An ". " vor Grossbuchstaben trennen (Abkuerzungen wie "Ca. 500" bleiben heil,
     // weil danach eine Ziffer folgt). Kein Lookbehind -> auch auf aelterem iOS Safari ok.
@@ -1001,6 +990,20 @@
     document.getElementById("cook-overlay").hidden = true;
     if (document.getElementById("detail-overlay").hidden) document.body.classList.remove("modal-open");
   }
+  // Thermomix-Einstellungen je Schritt herauslesen (Zeit / Temperatur / Stufe)
+  function parseActions(stepText) {
+    const re = /(\d+(?:\s*[–-]\s*\d+)?)\s*(Sek|Min)\b\.?((?:\s*\/\s*(?:\d+\s*°C|Varoma|Stufe\s*[0-9–-]+))*)/g;
+    const acts = []; let m;
+    while ((m = re.exec(stepText)) !== null) {
+      const hi = parseInt((m[1].match(/\d+/g) || ["0"]).pop(), 10);
+      const sec = m[2] === "Min" ? hi * 60 : hi;
+      const timeLabel = m[1].replace(/\s+/g, "") + " " + (m[2] === "Min" ? "Min." : "Sek.");
+      let temp = "", speed = "";
+      (m[3] || "").split("/").forEach(p => { p = p.trim(); if (!p) return; if (/°C/.test(p) || /Varoma/i.test(p)) temp = p; else if (/Stufe/i.test(p)) speed = p; });
+      acts.push({ timeLabel: timeLabel, sec: sec, temp: temp, speed: speed });
+    }
+    return acts;
+  }
   function renderCook() {
     const rec = detailRec; if (!rec) return;
     const d = derived();
@@ -1014,30 +1017,51 @@
     methods.push(["zubereitung", "🍲 Klassisch"]);
     if (!rec[cookMethod]) cookMethod = "thermomix";
 
-    let ing = '<div class="cook-sec-title">Zutaten abwiegen</div><ul class="cook-ings">';
-    items.forEach((it, i) => {
-      ing += '<li><label><input type="checkbox" data-ing="' + i + '"> <span class="ci-amt">' + fmt(it.grams, 1) + ' g</span> ' + escapeHtml(it.food) + "</label></li>";
-    });
-    ing += "</ul>";
-
     const steps = splitSteps(adaptPrep(rec[cookMethod] || "", rec, detailMeat));
-    if (cookStep > steps.length - 1) cookStep = steps.length - 1;
+    const total = steps.length + 1; // Screen 0 = Zutaten abwiegen
+    if (cookStep > total - 1) cookStep = total - 1;
     if (cookStep < 0) cookStep = 0;
-    let stepsHtml = '<div class="cook-sec-title">Schritte</div><ol class="cook-steps">';
-    steps.forEach((s, i) => {
-      const toks = timeTokens(s);
-      let btns = "";
-      toks.forEach((tk) => {
-        btns += '<button class="time-btn" data-sec="' + tk.sec + '" data-label="' + escapeHtml(s.slice(0, 40)) + '">▶ ' + escapeHtml(tk.label) + " Timer</button>";
+
+    // Fortschrittspunkte
+    let dots = '<div class="cook-dots">';
+    for (let i = 0; i < total; i++) dots += '<span class="cook-dot' + (i === cookStep ? " on" : (i < cookStep ? " past" : "")) + '"></span>';
+    dots += "</div>";
+
+    let screen, progress;
+    if (cookStep === 0) {
+      progress = "Zutaten";
+      let ing = "";
+      items.forEach((it, i) => {
+        ing += '<li><label><input type="checkbox" data-ing="' + i + '"> <span class="ci-amt">' + fmt(it.grams, 1) + ' g</span> ' + escapeHtml(it.food) + "</label></li>";
       });
-      const cls = (i < cookStep ? " done" : "") + (i === cookStep ? " current" : "");
-      stepsHtml += '<li class="cook-li' + cls + '" data-step="' + i + '"><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
-    });
-    stepsHtml += "</ol>";
+      screen = '<div class="cook-stepno">Vorbereiten</div>' +
+        '<div class="cook-screen-title">Zutaten abwiegen</div>' +
+        '<ul class="cook-ings">' + ing + "</ul>";
+    } else {
+      const si = cookStep - 1;
+      const s = steps[si];
+      const acts = parseActions(s);
+      progress = "Schritt " + cookStep + " / " + steps.length;
+      let actHtml = "";
+      acts.forEach(a => {
+        actHtml += '<div class="tm-action"><div class="tm-set">' +
+          (a.timeLabel ? '<span class="tm-chip">⏱ ' + escapeHtml(a.timeLabel) + "</span>" : "") +
+          (a.temp ? '<span class="tm-chip">🌡 ' + escapeHtml(a.temp) + "</span>" : "") +
+          (a.speed ? '<span class="tm-chip">⚙️ ' + escapeHtml(a.speed) + "</span>" : "") +
+          "</div>" +
+          (a.sec ? '<button class="time-btn" data-sec="' + a.sec + '" data-label="' + escapeHtml(s.slice(0, 40)) + '">▶ Timer ' + escapeHtml(a.timeLabel) + "</button>" : "") +
+          "</div>";
+      });
+      screen = '<div class="cook-stepno">Schritt ' + cookStep + " von " + steps.length + "</div>" +
+        '<div class="cook-step-big">' + escapeHtml(s) + "</div>" +
+        (actHtml ? '<div class="tm-actions">' + actHtml + "</div>" : "");
+    }
+
+    const isLast = cookStep >= total - 1;
     const navHtml = '<div class="cook-nav">' +
       '<button class="btn secondary" id="cook-prev"' + (cookStep === 0 ? " disabled" : "") + ">◀ Zurück</button>" +
-      '<span class="cook-progress">Schritt ' + (cookStep + 1) + " / " + steps.length + "</span>" +
-      '<button class="btn" id="cook-next">' + (cookStep >= steps.length - 1 ? "Fertig ✓" : "Nächster Schritt ▶") + "</button>" +
+      '<span class="cook-progress">' + progress + "</span>" +
+      '<button class="btn" id="cook-next">' + (isLast ? "Fertig ✓" : (cookStep === 0 ? "Los geht's ▶" : "Weiter ▶")) + "</button>" +
       "</div>";
 
     const c = document.getElementById("cook-content");
@@ -1048,8 +1072,9 @@
       '<div class="segmented mini cook-methods">' +
         methods.map(([k, lab]) => '<button type="button" data-cm="' + k + '"' + (k === cookMethod ? ' class="active"' : "") + ">" + lab + "</button>").join("") +
       "</div>" +
-      ing + stepsHtml +
-      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>' +
+      dots +
+      '<div class="cook-screen">' + screen + "</div>" +
+      '<div class="cook-hint">Garzeiten sind Richtwerte – bis weich/durchgegart kochen. Auf „Timer" tippen startet einen Countdown mit Signalton.</div>' +
       navHtml;
 
     c.querySelectorAll(".cook-methods button[data-cm]").forEach(b =>
@@ -1057,14 +1082,12 @@
     c.querySelectorAll(".cook-ings input[type=checkbox]").forEach(cb =>
       cb.addEventListener("change", () => cb.closest("li").classList.toggle("done", cb.checked)));
     c.querySelectorAll(".time-btn").forEach(b =>
-      b.addEventListener("click", e => { e.stopPropagation(); startTimer(parseInt(b.dataset.sec, 10), b.dataset.label); }));
-    c.querySelectorAll(".cook-li").forEach(li =>
-      li.addEventListener("click", e => { if (e.target.closest(".time-btn")) return; cookStep = parseInt(li.dataset.step, 10); renderCook(); }));
+      b.addEventListener("click", () => startTimer(parseInt(b.dataset.sec, 10), b.dataset.label)));
     const prev = document.getElementById("cook-prev"), next = document.getElementById("cook-next");
     if (prev) prev.addEventListener("click", () => { if (cookStep > 0) { cookStep--; renderCook(); } });
-    if (next) next.addEventListener("click", () => { if (cookStep < steps.length - 1) { cookStep++; renderCook(); } else { closeCook(); } });
-    const cur = c.querySelector(".cook-li.current");
-    if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
+    if (next) next.addEventListener("click", () => { if (cookStep < total - 1) { cookStep++; renderCook(); } else { closeCook(); } });
+    const ov = document.getElementById("cook-overlay");
+    if (ov && ov.scrollTo) try { ov.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
     renderTimerBar();
   }
   function bindCook() {
