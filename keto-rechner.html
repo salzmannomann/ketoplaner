@@ -428,12 +428,23 @@ body.modal-open { overflow: hidden; }
 .cook-ings .ci-amt { font-weight: 700; color: var(--brand-dark); min-width: 64px; }
 .cook-ings li.done label { color: var(--muted); text-decoration: line-through; }
 .cook-steps { margin: 0; padding-left: 26px; }
-.cook-steps li { margin-bottom: 16px; }
+.cook-steps li { margin-bottom: 16px; opacity: .45; transition: opacity .2s; cursor: pointer; }
+.cook-steps li.current { opacity: 1; }
+.cook-steps li.current .cook-step { font-weight: 700; }
+.cook-steps li.current::marker { color: var(--brand); font-weight: 700; }
 .cook-step { font-size: 18px; line-height: 1.5; }
 .cook-step-timers { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
 .time-btn { background: var(--brand-soft); color: var(--brand-dark); border: 1px solid var(--brand); border-radius: 999px; padding: 8px 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
 .time-btn:hover { background: var(--brand); color: #fff; }
 .cook-hint { color: var(--muted); font-size: 13px; margin-top: 18px; }
+.cook-nav {
+  position: sticky; bottom: 0; display: flex; align-items: center; gap: 12px;
+  margin: 14px -4px -4px; padding: 12px 4px; background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+.cook-nav .btn { padding: 14px 16px; font-size: 16px; }
+.cook-nav #cook-next { flex: 1; }
+.cook-nav .cook-progress { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .cook-timer {
   position: sticky; top: -4px; z-index: 5; display: flex; align-items: center; gap: 12px;
   background: var(--brand); color: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
@@ -2117,6 +2128,7 @@ const RECIPES_SONDE = [
 
   /* ---------- Koch-Modus (Schritt für Schritt + Timer) ---------- */
   let cookMethod = "thermomix";
+  let cookStep = 0;
   let cookTimer = { id: null, remaining: 0, total: 0, label: "" };
 
   function beep() {
@@ -2199,6 +2211,7 @@ const RECIPES_SONDE = [
   }
   function openCook() {
     cookMethod = "thermomix";
+    cookStep = 0;
     renderCook();
     document.getElementById("cook-overlay").hidden = false;
     document.body.classList.add("modal-open");
@@ -2227,16 +2240,24 @@ const RECIPES_SONDE = [
     ing += "</ul>";
 
     const steps = splitSteps(adaptPrep(rec[cookMethod] || "", rec, detailMeat));
+    if (cookStep > steps.length - 1) cookStep = steps.length - 1;
+    if (cookStep < 0) cookStep = 0;
     let stepsHtml = '<div class="cook-sec-title">Schritte</div><ol class="cook-steps">';
     steps.forEach((s, i) => {
       const toks = timeTokens(s);
       let btns = "";
-      toks.forEach((tk, j) => {
+      toks.forEach((tk) => {
         btns += '<button class="time-btn" data-sec="' + tk.sec + '" data-label="' + escapeHtml(s.slice(0, 40)) + '">▶ ' + escapeHtml(tk.label) + " Timer</button>";
       });
-      stepsHtml += '<li><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
+      const cls = (i < cookStep ? " done" : "") + (i === cookStep ? " current" : "");
+      stepsHtml += '<li class="cook-li' + cls + '" data-step="' + i + '"><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
     });
     stepsHtml += "</ol>";
+    const navHtml = '<div class="cook-nav">' +
+      '<button class="btn secondary" id="cook-prev"' + (cookStep === 0 ? " disabled" : "") + ">◀ Zurück</button>" +
+      '<span class="cook-progress">Schritt ' + (cookStep + 1) + " / " + steps.length + "</span>" +
+      '<button class="btn" id="cook-next">' + (cookStep >= steps.length - 1 ? "Fertig ✓" : "Nächster Schritt ▶") + "</button>" +
+      "</div>";
 
     const c = document.getElementById("cook-content");
     c.innerHTML =
@@ -2247,14 +2268,22 @@ const RECIPES_SONDE = [
         methods.map(([k, lab]) => '<button type="button" data-cm="' + k + '"' + (k === cookMethod ? ' class="active"' : "") + ">" + lab + "</button>").join("") +
       "</div>" +
       ing + stepsHtml +
-      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>';
+      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>' +
+      navHtml;
 
     c.querySelectorAll(".cook-methods button[data-cm]").forEach(b =>
-      b.addEventListener("click", () => { cookMethod = b.dataset.cm; renderCook(); }));
+      b.addEventListener("click", () => { cookMethod = b.dataset.cm; cookStep = 0; renderCook(); }));
     c.querySelectorAll(".cook-ings input[type=checkbox]").forEach(cb =>
       cb.addEventListener("change", () => cb.closest("li").classList.toggle("done", cb.checked)));
     c.querySelectorAll(".time-btn").forEach(b =>
-      b.addEventListener("click", () => startTimer(parseInt(b.dataset.sec, 10), b.dataset.label)));
+      b.addEventListener("click", e => { e.stopPropagation(); startTimer(parseInt(b.dataset.sec, 10), b.dataset.label); }));
+    c.querySelectorAll(".cook-li").forEach(li =>
+      li.addEventListener("click", e => { if (e.target.closest(".time-btn")) return; cookStep = parseInt(li.dataset.step, 10); renderCook(); }));
+    const prev = document.getElementById("cook-prev"), next = document.getElementById("cook-next");
+    if (prev) prev.addEventListener("click", () => { if (cookStep > 0) { cookStep--; renderCook(); } });
+    if (next) next.addEventListener("click", () => { if (cookStep < steps.length - 1) { cookStep++; renderCook(); } else { closeCook(); } });
+    const cur = c.querySelector(".cook-li.current");
+    if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
     renderTimerBar();
   }
   function bindCook() {

@@ -909,6 +909,7 @@
 
   /* ---------- Koch-Modus (Schritt für Schritt + Timer) ---------- */
   let cookMethod = "thermomix";
+  let cookStep = 0;
   let cookTimer = { id: null, remaining: 0, total: 0, label: "" };
 
   function beep() {
@@ -991,6 +992,7 @@
   }
   function openCook() {
     cookMethod = "thermomix";
+    cookStep = 0;
     renderCook();
     document.getElementById("cook-overlay").hidden = false;
     document.body.classList.add("modal-open");
@@ -1019,16 +1021,24 @@
     ing += "</ul>";
 
     const steps = splitSteps(adaptPrep(rec[cookMethod] || "", rec, detailMeat));
+    if (cookStep > steps.length - 1) cookStep = steps.length - 1;
+    if (cookStep < 0) cookStep = 0;
     let stepsHtml = '<div class="cook-sec-title">Schritte</div><ol class="cook-steps">';
     steps.forEach((s, i) => {
       const toks = timeTokens(s);
       let btns = "";
-      toks.forEach((tk, j) => {
+      toks.forEach((tk) => {
         btns += '<button class="time-btn" data-sec="' + tk.sec + '" data-label="' + escapeHtml(s.slice(0, 40)) + '">▶ ' + escapeHtml(tk.label) + " Timer</button>";
       });
-      stepsHtml += '<li><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
+      const cls = (i < cookStep ? " done" : "") + (i === cookStep ? " current" : "");
+      stepsHtml += '<li class="cook-li' + cls + '" data-step="' + i + '"><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
     });
     stepsHtml += "</ol>";
+    const navHtml = '<div class="cook-nav">' +
+      '<button class="btn secondary" id="cook-prev"' + (cookStep === 0 ? " disabled" : "") + ">◀ Zurück</button>" +
+      '<span class="cook-progress">Schritt ' + (cookStep + 1) + " / " + steps.length + "</span>" +
+      '<button class="btn" id="cook-next">' + (cookStep >= steps.length - 1 ? "Fertig ✓" : "Nächster Schritt ▶") + "</button>" +
+      "</div>";
 
     const c = document.getElementById("cook-content");
     c.innerHTML =
@@ -1039,14 +1049,22 @@
         methods.map(([k, lab]) => '<button type="button" data-cm="' + k + '"' + (k === cookMethod ? ' class="active"' : "") + ">" + lab + "</button>").join("") +
       "</div>" +
       ing + stepsHtml +
-      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>';
+      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>' +
+      navHtml;
 
     c.querySelectorAll(".cook-methods button[data-cm]").forEach(b =>
-      b.addEventListener("click", () => { cookMethod = b.dataset.cm; renderCook(); }));
+      b.addEventListener("click", () => { cookMethod = b.dataset.cm; cookStep = 0; renderCook(); }));
     c.querySelectorAll(".cook-ings input[type=checkbox]").forEach(cb =>
       cb.addEventListener("change", () => cb.closest("li").classList.toggle("done", cb.checked)));
     c.querySelectorAll(".time-btn").forEach(b =>
-      b.addEventListener("click", () => startTimer(parseInt(b.dataset.sec, 10), b.dataset.label)));
+      b.addEventListener("click", e => { e.stopPropagation(); startTimer(parseInt(b.dataset.sec, 10), b.dataset.label); }));
+    c.querySelectorAll(".cook-li").forEach(li =>
+      li.addEventListener("click", e => { if (e.target.closest(".time-btn")) return; cookStep = parseInt(li.dataset.step, 10); renderCook(); }));
+    const prev = document.getElementById("cook-prev"), next = document.getElementById("cook-next");
+    if (prev) prev.addEventListener("click", () => { if (cookStep > 0) { cookStep--; renderCook(); } });
+    if (next) next.addEventListener("click", () => { if (cookStep < steps.length - 1) { cookStep++; renderCook(); } else { closeCook(); } });
+    const cur = c.querySelector(".cook-li.current");
+    if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
     renderTimerBar();
   }
   function bindCook() {
