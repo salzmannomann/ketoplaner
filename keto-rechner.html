@@ -203,9 +203,19 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 
 /* Einstellungsleiste auf der Rezepte-Seite */
 .settings-bar { border: 2px solid var(--brand-soft); }
+.settings-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--brand-dark);
+  padding: 2px 0; text-align: left;
+}
+.settings-toggle .st-caret { transition: transform .15s ease; color: var(--muted); }
+.settings-toggle.open .st-caret { transform: rotate(180deg); }
 .settings-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
+  margin-top: 16px;
 }
+.settings-grid[hidden] { display: none; }
 .seg-field { grid-column: span 2; }
 .permeal {
   margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
@@ -390,7 +400,11 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
     <p class="subtitle">Standard-Rezepte – automatisch auf dein Verhältnis und deine Kalorien pro Mahlzeit berechnet.</p>
 
     <div class="card settings-bar">
-      <div class="settings-grid">
+      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-grid">
+        <span class="st-label">⚙️ Einstellungen (Kalorien, Mahlzeiten, Verhältnis …)</span>
+        <span class="st-caret">▾</span>
+      </button>
+      <div class="settings-grid" id="settings-grid" hidden>
         <div>
           <label>Kalorien pro Tag</label>
           <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
@@ -1320,9 +1334,13 @@ const RECIPES_SONDE = [
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
-      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + arr.length + "</span>"));
+      const sorted = arr.slice().sort((a, b) => {
+        const ka = a.rec.name.toLowerCase(), kb = b.rec.name.toLowerCase();
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
-      arr.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
       list.appendChild(grid);
     }
 
@@ -1373,6 +1391,14 @@ const RECIPES_SONDE = [
     });
     document.getElementById("sort-select").addEventListener("change", e => {
       state.settings.sort = e.target.value; save(); renderRezepte();
+    });
+    const toggle = document.getElementById("settings-toggle");
+    const grid = document.getElementById("settings-grid");
+    toggle.addEventListener("click", () => {
+      const willOpen = grid.hidden;
+      grid.hidden = !willOpen;
+      toggle.setAttribute("aria-expanded", String(willOpen));
+      toggle.classList.toggle("open", willOpen);
     });
   }
 

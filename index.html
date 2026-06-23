@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=a2942fef" />
+  <link rel="stylesheet" href="styles.css?v=b504936a" />
 </head>
 <body>
   <header class="topbar">
@@ -22,7 +22,11 @@
     <p class="subtitle">Standard-Rezepte – automatisch auf dein Verhältnis und deine Kalorien pro Mahlzeit berechnet.</p>
 
     <div class="card settings-bar">
-      <div class="settings-grid">
+      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-grid">
+        <span class="st-label">⚙️ Einstellungen (Kalorien, Mahlzeiten, Verhältnis …)</span>
+        <span class="st-caret">▾</span>
+      </button>
+      <div class="settings-grid" id="settings-grid" hidden>
         <div>
           <label>Kalorien pro Tag</label>
           <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
@@ -103,6 +107,6 @@
 
   <script src="foods.js?v=8e436367"></script>
   <script src="recipes.js?v=16938ad0"></script>
-  <script src="app.js?v=ce0e5609"></script>
+  <script src="app.js?v=24d5f39f"></script>
 </body>
 </html>

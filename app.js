@@ -262,9 +262,13 @@
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
-      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + arr.length + "</span>"));
+      const sorted = arr.slice().sort((a, b) => {
+        const ka = a.rec.name.toLowerCase(), kb = b.rec.name.toLowerCase();
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
-      arr.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
       list.appendChild(grid);
     }
 
@@ -315,6 +319,14 @@
     });
     document.getElementById("sort-select").addEventListener("change", e => {
       state.settings.sort = e.target.value; save(); renderRezepte();
+    });
+    const toggle = document.getElementById("settings-toggle");
+    const grid = document.getElementById("settings-grid");
+    toggle.addEventListener("click", () => {
+      const willOpen = grid.hidden;
+      grid.hidden = !willOpen;
+      toggle.setAttribute("aria-expanded", String(willOpen));
+      toggle.classList.toggle("open", willOpen);
     });
   }
 
