@@ -30,8 +30,8 @@ const RECIPES_SONDE = [
     name: "Rindfleisch-Karotten-Püree",
     icon: "🥩",
     ketocal: false,
-    zubereitung: "Karotten weich garen, mit dem gegarten Rinderfaschiertes und Wasser fein pürieren, dann Rapsöl untermischen.",
-    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, dann Rapsöl untermischen.",
+    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [ { food: "Rindfleisch ohne Haut", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -190,8 +190,8 @@ const RECIPES_SONDE = [
     name: "Rindfleisch-Karotten-Brei (KetoCal)",
     icon: "🥩",
     ketocal: true,
-    zubereitung: "Karotten weich garen, mit dem gegarten Rinderfaschiertes und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
-    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
+    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -351,7 +351,7 @@ const RECIPES_SONDE = [
     icon: "🥩",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
-    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -383,7 +383,7 @@ const RECIPES_SONDE = [
     icon: "🥩",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
-    thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -398,8 +398,8 @@ const RECIPES_SONDE = [
     name: "Rind-Spinat-Brei",
     icon: "🥩",
     ketocal: false,
-    zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rinderfaschiertes und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
-    thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
+    thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
 ];
