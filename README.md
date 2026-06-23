@@ -76,7 +76,7 @@ Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher
 erreichen. Bei Rezepten ohne KetoCal weist die App darauf hin, dass Vitamine
 und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (45 insgesamt: 20 mit / 25 ohne KetoCal)
+## Rezepte (49 insgesamt: 20 mit / 29 ohne KetoCal)
 
 Ausgewogen über die Kategorien – je Seite etwa 6 mit Fleisch, 4 mit Fisch,
 10 vegetarisch (inkl. Ei-, Erdäpfel- und Gemüsegerichte) und 4 mit Obst
