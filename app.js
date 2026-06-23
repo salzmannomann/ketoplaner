@@ -309,7 +309,7 @@
     });
     // Unabhängige Schalter (rechts): KetoCal + Diätologie – je einzeln ein/aus
     [
-      { key: "withKeto", label: "Mit KetoCal", on: withKeto, start: true },
+      { key: "withKeto", label: "KetoCal", on: withKeto, start: true },
       { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
     ].forEach(t => {
       const c = el("button", { class: "chip switch" + (t.start ? " toggle-start" : "") + (t.on ? " active" : "") }, t.label);
