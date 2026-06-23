@@ -32,7 +32,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Schweinefilet-Karfiol-Creme",
@@ -192,7 +192,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Schweinefilet-Gemüse-Brei (KetoCal)",
@@ -352,7 +352,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Karotte",
@@ -384,7 +384,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Erdäpfel-Spinat-Creme",
@@ -400,6 +400,6 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
 ];

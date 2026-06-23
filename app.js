@@ -190,7 +190,7 @@
      Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
   const MEATS = {
     huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗", word: "Hendl" },
-    rind: { food: "Rindfleisch ohne Haut", factor: 1.5, label: "Rind", icon: "🥩", word: "Rindfleisch" },
+    rind: { food: "Rindfleisch (mager)", factor: 1.5, label: "Rind", icon: "🥩", word: "Rindfleisch" },
     pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃", word: "Putenfleisch" },
   };
   // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.
@@ -499,6 +499,7 @@
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
+      (mult > 1 ? '<div class="adjust-note">ℹ️ Mengen für den ganzen Tag (×' + d.mahl + '). Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Mahlzeit – bei der größeren Menge entsprechend länger garen, bis alles weich ist, und ggf. in mehreren Portionen pürieren.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
       (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "");
 
@@ -603,6 +604,7 @@
       (r === null ? "—" : fmt(r, 2)) + ":1<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
+      (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Thermomix-Zeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
       (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
       (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "") +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +

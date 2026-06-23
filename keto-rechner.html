@@ -613,7 +613,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Wurst", "name": "Frühstücksspeck durchwachsen", "pro": 100, "eiweiss": 9.1, "fett": 65.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Schwein Bauch", "pro": 100, "eiweiss": 17.8, "fett": 21.1, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Putenbrust ohne Haut", "pro": 100, "eiweiss": 24.1, "fett": 1.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Fleisch", "name": "Rindfleisch ohne Haut", "pro": 100, "eiweiss": 21.0, "fett": 5.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Fleisch", "name": "Rindfleisch (mager)", "pro": 100, "eiweiss": 21.0, "fett": 5.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Hühnerbrust ohne Haut", "pro": 100, "eiweiss": 22.8, "fett": 0.9, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Kalbsschnitzelfleisch", "pro": 100, "eiweiss": 20.6, "fett": 1.4, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Lammfleisch - Keule", "pro": 100, "eiweiss": 18.0, "fett": 18.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
@@ -717,7 +717,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Schweinefilet-Karfiol-Creme",
@@ -877,7 +877,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Schweinefilet-Gemüse-Brei (KetoCal)",
@@ -1037,7 +1037,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Karotte",
@@ -1069,7 +1069,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Erdäpfel-Spinat-Creme",
@@ -1085,7 +1085,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rindfleisch ohne Haut", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
 ];
 
@@ -1283,7 +1283,7 @@ const RECIPES_SONDE = [
      Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
   const MEATS = {
     huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗", word: "Hendl" },
-    rind: { food: "Rindfleisch ohne Haut", factor: 1.5, label: "Rind", icon: "🥩", word: "Rindfleisch" },
+    rind: { food: "Rindfleisch (mager)", factor: 1.5, label: "Rind", icon: "🥩", word: "Rindfleisch" },
     pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃", word: "Putenfleisch" },
   };
   // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.
@@ -1592,6 +1592,7 @@ const RECIPES_SONDE = [
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
+      (mult > 1 ? '<div class="adjust-note">ℹ️ Mengen für den ganzen Tag (×' + d.mahl + '). Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Mahlzeit – bei der größeren Menge entsprechend länger garen, bis alles weich ist, und ggf. in mehreren Portionen pürieren.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
       (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "");
 
@@ -1696,6 +1697,7 @@ const RECIPES_SONDE = [
       (r === null ? "—" : fmt(r, 2)) + ":1<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
+      (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Thermomix-Zeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
       (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
       (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "") +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +

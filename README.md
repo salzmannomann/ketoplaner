@@ -69,8 +69,8 @@ kombinierbar.
 
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
 Karfiol, Hendl, Paradeiser, Marille, Schlagobers …). Beim Fleisch wird
-einheitlich **stückiges Fleisch ohne Haut** verwendet (Hühnerbrust,
-Putenbrust und Rindfleisch – kein Faschiertes).
+einheitlich **stückiges, mageres Fleisch** verwendet (Geflügel ohne Haut:
+Hühnerbrust und Putenbrust; dazu mageres Rindfleisch – kein Faschiertes).
 
 **Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind oder Pute
 (jeweils stückiges Fleisch ohne Haut) gibt es in der Detailansicht einen
