@@ -1405,16 +1405,15 @@ const RECIPES_SONDE = [
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") + "</div>";
-    if (warn) {
-      const ib = el("button", { class: "info-toggle" + (infoOpen ? " on" : ""), title: "Hinweis ohne KetoCal ein-/ausblenden" }, "ⓘ");
-      ib.addEventListener("click", () => {
-        infoOpen = !infoOpen;
-        $("info-note").hidden = !infoOpen;
-        ib.classList.toggle("on", infoOpen);
-      });
-      $("permeal").appendChild(ib);
-    }
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") +
+      (warn ? ' <button class="info-toggle' + (infoOpen ? " on" : "") + '" id="permeal-info" title="Hinweis ohne KetoCal ein-/ausblenden">ⓘ</button>' : "") +
+      "</div>";
+    const ib = warn ? document.getElementById("permeal-info") : null;
+    if (ib) ib.addEventListener("click", () => {
+      infoOpen = !infoOpen;
+      $("info-note").hidden = !infoOpen;
+      ib.classList.toggle("on", infoOpen);
+    });
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
