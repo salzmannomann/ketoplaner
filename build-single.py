@@ -54,6 +54,14 @@ def main():
         html,
     )
 
+    # Marken-Logo als data-URI einbetten, damit die Einzeldatei eigenständig bleibt
+    logo = os.path.join(HERE, "icon-192.png")
+    if os.path.exists(logo):
+        import base64
+        with open(logo, "rb") as fh:
+            b64 = base64.b64encode(fh.read()).decode("ascii")
+        html = html.replace('src="icon-192.png"', 'src="data:image/png;base64,' + b64 + '"')
+
     # Skripte einbetten (Reihenfolge wie in index.html beibehalten)
     for src in ("foods.js", "recipes.js", "app.js"):
         js = read(src)

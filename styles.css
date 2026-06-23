@@ -84,6 +84,16 @@ body {
   font-weight: 700; font-size: 18px; color: var(--brand-dark);
 }
 .brand .logo { font-size: 24px; }
+.brand .logo-img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; box-shadow: 0 1px 3px rgba(16,24,40,.18); display: block; }
+.brand .brand-name {
+  font-family: 'Pacifico', 'Segoe Script', cursive;
+  font-weight: 400; font-size: 26px; line-height: 1;
+  color: var(--brand-dark); letter-spacing: .3px; padding-top: 2px;
+}
+@media (max-width: 560px) {
+  .brand .logo-img { width: 32px; height: 32px; }
+  .brand .brand-name { font-size: 22px; }
+}
 
 h1 { font-size: 26px; margin: 0 0 4px; }
 .subtitle { color: var(--muted); margin: 0 0 22px; }
