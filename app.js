@@ -267,8 +267,6 @@
     $("set-ratio").value = s.ratio;
     $("set-weight").value = s.weight;
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
-    document.querySelectorAll("#ketocal-seg button").forEach(b =>
-      b.classList.toggle("active", b.dataset.val === (s.ketocal || "ohne")));
 
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
@@ -289,11 +287,21 @@
       $("permeal").appendChild(ib);
     }
 
-    // Schnellfilter-Chips (Kategorie = entweder/oder)
+    // Schnellfilter-Chips
     const filter = s.filter || "alle";
     const onlyQuelle = !!s.onlyQuelle;
+    const keto = s.ketocal || "ohne";
     const fb = $("filter-bar");
     fb.innerHTML = "";
+    // KetoCal-Auswahl (entweder/oder)
+    const ketoRow = el("div", { class: "chips" });
+    [["ohne", "Ohne KetoCal"], ["mit", "Mit KetoCal"], ["alle", "Mit & ohne"]].forEach(([val, label]) => {
+      const c = el("button", { class: "chip keto-chip" + (val === keto ? " active" : "") }, label);
+      c.addEventListener("click", () => { state.settings.ketocal = val; save(); renderRezepte(); });
+      ketoRow.appendChild(c);
+    });
+    fb.appendChild(ketoRow);
+    // Kategorie (entweder/oder) + Diätologie (Schalter)
     const chips = el("div", { class: "chips" });
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
@@ -385,9 +393,6 @@
     });
     document.getElementById("set-proteinmode").addEventListener("change", e => {
       state.settings.proteinPerKg = num(e.target.value); save(); renderRezepte();
-    });
-    document.querySelectorAll("#ketocal-seg button").forEach(b => {
-      b.addEventListener("click", () => { state.settings.ketocal = b.dataset.val; save(); renderRezepte(); });
     });
     document.getElementById("sort-select").addEventListener("change", e => {
       state.settings.sort = e.target.value; save(); renderRezepte();
