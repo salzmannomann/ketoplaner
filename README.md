@@ -58,9 +58,12 @@ Die App besteht aus einer einzigen Seite:
    **„Zutaten anpassen / tauschen"** (öffnet das Rezept im freien Rechner – dort
    kann man Zutaten oder Fette entfernen, tauschen oder ergänzen, z. B. Rapsöl
    durch Butter ersetzen; die Mengen werden automatisch neu berechnet)
-   (für **A4-Hochformat** optimiert). Mit dem Umschalter **„1 Mahlzeit /
-   Ganzer Tag"** werden die Mengen direkt für den ganzen Tag (× Anzahl
-   Mahlzeiten) angezeigt – praktisch zum Vorkochen.
+   (für **A4-Hochformat** optimiert). **Menge/Portionen skalieren:** Mit den
+   Buttons **„1 Portion"** / **„Ganzer Tag (×N)"**, dem **Portionen-Stepper**
+   (− / +) oder indem man in der Zutatentabelle **eine Menge direkt ändert**
+   (z. B. „150 g Hendl") werden **alle anderen Zutaten proportional
+   mitskaliert** – das Verhältnis bleibt gleich. So kann man rasch eine
+   größere Menge für mehrere Mahlzeiten vorkochen und einkühlen.
 
 **Eigenes Rezept zusammenstellen:** Über den Button „🧪 Eigenes Rezept" kann man
 z. B. ein saisonales Lebensmittel (etwa Erdbeeren) wählen und ein oder **mehrere

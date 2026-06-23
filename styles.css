@@ -262,6 +262,14 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 
 /* Portions-Umschalter im Detail */
 .seg-portion { margin: 0 0 14px; }
+.seg-portion.batch { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.seg-portion.batch .seg-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+.portion-step { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.portion-step input { width: 60px; padding: 6px 8px; text-align: center; font-size: 16px; }
+.stepbtn { width: 32px; height: 32px; border: 1px solid var(--line); background: #fff; border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink); }
+.stepbtn:hover { background: var(--brand-soft); }
+.amt-edit { width: 66px; padding: 5px 6px; font-size: 16px; border: 1px solid var(--line); border-radius: 6px; text-align: right; }
+.amt-edit:focus { outline: 2px solid var(--brand-soft); border-color: var(--brand); }
 .segmented.mini { display: inline-flex; width: auto; }
 .segmented.mini button { padding: 7px 14px; font-size: 13px; flex: 0 0 auto; }
 

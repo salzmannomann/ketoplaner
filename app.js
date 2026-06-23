@@ -452,9 +452,9 @@
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  let detailRec = null, detailPortion = "meal", detailMeat = null; // detailMeat: temporäre Fleischwahl
+  let detailRec = null, detailScale = 1, detailMeat = null; // detailScale: Portionen-Faktor, detailMeat: temporäre Fleischwahl
   function openRecipeDetail(rec) {
-    detailRec = rec; detailPortion = "meal"; detailMeat = null;
+    detailRec = rec; detailScale = 1; detailMeat = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -481,15 +481,17 @@
         adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
       }
     }
-    const mult = detailPortion === "day" ? d.mahl : 1;
+    const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
     const r = ratioOf(sumPer);
     const totalG = items.reduce((a, it) => a + num(it.grams), 0) * mult;
     const ml = volumeMl(items) * mult;
-    const proteinTarget = mult > 1 ? d.eiweiss : d.eiweissMahl;
+    const proteinTarget = d.eiweissMahl * mult;
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
+    const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
+    const portionLabel = mult === 1 ? "1 Portion" : portionsTxt + " Portionen";
 
     const ketoBadge = (rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
@@ -513,22 +515,28 @@
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
       rows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
-        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td><td>" +
-        fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
+        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
+        '<td><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + (Math.round(g * 10) / 10) + '" value="' + (Math.round(g * 10) / 10) + '"></td>' +
+        "<td>" + fmt(m.eiweiss) + "</td><td>" +
         fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
 
-    const portionLabel = mult > 1 ? ("Ganzer Tag (" + d.mahl + " Mahlzeiten)") : "1 Mahlzeit";
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
         '<div class="meta">Verhältnis <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' +
         (r === null ? "—" : fmt(r, 2)) + ":1</span> · zeigt: " + portionLabel + "</div></div></div>" +
-      '<div class="seg-portion"><div class="segmented mini">' +
-        '<button type="button" data-p="meal"' + (mult === 1 ? ' class="active"' : "") + ">1 Mahlzeit</button>" +
-        '<button type="button" data-p="day"' + (mult > 1 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
-      "</div></div>" +
+      '<div class="seg-portion batch">' +
+        '<span class="seg-label">Menge zubereiten:</span>' +
+        '<div class="segmented mini">' +
+          '<button type="button" data-scale="1"' + (mult === 1 ? ' class="active"' : "") + ">1 Portion</button>" +
+          '<button type="button" data-scale="' + d.mahl + '"' + (Math.abs(mult - d.mahl) < 0.01 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
+        "</div>" +
+        '<span class="portion-step">Portionen <button type="button" class="stepbtn" data-step="-1">−</button>' +
+        '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + portionsTxt + '">' +
+        '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
+      "</div>" +
       meatSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
@@ -542,12 +550,27 @@
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
-      (mult > 1 ? '<div class="adjust-note">ℹ️ Mengen für den ganzen Tag (×' + d.mahl + '). Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Mahlzeit – bei der größeren Menge entsprechend länger garen, bis alles weich ist, und ggf. in mehreren Portionen pürieren.</div>' : "") +
+      '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
+      (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
       (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "");
 
-    c.querySelectorAll(".seg-portion button").forEach(b =>
-      b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
+    c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
+      b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; renderDetail(); }));
+    c.querySelectorAll(".seg-portion button[data-step]").forEach(b =>
+      b.addEventListener("click", () => {
+        detailScale = Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2);
+        renderDetail();
+      }));
+    const pin = c.querySelector("#portion-input");
+    if (pin) pin.addEventListener("change", () => {
+      const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = v; renderDetail(); }
+    });
+    c.querySelectorAll(".amt-edit").forEach(inp =>
+      inp.addEventListener("change", () => {
+        const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
+        if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); renderDetail(); }
+      }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
