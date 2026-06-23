@@ -397,6 +397,7 @@
       '<div class="tile-badge">' +
         (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
+        (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
       "</div>" +
       '<div class="tile-stats">' +
@@ -435,9 +436,10 @@
     const proteinTarget = mult > 1 ? d.eiweiss : d.eiweissMahl;
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
 
-    const ketoBadge = rec.ketocal
+    const ketoBadge = (rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
-      : '<span class="badge noketo">ohne KetoCal</span>';
+      : '<span class="badge noketo">ohne KetoCal</span>') +
+      (rec.quelle ? ' <span class="badge quelle">👩‍⚕️ Diätologie</span>' : "");
 
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";

@@ -302,6 +302,7 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .favbtn.on { color: #e2b007; }
 .favbtn:hover { color: #e2b007; }
 .badge.custom { background: #e6effb; color: var(--accent); }
+.badge.quelle { background: #ede9fe; color: #6d28d9; }
 .compose-save { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .compose-save input { flex: 1; min-width: 160px; }
 .tile-name { font-weight: 700; font-size: 16px; line-height: 1.3; }

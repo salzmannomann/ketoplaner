@@ -82,6 +82,11 @@ umstellen, wenn eine Sorte gerade nicht zu Hause ist. Eine getauschte Sorte
 wird auf der Kachel mit einem kleinen Hinweis (z. B. „🥩 Rind") angezeigt; die
 Auswahl bleibt gespeichert.
 
+**Herkunft:** Rezepte, die direkt von der Diätologie stammen (aus den
+hochgeladenen PDF-/Excel-Vorlagen), sind mit dem Schild **„👩‍⚕️ Diätologie"**
+gekennzeichnet – auf der Kachel und in der Detailansicht. Alle übrigen Rezepte
+sind ergänzte Varianten.
+
 **Favoriten:** Jede Kachel hat einen Stern (☆/★). Als Favorit markierte Rezepte
 erscheinen immer ganz oben.
 

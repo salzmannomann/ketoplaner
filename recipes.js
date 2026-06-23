@@ -244,6 +244,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Erdäpfelbrei (Variante 1)",
+    quelle: "diätologie",
     icon: "🥔",
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
@@ -252,6 +253,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Erdäpfelbrei (Variante 2)",
+    quelle: "diätologie",
     icon: "🥔",
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
@@ -276,6 +278,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Karottensuppe",
+    quelle: "diätologie",
     icon: "🥕",
     ketocal: true,
     zubereitung: "Karotten weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Butter untermischen.",
@@ -292,6 +295,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Obstbrei – Banane",
+    quelle: "diätologie",
     icon: "🍌",
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 einrühren und Butter sowie Banane zugeben.",
@@ -300,6 +304,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Obstbrei – Apfelmus",
+    quelle: "diätologie",
     icon: "🍎",
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 einrühren und Butter sowie Apfelmus zugeben.",
@@ -316,6 +321,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Milch-Grieß-Obstbrei",
+    quelle: "diätologie",
     icon: "🥣",
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl andicken, auf 45–50 °C abkühlen lassen, Grießbrei und KetoCal 3:1 einrühren, dann Butter und Apfelmus zugeben.",
@@ -324,6 +330,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Brokkoli",
+    quelle: "diätologie",
     icon: "🥦",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -332,6 +339,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Erbsen",
+    quelle: "diätologie",
     icon: "🫛",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -340,6 +348,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Karfiol",
+    quelle: "diätologie",
     icon: "🥬",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -348,6 +357,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Karotte & Rind",
+    quelle: "diätologie",
     icon: "🥩",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -356,6 +366,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Karotte",
+    quelle: "diätologie",
     icon: "🥕",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -364,6 +375,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Kürbis",
+    quelle: "diätologie",
     icon: "🎃",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -372,6 +384,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Rote Rüben",
+    quelle: "diätologie",
     icon: "🟣",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -380,6 +393,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Gemüse-Fleischbrei – Rote Rüben & Rind",
+    quelle: "diätologie",
     icon: "🥩",
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -388,6 +402,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Erdäpfel-Spinat-Creme",
+    quelle: "diätologie",
     icon: "🥬",
     ketocal: false,
     zubereitung: "Erdäpfel und Gemüse weich garen, mit Wasser fein pürieren und das Rapsöl untermischen.",
@@ -396,6 +411,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Rind-Spinat-Brei",
+    quelle: "diätologie",
     icon: "🥩",
     ketocal: false,
     zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
