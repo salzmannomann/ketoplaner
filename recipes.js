@@ -1,5 +1,5 @@
 // Standard-Rezepte für die ketogene Sondennahrung (47 Stück: 20 mit / 27 ohne KetoCal).
-// Einheitliche Kurznamen "Hauptzutat & Beilage"; das Icon zeigt die Art.
+// Einheitliche Kurznamen "Hauptzutat & Beilage"; Icon = Sorte (Fleisch/Fisch/Ei) bzw. Gemüse/Obst.
 // Österreichische Zutatennamen. Felder: name, icon, ketocal, quelle, zubereitung, thermomix, items.
 const RECIPES_SONDE = [
   {
@@ -20,7 +20,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Schwein & Karfiol",
-    icon: "🥩",
+    icon: "🍖",
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -76,7 +76,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Ei & Spinat",
-    icon: "🥬",
+    icon: "🥚",
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Spinat, Wasser und Rapsöl fein pürieren.",
     thermomix: "Spinat 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
@@ -84,7 +84,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Ei & Brokkoli",
-    icon: "🥦",
+    icon: "🥚",
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Brokkoli, Wasser und Rapsöl fein pürieren.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
@@ -172,7 +172,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Schwein & Karfiol (mit KetoCal)",
-    icon: "🥩",
+    icon: "🍖",
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
@@ -306,7 +306,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Brokkoli",
-    icon: "🥦",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -315,7 +315,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Erbsen",
-    icon: "🫛",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -324,7 +324,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Karfiol",
-    icon: "🥬",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -342,7 +342,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Karotte",
-    icon: "🥕",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -351,7 +351,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Kürbis",
-    icon: "🎃",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -360,7 +360,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Hendl & Rote Rüben",
-    icon: "🟣",
+    icon: "🍗",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
@@ -378,7 +378,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "Erdäpfel & Spinat",
-    icon: "🥬",
+    icon: "🥔",
     ketocal: false,
     quelle: "diätologie",
     zubereitung: "Erdäpfel und Gemüse weich garen, mit Wasser fein pürieren und das Rapsöl untermischen.",

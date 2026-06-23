@@ -299,8 +299,13 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .meat-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 .badge.meat { background: #f0e7da; color: #8a5a1c; }
 
-.toolbar .sort-label { margin: 0 0 0 auto; color: var(--muted); font-size: 14px; }
+.toolbar .sort-wrap { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.toolbar .sort-label { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .toolbar #sort-select { max-width: 220px; }
+@media (max-width: 560px) {
+  .toolbar .sort-wrap { margin-left: 0; width: 100%; }
+  .toolbar #sort-select { flex: 1; max-width: none; }
+}
 .group-head {
   font-size: 16px; font-weight: 700; color: var(--brand-dark);
   margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--brand-soft);

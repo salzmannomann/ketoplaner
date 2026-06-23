@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=85ee3c4f" />
+  <link rel="stylesheet" href="styles.css?v=32cf160f" />
 </head>
 <body>
   <header class="topbar">
@@ -69,12 +69,14 @@
       <div id="filter-bar"></div>
       <div class="toolbar">
         <span class="hint" id="recipe-count"></span>
-        <label for="sort-select" class="sort-label">Sortieren:</label>
-        <select id="sort-select">
-          <option value="kategorie">Nach Kategorie</option>
-          <option value="name">Name (A–Z)</option>
-          <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-        </select>
+        <span class="sort-wrap">
+          <label for="sort-select" class="sort-label">Sortieren:</label>
+          <select id="sort-select">
+            <option value="kategorie">Nach Kategorie</option>
+            <option value="name">Name (A–Z)</option>
+            <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+          </select>
+        </span>
       </div>
     </div>
     <div id="recipe-list"></div>
@@ -99,7 +101,7 @@
   </div>
 
   <script src="foods.js?v=929cdbe0"></script>
-  <script src="recipes.js?v=e8738eaf"></script>
+  <script src="recipes.js?v=24451b43"></script>
   <script src="app.js?v=6f075ae7"></script>
 </body>
 </html>
