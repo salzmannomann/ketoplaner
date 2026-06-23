@@ -104,12 +104,14 @@ Es werden nur Rezepte angezeigt, die das eingestellte Verhältnis sicher
 erreichen. Bei Rezepten ohne KetoCal weist die App darauf hin, dass Vitamine
 und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (50 insgesamt: 20 mit / 30 ohne KetoCal)
+## Rezepte (47 insgesamt: 20 mit / 27 ohne KetoCal)
 
-Ausgewogen über die Kategorien – je Seite etwa 6 mit Fleisch, 4 mit Fisch,
-10 vegetarisch (inkl. Ei-, Erdäpfel- und Gemüsegerichte) und 4 mit Obst
-(etwas mehr Fleisch- als Fischgerichte). Enthalten sind u. a. mehrere
-Erdäpfel-Rezepte und Obstbreie (Banane, Apfelmus, Marille, Heidelbeeren).
+Ausgewogen über die Kategorien (Fleisch, Fisch, vegetarisch inkl. Ei-,
+Erdäpfel- und Gemüsegerichte sowie Obst). Die Namen folgen einem einheitlichen
+Kurzschema **„Hauptzutat & Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat",
+„Banane (Obstbrei)"); KetoCal-Varianten tragen den Zusatz „(mit KetoCal)".
+Enthalten sind u. a. mehrere Erdäpfel-Rezepte und Obstbreie (Banane, Apfelmus,
+Marille, Heidelbeere).
 
 Alle Rezepte erreichen das Verhältnis 1,8:1 sicher.
 
