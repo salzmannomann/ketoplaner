@@ -91,6 +91,7 @@
   /* ---------- Schnellfilter ---------- */
   const FILTERS = [
     { id: "alle", label: "Alle" },
+    { id: "diaetologie", label: "👩‍⚕️ Diätologie" },
     { id: "fleisch", label: "🥩 Fleisch" },
     { id: "fisch", label: "🐟 Fisch" },
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
@@ -114,6 +115,7 @@
       case "fisch": return t.fisch;
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
+      case "diaetologie": return !!rec.quelle;
       default: return true;
     }
   }
@@ -180,26 +182,23 @@
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
-  // Hält alle Zutaten fix und berechnet nur die Fett-Stellgröße neu, sodass das
-  // Verhältnis exakt stimmt (Kalorien dürfen sich ändern). Für den Fleisch-Tausch.
-  function adjustFatToRatio(items, ratio) {
-    const fi = fatItemIndex(items);
-    if (fi < 0) { const s = sumMacros(items); return { items: items.slice(), ratio: ratioOf(s), kcal: s.kcal, ok: false, fatIndex: -1 }; }
-    let Pn = 0, Fn = 0, Cn = 0;
+  // Fleisch-Tausch: alle anderen Zutaten (Gemüse, Wasser, Öl/Fett) bleiben fix;
+  // nur die Fleischmenge wird so berechnet, dass das Verhältnis exakt stimmt.
+  // (Kalorien dürfen sich dabei leicht ändern.)
+  function solveMeatForRatio(items, mi, ratio) {
+    let F = 0, PC = 0;
     items.forEach((it, i) => {
-      if (i === fi) return; const f = lookup(it.food); if (!f) return;
-      const g = num(it.grams); Pn += f.eiweiss * g / 100; Fn += f.fett * g / 100; Cn += f.kh * g / 100;
+      if (i === mi) return; const f = lookup(it.food); if (!f) return;
+      const g = num(it.grams); F += f.fett * g / 100; PC += (f.eiweiss + f.kh) * g / 100;
     });
-    const fat = lookup(items[fi].food); const fp = fat.eiweiss, ff = fat.fett, fc = fat.kh;
-    const denom = (ff - ratio * (fp + fc)) / 100;
-    if (denom <= 0) return { items: items.slice(), ratio: null, kcal: 0, ok: false, fatIndex: fi };
-    const x = (ratio * (Pn + Cn) - Fn) / denom;
-    if (x < 0) return { items: items.slice(), ratio: null, kcal: 0, ok: false, fatIndex: fi };
-    const out = items.map((it, i) => i === fi
-      ? { food: it.food, grams: round1(x) }
+    const mf = lookup(items[mi].food); if (!mf) return null;
+    const denom = mf.fett / 100 - ratio * (mf.eiweiss + mf.kh) / 100;
+    if (Math.abs(denom) < 1e-9) return null;
+    const m = (ratio * PC - F) / denom;
+    if (!(m > 0)) return null;
+    return items.map((it, i) => i === mi
+      ? { food: it.food, grams: round1(m) }
       : { food: it.food, grams: round1(num(it.grams)) });
-    const sum = sumMacros(out);
-    return { items: out, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
 
   /* ---------- Fleisch-Tausch ----------
@@ -449,15 +448,20 @@
     // Basis-Rezept auf Einstellungen (140 kcal/Mahlzeit + Verhältnis) anpassen.
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
+    let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && detailMeat && detailMeat !== swapSlot.baseKey) {
-      // Gemüse/Wasser bleiben fix; nur Fleisch nach 20:30:18 tauschen, Fett gleicht das Verhältnis aus.
-      const factor = MEATS[detailMeat].factor / MEATS[swapSlot.baseKey].factor;
+      // Nur das Fleisch wird getauscht; Gemüse, Wasser UND Öl/Fett bleiben gleich.
+      // Die Fleischmenge wird so berechnet, dass das Verhältnis exakt stimmt.
       const swapped = base.items.map((it, i) => i === swapSlot.index
-        ? { food: MEATS[detailMeat].food, grams: round1(num(it.grams) * factor) }
+        ? { food: MEATS[detailMeat].food, grams: num(it.grams) }
         : { food: it.food, grams: num(it.grams) });
-      const r2 = adjustFatToRatio(swapped, d.ratio);
-      res = r2.ok ? r2 : computeAdjustedRecipe(applyMeatChoice(rec, detailMeat), d.kcalMahl, d.ratio);
+      const solved = solveMeatForRatio(swapped, swapSlot.index, d.ratio);
+      if (solved) {
+        const sm = sumMacros(solved);
+        res = { items: solved, ratio: ratioOf(sm), kcal: sm.kcal, ok: true, fatIndex: base.fatIndex };
+        adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
+      }
     }
     const mult = detailPortion === "day" ? d.mahl : 1;
     const items = res.items;
@@ -483,15 +487,15 @@
           '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
           MEATS[k].icon + " " + MEATS[k].label + "</button>"
         ).join("") +
-        '</div><div class="meat-note">20 g Huhn ≙ 30 g Rind ≙ 18 g Pute. Gemüse & Wasser bleiben gleich; nur Fleisch und Ausgleichsfett ändern sich, damit das Verhältnis stimmt – die Kalorien können dabei leicht abweichen.</div></div>';
+        '</div><div class="meat-note">Es ändert sich nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von 30 g / 18 g abweichen; die Kalorien können leicht variieren).</div></div>';
     }
 
     let rows = "";
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
-      rows += "<tr" + (i === res.fatIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
-        escapeHtml(it.food) + (i === res.fatIndex ? " ⟵ Fett angepasst" : "") + "</td><td>" +
+      rows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
+        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td><td>" +
         fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
         fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });

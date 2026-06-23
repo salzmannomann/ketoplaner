@@ -44,7 +44,8 @@ Die App besteht aus einer einzigen Seite:
    (Körpergewicht × g/kg, z. B. 1,5 g/kg/Tag – Richtwert für Kinder, bitte mit
    dem Behandlungsteam abstimmen). Daraus werden **kcal pro Mahlzeit** und das
    **Eiweiß-Ziel pro Mahlzeit** angezeigt.
-2. **Schnellfilter** per Buttons: Alle, Fleisch, Fisch, Vegetarisch,
+2. **Schnellfilter** per Buttons: Alle, 👩‍⚕️ Diätologie (nur die Original-
+   Rezepte aus den Vorlagen), Fleisch, Fisch, Vegetarisch,
    Obst. Zusätzlich **Sortierung/Gruppierung**: nach Kategorie
    (mit Überschriften, Favoriten oben), Name (A–Z) oder Eiweiß.
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
@@ -75,11 +76,12 @@ Hühnerbrust und Putenbrust; dazu mageres Rindfleisch – kein Faschiertes).
 **Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind oder Pute
 (jeweils stückiges Fleisch ohne Haut) gibt es in der Detailansicht einen
 Umschalter **🍗 Huhn / 🥩 Rind /
-🦃 Pute**. Laut Diätologin sind **20 g Huhn ≙ 30 g Rind ≙ 18 g Pute**
-austauschbar. Beim Umstellen bleiben **Gemüse und Wasser unverändert**; nur
-das Fleisch wird umgerechnet und das Ausgleichsfett neu berechnet, damit das
-**Verhältnis 1,8:1** exakt stimmt – die Kalorien können dabei leicht abweichen
-(wird angezeigt). So kann man rasch umstellen, wenn eine Sorte gerade nicht zu
+🦃 Pute**. Beim Umstellen ändert sich **nur das Fleisch** – Gemüse, Wasser
+**und Öl/Fett bleiben gleich**. Die Fleischmenge wird so berechnet, dass das
+**Verhältnis 1,8:1** exakt erhalten bleibt (sie weicht daher etwas von den
+Richtwerten 20/30/18 g der Diätologin ab; beim mageren Rindfleisch z. B.
+~23–25 g statt 30 g). Die Kalorien können dabei leicht variieren (wird
+angezeigt). So kann man rasch umstellen, wenn eine Sorte gerade nicht zu
 Hause ist. Der Tausch ist **temporär**: Beim Schließen des Rezepts steht wieder
 das Standard-Fleisch; die Kachel bleibt unverändert.
 
