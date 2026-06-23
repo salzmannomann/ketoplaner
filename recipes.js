@@ -8,7 +8,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Zucchini weich garen, mit dem gegarten Hendl und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 25 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -17,7 +17,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Pute und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Pute zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Putenfleisch und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Putenbrust ohne Haut", grams: 25 }, { food: "Kartoffel gekocht", grams: 40 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -26,7 +26,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Schweinefilet und Karfiol klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Schweinefilet", grams: 25 }, { food: "Karfiol gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -35,7 +35,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Forelle und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Forelle zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Forelle und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Forelle TK oder Frisch", grams: 30 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -44,7 +44,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Brokkoli weich garen, mit dem gegarten Heilbutt und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Heilbutt zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Heilbutt und Brokkoli klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Heilbuttfilet TK oder Frisch", grams: 30 }, { food: "Broccoli, gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -53,7 +53,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Scholle und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Scholle zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Scholle und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Scholle TK oder Frisch", grams: 30 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -62,7 +62,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Zucchini weich garen, mit dem gegarten Thunfisch und Wasser fein pürieren, dann Olivenöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Thunfisch zugeben, 12 Min./100 °C/Stufe 1 garen. Olivenöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Zucchini klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Olivenöl und den abgetropften Thunfisch 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Thunfisch in Öl (Dose, abgetropft)", grams: 30 }, { food: "Zucchini gegart", grams: 70 }, { food: "Olivenöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -103,7 +103,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit Wasser fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -112,7 +112,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit Wasser fein pürieren und Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Karfiol und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Karfiol gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -153,7 +153,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -162,7 +162,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -171,7 +171,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Pute und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Pute zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Putenfleisch und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Putenbrust ohne Haut", grams: 20 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -180,7 +180,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -189,7 +189,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Schweinefilet und Karfiol klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Schweinefilet", grams: 20 }, { food: "Karfiol gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -198,7 +198,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Karfiol klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -207,7 +207,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Forelle und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Forelle zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Forelle und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Forelle TK oder Frisch", grams: 25 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -216,7 +216,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Brokkoli weich garen, mit dem gegarten Heilbutt und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Heilbutt zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Heilbutt und Brokkoli klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Heilbuttfilet TK oder Frisch", grams: 25 }, { food: "Broccoli, gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
   },
   {
@@ -225,7 +225,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Scholle und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Scholle zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Scholle und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Scholle TK oder Frisch", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
   },
   {
@@ -234,7 +234,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Rotbarsch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Rotbarsch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Zucchini klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter, KetoCal und den gegarten Rotbarsch 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rotbarsch, gegart", grams: 25 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
@@ -244,7 +244,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -254,7 +254,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 7 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -263,7 +263,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Karfiol und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Karfiol gekocht", grams: 50 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -272,7 +272,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Zucchini klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Zucchini gegart", grams: 80 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
   {
@@ -282,7 +282,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Karotten weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Butter untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter, Schlagobers und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Karotten roh", grams: 120 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Schlagobers NÖM", grams: 20 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 110 } ],
   },
   {
@@ -335,7 +335,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Brokkoli klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Broccoli, gekocht", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -345,7 +345,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Erbsen 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Erbsen klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Erbsen grün, roh und TK", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -355,7 +355,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Karfiol klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol gekocht", grams: 45 }, { food: "Rapsöl", grams: 11 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -365,7 +365,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -375,7 +375,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -385,7 +385,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Kürbis 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Kürbis klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Kürbis roh", grams: 45 }, { food: "Rapsöl", grams: 13 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -395,7 +395,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Rote Rüben klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Rote Rüben gekocht", grams: 45 }, { food: "Rapsöl", grams: 13 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -405,7 +405,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Rote Rüben klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
@@ -415,7 +415,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Erdäpfel und Gemüse weich garen, mit Wasser fein pürieren und das Rapsöl untermischen.",
     thermomix: "Erdäpfel und Gemüse 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Spinat klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kartoffel gekocht", grams: 23 }, { food: "Spinat, gekocht", grams: 30 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 80 } ],
   },
   {
@@ -425,7 +425,7 @@ const RECIPES_SONDE = [
     quelle: "diätologie",
     zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    varoma: "Schonende Varoma-Zubereitung (dämpfen): Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Die rohen festen Zutaten – Gemüse und ggf. Fleisch oder frischer Fisch – klein schneiden, in den Varoma-Behälter geben und 15–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und vollständig durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem in der Zutatenliste angegebenen Wasser, dem Fett/Öl sowie ggf. bereits gegarten Zutaten (z. B. Thunfisch) und KetoCal in den Mixtopf geben und 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch, Spinat und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
 ];
