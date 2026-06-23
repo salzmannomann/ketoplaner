@@ -204,6 +204,7 @@
   }
 
   /* ---------- Rezepte rendern ---------- */
+  let infoOpen = false; // Warnhinweis (ohne KetoCal) ein-/ausgeklappt
   function renderRezepte() {
     const s = state.settings;
     const $ = id => document.getElementById(id);
@@ -218,11 +219,21 @@
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
+    const warn = (s.ketocal || "ohne") !== "mit";
     $("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") + "</div>";
+    if (warn) {
+      const ib = el("button", { class: "info-toggle" + (infoOpen ? " on" : ""), title: "Hinweis ohne KetoCal ein-/ausblenden" }, "ⓘ");
+      ib.addEventListener("click", () => {
+        infoOpen = !infoOpen;
+        $("info-note").hidden = !infoOpen;
+        ib.classList.toggle("on", infoOpen);
+      });
+      $("permeal").appendChild(ib);
+    }
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
@@ -245,6 +256,7 @@
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
       '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
+    $("info-note").hidden = !(warn && infoOpen);
 
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +

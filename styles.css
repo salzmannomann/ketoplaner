@@ -64,9 +64,21 @@ body {
 .topbar {
   position: sticky; top: 0; z-index: 30;
   background: var(--panel); border-bottom: 1px solid var(--line);
-  padding: 12px 24px;
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
 .topbar .brand { padding: 0; font-size: 19px; }
+.topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.iconbtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: #fff; color: var(--ink);
+  border-radius: 9px; padding: 7px 12px;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.iconbtn:hover { background: var(--brand-soft); }
+.iconbtn.open { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
+.iconbtn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.iconbtn.primary:hover { background: var(--brand-dark); }
 .brand {
   display: flex; align-items: center; gap: 10px;
   font-weight: 700; font-size: 18px; color: var(--brand-dark);
@@ -181,35 +193,37 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   .tile-icon { font-size: 28px; }
   .tile-name { font-size: 15px; }
 }
+@media (max-width: 560px) {
+  .iconbtn .lbl { display: none; }
+  .iconbtn { padding: 7px 10px; font-size: 16px; }
+}
 @media (max-width: 420px) {
   .tiles { grid-template-columns: 1fr; }
 }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
 
-/* Einstellungsleiste auf der Rezepte-Seite */
-.settings-bar { border: 2px solid var(--brand-soft); }
-.settings-toggle {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  width: 100%; border: 0; background: transparent; cursor: pointer;
-  font: inherit; font-weight: 600; color: var(--brand-dark);
-  padding: 2px 0; text-align: left;
-}
-.settings-toggle .st-caret { transition: transform .15s ease; color: var(--muted); }
-.settings-toggle.open .st-caret { transform: rotate(180deg); }
+/* Einstellungen auf der Rezepte-Seite */
 .settings-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
-  margin-top: 16px;
+  border: 2px solid var(--brand-soft);
 }
 .settings-grid[hidden] { display: none; }
 .seg-field { grid-column: span 2; }
+
+/* Schmale Zusammenfassungs-Zeile */
+.summary-bar { margin: 0 0 14px; }
 .permeal {
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
 }
-.permeal-main { font-size: 22px; font-weight: 700; color: var(--brand-dark); }
-.permeal-main .u { font-size: 14px; font-weight: 400; color: var(--muted); }
-.permeal-sub { color: var(--muted); font-size: 14px; }
+.permeal-main { font-size: 18px; font-weight: 700; color: var(--brand-dark); }
+.permeal-main .u { font-size: 13px; font-weight: 400; color: var(--muted); }
+.permeal-sub { color: var(--muted); font-size: 13px; }
+.info-toggle {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px;
+}
+.info-toggle.on { color: var(--yellow); }
 
 /* Segmentierte Auswahl (KetoCal) */
 .segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; width: 100%; }

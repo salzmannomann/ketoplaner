@@ -11,22 +11,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=b504936a" />
+  <link rel="stylesheet" href="styles.css?v=987a74e6" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand"><span class="logo">🥑</span> HamHam Keto</div>
+    <div class="topbar-actions">
+      <button id="settings-toggle" class="iconbtn" type="button" aria-expanded="false" aria-controls="settings-grid" title="Einstellungen ein-/ausblenden">⚙️ <span class="lbl">Einstellungen</span></button>
+      <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
+    </div>
   </header>
 
   <main class="main">
-    <p class="subtitle">Standard-Rezepte – automatisch auf dein Verhältnis und deine Kalorien pro Mahlzeit berechnet.</p>
+    <div class="summary-bar">
+      <div class="permeal" id="permeal"></div>
+    </div>
 
-    <div class="card settings-bar">
-      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-grid">
-        <span class="st-label">⚙️ Einstellungen (Kalorien, Mahlzeiten, Verhältnis …)</span>
-        <span class="st-caret">▾</span>
-      </button>
-      <div class="settings-grid" id="settings-grid" hidden>
+    <div class="card settings-grid" id="settings-grid" hidden>
         <div>
           <label>Kalorien pro Tag</label>
           <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
@@ -65,24 +66,21 @@
             <button type="button" data-val="alle">Alle</button>
           </div>
         </div>
-      </div>
-      <div class="permeal" id="permeal"></div>
     </div>
 
-    <div id="info-note"></div>
-    <div class="compose-launch">
-      <button id="compose-btn" class="btn">🧪 Eigenes Rezept zusammenstellen</button>
-      <span class="hint">z. B. Erdbeeren wählen → die App berechnet das Fett (Schlagobers, Butter …)</span>
-    </div>
-    <div id="filter-bar"></div>
-    <div class="toolbar">
-      <span class="hint" id="recipe-count"></span>
-      <label for="sort-select" class="sort-label">Sortieren:</label>
-      <select id="sort-select">
-        <option value="kategorie">Nach Kategorie</option>
-        <option value="name">Name (A–Z)</option>
-        <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-      </select>
+    <div id="info-note" hidden></div>
+
+    <div class="filter-sort">
+      <div id="filter-bar"></div>
+      <div class="toolbar">
+        <span class="hint" id="recipe-count"></span>
+        <label for="sort-select" class="sort-label">Sortieren:</label>
+        <select id="sort-select">
+          <option value="kategorie">Nach Kategorie</option>
+          <option value="name">Name (A–Z)</option>
+          <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+        </select>
+      </div>
     </div>
     <div id="recipe-list"></div>
 
@@ -107,6 +105,6 @@
 
   <script src="foods.js?v=8e436367"></script>
   <script src="recipes.js?v=16938ad0"></script>
-  <script src="app.js?v=24d5f39f"></script>
+  <script src="app.js?v=d202f123"></script>
 </body>
 </html>

@@ -32,7 +32,12 @@ python3 build-single.py
 
 Die App besteht aus einer einzigen Seite:
 
-1. Oben einstellen: **Kalorien pro Tag** (Standard 700), **Anzahl Mahlzeiten
+1. Der Kopfbereich ist bewusst schlank, damit sofort die Rezepte sichtbar
+   sind: In der oberen Leiste gibt es die Buttons **⚙️ Einstellungen** und
+   **🧪 Eigenes Rezept**; darunter steht eine schmale Zusammenfassungs-Zeile
+   (kcal/Mahlzeit, Verhältnis, Eiweiß-Ziel) mit einem **ⓘ** für den
+   KetoCal-Hinweis. Über **⚙️ Einstellungen** klappen die Felder auf:
+   **Kalorien pro Tag** (Standard 700), **Anzahl Mahlzeiten
    pro Tag** (Standard 5), **Verhältnis** (Standard 1,8:1) und **Ohne / Mit
    KetoCal / Alle**. Beim **Eiweiß** kann man entweder einen Wert pro Tag
    eingeben oder **automatisch nach Körpergewicht** berechnen lassen

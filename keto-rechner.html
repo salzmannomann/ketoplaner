@@ -78,9 +78,21 @@ body {
 .topbar {
   position: sticky; top: 0; z-index: 30;
   background: var(--panel); border-bottom: 1px solid var(--line);
-  padding: 12px 24px;
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
 .topbar .brand { padding: 0; font-size: 19px; }
+.topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.iconbtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: #fff; color: var(--ink);
+  border-radius: 9px; padding: 7px 12px;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.iconbtn:hover { background: var(--brand-soft); }
+.iconbtn.open { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
+.iconbtn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.iconbtn.primary:hover { background: var(--brand-dark); }
 .brand {
   display: flex; align-items: center; gap: 10px;
   font-weight: 700; font-size: 18px; color: var(--brand-dark);
@@ -195,35 +207,37 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   .tile-icon { font-size: 28px; }
   .tile-name { font-size: 15px; }
 }
+@media (max-width: 560px) {
+  .iconbtn .lbl { display: none; }
+  .iconbtn { padding: 7px 10px; font-size: 16px; }
+}
 @media (max-width: 420px) {
   .tiles { grid-template-columns: 1fr; }
 }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
 
-/* Einstellungsleiste auf der Rezepte-Seite */
-.settings-bar { border: 2px solid var(--brand-soft); }
-.settings-toggle {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  width: 100%; border: 0; background: transparent; cursor: pointer;
-  font: inherit; font-weight: 600; color: var(--brand-dark);
-  padding: 2px 0; text-align: left;
-}
-.settings-toggle .st-caret { transition: transform .15s ease; color: var(--muted); }
-.settings-toggle.open .st-caret { transform: rotate(180deg); }
+/* Einstellungen auf der Rezepte-Seite */
 .settings-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
-  margin-top: 16px;
+  border: 2px solid var(--brand-soft);
 }
 .settings-grid[hidden] { display: none; }
 .seg-field { grid-column: span 2; }
+
+/* Schmale Zusammenfassungs-Zeile */
+.summary-bar { margin: 0 0 14px; }
 .permeal {
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
 }
-.permeal-main { font-size: 22px; font-weight: 700; color: var(--brand-dark); }
-.permeal-main .u { font-size: 14px; font-weight: 400; color: var(--muted); }
-.permeal-sub { color: var(--muted); font-size: 14px; }
+.permeal-main { font-size: 18px; font-weight: 700; color: var(--brand-dark); }
+.permeal-main .u { font-size: 13px; font-weight: 400; color: var(--muted); }
+.permeal-sub { color: var(--muted); font-size: 13px; }
+.info-toggle {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px;
+}
+.info-toggle.on { color: var(--yellow); }
 
 /* Segmentierte Auswahl (KetoCal) */
 .segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; width: 100%; }
@@ -394,17 +408,18 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 <body>
   <header class="topbar">
     <div class="brand"><span class="logo">🥑</span> HamHam Keto</div>
+    <div class="topbar-actions">
+      <button id="settings-toggle" class="iconbtn" type="button" aria-expanded="false" aria-controls="settings-grid" title="Einstellungen ein-/ausblenden">⚙️ <span class="lbl">Einstellungen</span></button>
+      <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
+    </div>
   </header>
 
   <main class="main">
-    <p class="subtitle">Standard-Rezepte – automatisch auf dein Verhältnis und deine Kalorien pro Mahlzeit berechnet.</p>
+    <div class="summary-bar">
+      <div class="permeal" id="permeal"></div>
+    </div>
 
-    <div class="card settings-bar">
-      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-grid">
-        <span class="st-label">⚙️ Einstellungen (Kalorien, Mahlzeiten, Verhältnis …)</span>
-        <span class="st-caret">▾</span>
-      </button>
-      <div class="settings-grid" id="settings-grid" hidden>
+    <div class="card settings-grid" id="settings-grid" hidden>
         <div>
           <label>Kalorien pro Tag</label>
           <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
@@ -443,24 +458,21 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
             <button type="button" data-val="alle">Alle</button>
           </div>
         </div>
-      </div>
-      <div class="permeal" id="permeal"></div>
     </div>
 
-    <div id="info-note"></div>
-    <div class="compose-launch">
-      <button id="compose-btn" class="btn">🧪 Eigenes Rezept zusammenstellen</button>
-      <span class="hint">z. B. Erdbeeren wählen → die App berechnet das Fett (Schlagobers, Butter …)</span>
-    </div>
-    <div id="filter-bar"></div>
-    <div class="toolbar">
-      <span class="hint" id="recipe-count"></span>
-      <label for="sort-select" class="sort-label">Sortieren:</label>
-      <select id="sort-select">
-        <option value="kategorie">Nach Kategorie</option>
-        <option value="name">Name (A–Z)</option>
-        <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-      </select>
+    <div id="info-note" hidden></div>
+
+    <div class="filter-sort">
+      <div id="filter-bar"></div>
+      <div class="toolbar">
+        <span class="hint" id="recipe-count"></span>
+        <label for="sort-select" class="sort-label">Sortieren:</label>
+        <select id="sort-select">
+          <option value="kategorie">Nach Kategorie</option>
+          <option value="name">Name (A–Z)</option>
+          <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+        </select>
+      </div>
     </div>
     <div id="recipe-list"></div>
 
@@ -1276,6 +1288,7 @@ const RECIPES_SONDE = [
   }
 
   /* ---------- Rezepte rendern ---------- */
+  let infoOpen = false; // Warnhinweis (ohne KetoCal) ein-/ausgeklappt
   function renderRezepte() {
     const s = state.settings;
     const $ = id => document.getElementById(id);
@@ -1290,11 +1303,21 @@ const RECIPES_SONDE = [
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
+    const warn = (s.ketocal || "ohne") !== "mit";
     $("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") + "</div>";
+    if (warn) {
+      const ib = el("button", { class: "info-toggle" + (infoOpen ? " on" : ""), title: "Hinweis ohne KetoCal ein-/ausblenden" }, "ⓘ");
+      ib.addEventListener("click", () => {
+        infoOpen = !infoOpen;
+        $("info-note").hidden = !infoOpen;
+        ib.classList.toggle("on", infoOpen);
+      });
+      $("permeal").appendChild(ib);
+    }
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
@@ -1317,6 +1340,7 @@ const RECIPES_SONDE = [
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
       '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
+    $("info-note").hidden = !(warn && infoOpen);
 
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
