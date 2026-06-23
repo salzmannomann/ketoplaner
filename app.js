@@ -12,7 +12,7 @@
   function defaultState() {
     return {
       settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
-      compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers", share: 100 }], scale: true },
+      compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
     };
@@ -487,7 +487,7 @@
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
-  const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers", "Creme Double 42 % Fett", "Creme Fraiche 30 % Fett", "Rapsöl", "Olivenöl", "Walnussöl", "MCT-Öl", "Kokosfett"];
+  const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers NÖM", "Creme Fraîche NÖM", "Mascarpone Kärntnermilch", "Rapsöl", "Olivenöl", "MCT Nutricia (100%)", "Liquigen"];
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
@@ -550,7 +550,7 @@
       fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1, Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
     const clearBtn = el("button", { class: "btn ghost" }, "🗑️ Leeren / neu beginnen");
     clearBtn.addEventListener("click", () => {
-      state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers", share: 100 }], scale: true };
+      state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true };
       save(); closeCompose(); openCompose();
     });
     c.appendChild(clearBtn);

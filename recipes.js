@@ -8,7 +8,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Zucchini weich garen, mit dem gegarten Hendl und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 25 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 25 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Hendl-Karotten-Creme",
@@ -16,7 +16,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Hendl und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 25 }, { food: "Karotten, gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Pute-Erdäpfel-Püree",
@@ -24,7 +24,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Pute und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Pute zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Putenbrust ohne Haut", grams: 25 }, { food: "Erdäpfel gekocht", grams: 40 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Pute (Brust ohne Haut)", grams: 25 }, { food: "Kartoffel gekocht", grams: 40 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Rindfleisch-Karotten-Püree",
@@ -32,7 +32,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Rinderfaschiertes und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rinderfaschiertes", grams: 25 }, { food: "Karotten, gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Rinder-Faschiertes", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Schweinefilet-Karfiol-Creme",
@@ -40,7 +40,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Schweinefilet", grams: 25 }, { food: "Karfiol, gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Schweinefilet", grams: 25 }, { food: "Karfiol gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Hendl-Karfiol-Creme",
@@ -48,7 +48,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit dem gegarten Hendl und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 25 }, { food: "Karfiol, gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 25 }, { food: "Karfiol gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Forelle-Erdäpfel-Püree",
@@ -56,7 +56,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Forelle und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Forelle zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Forelle, gegart", grams: 30 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Forelle TK oder Frisch", grams: 30 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Heilbutt-Brokkoli-Püree",
@@ -64,7 +64,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Brokkoli weich garen, mit dem gegarten Heilbutt und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Heilbutt zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Heilbutt, gegart", grams: 30 }, { food: "Brokkoli, gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Heilbuttfilet TK oder Frisch", grams: 30 }, { food: "Broccoli, gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Scholle-Karotten-Püree",
@@ -72,7 +72,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karotten weich garen, mit dem gegarten Scholle und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Scholle zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Scholle, gegart", grams: 30 }, { food: "Karotten, gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Scholle TK oder Frisch", grams: 30 }, { food: "Karotten gekocht", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Thunfisch-Zucchini-Püree",
@@ -80,7 +80,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Zucchini weich garen, mit dem gegarten Thunfisch und Wasser fein pürieren, dann Olivenöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Thunfisch zugeben, 12 Min./100 °C/Stufe 1 garen. Olivenöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Thunfisch in Öl (Dose)", grams: 30 }, { food: "Zucchini gegart", grams: 70 }, { food: "Olivenöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Thunfisch in Öl (Dose, abgetropft)", grams: 30 }, { food: "Zucchini gegart", grams: 70 }, { food: "Olivenöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Ei-Zucchini-Creme",
@@ -88,7 +88,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Zucchini, Wasser und Rapsöl fein pürieren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
-    items: [ { food: "Hühnerei, Vollei, frisch", grams: 40 }, { food: "Zucchini gegart", grams: 60 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Ei ganz versprudelt", grams: 40 }, { food: "Zucchini gegart", grams: 60 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Ei-Erdäpfel-Creme",
@@ -96,7 +96,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Erdäpfel, Wasser und Butter fein pürieren.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Butter zugeben und 30 Sek./Stufe 7 cremig pürieren.",
-    items: [ { food: "Hühnerei, Vollei, frisch", grams: 40 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Ei ganz versprudelt", grams: 40 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Spinat-Ei-Creme",
@@ -104,7 +104,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Spinat, Wasser und Rapsöl fein pürieren.",
     thermomix: "Spinat 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
-    items: [ { food: "Hühnerei, Vollei, frisch", grams: 40 }, { food: "Spinat", grams: 50 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Ei ganz versprudelt", grams: 40 }, { food: "Spinat, gekocht", grams: 50 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Brokkoli-Ei-Creme",
@@ -112,7 +112,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Ei hart kochen, mit gegartem Brokkoli, Wasser und Rapsöl fein pürieren.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 30 Sek./Stufe 7 cremig pürieren.",
-    items: [ { food: "Hühnerei, Vollei, frisch", grams: 40 }, { food: "Brokkoli, gekocht", grams: 60 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Ei ganz versprudelt", grams: 40 }, { food: "Broccoli, gekocht", grams: 60 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Erdäpfel-Gemüse-Creme",
@@ -120,7 +120,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Erdäpfel weich garen, mit Wasser fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Erdäpfel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Karfiol-Erdäpfel-Püree",
@@ -128,7 +128,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Karfiol weich garen, mit Wasser fein pürieren und Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Karfiol, gekocht", grams: 60 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Karfiol gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Bananen-Brei",
@@ -136,7 +136,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann Butter und Banane zugeben und fein pürieren.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann Butter und Banane zugeben und 20 Sek./Stufe 6 glatt pürieren.",
-    items: [ { food: "Banane", grams: 30 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Butter", grams: 10 }, { food: "Wasser", grams: 80 } ],
+    items: [ { food: "Banane roh", grams: 30 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Butter", grams: 10 }, { food: "Wasser", grams: 80 } ],
   },
   {
     name: "Apfelmus-Brei",
@@ -144,7 +144,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann Butter und Apfelmus zugeben und fein pürieren.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann Butter und Apfelmus zugeben und 20 Sek./Stufe 6 glatt pürieren.",
-    items: [ { food: "Apfelmus ungesüßt", grams: 40 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Butter", grams: 10 }, { food: "Wasser", grams: 80 } ],
+    items: [ { food: "Apfelmus ohne Zuckerzusatz", grams: 40 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Butter", grams: 10 }, { food: "Wasser", grams: 80 } ],
   },
   {
     name: "Marillen-Brei",
@@ -168,7 +168,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 20 }, { food: "Karotten, gekocht", grams: 40 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Hendl-Zucchini-Brei (KetoCal)",
@@ -176,7 +176,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 20 }, { food: "Zucchini gegart", grams: 60 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Pute-Erdäpfel-Brei (KetoCal)",
@@ -184,7 +184,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Pute und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Pute zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Putenbrust ohne Haut", grams: 20 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Pute (Brust ohne Haut)", grams: 20 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Rindfleisch-Karotten-Brei (KetoCal)",
@@ -192,7 +192,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Rinderfaschiertes und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rinderfaschiertes", grams: 20 }, { food: "Karotten, gekocht", grams: 40 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rinder-Faschiertes", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Schweinefilet-Gemüse-Brei (KetoCal)",
@@ -200,7 +200,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit dem gegarten Schweinefilet und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Schweinefilet", grams: 20 }, { food: "Karfiol, gekocht", grams: 50 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Schweinefilet", grams: 20 }, { food: "Karfiol gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Hendl-Karfiol-Brei (KetoCal)",
@@ -208,7 +208,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit dem gegarten Hendl und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hendlbrust ohne Haut", grams: 20 }, { food: "Karfiol, gekocht", grams: 50 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Forelle-Erdäpfel-Brei (KetoCal)",
@@ -216,7 +216,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit dem gegarten Forelle und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Forelle zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Forelle, gegart", grams: 25 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Forelle TK oder Frisch", grams: 25 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Heilbutt-Brokkoli-Brei (KetoCal)",
@@ -224,7 +224,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Brokkoli weich garen, mit dem gegarten Heilbutt und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Heilbutt zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Heilbutt, gegart", grams: 25 }, { food: "Brokkoli, gekocht", grams: 50 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
+    items: [ { food: "Heilbuttfilet TK oder Frisch", grams: 25 }, { food: "Broccoli, gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
   },
   {
     name: "Scholle-Karotten-Brei (KetoCal)",
@@ -232,7 +232,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit dem gegarten Scholle und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Scholle zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Scholle, gegart", grams: 25 }, { food: "Karotten, gekocht", grams: 50 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
+    items: [ { food: "Scholle TK oder Frisch", grams: 25 }, { food: "Karotten gekocht", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 55 } ],
   },
   {
     name: "Rotbarsch-Gemüse-Brei (KetoCal)",
@@ -240,7 +240,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Rotbarsch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Rotbarsch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rotbarsch, gegart", grams: 25 }, { food: "Zucchini gegart", grams: 60 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Rotbarsch, gegart", grams: 25 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Gemüse-Erdäpfelbrei (Variante 1)",
@@ -248,7 +248,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Erdäpfel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "KetoCal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Gemüse-Erdäpfelbrei (Variante 2)",
@@ -256,7 +256,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Erdäpfel weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Erdäpfel 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Erdäpfel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "KetoCal 3:1", grams: 12 }, { food: "Rapsöl", grams: 7 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 7 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Karfiol-Erdäpfel-Brei (KetoCal)",
@@ -264,7 +264,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karfiol weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Karfiol, gekocht", grams: 50 }, { food: "Erdäpfel gekocht", grams: 30 }, { food: "KetoCal 3:1", grams: 12 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Karfiol gekocht", grams: 50 }, { food: "Kartoffel gekocht", grams: 30 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Zucchini-Brei (KetoCal)",
@@ -272,7 +272,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Zucchini gegart", grams: 80 }, { food: "KetoCal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Zucchini gegart", grams: 80 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Karottensuppe",
@@ -280,7 +280,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Karotten weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Butter untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Karotten", grams: 120 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Schlagobers", grams: 20 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 110 } ],
+    items: [ { food: "Karotten roh", grams: 120 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Schlagobers NÖM", grams: 20 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 110 } ],
   },
   {
     name: "Ei-Gemüse-Brei (KetoCal)",
@@ -288,7 +288,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Hühnerei, Vollei, frisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerei, Vollei, frisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hühnerei, Vollei, frisch", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "KetoCal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Ei ganz versprudelt", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Obstbrei – Banane",
@@ -296,7 +296,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 einrühren und Butter sowie Banane zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann KetoCal 3:1, Butter und Banane zugeben und 20 Sek./Stufe 6 glatt pürieren.",
-    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "KetoCal 3:1", grams: 15 }, { food: "Butter", grams: 4 }, { food: "Banane", grams: 20 } ],
+    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Ketocal 3:1", grams: 15 }, { food: "Butter", grams: 4 }, { food: "Banane roh", grams: 20 } ],
   },
   {
     name: "Obstbrei – Apfelmus",
@@ -304,7 +304,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 einrühren und Butter sowie Apfelmus zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann KetoCal 3:1, Butter und Apfelmus zugeben und 20 Sek./Stufe 6 glatt pürieren.",
-    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "KetoCal 3:1", grams: 15 }, { food: "Butter", grams: 3 }, { food: "Apfelmus ungesüßt", grams: 20 } ],
+    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Ketocal 3:1", grams: 15 }, { food: "Butter", grams: 3 }, { food: "Apfelmus ohne Zuckerzusatz", grams: 20 } ],
   },
   {
     name: "Obstbrei – Marille",
@@ -312,7 +312,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl verrühren und erhitzen, bis der Brei andickt. Auf 45–50 °C abkühlen lassen, dann KetoCal 3:1 einrühren und Butter sowie Marillen zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Auf ~45–50 °C abkühlen lassen, dann KetoCal 3:1, Butter und Marillen zugeben und 20 Sek./Stufe 6 glatt pürieren.",
-    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "KetoCal 3:1", grams: 15 }, { food: "Butter", grams: 4 }, { food: "Marille", grams: 30 } ],
+    items: [ { food: "Wasser", grams: 100 }, { food: "Johannisbrotkernmehl", grams: 2 }, { food: "Ketocal 3:1", grams: 15 }, { food: "Butter", grams: 4 }, { food: "Marille", grams: 30 } ],
   },
   {
     name: "Milch-Grieß-Obstbrei",
@@ -320,7 +320,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Wasser mit dem Johannisbrotkernmehl andicken, auf 45–50 °C abkühlen lassen, Grießbrei und KetoCal 3:1 einrühren, dann Butter und Apfelmus zugeben.",
     thermomix: "Wasser und Johannisbrotkernmehl 8 Sek./Stufe 4 verrühren, 6 Min./90 °C/Stufe 2 andicken. Abkühlen lassen, dann Grießbrei, KetoCal 3:1, Butter und Apfelmus zugeben und 20 Sek./Stufe 6 rühren.",
-    items: [ { food: "Wasser", grams: 120 }, { food: "Apfelmus ungesüßt", grams: 15 }, { food: "Himmeltau Grießbrei", grams: 5 }, { food: "KetoCal 3:1", grams: 12 }, { food: "Butter", grams: 11 }, { food: "Johannisbrotkernmehl", grams: 2 } ],
+    items: [ { food: "Wasser", grams: 120 }, { food: "Apfelmus ohne Zuckerzusatz", grams: 15 }, { food: "Himmeltau Grießbrei", grams: 5 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Butter", grams: 11 }, { food: "Johannisbrotkernmehl", grams: 2 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Brokkoli",
@@ -328,7 +328,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Brokkoli 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Brokkoli, gekocht", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Broccoli, gekocht", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Erbsen",
@@ -336,7 +336,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Erbsen 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Erbsen grün", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Erbsen grün, roh und TK", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Karfiol",
@@ -344,7 +344,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol, gekocht", grams: 45 }, { food: "Rapsöl", grams: 11 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol gekocht", grams: 45 }, { food: "Rapsöl", grams: 11 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Karotte & Rind",
@@ -352,7 +352,7 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rinderfaschiertes zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Rinderfaschiertes", grams: 30 }, { food: "Karotten", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rinder-Faschiertes", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Gemüse-Fleischbrei – Karotte",
@@ -360,6 +360,6 @@ const RECIPES_SONDE = [
     ketocal: false,
     zubereitung: "Das Gemüse weich garen, mit dem gegarten Fleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Hühnerfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
-    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karotten", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
 ];

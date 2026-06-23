@@ -99,7 +99,9 @@ Alle Rezepte erreichen das Verhältnis 1,8:1 sicher.
 - `index.html` – Oberfläche
 - `styles.css` – Gestaltung
 - `app.js` – Logik und Berechnungen
-- `foods.js` – Lebensmittel-Datenbank (intern für die Berechnung)
+- `foods.js` – Lebensmittel-Datenbank (intern für die Berechnung); basiert auf
+  der vollständigen Lebensmittelliste der Diätologin (österreichische Namen/Werte)
+  plus wenige Zusätze, die die Rezepte benötigen
 - `recipes.js` – Standard-Rezepte
 - `build-single.py` – erzeugt die Einzeldatei `keto-rechner.html`
 
