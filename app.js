@@ -300,23 +300,25 @@
     const onlyQuelle = !!s.onlyQuelle;
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    const chips = el("div", { class: "chips" });
-    // Kategorie (entweder/oder)
+    // Gruppe 1: Kategorie (entweder/oder)
+    const catChips = el("div", { class: "chips cat" });
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
-      chips.appendChild(chip);
+      catChips.appendChild(chip);
     });
-    // Unabhängige Schalter (rechts): KetoCal + Diätologie – je einzeln ein/aus
+    fb.appendChild(catChips);
+    // Gruppe 2: unabhängige Schalter (KetoCal + Diätologie), optisch abgesetzt
+    const switchChips = el("div", { class: "chips switches" });
     [
-      { key: "withKeto", label: "🥄 KetoCal", on: withKeto, start: true },
+      { key: "withKeto", label: "🥄 KetoCal", on: withKeto },
       { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
     ].forEach(t => {
-      const c = el("button", { class: "chip switch" + (t.start ? " toggle-start" : "") + (t.on ? " active" : "") }, t.label);
+      const c = el("button", { class: "chip switch" + (t.on ? " active" : "") }, t.label);
       c.addEventListener("click", () => { state.settings[t.key] = !state.settings[t.key]; save(); renderRezepte(); });
-      chips.appendChild(c);
+      switchChips.appendChild(c);
     });
-    fb.appendChild(chips);
+    fb.appendChild(switchChips);
 
     const recipes = allRecipes()
       .filter(r => !!r.ketocal === withKeto)
