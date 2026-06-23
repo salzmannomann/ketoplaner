@@ -1100,7 +1100,7 @@ const RECIPES_SONDE = [
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, showOhneKeto: true, showMitKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -1113,10 +1113,10 @@ const RECIPES_SONDE = [
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
       const settings = Object.assign(d.settings, p.settings || {});
-      // Migration: alte 3-fach-Auswahl "ketocal" -> zwei Schalter
-      if (p.settings && p.settings.ketocal && p.settings.showOhneKeto === undefined && p.settings.showMitKeto === undefined) {
-        settings.showOhneKeto = p.settings.ketocal !== "mit";
-        settings.showMitKeto = p.settings.ketocal !== "ohne";
+      // Migration alter KetoCal-Felder auf einen einzelnen Schalter (withKeto)
+      if (p.settings && typeof p.settings.withKeto !== "boolean") {
+        if (typeof p.settings.showMitKeto === "boolean") settings.withKeto = p.settings.showMitKeto && !p.settings.showOhneKeto;
+        else if (p.settings.ketocal) settings.withKeto = p.settings.ketocal === "mit";
       }
       return {
         settings: settings,
@@ -1366,12 +1366,9 @@ const RECIPES_SONDE = [
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
-    // KetoCal als zwei unabhängige Schalter; keiner aktiv = alle zeigen
-    const wantOhne = !!s.showOhneKeto, wantMit = !!s.showMitKeto;
-    const ketoAny = wantOhne || wantMit;
-    const showOhne = !ketoAny || wantOhne;
-    const showMit = !ketoAny || wantMit;
-    const warn = showOhne; // Hinweis nur wenn Rezepte ohne KetoCal sichtbar sind
+    // Ein einzelner KetoCal-Schalter: aus = ohne KetoCal, ein = mit KetoCal
+    const withKeto = !!s.withKeto;
+    const warn = !withKeto; // Hinweis nur bei Rezepten ohne KetoCal
     $("permeal").innerHTML =
       '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
       '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
@@ -1399,10 +1396,9 @@ const RECIPES_SONDE = [
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
       chips.appendChild(chip);
     });
-    // Unabhängige Schalter (rechts): KetoCal + Diätologie – jeder einzeln ein/aus
+    // Unabhängige Schalter (rechts): KetoCal + Diätologie – je einzeln ein/aus
     [
-      { key: "showOhneKeto", label: "Ohne KetoCal", on: wantOhne, start: true },
-      { key: "showMitKeto", label: "Mit KetoCal", on: wantMit },
+      { key: "withKeto", label: "Mit KetoCal", on: withKeto, start: true },
       { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
     ].forEach(t => {
       const c = el("button", { class: "chip switch" + (t.start ? " toggle-start" : "") + (t.on ? " active" : "") }, t.label);
@@ -1412,7 +1408,7 @@ const RECIPES_SONDE = [
     fb.appendChild(chips);
 
     const recipes = allRecipes()
-      .filter(r => (r.ketocal ? showMit : showOhne))
+      .filter(r => !!r.ketocal === withKeto)
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
@@ -1424,7 +1420,7 @@ const RECIPES_SONDE = [
 
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (showOhne && !showMit ? " ohne KetoCal" : showMit && !showOhne ? " mit KetoCal" : "");
+      (withKeto ? " mit KetoCal" : " ohne KetoCal");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
