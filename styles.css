@@ -417,6 +417,26 @@ body.modal-open { overflow: hidden; }
 .tm-set { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
 .tm-chip { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 17px; font-weight: 700; color: var(--brand-dark); }
 .tm-action .time-btn { margin-left: auto; }
+/* Koch-Modus: ✕ über dem Timer-Balken, Tabs volle Breite, Safe-Area unten */
+.overlay-close { z-index: 10; }
+.cook-timer { padding-right: 50px; }
+.cook-methods.segmented.mini { display: flex; width: 100%; }
+.cook-methods.segmented.mini button { flex: 1; padding: 9px 6px; }
+.cook-nav { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+@media (max-width: 560px) {
+  .cook-head .title { font-size: 19px; }
+  .cook-head .detail-icon { font-size: 32px; }
+  .cook-screen { min-height: 32vh; }
+  .cook-screen-title { font-size: 20px; }
+  .cook-step-big { font-size: 20px; line-height: 1.4; }
+  .tm-chip { font-size: 16px; padding: 7px 12px; }
+  .cook-methods.segmented.mini button { font-size: 12px; padding: 9px 4px; }
+  .tm-action { padding: 11px 12px; }
+  .tm-action .time-btn { margin-left: 0; width: 100%; }
+  .cook-nav { gap: 8px; }
+  .cook-nav .btn { padding: 13px 10px; font-size: 15px; }
+  .cook-nav .cook-progress { display: none; }
+}
 .cook-sec-title { font-weight: 700; color: var(--brand-dark); margin: 16px 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: .03em; }
 .cook-ings { list-style: none; margin: 0; padding: 0; }
 .cook-ings li { border-bottom: 1px solid var(--line); }
