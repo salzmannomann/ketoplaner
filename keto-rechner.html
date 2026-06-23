@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#2f855a" />
   <title>HamHam Keto</title>
   <link rel="manifest" href="manifest.webmanifest" />
@@ -43,6 +43,8 @@ body {
   color: var(--ink);
   font-size: 16px;
   line-height: 1.5;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -2082,6 +2084,11 @@ const RECIPES_SONDE = [
 
 </script>
   <script>
+    /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
+    ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
+      document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
+    });
+    document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
     /* Service Worker registrieren (nur online; nicht bei der lokalen Einzeldatei) */
     if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
       window.addEventListener("load", function () {
