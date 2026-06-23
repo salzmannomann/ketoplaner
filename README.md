@@ -7,7 +7,10 @@ mit **Icon** zur schnellen Erkennung und mit Anleitung für die klassische
 Zubereitung sowie den **Thermomix TM5**.
 
 Die App läuft komplett im Browser, ohne Server und ohne Internetverbindung,
-und funktioniert auch am **Smartphone**. Alle Eingaben (Einstellungen und das
+und funktioniert auch am **Smartphone**. Über GitHub Pages ist sie zudem
+**offline-fähig** (Service Worker `sw.js`): Nach dem ersten Laden funktioniert
+sie auch ohne Internet, startet schneller und aktualisiert sich zuverlässig
+(die Service-Worker-Version wird beim Build automatisch erhöht). Alle Eingaben (Einstellungen und das
 zuletzt zusammengestellte eigene Rezept) werden **lokal im Browser gespeichert**
 (localStorage) und beim nächsten Aufruf automatisch wieder vorausgefüllt.
 Standardmäßig sind 700 kcal/Tag, 5 Mahlzeiten, 1,8:1 und 8 kg Körpergewicht

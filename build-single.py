@@ -46,6 +46,18 @@ def main():
         print("index.html: Cache-Versionen aktualisiert")
     html = new_html
 
+    # 1b) Service-Worker-Version anhand des Inhalts aktualisieren (zuverlässige Updates)
+    sw_path = os.path.join(HERE, "sw.js")
+    if os.path.exists(sw_path):
+        core = "".join(read(f) for f in ("index.html", "styles.css", "foods.js", "recipes.js", "app.js"))
+        ver = short_hash(core)
+        sw = read("sw.js")
+        sw2 = re.sub(r'const VERSION = "hamham-[^"]*";', 'const VERSION = "hamham-%s";' % ver, sw)
+        if sw2 != sw:
+            with open(sw_path, "w", encoding="utf-8") as fh:
+                fh.write(sw2)
+            print("sw.js: Version aktualisiert ->", ver)
+
     # 2) Einzeldatei bauen – CSS einbetten (Query-String ?v=... ignorieren)
     css = read("styles.css")
     html = re.sub(

@@ -104,5 +104,13 @@
   <script src="foods.js?v=929cdbe0"></script>
   <script src="recipes.js?v=6b2f30f5"></script>
   <script src="app.js?v=749a3667"></script>
+  <script>
+    /* Service Worker registrieren (nur online; nicht bei der lokalen Einzeldatei) */
+    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>
