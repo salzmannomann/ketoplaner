@@ -492,7 +492,7 @@
       const m = lineMacros({ food: it.food, grams: g });
       rows += "<tr" + (i === res.fatIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
         escapeHtml(it.food) + (i === res.fatIndex ? " ⟵ Fett angepasst" : "") + "</td><td>" +
-        fmt(g, g < 10 ? 1 : 0) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
+        fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" +
         fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
 
@@ -603,7 +603,7 @@
     const rows = items.map(it => {
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
-      return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(g, g < 10 ? 1 : 0) +
+      return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(g, 1) +
         " g</td><td>" + fmt(m.kcal, 0) + " kcal</td></tr>";
     }).join("");
     const html =
@@ -819,7 +819,7 @@
       items.forEach(it => {
         const m = lineMacros(it);
         rows += "<tr" + (it.isFat ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-          (it.isFat ? " ⟵ Fett (berechnet)" : "") + "</td><td>" + fmt(it.grams, it.grams < 10 ? 1 : 0) +
+          (it.isFat ? " ⟵ Fett (berechnet)" : "") + "</td><td>" + fmt(it.grams, 1) +
           "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
       });
       box.innerHTML =
