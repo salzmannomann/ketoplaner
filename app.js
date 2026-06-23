@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle", sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -91,7 +91,6 @@
   /* ---------- Schnellfilter ---------- */
   const FILTERS = [
     { id: "alle", label: "Alle" },
-    { id: "diaetologie", label: "👩‍⚕️ Diätologie" },
     { id: "fleisch", label: "🥩 Fleisch" },
     { id: "fisch", label: "🐟 Fisch" },
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
@@ -115,7 +114,6 @@
       case "fisch": return t.fisch;
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
-      case "diaetologie": return !!rec.quelle;
       default: return true;
     }
   }
@@ -291,8 +289,9 @@
       $("permeal").appendChild(ib);
     }
 
-    // Schnellfilter-Chips
+    // Schnellfilter-Chips (Kategorie = entweder/oder)
     const filter = s.filter || "alle";
+    const onlyQuelle = !!s.onlyQuelle;
     const fb = $("filter-bar");
     fb.innerHTML = "";
     const chips = el("div", { class: "chips" });
@@ -301,12 +300,17 @@
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
       chips.appendChild(chip);
     });
+    // Diätologie = unabhängiger Schalter, mit jeder Kategorie kombinierbar
+    const qChip = el("button", { class: "chip quelle-chip" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
+    qChip.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
+    chips.appendChild(qChip);
     fb.appendChild(chips);
 
     const mode = s.ketocal || "ohne";
     const recipes = allRecipes()
       .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
       .filter(r => matchesFilter(r, filter))
+      .filter(r => !onlyQuelle || !!r.quelle)
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
