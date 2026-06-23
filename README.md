@@ -76,11 +76,12 @@ Hühnerbrust und Putenbrust; dazu mageres Rindfleisch – kein Faschiertes).
 (jeweils stückiges Fleisch ohne Haut) gibt es in der Detailansicht einen
 Umschalter **🍗 Huhn / 🥩 Rind /
 🦃 Pute**. Laut Diätologin sind **20 g Huhn ≙ 30 g Rind ≙ 18 g Pute**
-austauschbar; die App rechnet die Fleischmenge automatisch um und passt das
-Fett neu an (Verhältnis und Kalorien bleiben gleich). So kann man rasch
-umstellen, wenn eine Sorte gerade nicht zu Hause ist. Eine getauschte Sorte
-wird auf der Kachel mit einem kleinen Hinweis (z. B. „🥩 Rind") angezeigt; die
-Auswahl bleibt gespeichert.
+austauschbar. Beim Umstellen bleiben **Gemüse und Wasser unverändert**; nur
+das Fleisch wird umgerechnet und das Ausgleichsfett neu berechnet, damit das
+**Verhältnis 1,8:1** exakt stimmt – die Kalorien können dabei leicht abweichen
+(wird angezeigt). So kann man rasch umstellen, wenn eine Sorte gerade nicht zu
+Hause ist. Der Tausch ist **temporär**: Beim Schließen des Rezepts steht wieder
+das Standard-Fleisch; die Kachel bleibt unverändert.
 
 **Herkunft:** Rezepte, die direkt von der Diätologie stammen (aus den
 hochgeladenen PDF-/Excel-Vorlagen), sind mit dem Schild **„👩‍⚕️ Diätologie"**

@@ -180,6 +180,27 @@
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
   }
+  // Hält alle Zutaten fix und berechnet nur die Fett-Stellgröße neu, sodass das
+  // Verhältnis exakt stimmt (Kalorien dürfen sich ändern). Für den Fleisch-Tausch.
+  function adjustFatToRatio(items, ratio) {
+    const fi = fatItemIndex(items);
+    if (fi < 0) { const s = sumMacros(items); return { items: items.slice(), ratio: ratioOf(s), kcal: s.kcal, ok: false, fatIndex: -1 }; }
+    let Pn = 0, Fn = 0, Cn = 0;
+    items.forEach((it, i) => {
+      if (i === fi) return; const f = lookup(it.food); if (!f) return;
+      const g = num(it.grams); Pn += f.eiweiss * g / 100; Fn += f.fett * g / 100; Cn += f.kh * g / 100;
+    });
+    const fat = lookup(items[fi].food); const fp = fat.eiweiss, ff = fat.fett, fc = fat.kh;
+    const denom = (ff - ratio * (fp + fc)) / 100;
+    if (denom <= 0) return { items: items.slice(), ratio: null, kcal: 0, ok: false, fatIndex: fi };
+    const x = (ratio * (Pn + Cn) - Fn) / denom;
+    if (x < 0) return { items: items.slice(), ratio: null, kcal: 0, ok: false, fatIndex: fi };
+    const out = items.map((it, i) => i === fi
+      ? { food: it.food, grams: round1(x) }
+      : { food: it.food, grams: round1(num(it.grams)) });
+    const sum = sumMacros(out);
+    return { items: out, ratio: ratioOf(sum), kcal: sum.kcal, ok: true, fatIndex: fi };
+  }
 
   /* ---------- Fleisch-Tausch ----------
      Diätologin: 20 g Huhn ≙ 30 g Rind(erhack/Faschiertes) ≙ 18 g Pute.
@@ -425,7 +446,19 @@
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
-    const res = computeAdjustedRecipe(applyMeatChoice(rec, detailMeat), d.kcalMahl, d.ratio);
+    // Basis-Rezept auf Einstellungen (140 kcal/Mahlzeit + Verhältnis) anpassen.
+    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    let res = base;
+    const swapSlot = recipeMeatSlot(rec);
+    if (swapSlot && detailMeat && detailMeat !== swapSlot.baseKey) {
+      // Gemüse/Wasser bleiben fix; nur Fleisch nach 20:30:18 tauschen, Fett gleicht das Verhältnis aus.
+      const factor = MEATS[detailMeat].factor / MEATS[swapSlot.baseKey].factor;
+      const swapped = base.items.map((it, i) => i === swapSlot.index
+        ? { food: MEATS[detailMeat].food, grams: round1(num(it.grams) * factor) }
+        : { food: it.food, grams: num(it.grams) });
+      const r2 = adjustFatToRatio(swapped, d.ratio);
+      res = r2.ok ? r2 : computeAdjustedRecipe(applyMeatChoice(rec, detailMeat), d.kcalMahl, d.ratio);
+    }
     const mult = detailPortion === "day" ? d.mahl : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -450,7 +483,7 @@
           '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
           MEATS[k].icon + " " + MEATS[k].label + "</button>"
         ).join("") +
-        '</div><div class="meat-note">20 g Huhn ≙ 30 g Rind ≙ 18 g Pute – die Menge wird automatisch umgerechnet, das Fett neu berechnet.</div></div>';
+        '</div><div class="meat-note">20 g Huhn ≙ 30 g Rind ≙ 18 g Pute. Gemüse & Wasser bleiben gleich; nur Fleisch und Ausgleichsfett ändern sich, damit das Verhältnis stimmt – die Kalorien können dabei leicht abweichen.</div></div>';
     }
 
     let rows = "";
