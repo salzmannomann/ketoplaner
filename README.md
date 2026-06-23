@@ -69,6 +69,11 @@ Die App besteht aus einer einzigen Seite:
    (z. B. „150 g Hendl") werden **alle anderen Zutaten proportional
    mitskaliert** – das Verhältnis bleibt gleich. So kann man rasch eine
    größere Menge für mehrere Mahlzeiten vorkochen und einkühlen.
+5. **🍳 Koch-Modus:** Eine große, küchentaugliche Schritt-für-Schritt-Ansicht
+   mit Methoden-Umschalter (Thermomix / Varoma / klassisch), abhakbarer
+   Zutaten-/Abwiegeliste und **antippbaren Zeiten** – ein Tipp startet einen
+   **Countdown mit Signalton** (und Vibration am Handy). Übernimmt die gewählte
+   Portionsmenge und Fleischsorte.
 
 **Eigenes Rezept zusammenstellen:** Über den Button „🧪 Eigenes Rezept" kann man
 z. B. ein saisonales Lebensmittel (etwa Erdbeeren) wählen und ein oder **mehrere

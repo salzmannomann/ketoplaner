@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=50b4fd53" />
+  <link rel="stylesheet" href="styles.css?v=b75692a5" />
 </head>
 <body>
   <header class="topbar">
@@ -101,9 +101,18 @@
     </div>
   </div>
 
+  <!-- Koch-Modus -->
+  <div id="cook-overlay" class="overlay" hidden>
+    <div class="overlay-card cook-card">
+      <button class="overlay-close" id="cook-close" aria-label="Schließen">✕</button>
+      <div id="cook-timer" class="cook-timer" hidden></div>
+      <div id="cook-content"></div>
+    </div>
+  </div>
+
   <script src="foods.js?v=929cdbe0"></script>
   <script src="recipes.js?v=63cbb26b"></script>
-  <script src="app.js?v=749a3667"></script>
+  <script src="app.js?v=4f0e5a52"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

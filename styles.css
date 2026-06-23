@@ -396,6 +396,38 @@ body.modal-open { overflow: hidden; }
 }
 .prep.thermomix { background: #eef4fb; }
 .prep.varoma { background: #eef7ef; }
+
+/* Koch-Modus */
+.cook-card { max-width: 640px; }
+.cook-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 8px; }
+.cook-head .title { font-weight: 700; font-size: 22px; }
+.cook-head .meta { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.cook-methods { margin: 6px 0 16px; display: flex; flex-wrap: wrap; }
+.cook-sec-title { font-weight: 700; color: var(--brand-dark); margin: 16px 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: .03em; }
+.cook-ings { list-style: none; margin: 0; padding: 0; }
+.cook-ings li { border-bottom: 1px solid var(--line); }
+.cook-ings label { display: flex; align-items: center; gap: 10px; padding: 11px 2px; font-size: 17px; cursor: pointer; }
+.cook-ings input { width: 22px; height: 22px; flex-shrink: 0; }
+.cook-ings .ci-amt { font-weight: 700; color: var(--brand-dark); min-width: 64px; }
+.cook-ings li.done label { color: var(--muted); text-decoration: line-through; }
+.cook-steps { margin: 0; padding-left: 26px; }
+.cook-steps li { margin-bottom: 16px; }
+.cook-step { font-size: 18px; line-height: 1.5; }
+.cook-step-timers { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+.time-btn { background: var(--brand-soft); color: var(--brand-dark); border: 1px solid var(--brand); border-radius: 999px; padding: 8px 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.time-btn:hover { background: var(--brand); color: #fff; }
+.cook-hint { color: var(--muted); font-size: 13px; margin-top: 18px; }
+.cook-timer {
+  position: sticky; top: -4px; z-index: 5; display: flex; align-items: center; gap: 12px;
+  background: var(--brand); color: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+  box-shadow: 0 6px 18px rgba(16,24,40,.25);
+}
+.cook-timer[hidden] { display: none; }
+.cook-timer.done { background: var(--yellow); animation: ctflash .6s ease-in-out 3; }
+.cook-timer .ct-label { flex: 1; font-weight: 600; font-size: 15px; }
+.cook-timer .ct-time { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cook-timer .ct-stop { background: rgba(255,255,255,.25); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
+@keyframes ctflash { 0%,100% { filter: none; } 50% { filter: brightness(1.25); } }
 .prep.varoma strong { color: var(--brand-dark); }
 .prep strong { color: var(--brand-dark); }
 .prep.thermomix strong { color: var(--accent); }

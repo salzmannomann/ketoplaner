@@ -576,6 +576,9 @@
       }));
 
     const actions = el("div", { class: "btn-row" });
+    const cookBtn = el("button", { class: "btn" }, "🍳 Kochen");
+    cookBtn.addEventListener("click", () => openCook());
+    actions.appendChild(cookBtn);
     const fav = isFav(rec);
     const favBtn = el("button", { class: "btn secondary" }, (fav ? "★ Favorit (aktiv)" : "☆ Als Favorit"));
     favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
@@ -904,12 +907,162 @@
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
   }
 
+  /* ---------- Koch-Modus (Schritt für Schritt + Timer) ---------- */
+  let cookMethod = "thermomix";
+  let cookTimer = { id: null, remaining: 0, total: 0, label: "" };
+
+  function beep() {
+    try {
+      const Ac = window.AudioContext || window.webkitAudioContext; if (!Ac) return;
+      const ctx = new Ac();
+      [0, 0.5, 1.0].forEach(t => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = 880;
+        o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.35);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.36);
+      });
+      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 2000);
+    } catch (e) {}
+  }
+  function mmss(s) { s = Math.max(0, Math.round(s)); const m = Math.floor(s / 60); const r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+  function renderTimerBar() {
+    const bar = document.getElementById("cook-timer"); if (!bar) return;
+    if (!cookTimer.id && cookTimer.remaining <= 0) { bar.hidden = true; bar.innerHTML = ""; return; }
+    const done = cookTimer.remaining <= 0;
+    bar.hidden = false;
+    bar.className = "cook-timer" + (done ? " done" : "");
+    bar.innerHTML = '<span class="ct-label">' + (done ? "✅ Fertig:" : "⏲") + " " + escapeHtml(cookTimer.label) + "</span>" +
+      '<span class="ct-time">' + mmss(cookTimer.remaining) + "</span>" +
+      '<button class="ct-stop" id="ct-stop">' + (done ? "OK" : "Stopp") + "</button>";
+    const st = document.getElementById("ct-stop");
+    if (st) st.addEventListener("click", stopTimer);
+  }
+  function stopTimer() {
+    if (cookTimer.id) { clearInterval(cookTimer.id); cookTimer.id = null; }
+    cookTimer.remaining = 0; cookTimer.total = 0; cookTimer.label = "";
+    renderTimerBar();
+  }
+  function startTimer(seconds, label) {
+    if (cookTimer.id) clearInterval(cookTimer.id);
+    cookTimer.remaining = seconds; cookTimer.total = seconds; cookTimer.label = label;
+    renderTimerBar();
+    cookTimer.id = setInterval(() => {
+      cookTimer.remaining -= 1;
+      if (cookTimer.remaining <= 0) {
+        clearInterval(cookTimer.id); cookTimer.id = null;
+        beep(); if (navigator.vibrate) try { navigator.vibrate([250, 120, 250, 120, 250]); } catch (e) {}
+      }
+      renderTimerBar();
+    }, 1000);
+  }
+  // Zeit-Token in einem Schritt finden (z. B. "8 Min.", "30–40 Sek.")
+  function timeTokens(text) {
+    const re = /(\d+)\s*(?:[–-]\s*(\d+))?\s*(Sek|Min)\b\.?/g;
+    const out = []; let m;
+    while ((m = re.exec(text)) !== null) {
+      const hi = m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
+      const sec = m[3] === "Min" ? hi * 60 : hi;
+      out.push({ label: m[0].replace(/\s+/g, " ").trim(), sec });
+    }
+    return out;
+  }
+  function splitSteps(text) {
+    // An ". " vor Grossbuchstaben trennen (Abkuerzungen wie "Ca. 500" bleiben heil,
+    // weil danach eine Ziffer folgt). Kein Lookbehind -> auch auf aelterem iOS Safari ok.
+    return text.split(/\.\s+(?=[A-Z\u00c4\u00d6\u00dc])/)
+      .map(s => s.trim()).filter(Boolean)
+      .map(s => (/[.!?)]$/.test(s) ? s : s + "."));
+  }
+  function cookItems() {
+    const rec = detailRec, d = derived();
+    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    let items = base.items;
+    const slot = recipeMeatSlot(rec);
+    if (slot && detailMeat && detailMeat !== slot.baseKey) {
+      const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[detailMeat].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
+      const solved = solveMeatForRatio(swapped, slot.index, d.ratio);
+      if (solved) items = solved;
+    }
+    const mult = detailScale > 0 ? detailScale : 1;
+    return items.map(it => ({ food: it.food, grams: num(it.grams) * mult }));
+  }
+  function openCook() {
+    cookMethod = "thermomix";
+    renderCook();
+    document.getElementById("cook-overlay").hidden = false;
+    document.body.classList.add("modal-open");
+  }
+  function closeCook() {
+    document.getElementById("cook-overlay").hidden = true;
+    if (document.getElementById("detail-overlay").hidden) document.body.classList.remove("modal-open");
+  }
+  function renderCook() {
+    const rec = detailRec; if (!rec) return;
+    const d = derived();
+    const mult = detailScale > 0 ? detailScale : 1;
+    const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
+    const portionLabel = mult === 1 ? "1 Portion" : portionsTxt + " Portionen";
+    const items = cookItems();
+
+    const methods = [["thermomix", "🤖 Thermomix"]];
+    if (rec.varoma) methods.push(["varoma", "🫧 Varoma"]);
+    methods.push(["zubereitung", "🍲 Klassisch"]);
+    if (!rec[cookMethod]) cookMethod = "thermomix";
+
+    let ing = '<div class="cook-sec-title">Zutaten abwiegen</div><ul class="cook-ings">';
+    items.forEach((it, i) => {
+      ing += '<li><label><input type="checkbox" data-ing="' + i + '"> <span class="ci-amt">' + fmt(it.grams, 1) + ' g</span> ' + escapeHtml(it.food) + "</label></li>";
+    });
+    ing += "</ul>";
+
+    const steps = splitSteps(adaptPrep(rec[cookMethod] || "", rec, detailMeat));
+    let stepsHtml = '<div class="cook-sec-title">Schritte</div><ol class="cook-steps">';
+    steps.forEach((s, i) => {
+      const toks = timeTokens(s);
+      let btns = "";
+      toks.forEach((tk, j) => {
+        btns += '<button class="time-btn" data-sec="' + tk.sec + '" data-label="' + escapeHtml(s.slice(0, 40)) + '">▶ ' + escapeHtml(tk.label) + " Timer</button>";
+      });
+      stepsHtml += '<li><div class="cook-step">' + escapeHtml(s) + "</div>" + (btns ? '<div class="cook-step-timers">' + btns + "</div>" : "") + "</li>";
+    });
+    stepsHtml += "</ol>";
+
+    const c = document.getElementById("cook-content");
+    c.innerHTML =
+      '<div class="cook-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
+        '<div><div class="title">' + escapeHtml(rec.name) + "</div>" +
+        '<div class="meta">' + portionLabel + " · " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1</div></div></div>" +
+      '<div class="segmented mini cook-methods">' +
+        methods.map(([k, lab]) => '<button type="button" data-cm="' + k + '"' + (k === cookMethod ? ' class="active"' : "") + ">" + lab + "</button>").join("") +
+      "</div>" +
+      ing + stepsHtml +
+      '<div class="cook-hint">Tipp: Auf eine Zeit tippen startet einen Countdown mit Signalton. Garzeiten sind Richtwerte – bis weich/durchgegart kochen.</div>';
+
+    c.querySelectorAll(".cook-methods button[data-cm]").forEach(b =>
+      b.addEventListener("click", () => { cookMethod = b.dataset.cm; renderCook(); }));
+    c.querySelectorAll(".cook-ings input[type=checkbox]").forEach(cb =>
+      cb.addEventListener("change", () => cb.closest("li").classList.toggle("done", cb.checked)));
+    c.querySelectorAll(".time-btn").forEach(b =>
+      b.addEventListener("click", () => startTimer(parseInt(b.dataset.sec, 10), b.dataset.label)));
+    renderTimerBar();
+  }
+  function bindCook() {
+    document.getElementById("cook-close").addEventListener("click", closeCook);
+    const ov = document.getElementById("cook-overlay");
+    ov.addEventListener("click", e => { if (e.target === ov) closeCook(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCook(); });
+  }
+
   /* ---------- Init ---------- */
   function init() {
     rebuildFoodIndex();
     bindSettingsBar();
     bindDetail();
     bindCompose();
+    bindCook();
     renderRezepte();
   }
   document.addEventListener("DOMContentLoaded", init);
