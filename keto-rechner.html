@@ -1108,7 +1108,6 @@ const RECIPES_SONDE = [
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
-      meat: {},
     };
   }
   let state = load();
@@ -1122,7 +1121,6 @@ const RECIPES_SONDE = [
         compose: Object.assign(d.compose, p.compose || {}),
         favorites: p.favorites || [],
         savedRecipes: p.savedRecipes || [],
-        meat: p.meat || {},
       };
     } catch (e) { return defaultState(); }
   }
@@ -1288,12 +1286,6 @@ const RECIPES_SONDE = [
   };
   // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.
   const MEAT_WORDS_RE = /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g;
-  function adaptPrep(text, rec) {
-    if (!text) return text;
-    const slot = recipeMeatSlot(rec); if (!slot) return text;
-    const choice = state.meat[recipeKey(rec)] || slot.baseKey;
-    return text.replace(MEAT_WORDS_RE, MEATS[choice].word);
-  }
   function meatKeyOfFood(name) { for (const k in MEATS) if (MEATS[k].food === name) return k; return null; }
   function recipeMeatSlot(rec) {
     for (let i = 0; i < rec.items.length; i++) {
@@ -1306,19 +1298,18 @@ const RECIPES_SONDE = [
     const chickenEquiv = slot.baseGrams / MEATS[slot.baseKey].factor;
     return round1(chickenEquiv * MEATS[key].factor);
   }
-  function applyMeat(rec) {
+  // Tausch ist nur temporär (gilt für das gerade geöffnete Rezept, nichts wird gespeichert).
+  function applyMeatChoice(rec, choice) {
     const slot = recipeMeatSlot(rec); if (!slot) return rec;
-    const choice = state.meat[recipeKey(rec)];
     if (!choice || choice === slot.baseKey) return rec;
     const grams = meatGramsFor(slot, choice);
     const items = rec.items.map((it, i) => i === slot.index ? { food: MEATS[choice].food, grams: grams } : it);
     return Object.assign({}, rec, { items: items });
   }
-  function setMeatChoice(rec, key) {
-    const slot = recipeMeatSlot(rec); if (!slot) return;
-    if (key === slot.baseKey) delete state.meat[recipeKey(rec)];
-    else state.meat[recipeKey(rec)] = key;
-    save();
+  function adaptPrep(text, rec, choice) {
+    if (!text) return text;
+    const slot = recipeMeatSlot(rec); if (!slot) return text;
+    return text.replace(MEAT_WORDS_RE, MEATS[choice || slot.baseKey].word);
   }
 
   /* ---------- Favoriten & Rezeptquellen ---------- */
@@ -1389,7 +1380,7 @@ const RECIPES_SONDE = [
     const recipes = allRecipes()
       .filter(r => mode === "alle" ? true : (mode === "ohne" ? !r.ketocal : r.ketocal))
       .filter(r => matchesFilter(r, filter))
-      .map(rec => ({ rec, res: computeAdjustedRecipe(applyMeat(rec), d.kcalMahl, d.ratio) }))
+      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
@@ -1489,10 +1480,6 @@ const RECIPES_SONDE = [
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
 
     const fav = isFav(rec);
-    const slot = recipeMeatSlot(rec);
-    const meatChoice = slot ? (state.meat[recipeKey(rec)] || slot.baseKey) : null;
-    const meatPill = (slot && meatChoice !== slot.baseKey)
-      ? '<span class="badge meat">' + MEATS[meatChoice].icon + " " + MEATS[meatChoice].label + "</span>" : "";
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
       '<div class="tile-head">' +
@@ -1503,7 +1490,6 @@ const RECIPES_SONDE = [
       '<div class="tile-badge">' +
         (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
-        meatPill +
         '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
       "</div>" +
       '<div class="tile-stats">' +
@@ -1520,9 +1506,9 @@ const RECIPES_SONDE = [
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  let detailRec = null, detailPortion = "meal";
+  let detailRec = null, detailPortion = "meal", detailMeat = null; // detailMeat: temporäre Fleischwahl
   function openRecipeDetail(rec) {
-    detailRec = rec; detailPortion = "meal";
+    detailRec = rec; detailPortion = "meal"; detailMeat = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -1531,7 +1517,7 @@ const RECIPES_SONDE = [
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
-    const res = computeAdjustedRecipe(applyMeat(rec), d.kcalMahl, d.ratio);
+    const res = computeAdjustedRecipe(applyMeatChoice(rec, detailMeat), d.kcalMahl, d.ratio);
     const mult = detailPortion === "day" ? d.mahl : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -1549,7 +1535,7 @@ const RECIPES_SONDE = [
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
-      const cur = state.meat[recipeKey(rec)] || meatSlot.baseKey;
+      const cur = detailMeat || meatSlot.baseKey;
       meatSeg = '<div class="meat-swap"><div class="seg-label">🍖 Fleisch tauschen</div><div class="segmented mini">' +
         ["huhn", "rind", "pute"].map(k =>
           '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
@@ -1593,13 +1579,16 @@ const RECIPES_SONDE = [
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       (mult > 1 ? '<div class="adjust-note">ℹ️ Mengen für den ganzen Tag (×' + d.mahl + '). Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Mahlzeit – bei der größeren Menge entsprechend länger garen, bis alles weich ist, und ggf. in mehreren Portionen pürieren.</div>' : "") +
-      (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
-      (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "");
+      (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
+      (rec.zubereitung ? '<div class="prep"><strong>Zubereitung (klassisch)</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "");
 
     c.querySelectorAll(".seg-portion button").forEach(b =>
       b.addEventListener("click", () => { detailPortion = b.dataset.p; renderDetail(); }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
-      b.addEventListener("click", () => { setMeatChoice(rec, b.dataset.meat); renderDetail(); renderRezepte(); }));
+      b.addEventListener("click", () => {
+        detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
+        renderDetail();
+      }));
 
     const actions = el("div", { class: "btn-row" });
     const fav = isFav(rec);
@@ -1607,7 +1596,7 @@ const RECIPES_SONDE = [
     favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
     actions.appendChild(favBtn);
     const editBtn = el("button", { class: "btn" }, rec.custom ? "✏️ Bearbeiten" : "✏️ Zutaten anpassen / tauschen");
-    editBtn.addEventListener("click", () => { (rec.custom ? seedComposeFromSaved(applyMeat(rec)) : seedComposeFromRecipe(applyMeat(rec))); closeDetail(); openCompose(); });
+    editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
     actions.appendChild(editBtn);
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
@@ -1698,8 +1687,8 @@ const RECIPES_SONDE = [
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Thermomix-Zeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
-      (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(adaptPrep(rec.thermomix, rec)) + "</div>" : "") +
-      (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec)) + "</div>" : "") +
+      (rec.thermomix ? "<div class='prep'><strong>Zubereitung mit Thermomix TM5</strong>" + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
+      (rec.zubereitung ? "<div class='prep'><strong>Zubereitung (klassisch)</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "") +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
     let w = null;
