@@ -40,7 +40,8 @@ Die App besteht aus einer einzigen Seite:
    dem Behandlungsteam abstimmen). Daraus werden **kcal pro Mahlzeit** und das
    **Eiweiß-Ziel pro Mahlzeit** angezeigt.
 2. **Schnellfilter** per Buttons: Alle, mit Fleisch, mit Fisch, vegetarisch,
-   mit Obst, ohne Obst.
+   mit Obst, ohne Obst. Zusätzlich **Sortierung/Gruppierung**: nach Kategorie
+   (mit Überschriften, Favoriten oben), Name (A–Z) oder Eiweiß.
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
    Verhältnis, Menge (g/ml) und Eiweiß.
 4. Klick auf eine Kachel öffnet das vollständige Rezept: Zutaten, Kennzahlen,

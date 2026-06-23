@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, ketocal: "ohne", filter: "alle", sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -242,8 +242,6 @@
       .filter(r => matchesFilter(r, filter))
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
-    // Favoriten nach oben (stabil)
-    recipes.sort((a, b) => (isFav(b.rec) ? 1 : 0) - (isFav(a.rec) ? 1 : 0));
 
     $("info-note").innerHTML = (mode === "mit") ? "" :
       '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
@@ -252,16 +250,55 @@
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
       (mode === "ohne" ? " ohne KetoCal" : mode === "mit" ? " mit KetoCal" : "");
 
+    const sort = s.sort || "kategorie";
+    $("sort-select").value = sort;
+
     const list = $("recipe-list");
     list.innerHTML = "";
     if (recipes.length === 0) {
       list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte für diese Auswahl."));
       return;
     }
-    const grid = el("div", { class: "tiles" });
-    recipes.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
-    list.appendChild(grid);
+
+    function appendGroup(title, arr) {
+      if (!arr.length) return;
+      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + arr.length + "</span>"));
+      const grid = el("div", { class: "tiles" });
+      arr.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      list.appendChild(grid);
+    }
+
+    if (sort === "kategorie") {
+      const favs = recipes.filter(x => isFav(x.rec));
+      const rest = recipes.filter(x => !isFav(x.rec));
+      appendGroup("⭐ Favoriten", favs);
+      [["Fleisch", "🥩 Fleisch"], ["Fisch", "🐟 Fisch"], ["Vegetarisch", "🥦 Vegetarisch"], ["Obst", "🍓 Obst"]]
+        .forEach(([key, label]) => appendGroup(label, rest.filter(x => recipeGroup(x.rec) === key)));
+    } else {
+      const keyFn = sort === "eiweiss"
+        ? x => -sumMacros(x.res.items).eiweiss
+        : x => x.rec.name.toLowerCase();
+      const sorted = recipes.slice().sort((a, b) => {
+        const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1;
+        if (fa !== fb) return fa - fb;
+        const ka = keyFn(a), kb = keyFn(b);
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      const grid = el("div", { class: "tiles" });
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      list.appendChild(grid);
+    }
   }
+
+  // Primäre Anzeige-Gruppe eines Rezepts
+  function recipeGroup(rec) {
+    const t = recipeTags(rec);
+    if (t.fleisch) return "Fleisch";
+    if (t.fisch) return "Fisch";
+    if (t.obst) return "Obst";
+    return "Vegetarisch";
+  }
+
 
   function bindSettingsBar() {
     const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight" };
@@ -275,6 +312,9 @@
     });
     document.querySelectorAll("#ketocal-seg button").forEach(b => {
       b.addEventListener("click", () => { state.settings.ketocal = b.dataset.val; save(); renderRezepte(); });
+    });
+    document.getElementById("sort-select").addEventListener("change", e => {
+      state.settings.sort = e.target.value; save(); renderRezepte();
     });
   }
 

@@ -238,6 +238,19 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .segmented.mini { display: inline-flex; width: auto; }
 .segmented.mini button { padding: 7px 14px; font-size: 13px; flex: 0 0 auto; }
 
+.toolbar .sort-label { margin: 0 0 0 auto; color: var(--muted); font-size: 14px; }
+.toolbar #sort-select { max-width: 220px; }
+.group-head {
+  font-size: 16px; font-weight: 700; color: var(--brand-dark);
+  margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--brand-soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.group-head:first-child { margin-top: 4px; }
+.group-count {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  background: var(--bg); border-radius: 999px; padding: 1px 9px;
+}
+
 /* Rezept-Kacheln (Übersicht) */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .tile {
