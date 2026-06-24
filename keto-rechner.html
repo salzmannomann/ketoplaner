@@ -37,6 +37,8 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* Scrollbalken-Platz immer reservieren -> kein Springen beim Filterwechsel */
+html { scrollbar-gutter: stable; overflow-y: scroll; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
