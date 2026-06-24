@@ -391,6 +391,7 @@ body.modal-open { overflow: hidden; }
 .dstat { background: var(--bg); border-radius: 10px; padding: 12px; text-align: center; }
 .dstat .v { font-size: 18px; font-weight: 700; color: var(--brand-dark); }
 .dstat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dstat .l small { display: inline-block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--brand-dark); }
 .dstat.warn { background: var(--yellow-bg); }
 .dstat.warn .v { color: var(--yellow); }
 @media (max-width: 560px) {
@@ -1801,8 +1802,8 @@ const RECIPES_SONDE = [
       meatSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (mult !== 1 ? '<br><small>pro Portion ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen' + (mult !== 1 ? '<br><small>pro Portion ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
       (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
@@ -1812,7 +1813,6 @@ const RECIPES_SONDE = [
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
-      (mult !== 1 ? '<div class="adjust-note">📦 Pro Portion zum Abfüllen: <strong>≈ ' + fmt(totalG / mult, 0) + ' g</strong> / <strong>≈ ' + fmt(ml / mult, 0) + ' ml</strong> (ergibt ' + portionLabel + ').</div>' : "") +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
       (rec.varoma ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>" : "") +
