@@ -1,4 +1,4 @@
-// Standard-Rezepte für die ketogene Sondennahrung (47 Stück: 20 mit / 27 ohne KetoCal).
+// Standard-Rezepte für die ketogene Sondennahrung (48 Stück).
 // Einheitliche Kurznamen "Hauptzutat & Beilage"; Icon = Sorte (Fleisch/Fisch/Ei) bzw. Gemüse/Obst.
 // Felder: name, icon, ketocal, quelle, zubereitung, thermomix, varoma, items.
 const RECIPES_SONDE = [
@@ -28,6 +28,15 @@ const RECIPES_SONDE = [
     thermomix: "Karfiol 5 Sek./Stufe 5 zerkleinern. Wasser und Schweinefilet zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Schweinefilet und Karfiol klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Schweinefilet", grams: 25 }, { food: "Karfiol gekocht", grams: 60 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 50 } ],
+  },
+  {
+    name: "Rind & Zucchini",
+    icon: "🥩",
+    ketocal: false,
+    zubereitung: "Zucchini weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, dann Rapsöl untermischen.",
+    thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 40 Sek./Stufe 8 fein pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Forelle & Erdäpfel",
