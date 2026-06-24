@@ -1754,6 +1754,11 @@ const RECIPES_SONDE = [
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
     const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
     const portionLabel = mult === 1 ? "1 Portion" : portionsTxt + " Portionen";
+    // Abfüllmenge je Portion OHNE Öl/Fett (wird erst kurz vor dem Verabreichen zugegeben).
+    const itemsNoOil = (res.fatIndex != null && res.fatIndex >= 0)
+      ? items.filter((_, i) => i !== res.fatIndex) : items;
+    const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);
+    const perMlNoOil = volumeMl(itemsNoOil);
 
     const ketoBadge = (rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
@@ -1802,8 +1807,8 @@ const RECIPES_SONDE = [
       meatSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (mult !== 1 ? '<br><small>pro Portion ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen' + (mult !== 1 ? '<br><small>pro Portion ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (mult !== 1 ? '<br><small>pro Portion ohne Öl ≈ ' + fmt(perGnoOil, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen' + (mult !== 1 ? '<br><small>pro Portion ohne Öl ≈ ' + fmt(perMlNoOil, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
       (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
