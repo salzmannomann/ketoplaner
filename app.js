@@ -548,6 +548,7 @@
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
+      (mult !== 1 ? '<div class="adjust-note">📦 Pro Portion zum Abfüllen: <strong>≈ ' + fmt(totalG / mult, 0) + ' g</strong> / <strong>≈ ' + fmt(ml / mult, 0) + ' ml</strong> (ergibt ' + portionLabel + ').</div>' : "") +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Thermomix-Zeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.thermomix ? '<div class="prep thermomix"><strong>🤖 Zubereitung mit Thermomix TM5</strong><br>' + escapeHtml(adaptPrep(rec.thermomix, rec, detailMeat)) + "</div>" : "") +
       (rec.varoma ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>" : "") +
