@@ -7,7 +7,7 @@ const RECIPES_SONDE = [
     icon: "🥫",
     ketocal: false,
     unterwegs: true,
-    zubereitung: "HiPP-Glas öffnen, die angezeigten Mengen abmessen und das Rapsöl gründlich einrühren – fertig, ganz ohne Kochen. Bei Bedarf vor dem Verabreichen durch ein feines Sieb streichen. Das Öl am besten erst kurz vor dem Füttern zugeben. Ein 125-g-Glas reicht für mehrere Mahlzeiten – Reste im Kühlschrank aufbewahren.",
+    zubereitung: "HiPP-Glas öffnen, die angezeigten Mengen abmessen und das Rapsöl gründlich einrühren – fertig, ganz ohne Kochen. Das Öl am besten erst kurz vor dem Füttern zugeben. Ein 125-g-Glas reicht für mehrere Mahlzeiten – Reste im Kühlschrank aufbewahren.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
   {
