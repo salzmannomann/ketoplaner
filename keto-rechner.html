@@ -820,6 +820,7 @@ const RECIPES_SONDE = [
     name: "Unterwegs: HiPP Hühnchen & Öl",
     icon: "🥫",
     ketocal: false,
+    unterwegs: true,
     zubereitung: "Für unterwegs ohne Kochen: Pro Mahlzeit die oben angezeigte Menge nehmen (bei 140 kcal/Mahlzeit ca. 50 g Glasinhalt + ca. 10 g Rapsöl) und das Rapsöl gründlich einrühren – fertig. Bei Bedarf vor dem Verabreichen durch ein feines Sieb streichen. Ein ganzes 125-g-Glas reicht für ca. 2–3 Mahlzeiten – nicht alles auf einmal verabreichen, sondern portionsweise. Das Öl erst kurz vor dem Füttern zugeben.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
@@ -1365,6 +1366,7 @@ const RECIPES_SONDE = [
     { id: "fisch", label: "🐟 Fisch" },
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
     { id: "obst", label: "🍓 Obst" },
+    { id: "unterwegs", label: "🥫 Unterwegs" },
   ];
   function recipeTags(rec) {
     let fleisch = false, fisch = false, obst = false;
@@ -1375,7 +1377,8 @@ const RECIPES_SONDE = [
       if (k === "Fisch") fisch = true;
       if (k === "Obst") obst = true;
     });
-    return { fleisch, fisch, obst, veg: !fleisch && !fisch };
+    const unterwegs = !!rec.unterwegs;
+    return { fleisch, fisch, obst, unterwegs, veg: !fleisch && !fisch && !unterwegs };
   }
   function matchesFilter(rec, filter) {
     const t = recipeTags(rec);
@@ -1384,6 +1387,7 @@ const RECIPES_SONDE = [
       case "fisch": return t.fisch;
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
+      case "unterwegs": return t.unterwegs;
       default: return true;
     }
   }

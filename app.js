@@ -101,6 +101,7 @@
     { id: "fisch", label: "🐟 Fisch" },
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
     { id: "obst", label: "🍓 Obst" },
+    { id: "unterwegs", label: "🥫 Unterwegs" },
   ];
   function recipeTags(rec) {
     let fleisch = false, fisch = false, obst = false;
@@ -111,7 +112,8 @@
       if (k === "Fisch") fisch = true;
       if (k === "Obst") obst = true;
     });
-    return { fleisch, fisch, obst, veg: !fleisch && !fisch };
+    const unterwegs = !!rec.unterwegs;
+    return { fleisch, fisch, obst, unterwegs, veg: !fleisch && !fisch && !unterwegs };
   }
   function matchesFilter(rec, filter) {
     const t = recipeTags(rec);
@@ -120,6 +122,7 @@
       case "fisch": return t.fisch;
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
+      case "unterwegs": return t.unterwegs;
       default: return true;
     }
   }

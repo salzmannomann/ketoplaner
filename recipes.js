@@ -6,6 +6,7 @@ const RECIPES_SONDE = [
     name: "Unterwegs: HiPP Hühnchen & Öl",
     icon: "🥫",
     ketocal: false,
+    unterwegs: true,
     zubereitung: "Für unterwegs ohne Kochen: Pro Mahlzeit die oben angezeigte Menge nehmen (bei 140 kcal/Mahlzeit ca. 50 g Glasinhalt + ca. 10 g Rapsöl) und das Rapsöl gründlich einrühren – fertig. Bei Bedarf vor dem Verabreichen durch ein feines Sieb streichen. Ein ganzes 125-g-Glas reicht für ca. 2–3 Mahlzeiten – nicht alles auf einmal verabreichen, sondern portionsweise. Das Öl erst kurz vor dem Füttern zugeben.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
