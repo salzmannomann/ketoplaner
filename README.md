@@ -3,8 +3,8 @@
 Eine einfache Web-App für die **ketogene Sondennahrung**. Sie zeigt rund 20
 fertige Standard-Rezepte, die automatisch auf das gewünschte Keto-Verhältnis und
 die Kalorien pro Mahlzeit berechnet werden – wahlweise **mit oder ohne KetoCal**,
-mit **Icon** zur schnellen Erkennung und mit Anleitung für die klassische
-Zubereitung sowie den **Thermomix TM5**.
+mit **Icon** zur schnellen Erkennung und mit Anleitung für die
+**Varoma-Zubereitung (Dämpfen)**.
 
 Die App läuft komplett im Browser, ohne Server und ohne Internetverbindung,
 und funktioniert auch am **Smartphone**. Über GitHub Pages ist sie zudem
@@ -57,9 +57,7 @@ Die App besteht aus einer einzigen Seite:
 3. Darunter erscheinen die passenden Rezepte als **Kacheln** mit **Icon**, kcal,
    Verhältnis, Menge (g/ml) und Eiweiß.
 4. Klick auf eine Kachel öffnet das vollständige Rezept: Zutaten, Kennzahlen,
-   **Thermomix-TM5-Anleitung**, bei geeigneten Rezepten (Fleisch-, Fisch- und
-   Gemüsegerichten) zusätzlich eine **Varoma-Zubereitung (Dämpfen)**,
-   klassische Zubereitung, **Rezept drucken** und
+   die **Varoma-Zubereitung (Dämpfen)**, **Rezept drucken** und
    **„Zutaten anpassen / tauschen"** (öffnet das Rezept im freien Rechner – dort
    kann man Zutaten oder Fette entfernen, tauschen oder ergänzen, z. B. Rapsöl
    durch Butter ersetzen; die Mengen werden automatisch neu berechnet)
@@ -69,11 +67,6 @@ Die App besteht aus einer einzigen Seite:
    (z. B. „150 g Hendl") werden **alle anderen Zutaten proportional
    mitskaliert** – das Verhältnis bleibt gleich. So kann man rasch eine
    größere Menge für mehrere Mahlzeiten vorkochen und einkühlen.
-5. **🍳 Koch-Modus:** Eine große, küchentaugliche Schritt-für-Schritt-Ansicht
-   mit Methoden-Umschalter (Thermomix / Varoma / klassisch), abhakbarer
-   Zutaten-/Abwiegeliste und **antippbaren Zeiten** – ein Tipp startet einen
-   **Countdown mit Signalton** (und Vibration am Handy). Übernimmt die gewählte
-   Portionsmenge und Fleischsorte.
 
 **Eigenes Rezept zusammenstellen:** Über den Button „🧪 Eigenes Rezept" kann man
 z. B. ein saisonales Lebensmittel (etwa Erdbeeren) wählen und ein oder **mehrere
