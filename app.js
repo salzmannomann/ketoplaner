@@ -538,7 +538,7 @@
           '<button type="button" data-scale="' + d.mahl + '"' + (Math.abs(mult - d.mahl) < 0.01 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
         "</div>" +
         '<span class="portion-step">Portionen <button type="button" class="stepbtn" data-step="-1">−</button>' +
-        '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + portionsTxt + '">' +
+        '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
       "</div>" +
       meatSeg +
