@@ -489,9 +489,11 @@
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
     const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
     const portionLabel = mult === 1 ? "1 Portion" : portionsTxt + " Portionen";
-    // Abfüllmenge je Portion OHNE Öl/Fett (wird erst kurz vor dem Verabreichen zugegeben).
-    const itemsNoOil = (res.fatIndex != null && res.fatIndex >= 0)
-      ? items.filter((_, i) => i !== res.fatIndex) : items;
+    // Abfüllmenge je Portion OHNE Öl (das Öl wird erst kurz vor dem Verabreichen zugegeben).
+    // Nur tatsächliche Öle abziehen (Name enthält "Öl") – Butter/Sahne/KetoCal bleiben in der Masse.
+    const isOil = (name) => /öl|oil/i.test(name || "");
+    const itemsNoOil = items.filter(it => !isOil(it.food));
+    const hasOil = itemsNoOil.length !== items.length;
     const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);
     const perMlNoOil = volumeMl(itemsNoOil);
 
@@ -542,8 +544,8 @@
       meatSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perGnoOil, 0) + ' g</small></div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perMlNoOil, 0) + ' ml</small></div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? '<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perGnoOil, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? '<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perMlNoOil, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
       (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
