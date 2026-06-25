@@ -1,7 +1,14 @@
-// Standard-Rezepte für die ketogene Sondennahrung (48 Stück).
+// Standard-Rezepte für die ketogene Sondennahrung (49 Stück).
 // Einheitliche Kurznamen "Hauptzutat & Beilage"; Icon = Sorte (Fleisch/Fisch/Ei) bzw. Gemüse/Obst.
 // Felder: name, icon, ketocal, quelle, zubereitung, thermomix, varoma, items.
 const RECIPES_SONDE = [
+  {
+    name: "Unterwegs: HiPP Hühnchen & Öl",
+    icon: "🥫",
+    ketocal: false,
+    zubereitung: "Für unterwegs ohne Kochen: Das HiPP-Glas öffnen, die berechnete Menge Rapsöl gründlich einrühren – fertig. Bei Bedarf vor dem Verabreichen durch ein feines Sieb streichen. Faustregel fürs ganze Glas: 125 g HiPP-Zubereitung + ca. 24 g Rapsöl ergeben 1,8:1 (je nach kcal-Einstellung ca. 2–3 Mahlzeiten). Das Öl erst kurz vor dem Füttern zugeben.",
+    items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
+  },
   {
     name: "Hendl & Zucchini",
     icon: "🍗",

@@ -149,6 +149,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Getreide", "name": "Leicht & Cross Knusperbrot", "pro": 100, "eiweiss": 13.0, "fett": 3.5, "kh": 72.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Reis mit Karotten und Pute", "pro": 100, "eiweiss": 2.4, "fett": 3.1, "kh": 8.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Kartoffel-Gemüse mit Bio-Rindfleisch", "pro": 100, "eiweiss": 2.3, "fett": 2.9, "kh": 7.6, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "HiPP Bio-Hühnchenfleisch Zubereitung", "pro": 100, "eiweiss": 7.8, "fett": 5.8, "kh": 6.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Karotten-Kartoffelgemüse mit Bio-Lamm", "pro": 100, "eiweiss": 2.6, "fett": 1.9, "kh": 10.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Äpfel mit Bananen", "pro": 100, "eiweiss": 0.5, "fett": 0.1, "kh": 13.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Milchbrei Grieß-Banane", "pro": 100, "eiweiss": 13.8, "fett": 11.8, "kh": 63.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
