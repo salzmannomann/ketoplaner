@@ -106,7 +106,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Wurst", "name": "Frühstücksspeck durchwachsen", "pro": 100, "eiweiss": 9.1, "fett": 65.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Schwein Bauch", "pro": 100, "eiweiss": 17.8, "fett": 21.1, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Putenbrust ohne Haut", "pro": 100, "eiweiss": 24.1, "fett": 1.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Fleisch", "name": "Rindfleisch (mager)", "pro": 100, "eiweiss": 21.0, "fett": 5.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Fleisch", "name": "Rinderfaschiertes", "pro": 100, "eiweiss": 20.0, "fett": 15.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Hühnerbrust ohne Haut", "pro": 100, "eiweiss": 22.8, "fett": 0.9, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Kalbsschnitzelfleisch", "pro": 100, "eiweiss": 20.6, "fett": 1.4, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Fleisch", "name": "Lammfleisch - Keule", "pro": 100, "eiweiss": 18.0, "fett": 18.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},

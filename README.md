@@ -85,18 +85,17 @@ automatisch hochgerechnet auf eine ganze Mahlzeit. Beliebig viele Zutaten
 kombinierbar.
 
 Alle Zutaten verwenden **österreichische Bezeichnungen** (Erdäpfel, Karotten,
-Karfiol, Hendl, Paradeiser, Marille, Schlagobers …). Beim Fleisch wird
-einheitlich **stückiges, mageres Fleisch** verwendet (Geflügel ohne Haut:
-Hühnerbrust und Putenbrust; dazu mageres Rindfleisch – kein Faschiertes).
+Karfiol, Hendl, Paradeiser, Marille, Schlagobers …). Beim Geflügel wird
+stückiges Fleisch ohne Haut verwendet (Hühnerbrust und Putenbrust); beim
+Rind kommt – wie von der Diätologin vorgesehen – **Rinderfaschiertes** zum
+Einsatz (lässt sich feiner pürieren und verstopft die Sonde/Spritze weniger).
 
-**Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind oder Pute
-(jeweils stückiges Fleisch ohne Haut) gibt es in der Detailansicht einen
-Umschalter **🍗 Huhn / 🥩 Rind /
-🦃 Pute**. Beim Umstellen ändert sich **nur das Fleisch** – Gemüse, Wasser
-**und Öl/Fett bleiben gleich**. Die Fleischmenge wird so berechnet, dass das
-**Verhältnis 1,8:1** exakt erhalten bleibt (sie weicht daher etwas von den
-Richtwerten 20/30/18 g der Diätologin ab; beim mageren Rindfleisch z. B.
-~23–25 g statt 30 g). Die Kalorien können dabei leicht variieren (wird
+**Fleisch schnell tauschen:** Bei jedem Rezept mit Huhn, Rind oder Pute gibt
+es in der Detailansicht einen Umschalter **🍗 Huhn / 🥩 Rind /
+🦃 Pute** (Huhn/Pute stückig ohne Haut, Rind als Faschiertes). Beim Umstellen
+ändert sich **nur das Fleisch** – Gemüse, Wasser **und Öl/Fett bleiben gleich**.
+Die Fleischmenge wird so berechnet, dass das **Verhältnis 1,8:1** exakt erhalten
+bleibt (sie weicht daher etwas von den Richtwerten 20/30/18 g der Diätologin ab). Die Kalorien können dabei leicht variieren (wird
 angezeigt). So kann man rasch umstellen, wenn eine Sorte gerade nicht zu
 Hause ist. Der Tausch ist **temporär**: Beim Schließen des Rezepts steht wieder
 das Standard-Fleisch; die Kachel bleibt unverändert.

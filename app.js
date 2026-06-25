@@ -212,7 +212,7 @@
      Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
   const MEATS = {
     huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗", word: "Hendl" },
-    rind: { food: "Rindfleisch (mager)", factor: 1.5, label: "Rind", icon: "🥩", word: "Rindfleisch" },
+    rind: { food: "Rinderfaschiertes", factor: 1.5, label: "Rind", icon: "🥩", word: "Rinderfaschiertes" },
     pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃", word: "Putenfleisch" },
   };
   // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.

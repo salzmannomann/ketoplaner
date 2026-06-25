@@ -36,7 +36,7 @@ const RECIPES_SONDE = [
     zubereitung: "Zucchini weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, dann Rapsöl untermischen.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 2–3 Min./Stufe 10 sehr fein pürieren, bis die Masse glatt und suppig ist; bei Bedarf etwas Wasser nachgeben und zwischendurch nach unten schieben. Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
+    items: [ { food: "Rinderfaschiertes", grams: 20 }, { food: "Zucchini gegart", grams: 70 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
   },
   {
     name: "Forelle & Erdäpfel",
@@ -190,7 +190,7 @@ const RECIPES_SONDE = [
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 2–3 Min./Stufe 10 sehr fein pürieren, bis die Masse glatt und suppig ist; bei Bedarf etwas Wasser nachgeben und zwischendurch nach unten schieben. Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rinderfaschiertes", grams: 20 }, { food: "Karotten gekocht", grams: 40 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 5 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Schwein & Karfiol (mit KetoCal)",
@@ -375,7 +375,7 @@ const RECIPES_SONDE = [
     zubereitung: "Karotten weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Karotten 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 2–3 Min./Stufe 10 sehr fein pürieren, bis die Masse glatt und suppig ist; bei Bedarf etwas Wasser nachgeben und zwischendurch nach unten schieben. Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Karotten klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rinderfaschiertes", grams: 30 }, { food: "Karotten roh", grams: 45 }, { food: "Rapsöl", grams: 12 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Hendl & Karotte",
@@ -415,7 +415,7 @@ const RECIPES_SONDE = [
     zubereitung: "Rote Rüben weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Rote Rüben 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 2–3 Min./Stufe 10 sehr fein pürieren, bis die Masse glatt und suppig ist; bei Bedarf etwas Wasser nachgeben und zwischendurch nach unten schieben. Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch und Rote Rüben klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Rindfleisch (mager)", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
+    items: [ { food: "Rinderfaschiertes", grams: 30 }, { food: "Rote Rüben gekocht", grams: 30 }, { food: "Rapsöl", grams: 16 }, { food: "Wasser", grams: 60 } ],
   },
   {
     name: "Erdäpfel & Spinat",
@@ -435,6 +435,6 @@ const RECIPES_SONDE = [
     zubereitung: "Spinat und Erdäpfel weich garen, mit dem gegarten Rindfleisch und Wasser fein pürieren, anschließend das Rapsöl untermischen.",
     thermomix: "Spinat und Erdäpfel 5 Sek./Stufe 5 zerkleinern. Wasser und Rindfleisch zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 2–3 Min./Stufe 10 sehr fein pürieren, bis die Masse glatt und suppig ist; bei Bedarf etwas Wasser nachgeben und zwischendurch nach unten schieben. Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch, Spinat und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Rindfleisch (mager)", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
+    items: [ { food: "Rinderfaschiertes", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
 ];
