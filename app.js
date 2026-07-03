@@ -279,7 +279,15 @@
     const blendFett = parts.reduce((a, p) => { const f = lookup(p.food); return a + p.share * (f ? f.fett : 0); }, 0);
     if (Foil <= 0 || blendFett <= 0) return res;
     const gTotal = Foil / (blendFett / 100);
-    const oilRows = parts.map(p => ({ food: p.food, grams: round1(gTotal * p.share) }));
+    // Gesamt-Öl auf 0,1 g runden und die Anteile so aufteilen, dass ihre Summe
+    // exakt dieser gerundeten Menge entspricht (Rest auf die letzte Zeile).
+    const totalR = round1(gTotal);
+    let assigned = 0;
+    const oilRows = parts.map((p, i) => {
+      const g = (i === parts.length - 1) ? round1(totalR - assigned) : round1(gTotal * p.share);
+      if (i !== parts.length - 1) assigned += g;
+      return { food: p.food, grams: g };
+    });
     const newItems = [];
     items.forEach((it, i) => { if (i === oi) { oilRows.forEach(r => newItems.push(r)); } else newItems.push(it); });
     const sm = sumMacros(newItems);
