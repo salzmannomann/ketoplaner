@@ -246,6 +246,46 @@
     return text.replace(MEAT_WORDS_RE, MEATS[choice || slot.baseKey].word);
   }
 
+  /* ---------- Öl-Tausch ----------
+     Das fettdominante Öl eines Rezepts kann temporär durch MCT-Öl (C8+C10)
+     oder eine Mischung ersetzt werden. Die Öl-Grammzahl wird neu berechnet,
+     sodass das Verhältnis exakt erhalten bleibt (nur das Öl ändert sich). */
+  function isOilName(name) { return /öl|oil/i.test(name || ""); }
+  const OILS = {
+    raps: { label: "Rapsöl", icon: "🌻", parts: [{ food: "Rapsöl", share: 1 }] },
+    mix: { label: "½ & ½", icon: "🥣", parts: [{ food: "Rapsöl", share: 0.5 }, { food: "MCT-Öl C8+C10", share: 0.5 }] },
+    mct: { label: "MCT C8/C10", icon: "⚡", parts: [{ food: "MCT-Öl C8+C10", share: 1 }] },
+  };
+  // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
+  function oilSlotIndex(items) {
+    const fi = fatItemIndex(items);
+    return (fi >= 0 && isOilName(items[fi].food)) ? fi : -1;
+  }
+  // Ersetzt das Öl durch die gewählte Sorte/Mischung und rechnet die Öl-Menge
+  // so, dass das Verhältnis exakt stimmt (übrige Zutaten bleiben unverändert).
+  function applyOilChoice(res, ratio, oilKey) {
+    if (!oilKey || oilKey === "raps") return res;
+    const items = res.items;
+    const oi = oilSlotIndex(items);
+    if (oi < 0) return res;
+    const parts = (OILS[oilKey] || {}).parts; if (!parts) return res;
+    let Pn = 0, Fn = 0, Cn = 0;
+    items.forEach((it, i) => {
+      if (i === oi) return;
+      const f = lookup(it.food); if (!f) return;
+      Pn += f.eiweiss * num(it.grams) / 100; Fn += f.fett * num(it.grams) / 100; Cn += f.kh * num(it.grams) / 100;
+    });
+    const Foil = ratio * (Pn + Cn) - Fn; // benötigtes Öl-Fett für das Verhältnis
+    const blendFett = parts.reduce((a, p) => { const f = lookup(p.food); return a + p.share * (f ? f.fett : 0); }, 0);
+    if (Foil <= 0 || blendFett <= 0) return res;
+    const gTotal = Foil / (blendFett / 100);
+    const oilRows = parts.map(p => ({ food: p.food, grams: round1(gTotal * p.share) }));
+    const newItems = [];
+    items.forEach((it, i) => { if (i === oi) { oilRows.forEach(r => newItems.push(r)); } else newItems.push(it); });
+    const sm = sumMacros(newItems);
+    return { items: newItems, ratio: ratioOf(sm), kcal: sm.kcal, ok: res.ok, fatIndex: oi };
+  }
+
   /* ---------- Favoriten & Rezeptquellen ---------- */
   function hasKetoCal(items) { return items.some(it => (it.food || "").toLowerCase().indexOf("ketocal") !== -1); }
   function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
@@ -452,9 +492,9 @@
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  let detailRec = null, detailScale = 1, detailMeat = null; // detailScale: Portionen-Faktor, detailMeat: temporäre Fleischwahl
+  let detailRec = null, detailScale = 1, detailMeat = null, detailOil = null; // detailScale: Portionen-Faktor, detailMeat/detailOil: temporäre Wahl
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = 1; detailMeat = null;
+    detailRec = rec; detailScale = 1; detailMeat = null; detailOil = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -481,6 +521,9 @@
         adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
       }
     }
+    // Öl-Tausch (Rapsöl / Mischung / MCT): nur das Öl ändert sich, Verhältnis bleibt.
+    const baseOilIndex = oilSlotIndex(res.items);
+    if (detailOil && baseOilIndex >= 0) res = applyOilChoice(res, d.ratio, detailOil);
     const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -499,6 +542,9 @@
     const hasOil = itemsNoOil.length !== items.length;
     const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);
     const perMlNoOil = volumeMl(itemsNoOil);
+    // Öl-Bezeichnung im Zubereitungstext an die gewählte Öl-Sorte anpassen.
+    const oilWord = detailOil === "mct" ? "MCT-Öl" : (detailOil === "mix" ? "Rapsöl + MCT-Öl" : null);
+    const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
 
     const ketoBadge = (rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
@@ -515,6 +561,20 @@
           MEATS[k].icon + " " + MEATS[k].label + "</button>"
         ).join("") +
         '</div><div class="meat-note">Es ändert sich nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von 30 g / 18 g abweichen; die Kalorien können leicht variieren).</div></div>';
+    }
+
+    let oilSeg = "";
+    if (baseOilIndex >= 0) {
+      const curOil = detailOil || "raps";
+      oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl wählen</div><div class="segmented mini">' +
+        ["raps", "mix", "mct"].map(k =>
+          '<button type="button" data-oil="' + k + '"' + (k === curOil ? ' class="active"' : "") + ">" +
+          OILS[k].icon + " " + OILS[k].label + "</button>"
+        ).join("") +
+        '</div><div class="meat-note">' + (curOil === "raps"
+          ? "Standard: Rapsöl. Die Öl-Menge wird so berechnet, dass das Verhältnis genau stimmt."
+          : "⚠️ MCT-Öl (C8/C10) ist deutlich <strong>stärker ketogen</strong> als Rapsöl – bei gleicher Fettmenge entsteht eine stärkere Ketose. Menge/Anteil bitte mit der Diätologin abstimmen und langsam einschleichen (Magen-Darm-Verträglichkeit). Hinweis: MCT liefert ~8,3 kcal/g; die App rechnet mit 9 kcal/g, die kcal sind also leicht überschätzt.") +
+        "</div></div>";
     }
 
     let rows = "";
@@ -545,6 +605,7 @@
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
       "</div>" +
       meatSeg +
+      oilSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? '<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perGnoOil, 0) + ' g</small>' : "") + '</div></div>' +
@@ -560,8 +621,8 @@
       '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Varoma-/Garzeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.varoma
-        ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>"
-        : (rec.zubereitung ? '<div class="prep"><strong>Zubereitung</strong><br>' + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : ""));
+        ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.varoma, rec, detailMeat))) + "</div>"
+        : (rec.zubereitung ? '<div class="prep"><strong>Zubereitung</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : ""));
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
       b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; renderDetail(); }));
@@ -582,6 +643,11 @@
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
+        renderDetail();
+      }));
+    c.querySelectorAll(".meat-swap button[data-oil]").forEach(b =>
+      b.addEventListener("click", () => {
+        detailOil = b.dataset.oil === "raps" ? null : b.dataset.oil;
         renderDetail();
       }));
 
@@ -646,6 +712,8 @@
   /* ---------- Drucken (A4 Hochformat) ---------- */
   function printRecipe(rec, res, d, mult) {
     mult = mult || 1;
+    const oilWord = detailOil === "mct" ? "MCT-Öl" : (detailOil === "mix" ? "Rapsöl + MCT-Öl" : null);
+    const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
@@ -683,8 +751,8 @@
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
       (rec.varoma
-        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptPrep(rec.varoma, rec, detailMeat)) + "</div>"
-        : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptPrep(rec.zubereitung, rec, detailMeat)) + "</div>" : "")) +
+        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptPrep(rec.varoma, rec, detailMeat))) + "</div>"
+        : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : "")) +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
     let w = null;

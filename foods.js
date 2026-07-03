@@ -56,6 +56,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Pilze", "name": "Champignon (Zucht-)", "pro": 100, "eiweiss": 2.7, "fett": 0.2, "kh": 0.6, "cholesterin": 0.0, "natrium": 8.0, "ballaststoffe": 2.0},
   {"kategorie": "Pilze", "name": "Steinpilz roh", "pro": 100, "eiweiss": 2.8, "fett": 0.4, "kh": 0.5, "cholesterin": 0.0, "natrium": 6.0, "ballaststoffe": 6.0},
   {"kategorie": "Öle", "name": "Rapsöl", "pro": 100, "eiweiss": 0.0, "fett": 99.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Öle", "name": "MCT-Öl C8+C10", "pro": 100, "eiweiss": 0.0, "fett": 100.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Öle", "name": "Maiskeimöl", "pro": 100, "eiweiss": 0.0, "fett": 99.9, "kh": 0.0, "cholesterin": 0.0, "natrium": 1.0, "ballaststoffe": 0.0},
   {"kategorie": "Öle", "name": "Vita Pflanzenmargarine*", "pro": 100, "eiweiss": 0.2, "fett": 80.0, "kh": 0.3, "cholesterin": 0.2, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Öle", "name": "Becel Diät-Speiseöl", "pro": 100, "eiweiss": 0.0, "fett": 100.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
