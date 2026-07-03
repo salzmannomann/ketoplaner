@@ -1519,7 +1519,7 @@ const RECIPES_SONDE = [
   function isOilName(name) { return /öl|oil/i.test(name || ""); }
   const OILS = {
     raps: { label: "Rapsöl", icon: "🌻", parts: [{ food: "Rapsöl", share: 1 }] },
-    mix: { label: "½ & ½", icon: "🥣", parts: [{ food: "Rapsöl", share: 0.5 }, { food: "MCT-Öl C8+C10", share: 0.5 }] },
+    mix: { label: "½ Raps + ½ MCT", icon: "🥣", parts: [{ food: "Rapsöl", share: 0.5 }, { food: "MCT-Öl C8+C10", share: 0.5 }] },
     mct: { label: "MCT C8/C10", icon: "⚡", parts: [{ food: "MCT-Öl C8+C10", share: 1 }] },
   };
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
@@ -1839,7 +1839,8 @@ const RECIPES_SONDE = [
         ).join("") +
         '</div><div class="meat-note">' + (curOil === "raps"
           ? "Standard: Rapsöl. Die Öl-Menge wird so berechnet, dass das Verhältnis genau stimmt."
-          : "⚠️ MCT-Öl (C8/C10) ist deutlich <strong>stärker ketogen</strong> als Rapsöl – bei gleicher Fettmenge entsteht eine stärkere Ketose. Menge/Anteil bitte mit der Diätologin abstimmen und langsam einschleichen (Magen-Darm-Verträglichkeit). Hinweis: MCT liefert ~8,3 kcal/g; die App rechnet mit 9 kcal/g, die kcal sind also leicht überschätzt.") +
+          : (curOil === "mix" ? "🥣 <strong>Halb Rapsöl, halb MCT-Öl</strong> (je zur Hälfte). " : "⚡ <strong>100 % MCT-Öl</strong> statt Rapsöl. ") +
+            "⚠️ MCT-Öl (C8/C10) ist deutlich <strong>stärker ketogen</strong> als Rapsöl – bei gleicher Fettmenge entsteht eine stärkere Ketose. Menge/Anteil bitte mit der Diätologin abstimmen und langsam einschleichen (Magen-Darm-Verträglichkeit). Hinweis: MCT liefert ~8,3 kcal/g; die App rechnet mit 9 kcal/g, die kcal sind also leicht überschätzt.") +
         "</div></div>";
     }
 
