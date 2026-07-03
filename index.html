@@ -61,6 +61,10 @@
           <label>Eiweiß pro Tag (g)</label>
           <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
         </div>
+        <div>
+          <label>MCT-Öl pro Tag (g)</label>
+          <input id="set-mct" type="number" min="0" step="1" inputmode="numeric" placeholder="optional, z. B. 10" />
+        </div>
     </div>
 
     <div id="info-note" hidden></div>
@@ -103,7 +107,7 @@
 
   <script src="foods.js?v=d10f371a"></script>
   <script src="recipes.js?v=9978146d"></script>
-  <script src="app.js?v=651aebfd"></script>
+  <script src="app.js?v=bff0146b"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctProTag: 0, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -135,7 +135,8 @@
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
     const autoProtein = perKg > 0 && weight > 0;
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
-    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl };
+    const mctProTag = num(s.mctProTag);
+    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctProTag, mctMahl: mctProTag / mahl };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -252,23 +253,22 @@
      sodass das Verhältnis exakt erhalten bleibt (nur das Öl ändert sich). */
   function isOilName(name) { return /öl|oil/i.test(name || ""); }
   const OILS = {
-    raps: { label: "Rapsöl", icon: "🌻", parts: [{ food: "Rapsöl", share: 1 }] },
-    mix: { label: "½ Raps + ½ MCT", icon: "🥣", parts: [{ food: "Rapsöl", share: 0.5 }, { food: "MCT-Öl C8+C10", share: 0.5 }] },
-    mct: { label: "MCT C8/C10", icon: "⚡", parts: [{ food: "MCT-Öl C8+C10", share: 1 }] },
+    raps: { label: "Rapsöl", icon: "🌻" },
+    vorgabe: { label: "mit MCT", icon: "⚡" },
   };
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
   function oilSlotIndex(items) {
     const fi = fatItemIndex(items);
     return (fi >= 0 && isOilName(items[fi].food)) ? fi : -1;
   }
-  // Ersetzt das Öl durch die gewählte Sorte/Mischung und rechnet die Öl-Menge
-  // so, dass das Verhältnis exakt stimmt (übrige Zutaten bleiben unverändert).
-  function applyOilChoice(res, ratio, oilKey) {
+  // Ersetzt das Öl je nach Wahl. "vorgabe": genau mctG Gramm MCT-Öl (pro Portion),
+  // der Rest des benötigten Fetts als Rapsöl – so bleibt das Verhältnis exakt und
+  // die MCT-Menge entspricht der ärztlichen/diätologischen Tagesvorgabe.
+  function applyOilChoice(res, ratio, oilKey, mctG) {
     if (!oilKey || oilKey === "raps") return res;
     const items = res.items;
     const oi = oilSlotIndex(items);
     if (oi < 0) return res;
-    const parts = (OILS[oilKey] || {}).parts; if (!parts) return res;
     let Pn = 0, Fn = 0, Cn = 0;
     items.forEach((it, i) => {
       if (i === oi) return;
@@ -276,18 +276,18 @@
       Pn += f.eiweiss * num(it.grams) / 100; Fn += f.fett * num(it.grams) / 100; Cn += f.kh * num(it.grams) / 100;
     });
     const Foil = ratio * (Pn + Cn) - Fn; // benötigtes Öl-Fett für das Verhältnis
-    const blendFett = parts.reduce((a, p) => { const f = lookup(p.food); return a + p.share * (f ? f.fett : 0); }, 0);
-    if (Foil <= 0 || blendFett <= 0) return res;
-    const gTotal = Foil / (blendFett / 100);
-    // Gesamt-Öl auf 0,1 g runden und die Anteile so aufteilen, dass ihre Summe
-    // exakt dieser gerundeten Menge entspricht (Rest auf die letzte Zeile).
-    const totalR = round1(gTotal);
-    let assigned = 0;
-    const oilRows = parts.map((p, i) => {
-      const g = (i === parts.length - 1) ? round1(totalR - assigned) : round1(gTotal * p.share);
-      if (i !== parts.length - 1) assigned += g;
-      return { food: p.food, grams: g };
-    });
+    if (Foil <= 0) return res;
+    const mctFood = lookup("MCT-Öl C8+C10"), rapsFood = lookup("Rapsöl");
+    if (!mctFood || !rapsFood) return res;
+    // MCT-Fett aus der Vorgabe, gedeckelt auf das insgesamt benötigte Öl-Fett.
+    let mctGrams = Math.max(0, num(mctG));
+    let mctFat = mctGrams * mctFood.fett / 100;
+    if (mctFat > Foil) { mctFat = Foil; mctGrams = Foil / (mctFood.fett / 100); }
+    const rapsGrams = Math.max(0, (Foil - mctFat)) / (rapsFood.fett / 100);
+    const oilRows = [];
+    if (rapsGrams > 0.049) oilRows.push({ food: "Rapsöl", grams: round1(rapsGrams) });
+    if (mctGrams > 0.049) oilRows.push({ food: "MCT-Öl C8+C10", grams: round1(mctGrams) });
+    if (!oilRows.length) return res;
     const newItems = [];
     items.forEach((it, i) => { if (i === oi) { oilRows.forEach(r => newItems.push(r)); } else newItems.push(it); });
     const sm = sumMacros(newItems);
@@ -323,6 +323,7 @@
     $("set-mahlzeiten").value = s.mahlzeiten;
     $("set-ratio").value = s.ratio;
     $("set-weight").value = s.weight;
+    $("set-mct").value = s.mctProTag || "";
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
@@ -442,7 +443,7 @@
 
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct": "mctProTag" };
     Object.keys(map).forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save(); renderRezepte();
@@ -529,9 +530,9 @@
         adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
       }
     }
-    // Öl-Tausch (Rapsöl / Mischung / MCT): nur das Öl ändert sich, Verhältnis bleibt.
+    // Öl-Wahl: Rapsöl (Standard) oder "mit MCT" nach Tagesvorgabe (Rest Rapsöl).
     const baseOilIndex = oilSlotIndex(res.items);
-    if (detailOil && baseOilIndex >= 0) res = applyOilChoice(res, d.ratio, detailOil);
+    if (detailOil && baseOilIndex >= 0) res = applyOilChoice(res, d.ratio, detailOil, d.mctMahl);
     const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -551,7 +552,7 @@
     const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);
     const perMlNoOil = volumeMl(itemsNoOil);
     // Öl-Bezeichnung im Zubereitungstext an die gewählte Öl-Sorte anpassen.
-    const oilWord = detailOil === "mct" ? "MCT-Öl" : (detailOil === "mix" ? "Rapsöl + MCT-Öl" : null);
+    const oilWord = detailOil === "vorgabe" ? "Rapsöl + MCT-Öl" : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
 
     const ketoBadge = (rec.ketocal
@@ -574,15 +575,17 @@
     let oilSeg = "";
     if (baseOilIndex >= 0) {
       const curOil = detailOil || "raps";
+      const mctNote = d.mctProTag > 0
+        ? "⚡ Nutzt deine Vorgabe: <strong>" + fmt(d.mctProTag, 0) + " g MCT/Tag</strong> → ~<strong>" + fmt(d.mctMahl, 1) + " g MCT pro Mahlzeit</strong>; der Rest des Fetts ist Rapsöl (max. so viel MCT wie insgesamt Öl nötig ist). ⚠️ MCT ist stärker ketogen – <strong>langsam einschleichen</strong> und die Tagesmenge mit der Diätologin abstimmen."
+        : "⚡ Bitte zuerst das Feld <strong>MCT-Öl pro Tag (g)</strong> unter ⚙️ Einstellungen eintragen. Dann verwendet die App genau diese MCT-Menge (auf die Mahlzeiten verteilt), der Rest des Fetts bleibt Rapsöl.";
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl wählen</div><div class="segmented mini">' +
-        ["raps", "mix", "mct"].map(k =>
+        ["raps", "vorgabe"].map(k =>
           '<button type="button" data-oil="' + k + '"' + (k === curOil ? ' class="active"' : "") + ">" +
           OILS[k].icon + " " + OILS[k].label + "</button>"
         ).join("") +
         '</div><div class="meat-note">' + (curOil === "raps"
           ? "Standard: Rapsöl. Die Öl-Menge wird so berechnet, dass das Verhältnis genau stimmt."
-          : (curOil === "mix" ? "🥣 <strong>Halb Rapsöl, halb MCT-Öl</strong> (je zur Hälfte). " : "⚡ <strong>100 % MCT-Öl</strong> statt Rapsöl. ") +
-            "⚠️ MCT-Öl (C8/C10) ist deutlich <strong>stärker ketogen</strong> als Rapsöl – bei gleicher Fettmenge entsteht eine stärkere Ketose. Menge/Anteil bitte mit der Diätologin abstimmen und langsam einschleichen (Magen-Darm-Verträglichkeit). Hinweis: MCT liefert ~8,3 kcal/g; die App rechnet mit 9 kcal/g, die kcal sind also leicht überschätzt.") +
+          : mctNote) +
         "</div></div>";
     }
 

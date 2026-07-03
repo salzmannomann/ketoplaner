@@ -94,12 +94,15 @@ Hause ist. Der Tausch ist **temporär**: Beim Schließen des Rezepts steht wiede
 das Standard-Fleisch; die Kachel bleibt unverändert.
 
 **Öl wählen (Rapsöl / MCT):** Bei Rezepten, deren Fett ein Öl ist, gibt es in
-der Detailansicht einen Umschalter **🌻 Rapsöl / 🥣 ½ & ½ / ⚡ MCT C8/C10**.
-Die Öl-Menge wird dabei neu berechnet, sodass das **Verhältnis exakt** erhalten
-bleibt (nur das Öl ändert sich). **Hinweis:** MCT-Öl (C8/C10) ist deutlich
-stärker ketogen als Rapsöl – bei gleicher Fettmenge entsteht eine stärkere
-Ketose. Menge/Anteil daher mit der Diätologin abstimmen und langsam einschleichen
-(Magen-Darm-Verträglichkeit). Der Tausch ist temporär.
+der Detailansicht einen Umschalter **🌻 Rapsöl / ⚡ mit MCT**. Trägt man unter
+⚙️ Einstellungen eine **MCT-Öl-Tagesmenge (g)** ein, verwendet der Modus „mit
+MCT" **genau diese Menge** (auf die Mahlzeiten heruntergerechnet) und füllt den
+**Rest des benötigten Fetts mit Rapsöl** auf – so bleibt das **Verhältnis exakt**
+und die MCT-Menge entspricht der Vorgabe (statt das ganze Öl zu ersetzen, was
+unrealistisch viel MCT wäre). Übersteigt die Vorgabe das nötige Öl, wird auf die
+maximal mögliche Menge gedeckelt. **Hinweis:** MCT-Öl (C8/C10) ist deutlich
+stärker ketogen als Rapsöl; Menge mit der Diätologin abstimmen und **langsam
+einschleichen** (Magen-Darm-Verträglichkeit). Der Tausch ist temporär.
 
 **Herkunft:** Rezepte, die direkt von der Diätologie stammen (aus den
 hochgeladenen PDF-/Excel-Vorlagen), sind mit dem Schild **„👩‍⚕️ Diätologie"**
