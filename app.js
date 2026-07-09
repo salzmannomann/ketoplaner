@@ -620,8 +620,8 @@
       oilSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? '<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perGnoOil, 0) + ' g</small>' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? '<br><small>' + (mult !== 1 ? 'pro Portion ohne Öl' : 'ohne Öl') + ' ≈ ' + fmt(perMlNoOil, 0) + ' ml</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil * mult : totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>' + (mult !== 1 ? 'je Portion ≈ ' + fmt(perGnoOil, 0) + ' g · ' : '') + 'mit Öl ≈ ' + fmt(totalG, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil * mult : ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>' + (mult !== 1 ? 'je Portion ≈ ' + fmt(perMlNoOil, 0) + ' ml · ' : '') + 'mit Öl ≈ ' + fmt(ml, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
       (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
