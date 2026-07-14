@@ -15,6 +15,7 @@
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
+      scales: {},
     };
   }
   let state = load();
@@ -34,6 +35,7 @@
         compose: Object.assign(d.compose, p.compose || {}),
         favorites: p.favorites || [],
         savedRecipes: p.savedRecipes || [],
+        scales: p.scales || {},
       };
     } catch (e) { return defaultState(); }
   }
@@ -502,8 +504,16 @@
 
   /* ---------- Detailansicht (Overlay) ---------- */
   let detailRec = null, detailScale = 1, detailMeat = null, detailOil = null; // detailScale: Portionen-Faktor, detailMeat/detailOil: temporäre Wahl
+  // Merkt sich die zuletzt eingegebene Menge (Portionen-Faktor) je Rezept – bleibt auch nach dem Schließen erhalten.
+  function persistScale() {
+    if (!detailRec) return;
+    const k = recipeKey(detailRec);
+    if (Math.abs(detailScale - 1) < 1e-6) delete state.scales[k];
+    else state.scales[k] = detailScale;
+    save();
+  }
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = 1; detailMeat = null; detailOil = null;
+    detailRec = rec; detailScale = num(state.scales[recipeKey(rec)]) || 1; detailMeat = null; detailOil = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -616,6 +626,7 @@
         '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
       "</div>" +
+      (mult !== 1 ? '<div class="adjust-note">💾 Diese Menge (<strong>' + portionLabel + '</strong>) wird gemerkt – auch nach dem Schließen der App. <button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button></div>' : "") +
       meatSeg +
       oilSeg +
       '<div class="detail-tiles">' +
@@ -637,21 +648,23 @@
         : (rec.zubereitung ? '<div class="prep"><strong>Zubereitung</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : ""));
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
-      b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; renderDetail(); }));
+      b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; persistScale(); renderDetail(); }));
     c.querySelectorAll(".seg-portion button[data-step]").forEach(b =>
       b.addEventListener("click", () => {
         detailScale = Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2);
-        renderDetail();
+        persistScale(); renderDetail();
       }));
     const pin = c.querySelector("#portion-input");
     if (pin) pin.addEventListener("change", () => {
-      const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = v; renderDetail(); }
+      const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = v; persistScale(); renderDetail(); }
     });
     c.querySelectorAll(".amt-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
-        if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); renderDetail(); }
+        if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); persistScale(); renderDetail(); }
       }));
+    const scaleReset = c.querySelector("#scale-reset");
+    if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
