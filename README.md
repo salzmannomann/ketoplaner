@@ -104,6 +104,16 @@ maximal mögliche Menge gedeckelt. **Hinweis:** MCT-Öl (C8/C10) ist deutlich
 stärker ketogen als Rapsöl; Menge mit der Diätologin abstimmen und **langsam
 einschleichen** (Magen-Darm-Verträglichkeit). Der Tausch ist temporär.
 
+**Dämpfwasser mitverwenden (Varoma):** Beim Dämpfen gehen wasserlösliche
+Nährstoffe ins Wasser über. Die Varoma-Anleitung berechnet daher dynamisch, wie
+viel Wasser in den Mixtopf gehört: **Rezept-Wasser (skaliert) + Verdunstungs-
+Reserve**. Nach dem Dämpfen wird das Wasser **nicht abgegossen**, sondern die
+Rezeptmenge davon abgemessen und mitpüriert. Die Reserve stellt man unter
+⚙️ Einstellungen als **„Verdunstung beim Dämpfen (ml)"** ein (einmal für den
+eigenen Thermomix kalibrieren; Standard 150 ml). Für kleine Mengen weist die
+App darauf hin, mindestens ~300 ml zu verwenden, damit der Topf nicht trocken
+läuft.
+
 **Herkunft:** Rezepte, die direkt von der Diätologie stammen (aus den
 hochgeladenen PDF-/Excel-Vorlagen), sind mit dem Schild **„👩‍⚕️ Diätologie"**
 gekennzeichnet – auf der Kachel und in der Detailansicht. Alle übrigen Rezepte

@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctProTag: 0, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctProTag: 0, dampfVerdunstung: 150, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -138,7 +138,8 @@
     const autoProtein = perKg > 0 && weight > 0;
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
     const mctProTag = num(s.mctProTag);
-    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctProTag, mctMahl: mctProTag / mahl };
+    const dampfVerdunstung = num(s.dampfVerdunstung);
+    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctProTag, mctMahl: mctProTag / mahl, dampfVerdunstung };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -326,6 +327,7 @@
     $("set-ratio").value = s.ratio;
     $("set-weight").value = s.weight;
     $("set-mct").value = s.mctProTag || "";
+    $("set-verdunstung").value = (s.dampfVerdunstung === 0 || s.dampfVerdunstung) ? s.dampfVerdunstung : "";
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
@@ -445,7 +447,7 @@
 
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct": "mctProTag" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct": "mctProTag", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save(); renderRezepte();
@@ -564,6 +566,18 @@
     // Öl-Bezeichnung im Zubereitungstext an die gewählte Öl-Sorte anpassen.
     const oilWord = detailOil === "vorgabe" ? "Rapsöl + MCT-Öl" : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
+    // Varoma: Dämpfwasser mitverwenden. Topf-Wasser = Rezept-Wasser (skaliert)
+    // + Verdunstungs-Reserve, sodass nach dem Dämpfen ≈ die Rezeptmenge übrig bleibt.
+    const waterG = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0) * mult;
+    const bowlWater = Math.round(waterG + d.dampfVerdunstung);
+    const adaptVaroma = (t) => {
+      if (!t || waterG <= 0) return t;
+      return t
+        .replace("Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet).",
+          "Ca. " + bowlWater + " ml Wasser in den Mixtopf geben (das Dämpfwasser wird später mitverwendet – es enthält wertvolle Stoffe" + (bowlWater < 300 ? "; mindestens ~300 ml, damit der Topf nicht trocken läuft" : "") + ").")
+        .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl",
+          "Das Dämpfwasser NICHT abgießen – davon " + Math.round(waterG) + " ml abmessen (ist weniger übrig, mit frischem Wasser auf " + Math.round(waterG) + " ml ergänzen; ist mehr übrig, den Rest nicht verwenden) und mit den gedämpften Zutaten und Rapsöl");
+    };
 
     const ketoBadge = (rec.ketocal
       ? '<span class="badge keto">mit KetoCal</span>'
@@ -644,7 +658,7 @@
       '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Varoma-/Garzeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.varoma
-        ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.varoma, rec, detailMeat))) + "</div>"
+        ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
         : (rec.zubereitung ? '<div class="prep"><strong>Zubereitung</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : ""));
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
@@ -737,8 +751,15 @@
   /* ---------- Drucken (A4 Hochformat) ---------- */
   function printRecipe(rec, res, d, mult) {
     mult = mult || 1;
-    const oilWord = detailOil === "mct" ? "MCT-Öl" : (detailOil === "mix" ? "Rapsöl + MCT-Öl" : null);
+    const oilWord = detailOil === "vorgabe" ? "Rapsöl + MCT-Öl" : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
+    const pWaterG = res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0) * mult;
+    const pBowl = Math.round(pWaterG + d.dampfVerdunstung);
+    const adaptVaroma = (t) => (!t || pWaterG <= 0) ? t : t
+      .replace("Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet).",
+        "Ca. " + pBowl + " ml Wasser in den Mixtopf geben (das Dämpfwasser wird später mitverwendet).")
+      .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl",
+        "Das Dämpfwasser NICHT abgießen – davon " + Math.round(pWaterG) + " ml abmessen (bei Bedarf mit frischem Wasser auf " + Math.round(pWaterG) + " ml ergänzen) und mit den gedämpften Zutaten und Rapsöl");
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
@@ -776,7 +797,7 @@
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
       (rec.varoma
-        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptPrep(rec.varoma, rec, detailMeat))) + "</div>"
+        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
         : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : "")) +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";

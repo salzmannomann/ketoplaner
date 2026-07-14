@@ -65,6 +65,10 @@
           <label>MCT-Öl pro Tag (g)</label>
           <input id="set-mct" type="number" min="0" step="1" inputmode="numeric" placeholder="optional, z. B. 10" />
         </div>
+        <div>
+          <label>Verdunstung beim Dämpfen (ml)</label>
+          <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
+        </div>
     </div>
 
     <div id="info-note" hidden></div>
@@ -107,7 +111,7 @@
 
   <script src="foods.js?v=d10f371a"></script>
   <script src="recipes.js?v=9978146d"></script>
-  <script src="app.js?v=8bff3fbd"></script>
+  <script src="app.js?v=7c969b86"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
