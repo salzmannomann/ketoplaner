@@ -640,7 +640,7 @@
         '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
       "</div>" +
-      (mult !== 1 ? '<div class="adjust-note">💾 Diese Menge (<strong>' + portionLabel + '</strong>) wird gemerkt – auch nach dem Schließen der App. <button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button></div>' : "") +
+      (mult !== 1 ? '<div class="adjust-note" style="text-align:right"><button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button></div>' : "") +
       meatSeg +
       oilSeg +
       '<div class="detail-tiles">' +
