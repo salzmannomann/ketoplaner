@@ -62,8 +62,12 @@
           <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
         </div>
         <div>
-          <label>MCT-Öl pro Tag (g)</label>
-          <input id="set-mct" type="number" min="0" step="1" inputmode="numeric" placeholder="optional, z. B. 10" />
+          <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+          <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+        </div>
+        <div>
+          <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+          <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
         </div>
         <div>
           <label>Verdunstung beim Dämpfen (ml)</label>
@@ -90,7 +94,7 @@
     </div>
     <div id="recipe-list"></div>
 
-    <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen.</p>
+    <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
   </main>
 
   <!-- Eigenes Rezept zusammenstellen -->
@@ -111,7 +115,7 @@
 
   <script src="foods.js?v=d10f371a"></script>
   <script src="recipes.js?v=9978146d"></script>
-  <script src="app.js?v=a857766a"></script>
+  <script src="app.js?v=e51fa319"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctProTag: 0, dampfVerdunstung: 150, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -66,15 +66,32 @@
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
   let foodIndex = {};
-  function rebuildFoodIndex() { foodIndex = {}; FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; }); }
+  function rebuildFoodIndex() {
+    foodIndex = {};
+    FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
+    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (⚙️ Einstellungen).
+    // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
+    // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
+    // "Öl = 100 % Fett" ist bewusst NICHT hart verdrahtet.
+    const m = foodIndex["MCT-Öl C8+C10"];
+    if (m) {
+      const s = (typeof state !== "undefined" && state && state.settings) ? state.settings : {};
+      foodIndex["MCT-Öl C8+C10"] = Object.assign({}, m, {
+        fett: num(s.mctFett100) > 0 ? num(s.mctFett100) : 100,
+        kcal100: num(s.mctKcal100) > 0 ? num(s.mctKcal100) : 830,
+      });
+    }
+  }
   function lookup(name) { return foodIndex[name] || null; }
+  // kcal je 100 g: explizite Etikett-Angabe (kcal100) geht vor der 4/9/4-Formel.
+  function kcal100Of(f) { return f.kcal100 != null ? f.kcal100 : 4 * f.eiweiss + 9 * f.fett + 4 * f.kh; }
 
   function lineMacros(item) {
     const f = lookup(item.food);
     if (!f || item.grams === "" || item.grams === null) return { eiweiss: 0, fett: 0, kh: 0, kcal: 0, valid: false };
     const g = num(item.grams);
     const eiweiss = f.eiweiss * g / 100, fett = f.fett * g / 100, kh = f.kh * g / 100;
-    return { eiweiss, fett, kh, kcal: eiweiss * 4 + fett * 9 + kh * 4, valid: true };
+    return { eiweiss, fett, kh, kcal: kcal100Of(f) * g / 100, valid: true };
   }
   function sumMacros(items) {
     return items.reduce((a, it) => {
@@ -137,9 +154,10 @@
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
     const autoProtein = perKg > 0 && weight > 0;
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
-    const mctProTag = num(s.mctProTag);
+    const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
+    const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
-    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctProTag, mctMahl: mctProTag / mahl, dampfVerdunstung };
+    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -168,17 +186,17 @@
       return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok: false, fatIndex: -1 };
     }
     const fat = lookup(base[fi].food);
-    let Pn = 0, Fn = 0, Cn = 0;
+    let Pn = 0, Fn = 0, Cn = 0, Kn = 0;
     base.forEach((it, i) => {
       if (i === fi) return;
       const f = lookup(it.food); if (!f) return;
       Pn += f.eiweiss * it.grams / 100; Fn += f.fett * it.grams / 100; Cn += f.kh * it.grams / 100;
+      Kn += kcal100Of(f) * it.grams / 100;
     });
     const fp = fat.eiweiss, ff = fat.fett, fc = fat.kh;
     const A = Fn - ratio * (Pn + Cn);
     const B = (ff - ratio * (fp + fc)) / 100;
-    const Kn = 4 * Pn + 9 * Fn + 4 * Cn;
-    const kf = 4 * fp + 9 * ff + 4 * fc;
+    const kf = kcal100Of(fat);
     let x, s;
     if (Math.abs(A) < 1e-9) { x = 0; s = Kn > 0 ? T / Kn : 1; }
     else {
@@ -250,51 +268,79 @@
     return text.replace(MEAT_WORDS_RE, MEATS[choice || slot.baseKey].word);
   }
 
-  /* ---------- Öl-Tausch ----------
-     Das fettdominante Öl eines Rezepts kann temporär durch MCT-Öl (C8+C10)
-     oder eine Mischung ersetzt werden. Die Öl-Grammzahl wird neu berechnet,
-     sodass das Verhältnis exakt erhalten bleibt (nur das Öl ändert sich). */
+  /* ---------- Öl-Rechnung (Rapsöl / MCT) ----------
+     s = Anteil der Öl-FETTMASSE, die aus MCT kommt (0…1) – in beiden Modi gleich.
+     Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich
+     Fettmasse, Kalorien und Verhältnis NICHT gleichzeitig halten – nur zwei.
+     Welche zwei, entscheidet die Anwenderin über den Modus; die App legt es
+     nicht still fest:
+       VERHAELTNIS: Öl-Fett F = R·NF − fett_rest  → Verhältnis für jedes s
+                    identisch, kcal sinken mit s.
+       KALORIEN:    Öl-Fett F = (kcal_ziel − kcal_rest) / c(s)  → kcal für jedes
+                    s identisch, Verhältnis steigt mit s.
+     Öle sind Tabellenwerte (Fett/100 g und kcal/100 g, vom Etikett übersteuerbar,
+     siehe rebuildFoodIndex) – "Öl = 100 % Fett" ist nicht hart verdrahtet;
+     Emulsionen (Fettanteil « 1) widerlegen das. */
   function isOilName(name) { return /öl|oil/i.test(name || ""); }
-  const OILS = {
-    raps: { label: "Rapsöl", icon: "🌻" },
-    vorgabe: { label: "mit MCT", icon: "⚡" },
-  };
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
   function oilSlotIndex(items) {
     const fi = fatItemIndex(items);
     return (fi >= 0 && isOilName(items[fi].food)) ? fi : -1;
   }
-  // Ersetzt das Öl je nach Wahl. "vorgabe": genau mctG Gramm MCT-Öl (pro Portion),
-  // der Rest des benötigten Fetts als Rapsöl – so bleibt das Verhältnis exakt und
-  // die MCT-Menge entspricht der ärztlichen/diätologischen Tagesvorgabe.
-  function applyOilChoice(res, ratio, oilKey, mctG) {
-    if (!oilKey || oilKey === "raps") return res;
+  function oilProfile(name) {
+    const f = lookup(name); if (!f || f.fett <= 0) return null;
+    const ff = f.fett / 100;                 // g Fett je g Produkt (fat_fraction)
+    const e = kcal100Of(f) / 100;            // kcal je g Produkt
+    return { ff: ff, e: e, epf: e / ff };    // epf = kcal je g Öl-FETT
+  }
+  function applyOilMix(res, d, s, mode, kcalZiel) {
+    if (!(s > 0)) return res;
     const items = res.items;
-    const oi = oilSlotIndex(items);
-    if (oi < 0) return res;
-    let Pn = 0, Fn = 0, Cn = 0;
+    const oi = oilSlotIndex(items); if (oi < 0) return res;
+    const mct = oilProfile("MCT-Öl C8+C10"), lct = oilProfile("Rapsöl");
+    if (!mct || !lct) return res;
+    // Rezept ohne Öl: fett_rest, NF = Eiweiß + KH, kcal_rest
+    let fettRest = 0, nf = 0, kcalRest = 0;
     items.forEach((it, i) => {
       if (i === oi) return;
-      const f = lookup(it.food); if (!f) return;
-      Pn += f.eiweiss * num(it.grams) / 100; Fn += f.fett * num(it.grams) / 100; Cn += f.kh * num(it.grams) / 100;
+      const m = lineMacros(it);
+      fettRest += m.fett; nf += m.eiweiss + m.kh; kcalRest += m.kcal;
     });
-    const Foil = ratio * (Pn + Cn) - Fn; // benötigtes Öl-Fett für das Verhältnis
-    if (Foil <= 0) return res;
-    const mctFood = lookup("MCT-Öl C8+C10"), rapsFood = lookup("Rapsöl");
-    if (!mctFood || !rapsFood) return res;
-    // MCT-Fett aus der Vorgabe, gedeckelt auf das insgesamt benötigte Öl-Fett.
-    let mctGrams = Math.max(0, num(mctG));
-    let mctFat = mctGrams * mctFood.fett / 100;
-    if (mctFat > Foil) { mctFat = Foil; mctGrams = Foil / (mctFood.fett / 100); }
-    const rapsGrams = Math.max(0, (Foil - mctFat)) / (rapsFood.fett / 100);
+    if (nf <= 0) return res;
+    const c = s * mct.epf + (1 - s) * lct.epf; // kcal je Gramm Öl-Fett
+    const F = mode === "kalorien" ? (kcalZiel - kcalRest) / c : d.ratio * nf - fettRest;
+    if (!(F > 0)) return res;
+    const gMct = s * F / mct.ff, gLct = (1 - s) * F / lct.ff;
+    const kcalNeu = kcalRest + gMct * mct.e + gLct * lct.e;
+    const ratioNeu = (fettRest + F) / nf;
+    // Zusicherungen (ungerundet): je Modus bleibt genau eine Größe für jedes s exakt.
+    if (mode === "kalorien") console.assert(Math.abs(kcalNeu - kcalZiel) < 1e-6, "Öl-Rechnung: kcal-Invariante verletzt");
+    else console.assert(Math.abs(ratioNeu - d.ratio) < 1e-6, "Öl-Rechnung: Verhältnis-Invariante verletzt");
     const oilRows = [];
-    if (rapsGrams > 0.049) oilRows.push({ food: "Rapsöl", grams: round1(rapsGrams) });
-    if (mctGrams > 0.049) oilRows.push({ food: "MCT-Öl C8+C10", grams: round1(mctGrams) });
+    if (gLct > 0.049) oilRows.push({ food: "Rapsöl", grams: round1(gLct) });
+    if (gMct > 0.049) oilRows.push({ food: "MCT-Öl C8+C10", grams: round1(gMct) });
     if (!oilRows.length) return res;
     const newItems = [];
-    items.forEach((it, i) => { if (i === oi) { oilRows.forEach(r => newItems.push(r)); } else newItems.push(it); });
+    items.forEach((it, i) => { if (i === oi) { oilRows.forEach(rw => newItems.push(rw)); } else newItems.push(it); });
     const sm = sumMacros(newItems);
-    return { items: newItems, ratio: ratioOf(sm), kcal: sm.kcal, ok: res.ok, fatIndex: oi };
+    return {
+      items: newItems, ratio: ratioOf(sm), kcal: sm.kcal, ok: res.ok, fatIndex: oi,
+      // Ungerundete Kenngrößen für Anzeige und Warnhinweise:
+      mct: {
+        gMct: gMct, gLct: gLct, kcalNeu: kcalNeu, kcalZiel: kcalZiel,
+        dev: kcalNeu - kcalZiel, ratioNeu: ratioNeu, ratioBasis: d.ratio,
+        energiePz: kcalNeu > 0 ? gMct * mct.e / kcalNeu * 100 : 0,
+      },
+    };
+  }
+  // Einordnung des MCT-Energieanteils nach der Konsensusempfehlung
+  // (Kossoff 2018): modifizierte MCT-Diät 30 %, Arbeitsbereich 40–50 %,
+  // traditionelle MCT-Diät 60 %.
+  function mctEinordnung(pz) {
+    if (pz < 30) return "unter der modifizierten MCT-Diät (30 %)";
+    if (pz <= 50) return "im Arbeitsbereich 40–50 %";
+    if (pz <= 60) return "über dem Arbeitsbereich 40–50 %";
+    return "über der traditionellen MCT-Diät (60 %)";
   }
 
   /* ---------- Favoriten & Rezeptquellen ---------- */
@@ -326,7 +372,8 @@
     $("set-mahlzeiten").value = s.mahlzeiten;
     $("set-ratio").value = s.ratio;
     $("set-weight").value = s.weight;
-    $("set-mct").value = s.mctProTag || "";
+    $("set-mct-fett").value = s.mctFett100 || "";
+    $("set-mct-kcal").value = s.mctKcal100 || "";
     $("set-verdunstung").value = (s.dampfVerdunstung === 0 || s.dampfVerdunstung) ? s.dampfVerdunstung : "";
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
@@ -447,10 +494,12 @@
 
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct": "mctProTag", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
-        state.settings[map[id]] = num(e.target.value); save(); renderRezepte();
+        state.settings[map[id]] = num(e.target.value); save();
+        if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
+        renderRezepte();
       });
     });
     document.getElementById("set-proteinmode").addEventListener("change", e => {
@@ -505,7 +554,7 @@
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  let detailRec = null, detailScale = 1, detailMeat = null, detailOil = null; // detailScale: Portionen-Faktor, detailMeat/detailOil: temporäre Wahl
+  let detailRec = null, detailScale = 1, detailMeat = null; // detailScale: Portionen-Faktor, detailMeat: temporäre Fleischwahl
   // Merkt sich die zuletzt eingegebene Menge (Portionen-Faktor) je Rezept – bleibt auch nach dem Schließen erhalten.
   function persistScale() {
     if (!detailRec) return;
@@ -515,7 +564,7 @@
     save();
   }
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = num(state.scales[recipeKey(rec)]) || 1; detailMeat = null; detailOil = null;
+    detailRec = rec; detailScale = num(state.scales[recipeKey(rec)]) || 1; detailMeat = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -542,9 +591,12 @@
         adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
       }
     }
-    // Öl-Wahl: Rapsöl (Standard) oder "mit MCT" nach Tagesvorgabe (Rest Rapsöl).
+    // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Einstellungen; s = 0 lässt alles unverändert.
+    // kcal-Ziel für den Modus KALORIEN = Kalorien der Ansicht bei s = 0 (Basis bzw.
+    // nach Fleisch-Tausch), damit "kcal konstant" sich auf den sichtbaren Ist-Zustand bezieht.
     const baseOilIndex = oilSlotIndex(res.items);
-    if (detailOil && baseOilIndex >= 0) res = applyOilChoice(res, d.ratio, detailOil, d.mctMahl);
+    const kcalZielOil = sumMacros(res.items).kcal;
+    if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
     const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -563,8 +615,9 @@
     const hasOil = itemsNoOil.length !== items.length;
     const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);
     const perMlNoOil = volumeMl(itemsNoOil);
-    // Öl-Bezeichnung im Zubereitungstext an die gewählte Öl-Sorte anpassen.
-    const oilWord = detailOil === "vorgabe" ? "Rapsöl + MCT-Öl" : null;
+    // Öl-Bezeichnung im Zubereitungstext an den gewählten Öl-Mix anpassen.
+    const oilWord = (baseOilIndex >= 0 && d.mctShare > 0)
+      ? (d.mctShare >= 0.999 ? "MCT-Öl" : "Rapsöl + MCT-Öl") : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
     // Varoma: Dämpfwasser mitverwenden. Topf-Wasser = Rezept-Wasser (skaliert)
     // + Verdunstungs-Reserve, sodass nach dem Dämpfen ≈ die Rezeptmenge übrig bleibt.
@@ -598,19 +651,31 @@
 
     let oilSeg = "";
     if (baseOilIndex >= 0) {
-      const curOil = detailOil || "raps";
-      const mctNote = d.mctProTag > 0
-        ? "⚡ Nutzt deine Vorgabe: <strong>" + fmt(d.mctProTag, 0) + " g MCT/Tag</strong> → ~<strong>" + fmt(d.mctMahl, 1) + " g MCT pro Mahlzeit</strong>; der Rest des Fetts ist Rapsöl (max. so viel MCT wie insgesamt Öl nötig ist). ⚠️ MCT ist stärker ketogen – <strong>langsam einschleichen</strong> und die Tagesmenge mit der Diätologin abstimmen."
-        : "⚡ Bitte zuerst das Feld <strong>MCT-Öl pro Tag (g)</strong> unter ⚙️ Einstellungen eintragen. Dann verwendet die App genau diese MCT-Menge (auf die Mahlzeiten verteilt), der Rest des Fetts bleibt Rapsöl.";
-      oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl wählen</div><div class="segmented mini">' +
-        ["raps", "vorgabe"].map(k =>
-          '<button type="button" data-oil="' + k + '"' + (k === curOil ? ' class="active"' : "") + ">" +
-          OILS[k].icon + " " + OILS[k].label + "</button>"
-        ).join("") +
-        '</div><div class="meat-note">' + (curOil === "raps"
-          ? "Standard: Rapsöl. Die Öl-Menge wird so berechnet, dass das Verhältnis genau stimmt."
-          : mctNote) +
-        "</div></div>";
+      const sOil = d.mctShare, mm = res.mct || null;
+      const shareBtn = (v) => '<button type="button" data-mcts="' + v + '"' + (Math.abs(sOil - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>";
+      const modeBtn = (k, lab) => '<button type="button" data-mctmode="' + k + '"' + (d.mctMode === k ? ' class="active"' : "") + ">" + lab + "</button>";
+      let note;
+      if (!(sOil > 0)) {
+        note = "Nur Rapsöl. Der MCT-Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – der Modus legt fest, welche Größe exakt bleibt.";
+      } else {
+        note = (d.mctMode === "kalorien"
+          ? "🎯 <strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil."
+          : "⚖️ <strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm). Ein Tausch bei gleicher Fettmasse lässt das Verhältnis unberührt – die Fettart kommt darin nicht vor.") +
+          "<br>⚠️ MCT kann durch Capronsäure (C6) den Rachen reizen. Klein beginnen und die Verträglichkeit beobachten." +
+          "<br><small>MCT ist je kcal ketogener als langkettiges Fett – ein Tausch senkt die Ketose nicht. Besser verträglich: weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. Die Vorbelegung 8,3 kcal/g für MCT ist ein <strong>Praxiswert</strong>, kein belegter Etikettwert – echte Etikettwerte unter ⚙️ Einstellungen eintragen (auch Emulsionen mit geringerem Fettanteil).</small>";
+      }
+      // Warnhinweise aus der ungerundeten Rechnung (§5)
+      let warn = "";
+      if (mm) {
+        if (mm.energiePz > 50) warn += '<div class="adjust-note">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
+        const devTag = mm.dev * d.mahl;
+        if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="adjust-note">⚠️ Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten. Ausgleich mit der Diätologie klären.</div>';
+        if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="adjust-note">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
+      }
+      oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
+        '<div class="segmented mini">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
+        '<div class="segmented mini" style="margin-top:6px">' + modeBtn("verhaeltnis", "⚖️ Verhältnis halten") + modeBtn("kalorien", "🎯 Kalorien halten") + "</div>" +
+        '<div class="meat-note">' + note + "</div>" + warn + "</div>";
     }
 
     let rows = "";
@@ -649,6 +714,11 @@
         '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil * mult : ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>' + (mult !== 1 ? 'je Portion ≈ ' + fmt(perMlNoOil, 0) + ' ml · ' : '') + 'mit Öl ≈ ' + fmt(ml, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
+      (res.mct ? '<div class="detail-tiles">' +
+        '<div class="dstat"><div class="v">' + fmt(res.mct.energiePz, 1) + ' %</div><div class="l">MCT-Anteil der Energie<br><small>' + mctEinordnung(res.mct.energiePz) + '</small></div></div>' +
+        '<div class="dstat"><div class="v">' + (res.mct.dev < -0.05 ? "−" : (res.mct.dev > 0.05 ? "+" : "±")) + fmt(Math.abs(res.mct.dev), 1) + ' kcal</div><div class="l">Abweichung je Portion<br><small>je Tag ' + (res.mct.dev < -0.05 ? "−" : (res.mct.dev > 0.05 ? "+" : "±")) + fmt(Math.abs(res.mct.dev * d.mahl), 0) + ' kcal (×' + d.mahl + ')</small></div></div>' +
+        '<div class="dstat"><div class="v">' + fmt(res.mct.gMct, 1) + ' g</div><div class="l">MCT je Portion<br><small>maßgeblich für die Verträglichkeit</small></div></div>' +
+      "</div>" : "") +
       (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         rows +
@@ -684,10 +754,13 @@
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
         renderDetail();
       }));
-    c.querySelectorAll(".meat-swap button[data-oil]").forEach(b =>
+    c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
-        detailOil = b.dataset.oil === "raps" ? null : b.dataset.oil;
-        renderDetail();
+        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
+      }));
+    c.querySelectorAll(".meat-swap button[data-mctmode]").forEach(b =>
+      b.addEventListener("click", () => {
+        state.settings.mctMode = b.dataset.mctmode; save(); renderDetail();
       }));
 
     const actions = el("div", { class: "btn-row" });
@@ -751,7 +824,8 @@
   /* ---------- Drucken (A4 Hochformat) ---------- */
   function printRecipe(rec, res, d, mult) {
     mult = mult || 1;
-    const oilWord = detailOil === "vorgabe" ? "Rapsöl + MCT-Öl" : null;
+    const hasMct = res.items.some(it => it.food === "MCT-Öl C8+C10");
+    const oilWord = hasMct ? (res.items.some(it => it.food === "Rapsöl") ? "Rapsöl + MCT-Öl" : "MCT-Öl") : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
     const pWaterG = res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0) * mult;
     const pBowl = Math.round(pWaterG + d.dampfVerdunstung);

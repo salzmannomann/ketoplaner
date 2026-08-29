@@ -93,16 +93,31 @@ angezeigt). So kann man rasch umstellen, wenn eine Sorte gerade nicht zu
 Hause ist. Der Tausch ist **temporär**: Beim Schließen des Rezepts steht wieder
 das Standard-Fleisch; die Kachel bleibt unverändert.
 
-**Öl wählen (Rapsöl / MCT):** Bei Rezepten, deren Fett ein Öl ist, gibt es in
-der Detailansicht einen Umschalter **🌻 Rapsöl / ⚡ mit MCT**. Trägt man unter
-⚙️ Einstellungen eine **MCT-Öl-Tagesmenge (g)** ein, verwendet der Modus „mit
-MCT" **genau diese Menge** (auf die Mahlzeiten heruntergerechnet) und füllt den
-**Rest des benötigten Fetts mit Rapsöl** auf – so bleibt das **Verhältnis exakt**
-und die MCT-Menge entspricht der Vorgabe (statt das ganze Öl zu ersetzen, was
-unrealistisch viel MCT wäre). Übersteigt die Vorgabe das nötige Öl, wird auf die
-maximal mögliche Menge gedeckelt. **Hinweis:** MCT-Öl (C8/C10) ist deutlich
-stärker ketogen als Rapsöl; Menge mit der Diätologin abstimmen und **langsam
-einschleichen** (Magen-Darm-Verträglichkeit). Der Tausch ist temporär.
+**MCT-Anteil (Rapsöl / MCT):** Bei Rezepten, deren Fett ein Öl ist, wählt man in
+der Detailansicht den **MCT-Anteil an der Öl-Fettmasse** in Stufen
+(0 / 10 / 20 / 30 / 50 / 100 %; Vorbelegung 10 %) und einen **Rechenmodus**.
+Hintergrund: Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte
+lassen sich Fettmasse, Kalorien und Verhältnis **nicht gleichzeitig** halten –
+nur zwei davon; welche, entscheidet die Anwenderin, nicht die App:
+
+- **⚖️ Verhältnis halten:** Das Verhältnis bleibt für jeden MCT-Anteil exakt
+  gleich (die Fettart kommt in der Verhältnisformel nicht vor); die **Kalorien
+  sinken** mit dem Anteil, weil MCT weniger kcal je Gramm liefert.
+- **🎯 Kalorien halten:** Die Kalorien bleiben gleich; dafür **steigt das
+  Verhältnis** mit dem Anteil – die App warnt ab +0,05, denn das ist eine
+  Änderung der Verordnung, nicht der Fettart.
+
+Drei Kacheln zeigen den **MCT-Anteil der Energie in %** (mit Einordnung nach
+der Konsensusempfehlung: modifizierte MCT-Diät 30 %, Arbeitsbereich 40–50 %,
+traditionelle MCT-Diät 60 % – Kossoff 2018, Liu 2013, Neal 2009), die
+**Kalorienabweichung** je Portion und je Tag sowie die **MCT-Gramm je Portion**
+(maßgeblich für die Verträglichkeit; besser weniger MCT je Mahlzeit, dafür in
+jeder Mahlzeit). Öle sind **Tabellenwerte** (Fett/100 g und kcal/100 g): für
+MCT sind beide unter ⚙️ Einstellungen **vom Etikett übersteuerbar** – die
+Vorbelegung 8,3 kcal/g ist ein **Praxiswert**, kein belegter Etikettwert; auch
+Emulsionen mit geringerem Fettanteil sind so abbildbar. MCT kann durch
+Capronsäure (C6) den Rachen reizen – klein beginnen. Bei s = 0 % rechnet die
+App exakt wie ohne MCT-Funktion.
 
 **Dämpfwasser mitverwenden (Varoma):** Beim Dämpfen gehen wasserlösliche
 Nährstoffe ins Wasser über. Die Varoma-Anleitung berechnet daher dynamisch, wie
