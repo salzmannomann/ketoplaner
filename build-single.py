@@ -1,24 +1,56 @@
 #!/usr/bin/env python3
-"""Baut aus index.html + styles.css + foods.js + recipes.js + app.js eine
-einzige, eigenständige HTML-Datei (keto-rechner.html).
+"""Build-Skript für HamHam Keto.
 
-Außerdem werden in index.html die Cache-Busting-Versionen (?v=...) der
-eingebundenen Dateien anhand ihres Inhalts (Kurz-Hash) aktualisiert. So lädt
-der Browser nach einer Änderung garantiert die neue Datei statt der alten aus
-dem Cache.
+1) Fügt die Module aus src/*.js (alphabetisch) zu app.js zusammen – app.js
+   ist damit eine generierte Datei; Änderungen gehören nach src/.
+2) Aktualisiert in index.html die Cache-Busting-Versionen (?v=...) der
+   eingebundenen Dateien anhand ihres Inhalts (Kurz-Hash) und die
+   Service-Worker-Version in sw.js, damit Installationen zuverlässig updaten.
+3) Baut aus index.html + styles.css + foods.js + recipes.js + app.js eine
+   einzige, eigenständige HTML-Datei (keto-rechner.html).
 
-Verwendung:  python3 build-single.py
+Verwendung:  python3 build-single.py   (oder: npm run build)
 """
 import os, re, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "src")
 
 ASSETS = ("styles.css", "foods.js", "recipes.js", "app.js")
+
+APP_HEAD = '''/* HamHam Keto — Logik (GENERIERT aus src/*.js durch build-single.py – nicht direkt bearbeiten)
+   Eine Seite: Vorgaben + Standard-Rezepte, die automatisch auf das
+   Verhältnis und die Kalorien pro Mahlzeit umgerechnet werden.
+   Einstellungen werden lokal im Browser gespeichert (localStorage). */
+
+(function () {
+  "use strict";
+
+'''
+APP_TAIL = "})();\n"
 
 
 def read(name):
     with open(os.path.join(HERE, name), encoding="utf-8") as fh:
         return fh.read()
+
+
+def build_app_js():
+    """Konkateniert src/*.js in einer IIFE zu app.js (nur wenn src/ existiert)."""
+    if not os.path.isdir(SRC):
+        return
+    parts = []
+    for name in sorted(os.listdir(SRC)):
+        if name.endswith(".js"):
+            with open(os.path.join(SRC, name), encoding="utf-8") as fh:
+                parts.append(fh.read().rstrip("\n") + "\n")
+    app = APP_HEAD + "\n".join(parts) + APP_TAIL
+    path = os.path.join(HERE, "app.js")
+    old = read("app.js") if os.path.exists(path) else None
+    if app != old:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(app)
+        print("app.js: aus %d Modulen in src/ gebaut" % len(parts))
 
 
 def short_hash(text):
@@ -36,6 +68,9 @@ def update_versions(html):
 
 
 def main():
+    # 0) app.js aus den Modulen zusammensetzen
+    build_app_js()
+
     html = read("index.html")
 
     # 1) Versionen in index.html aktualisieren und zurückschreiben

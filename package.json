@@ -1,0 +1,13 @@
+{
+  "name": "hamham-keto",
+  "version": "2.0.0",
+  "private": true,
+  "description": "HamHam Keto – Planer für ketogene Sondennahrung (offline, PWA). Quellcode in src/, app.js wird gebaut.",
+  "scripts": {
+    "build": "python3 build-single.py",
+    "test": "python3 build-single.py && node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

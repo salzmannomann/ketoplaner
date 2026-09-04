@@ -1,5 +1,5 @@
-/* HamHam Keto — Logik
-   Eine Seite: Einstellungen + Standard-Rezepte, die automatisch auf das
+/* HamHam Keto — Logik (GENERIERT aus src/*.js durch build-single.py – nicht direkt bearbeiten)
+   Eine Seite: Vorgaben + Standard-Rezepte, die automatisch auf das
    Verhältnis und die Kalorien pro Mahlzeit umgerechnet werden.
    Einstellungen werden lokal im Browser gespeichert (localStorage). */
 
@@ -491,7 +491,6 @@
     if (t.obst) return "Obst";
     return "Vegetarisch";
   }
-
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
   const VIEWS = ["heute", "rezepte", "vorgaben"];
@@ -1418,5 +1417,6 @@
     renderRezepte();
     showView(state.settings.view || "rezepte");
   }
+
   document.addEventListener("DOMContentLoaded", init);
 })();
