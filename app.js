@@ -121,6 +121,7 @@
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
     { id: "obst", label: "🍓 Obst" },
     { id: "unterwegs", label: "🥫 Unterwegs" },
+    { id: "flasche", label: "🍼 Flasche" },
   ];
   function recipeTags(rec) {
     let fleisch = false, fisch = false, obst = false;
@@ -131,8 +132,8 @@
       if (k === "Fisch") fisch = true;
       if (k === "Obst") obst = true;
     });
-    const unterwegs = !!rec.unterwegs;
-    return { fleisch, fisch, obst, unterwegs, veg: !fleisch && !fisch && !unterwegs };
+    const unterwegs = !!rec.unterwegs, flasche = !!rec.flasche;
+    return { fleisch, fisch, obst, unterwegs, flasche, veg: !fleisch && !fisch && !unterwegs && !flasche };
   }
   function matchesFilter(rec, filter) {
     const t = recipeTags(rec);
@@ -142,6 +143,7 @@
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
       case "unterwegs": return t.unterwegs;
+      case "flasche": return t.flasche;
       default: return true;
     }
   }
@@ -423,7 +425,8 @@
     fb.appendChild(switchChips);
 
     const recipes = allRecipes()
-      .filter(r => !!r.ketocal === withKeto)
+      // Flaschen-Rezepte enthalten immer KetoCal – der Filter "Flasche" ignoriert daher den KetoCal-Schalter.
+      .filter(r => filter === "flasche" || !!r.ketocal === withKeto)
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))

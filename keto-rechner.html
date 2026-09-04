@@ -834,7 +834,7 @@ const RECIPES_SONDE = [
     name: "Flasche: KetoCal & Pre Apta",
     icon: "🍼",
     ketocal: true,
-    unterwegs: true,
+    flasche: true,
     zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Trinktemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
@@ -1408,6 +1408,7 @@ const RECIPES_SONDE = [
     { id: "vegetarisch", label: "🥦 Vegetarisch" },
     { id: "obst", label: "🍓 Obst" },
     { id: "unterwegs", label: "🥫 Unterwegs" },
+    { id: "flasche", label: "🍼 Flasche" },
   ];
   function recipeTags(rec) {
     let fleisch = false, fisch = false, obst = false;
@@ -1418,8 +1419,8 @@ const RECIPES_SONDE = [
       if (k === "Fisch") fisch = true;
       if (k === "Obst") obst = true;
     });
-    const unterwegs = !!rec.unterwegs;
-    return { fleisch, fisch, obst, unterwegs, veg: !fleisch && !fisch && !unterwegs };
+    const unterwegs = !!rec.unterwegs, flasche = !!rec.flasche;
+    return { fleisch, fisch, obst, unterwegs, flasche, veg: !fleisch && !fisch && !unterwegs && !flasche };
   }
   function matchesFilter(rec, filter) {
     const t = recipeTags(rec);
@@ -1429,6 +1430,7 @@ const RECIPES_SONDE = [
       case "vegetarisch": return t.veg;
       case "obst": return t.obst;
       case "unterwegs": return t.unterwegs;
+      case "flasche": return t.flasche;
       default: return true;
     }
   }
@@ -1710,7 +1712,8 @@ const RECIPES_SONDE = [
     fb.appendChild(switchChips);
 
     const recipes = allRecipes()
-      .filter(r => !!r.ketocal === withKeto)
+      // Flaschen-Rezepte enthalten immer KetoCal – der Filter "Flasche" ignoriert daher den KetoCal-Schalter.
+      .filter(r => filter === "flasche" || !!r.ketocal === withKeto)
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
