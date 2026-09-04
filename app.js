@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketoFilter: "alle", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -368,7 +368,6 @@
   }
 
   /* ---------- Rezepte rendern ---------- */
-  let infoOpen = false; // Warnhinweis (ohne KetoCal) ein-/ausgeklappt
   function renderRezepte() {
     const s = state.settings;
     const $ = id => document.getElementById(id);
@@ -384,26 +383,13 @@
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
-    // Ein einzelner KetoCal-Schalter: aus = ohne KetoCal, ein = mit KetoCal
-    const withKeto = !!s.withKeto;
-    const warn = !withKeto; // Hinweis nur bei Rezepten ohne KetoCal
-    $("permeal").innerHTML =
-      '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
-      '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
-      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") +
-      (warn ? ' <button class="info-toggle' + (infoOpen ? " on" : "") + '" id="permeal-info" title="Hinweis ohne KetoCal ein-/ausblenden">ⓘ</button>' : "") +
-      "</div>";
-    const ib = warn ? document.getElementById("permeal-info") : null;
-    if (ib) ib.addEventListener("click", () => {
-      infoOpen = !infoOpen;
-      $("info-note").hidden = !infoOpen;
-      ib.classList.toggle("on", infoOpen);
-    });
+    renderHeader(d);
+    renderVorgaben(d);
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
     const onlyQuelle = !!s.onlyQuelle;
+    const ketoFilter = s.ketoFilter === "mit" || s.ketoFilter === "ohne" ? s.ketoFilter : "alle";
     const fb = $("filter-bar");
     fb.innerHTML = "";
     // Gruppe 1: Kategorie (entweder/oder)
@@ -414,33 +400,32 @@
       catChips.appendChild(chip);
     });
     fb.appendChild(catChips);
-    // Gruppe 2: unabhängige Schalter (KetoCal + Diätologie), optisch abgesetzt
+    // Gruppe 2: KetoCal als Dreistufe (alle / ohne / mit) + Diätologie-Schalter
     const switchChips = el("div", { class: "chips switches" });
-    [
-      { key: "withKeto", label: "🥄 KetoCal", on: withKeto },
-      { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
-    ].forEach(t => {
-      const c = el("button", { class: "chip switch" + (t.on ? " active" : "") }, t.label);
-      c.addEventListener("click", () => { state.settings[t.key] = !state.settings[t.key]; save(); renderRezepte(); });
+    [["alle", "🥄 alle"], ["ohne", "ohne KetoCal"], ["mit", "mit KetoCal"]].forEach(([k, lab]) => {
+      const c = el("button", { class: "chip switch" + (ketoFilter === k ? " active" : "") }, lab);
+      c.addEventListener("click", () => { state.settings.ketoFilter = k; save(); renderRezepte(); });
       switchChips.appendChild(c);
     });
+    const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
+    qc.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
+    switchChips.appendChild(qc);
     fb.appendChild(switchChips);
 
+    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const recipes = allRecipes()
-      // Flaschen-Rezepte enthalten immer KetoCal – der Filter "Flasche" ignoriert daher den KetoCal-Schalter.
-      .filter(r => filter === "flasche" || !!r.ketocal === withKeto)
+      // Flaschen enthalten immer KetoCal – der Filter "Flasche" ignoriert daher die KetoCal-Stufe.
+      .filter(r => filter === "flasche" || ketoFilter === "alle" || !!r.ketocal === (ketoFilter === "mit"))
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
+      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
-    $("info-note").innerHTML = !warn ? "" :
-      '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
-    $("info-note").hidden = !(warn && infoOpen);
-
+    $("info-note").hidden = ketoFilter === "mit";
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (withKeto ? " mit KetoCal" : " ohne KetoCal");
+      (ketoFilter === "mit" ? " mit KetoCal" : ketoFilter === "ohne" ? " ohne KetoCal" : "");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
@@ -498,10 +483,86 @@
   }
 
 
+  /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
+  const VIEWS = ["heute", "rezepte", "vorgaben"];
+  function showView(name) {
+    if (VIEWS.indexOf(name) === -1) name = "rezepte";
+    state.settings.view = name; save();
+    VIEWS.forEach(v => {
+      const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
+    });
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+    if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
+  function renderHeader(d) {
+    const chip = document.getElementById("rx-chip"); if (!chip) return;
+    chip.textContent = fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
+      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
+  }
+  function renderVorgaben(d) {
+    const s = state.settings;
+    const sum = document.getElementById("verordnung-summary");
+    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
+      ") · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
+    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
+      b.classList.toggle("active", Math.abs(num(b.dataset.ratio) - d.ratio) < 0.001));
+    const sc = document.getElementById("mct-share-ctl");
+    if (sc) {
+      sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
+        '<button type="button" data-mcts="' + v + '"' + (Math.abs(d.mctShare - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>").join("");
+      sc.querySelectorAll("button[data-mcts]").forEach(b =>
+        b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderRezepte(); }));
+    }
+    document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
+      b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
+  }
+  // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
+  function renderWerte() {
+    const box = document.getElementById("werte-list"); if (!box) return;
+    const used = {};
+    allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
+    const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
+      const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
+      const ovr = f.kcal100 != null || name === "MCT-Öl C8+C10";
+      return "<tr><td>" + escapeHtml(name) + (ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
+    }).join("");
+    box.innerHTML = "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
+  }
+  // Backup: alles, was nur auf diesem Gerät liegt.
+  function exportData() {
+    const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
+    const json = JSON.stringify(payload, null, 1);
+    const ta = document.getElementById("export-text"), det = document.getElementById("export-details");
+    if (ta) ta.value = json;
+    if (det) { det.hidden = false; det.open = true; }
+    try {
+      const blob = new Blob([json], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "hamham-keto-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch (e) {}
+  }
+  function importData(text) {
+    let p;
+    try { p = JSON.parse(text); } catch (e) { alert("Das ist kein gültiges Backup (JSON)."); return; }
+    const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
+    if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
+    if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); } catch (e) {}
+    state = load(); rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
+    alert("Backup importiert.");
+  }
+
   function bindSettingsBar() {
     const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
-      document.getElementById(id).addEventListener("input", e => {
+      const elx = document.getElementById(id); if (!elx) return;
+      elx.addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
@@ -513,14 +574,26 @@
     document.getElementById("sort-select").addEventListener("change", e => {
       state.settings.sort = e.target.value; save(); renderRezepte();
     });
-    const toggle = document.getElementById("settings-toggle");
-    const grid = document.getElementById("settings-grid");
-    toggle.addEventListener("click", () => {
-      const willOpen = grid.hidden;
-      grid.hidden = !willOpen;
-      toggle.setAttribute("aria-expanded", String(willOpen));
-      toggle.classList.toggle("open", willOpen);
+    const search = document.getElementById("recipe-search");
+    if (search) search.addEventListener("input", () => renderRezepte());
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+    const chip = document.getElementById("rx-chip");
+    if (chip) chip.addEventListener("click", () => showView("vorgaben"));
+    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.ratio = num(b.dataset.ratio); save(); renderRezepte(); }));
+    document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
+    const exp = document.getElementById("export-btn");
+    if (exp) exp.addEventListener("click", exportData);
+    const impF = document.getElementById("import-file");
+    if (impF) impF.addEventListener("change", () => {
+      const f = impF.files && impF.files[0]; if (!f) return;
+      const rd = new FileReader(); rd.onload = () => importData(String(rd.result || "")); rd.readAsText(f); impF.value = "";
     });
+    const impT = document.getElementById("import-text-btn");
+    if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
+    const wd = document.querySelector("#werte-list");
+    if (wd) wd.closest("details").addEventListener("toggle", function () { if (this.open) renderWerte(); });
   }
 
   /* ---------- Kachel (Übersicht) ---------- */
@@ -540,10 +613,12 @@
       "</div>" +
       '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
       '<div class="tile-badge">' +
-        (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
+        // KetoCal-Badge nur, wenn beide Sorten gemischt angezeigt werden; das Verhältnis ist immer auf Ziel gerechnet und
+        // wird daher nicht mehr je Kachel wiederholt (steht im Verordnungs-Chip).
+        (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
-        '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
+        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" : "") +
       "</div>" +
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
@@ -1144,6 +1219,7 @@
     bindDetail();
     bindCompose();
     renderRezepte();
+    showView(state.settings.view || "rezepte");
   }
   document.addEventListener("DOMContentLoaded", init);
 })();

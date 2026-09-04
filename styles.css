@@ -527,3 +527,64 @@ tr.fatrow td { background: #fdf6e3; }
 .checkrow input[type=checkbox] { width: 18px; height: 18px; }
 label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 #recipe-list h2, #saved-list h2 { margin-top: 8px; }
+
+/* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
+.view[hidden] { display: none; }
+.main { padding-bottom: 96px; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; justify-content: center; gap: 4px;
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar button {
+  flex: 1; max-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600;
+  padding: 6px 4px; border-radius: 10px; cursor: pointer;
+}
+.tabbar button svg { width: 24px; height: 24px; }
+.tabbar button.active { color: var(--brand-dark); background: var(--brand-soft); }
+.tabbar button[hidden] { display: none; }
+.rx-chip {
+  border: 1px solid var(--brand-soft); background: var(--brand-soft); color: var(--brand-dark);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+}
+.rx-chip:hover { background: #d9ecdf; }
+.toolbar.top { margin-bottom: 12px; }
+.toolbar.top input[type=search] { flex: 1; max-width: none; min-width: 0; }
+.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
+.preset-row .seg-label { font-size: 13px; font-weight: 600; }
+.settings-grid { border: 0; margin-bottom: 8px; }
+.card h3 .hint { font-weight: 400; font-size: 13px; }
+.file-btn { display: inline-flex; align-items: center; cursor: pointer; }
+textarea { width: 100%; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 9px; }
+
+/* Hinweis-Hierarchie: info (grau) · tip (grün) · warn (gelb) · stop (rot) */
+.note { border-radius: 9px; padding: 10px 14px; font-size: 14px; margin: 10px 0; border-left: 4px solid var(--line); background: var(--bg); color: var(--ink); }
+.note.info { background: var(--bg); border-left-color: #cbd5e1; color: var(--muted); }
+.note.tip { background: var(--green-bg); border-left-color: var(--green); color: var(--brand-dark); }
+.note.warn { background: var(--yellow-bg); border-left-color: var(--yellow); color: #7a5410; }
+.note.stop { background: var(--red-bg); border-left-color: var(--red); color: #8a1f1f; }
+.note p { margin: 8px 0 0; }
+.collapsible summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+.collapsible summary::-webkit-details-marker { display: none; }
+.collapsible summary::after { content: " ▸"; color: var(--muted); }
+.collapsible[open] summary::after { content: " ▾"; }
+.collapsible p { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+details.note.collapsible { margin: 0 0 14px; }
+details.collapsible { margin: 8px 0; }
+
+/* Kacheln: schlanker */
+.tile-name { font-size: 16px; }
+.tile-stats { font-size: 13px; }
+.badge.keto-mini { background: #ede9fe; color: #5b21b6; }
+.werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
+.werte-table td:first-child, .werte-table th:first-child { text-align: left; }
+.werte-table .ovr { color: var(--yellow); font-weight: 600; }
+@media (min-width: 821px) {
+  .tabbar { position: sticky; top: 57px; bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); justify-content: flex-start; padding: 4px 24px; }
+  .tabbar button { flex: 0 0 auto; flex-direction: row; gap: 8px; font-size: 14px; padding: 8px 14px; }
+  .tabbar button svg { width: 18px; height: 18px; }
+  .main { padding-bottom: 60px; }
+}

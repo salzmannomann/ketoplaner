@@ -14,85 +14,172 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=b88d5695" />
+  <link rel="stylesheet" href="styles.css?v=333f6953" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand"><img class="logo-img" src="icon-192.png" alt="HamHam Keto Logo" /><span class="brand-name">HamHam Keto</span></div>
-    <div class="topbar-actions">
-      <button id="settings-toggle" class="iconbtn" type="button" aria-expanded="false" aria-controls="settings-grid" title="Einstellungen ein-/ausblenden">⚙️ <span class="lbl">Einstellungen</span></button>
-      <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
-    </div>
+    <!-- Verordnungs-Chip: zeigt überall, womit gerade gerechnet wird; tippen öffnet die Vorgaben -->
+    <button id="rx-chip" class="rx-chip" type="button" title="Aktive Vorgaben – tippen zum Ändern"></button>
   </header>
 
+  <nav class="tabbar" aria-label="Bereiche">
+    <button type="button" data-view="heute" id="tab-heute" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v3M17 2v3M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Heute</span>
+    </button>
+    <button type="button" data-view="rezepte" class="active">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM14 4v6h6M7 13h10M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Rezepte</span>
+    </button>
+    <button type="button" data-view="vorgaben">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+      <span>Vorgaben</span>
+    </button>
+  </nav>
+
   <main class="main">
-    <div class="summary-bar">
-      <div class="permeal" id="permeal"></div>
-    </div>
+    <!-- ===== Heute (Tagesplan) ===== -->
+    <section id="view-heute" class="view" hidden>
+      <div id="heute-content"></div>
+    </section>
 
-    <div class="card settings-grid" id="settings-grid" hidden>
-        <div>
-          <label>Kalorien pro Tag</label>
-          <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
-        </div>
-        <div>
-          <label>Anzahl Mahlzeiten pro Tag</label>
-          <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
-        </div>
-        <div>
-          <label>Verhältnis (z. B. 1,8 für 1,8:1)</label>
-          <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
-        </div>
-        <div>
-          <label>Körpergewicht (kg)</label>
-          <input id="set-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="optional" />
-        </div>
-        <div>
-          <label>Eiweiß-Bedarf</label>
-          <select id="set-proteinmode">
-            <option value="0">manuell eingeben</option>
-            <option value="1">1,0 g/kg/Tag</option>
-            <option value="1.2">1,2 g/kg/Tag</option>
-            <option value="1.5">1,5 g/kg/Tag</option>
-            <option value="2">2,0 g/kg/Tag</option>
-          </select>
-        </div>
-        <div>
-          <label>Eiweiß pro Tag (g)</label>
-          <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
-        </div>
-        <div>
-          <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
-          <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
-        </div>
-        <div>
-          <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
-          <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
-        </div>
-        <div>
-          <label>Verdunstung beim Dämpfen (ml)</label>
-          <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
-        </div>
-    </div>
-
-    <div id="info-note" hidden></div>
-
-    <div class="filter-sort">
-      <div id="filter-bar"></div>
-      <div class="toolbar">
-        <span class="hint" id="recipe-count"></span>
-        <span class="sort-wrap">
-          <label for="sort-select" class="sort-label">Sortieren:</label>
-          <select id="sort-select">
-            <option value="kategorie">Nach Kategorie</option>
-            <option value="name">Name (A–Z)</option>
-            <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-            <option value="volumen">Menge (wenig zuerst)</option>
-          </select>
-        </span>
+    <!-- ===== Rezepte ===== -->
+    <section id="view-rezepte" class="view">
+      <div class="toolbar top">
+        <input id="recipe-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
+        <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
       </div>
-    </div>
-    <div id="recipe-list"></div>
+      <div class="filter-sort">
+        <div id="filter-bar"></div>
+        <div class="toolbar">
+          <span class="hint" id="recipe-count"></span>
+          <span class="sort-wrap">
+            <label for="sort-select" class="sort-label">Sortieren:</label>
+            <select id="sort-select">
+              <option value="kategorie">Nach Kategorie</option>
+              <option value="name">Name (A–Z)</option>
+              <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+              <option value="volumen">Menge (wenig zuerst)</option>
+            </select>
+          </span>
+        </div>
+      </div>
+      <details class="note info collapsible" id="info-note">
+        <summary>ⓘ Hinweis zu Rezepten ohne KetoCal</summary>
+        <p>Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
+      </details>
+      <div id="recipe-list"></div>
+    </section>
+
+    <!-- ===== Vorgaben ===== -->
+    <section id="view-vorgaben" class="view" hidden>
+      <div class="card">
+        <h3>🩺 Verordnung <span class="hint">– kommt vom Behandlungsteam, ändert sich selten</span></h3>
+        <div class="preset-row">
+          <span class="seg-label">Voreinstellung:</span>
+          <div class="segmented mini" id="ratio-presets">
+            <button type="button" data-ratio="1.8">1,8:1 Keto</button>
+            <button type="button" data-ratio="1">1:1 Ausschleichen</button>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div>
+            <label>Verhältnis (Fett : Eiweiß+KH)</label>
+            <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
+          </div>
+          <div>
+            <label>Kalorien pro Tag</label>
+            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+          </div>
+          <div>
+            <label>Mahlzeiten pro Tag</label>
+            <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
+          </div>
+          <div>
+            <label>Körpergewicht (kg)</label>
+            <input id="set-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="optional" />
+          </div>
+          <div>
+            <label>Eiweiß-Bedarf</label>
+            <select id="set-proteinmode">
+              <option value="0">manuell eingeben</option>
+              <option value="1">1,0 g/kg/Tag</option>
+              <option value="1.2">1,2 g/kg/Tag</option>
+              <option value="1.5">1,5 g/kg/Tag</option>
+              <option value="2">2,0 g/kg/Tag</option>
+            </select>
+          </div>
+          <div>
+            <label>Eiweiß pro Tag (g)</label>
+            <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
+          </div>
+        </div>
+        <div id="verordnung-summary" class="note tip"></div>
+      </div>
+
+      <div class="card">
+        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
+        <div class="preset-row">
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <div class="segmented mini" id="mct-share-ctl"></div>
+        </div>
+        <div class="preset-row">
+          <span class="seg-label">Rechenmodus:</span>
+          <div class="segmented mini" id="mct-mode-ctl">
+            <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
+            <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
+          </div>
+        </div>
+        <details class="collapsible">
+          <summary>ⓘ Was bedeutet das?</summary>
+          <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil. <strong>Kalorien halten:</strong> die Kalorien bleiben, das Verhältnis steigt (das ist eine Änderung der Verordnung, nicht der Fettart). MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+        </details>
+        <div class="settings-grid">
+          <div>
+            <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+            <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+          </div>
+          <div>
+            <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+            <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🍳 Küche</h3>
+        <div class="settings-grid">
+          <div>
+            <label>Verdunstung beim Dämpfen (ml)</label>
+            <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
+          </div>
+        </div>
+        <details class="collapsible">
+          <summary>ⓘ Wie kalibrieren?</summary>
+          <p>Einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts. Die Varoma-Anleitung rechnet damit das Topf-Wasser so, dass nach dem Dämpfen ungefähr die Rezeptmenge übrig bleibt (Dämpfwasser wird mitverwendet).</p>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3>💾 Daten</h3>
+        <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+        <div class="btn-row">
+          <button id="export-btn" class="btn" type="button">⬇️ Backup exportieren</button>
+          <label class="btn secondary file-btn">⬆️ Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+        </div>
+        <details class="collapsible" id="export-details" hidden>
+          <summary>Backup als Text (kopieren / einfügen)</summary>
+          <textarea id="export-text" rows="5" spellcheck="false"></textarea>
+          <div class="btn-row"><button id="import-text-btn" class="btn secondary" type="button">Eingefügten Text importieren</button></div>
+        </details>
+        <details class="collapsible">
+          <summary>🔍 Werte prüfen – verwendete Lebensmittel</summary>
+          <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
+          <div id="werte-list" class="tbl-wrap"></div>
+        </details>
+      </div>
+    </section>
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
   </main>
@@ -115,7 +202,7 @@
 
   <script src="foods.js?v=9f702f19"></script>
   <script src="recipes.js?v=84bba317"></script>
-  <script src="app.js?v=45b4ef3b"></script>
+  <script src="app.js?v=6e51ed2f"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -545,85 +545,233 @@ tr.fatrow td { background: #fdf6e3; }
 label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 #recipe-list h2, #saved-list h2 { margin-top: 8px; }
 
+/* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
+.view[hidden] { display: none; }
+.main { padding-bottom: 96px; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; justify-content: center; gap: 4px;
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar button {
+  flex: 1; max-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600;
+  padding: 6px 4px; border-radius: 10px; cursor: pointer;
+}
+.tabbar button svg { width: 24px; height: 24px; }
+.tabbar button.active { color: var(--brand-dark); background: var(--brand-soft); }
+.tabbar button[hidden] { display: none; }
+.rx-chip {
+  border: 1px solid var(--brand-soft); background: var(--brand-soft); color: var(--brand-dark);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+}
+.rx-chip:hover { background: #d9ecdf; }
+.toolbar.top { margin-bottom: 12px; }
+.toolbar.top input[type=search] { flex: 1; max-width: none; min-width: 0; }
+.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
+.preset-row .seg-label { font-size: 13px; font-weight: 600; }
+.settings-grid { border: 0; margin-bottom: 8px; }
+.card h3 .hint { font-weight: 400; font-size: 13px; }
+.file-btn { display: inline-flex; align-items: center; cursor: pointer; }
+textarea { width: 100%; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 9px; }
+
+/* Hinweis-Hierarchie: info (grau) · tip (grün) · warn (gelb) · stop (rot) */
+.note { border-radius: 9px; padding: 10px 14px; font-size: 14px; margin: 10px 0; border-left: 4px solid var(--line); background: var(--bg); color: var(--ink); }
+.note.info { background: var(--bg); border-left-color: #cbd5e1; color: var(--muted); }
+.note.tip { background: var(--green-bg); border-left-color: var(--green); color: var(--brand-dark); }
+.note.warn { background: var(--yellow-bg); border-left-color: var(--yellow); color: #7a5410; }
+.note.stop { background: var(--red-bg); border-left-color: var(--red); color: #8a1f1f; }
+.note p { margin: 8px 0 0; }
+.collapsible summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+.collapsible summary::-webkit-details-marker { display: none; }
+.collapsible summary::after { content: " ▸"; color: var(--muted); }
+.collapsible[open] summary::after { content: " ▾"; }
+.collapsible p { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+details.note.collapsible { margin: 0 0 14px; }
+details.collapsible { margin: 8px 0; }
+
+/* Kacheln: schlanker */
+.tile-name { font-size: 16px; }
+.tile-stats { font-size: 13px; }
+.badge.keto-mini { background: #ede9fe; color: #5b21b6; }
+.werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
+.werte-table td:first-child, .werte-table th:first-child { text-align: left; }
+.werte-table .ovr { color: var(--yellow); font-weight: 600; }
+@media (min-width: 821px) {
+  .tabbar { position: sticky; top: 57px; bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); justify-content: flex-start; padding: 4px 24px; }
+  .tabbar button { flex: 0 0 auto; flex-direction: row; gap: 8px; font-size: 14px; padding: 8px 14px; }
+  .tabbar button svg { width: 18px; height: 18px; }
+  .main { padding-bottom: 60px; }
+}
+
 </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand"><img class="logo-img" src="data:image/png;base64,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" alt="HamHam Keto Logo" /><span class="brand-name">HamHam Keto</span></div>
-    <div class="topbar-actions">
-      <button id="settings-toggle" class="iconbtn" type="button" aria-expanded="false" aria-controls="settings-grid" title="Einstellungen ein-/ausblenden">⚙️ <span class="lbl">Einstellungen</span></button>
-      <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
-    </div>
+    <!-- Verordnungs-Chip: zeigt überall, womit gerade gerechnet wird; tippen öffnet die Vorgaben -->
+    <button id="rx-chip" class="rx-chip" type="button" title="Aktive Vorgaben – tippen zum Ändern"></button>
   </header>
 
+  <nav class="tabbar" aria-label="Bereiche">
+    <button type="button" data-view="heute" id="tab-heute" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v3M17 2v3M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Heute</span>
+    </button>
+    <button type="button" data-view="rezepte" class="active">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM14 4v6h6M7 13h10M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Rezepte</span>
+    </button>
+    <button type="button" data-view="vorgaben">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+      <span>Vorgaben</span>
+    </button>
+  </nav>
+
   <main class="main">
-    <div class="summary-bar">
-      <div class="permeal" id="permeal"></div>
-    </div>
+    <!-- ===== Heute (Tagesplan) ===== -->
+    <section id="view-heute" class="view" hidden>
+      <div id="heute-content"></div>
+    </section>
 
-    <div class="card settings-grid" id="settings-grid" hidden>
-        <div>
-          <label>Kalorien pro Tag</label>
-          <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
-        </div>
-        <div>
-          <label>Anzahl Mahlzeiten pro Tag</label>
-          <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
-        </div>
-        <div>
-          <label>Verhältnis (z. B. 1,8 für 1,8:1)</label>
-          <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
-        </div>
-        <div>
-          <label>Körpergewicht (kg)</label>
-          <input id="set-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="optional" />
-        </div>
-        <div>
-          <label>Eiweiß-Bedarf</label>
-          <select id="set-proteinmode">
-            <option value="0">manuell eingeben</option>
-            <option value="1">1,0 g/kg/Tag</option>
-            <option value="1.2">1,2 g/kg/Tag</option>
-            <option value="1.5">1,5 g/kg/Tag</option>
-            <option value="2">2,0 g/kg/Tag</option>
-          </select>
-        </div>
-        <div>
-          <label>Eiweiß pro Tag (g)</label>
-          <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
-        </div>
-        <div>
-          <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
-          <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
-        </div>
-        <div>
-          <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
-          <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
-        </div>
-        <div>
-          <label>Verdunstung beim Dämpfen (ml)</label>
-          <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
-        </div>
-    </div>
-
-    <div id="info-note" hidden></div>
-
-    <div class="filter-sort">
-      <div id="filter-bar"></div>
-      <div class="toolbar">
-        <span class="hint" id="recipe-count"></span>
-        <span class="sort-wrap">
-          <label for="sort-select" class="sort-label">Sortieren:</label>
-          <select id="sort-select">
-            <option value="kategorie">Nach Kategorie</option>
-            <option value="name">Name (A–Z)</option>
-            <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-            <option value="volumen">Menge (wenig zuerst)</option>
-          </select>
-        </span>
+    <!-- ===== Rezepte ===== -->
+    <section id="view-rezepte" class="view">
+      <div class="toolbar top">
+        <input id="recipe-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
+        <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
       </div>
-    </div>
-    <div id="recipe-list"></div>
+      <div class="filter-sort">
+        <div id="filter-bar"></div>
+        <div class="toolbar">
+          <span class="hint" id="recipe-count"></span>
+          <span class="sort-wrap">
+            <label for="sort-select" class="sort-label">Sortieren:</label>
+            <select id="sort-select">
+              <option value="kategorie">Nach Kategorie</option>
+              <option value="name">Name (A–Z)</option>
+              <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+              <option value="volumen">Menge (wenig zuerst)</option>
+            </select>
+          </span>
+        </div>
+      </div>
+      <details class="note info collapsible" id="info-note">
+        <summary>ⓘ Hinweis zu Rezepten ohne KetoCal</summary>
+        <p>Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
+      </details>
+      <div id="recipe-list"></div>
+    </section>
+
+    <!-- ===== Vorgaben ===== -->
+    <section id="view-vorgaben" class="view" hidden>
+      <div class="card">
+        <h3>🩺 Verordnung <span class="hint">– kommt vom Behandlungsteam, ändert sich selten</span></h3>
+        <div class="preset-row">
+          <span class="seg-label">Voreinstellung:</span>
+          <div class="segmented mini" id="ratio-presets">
+            <button type="button" data-ratio="1.8">1,8:1 Keto</button>
+            <button type="button" data-ratio="1">1:1 Ausschleichen</button>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div>
+            <label>Verhältnis (Fett : Eiweiß+KH)</label>
+            <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
+          </div>
+          <div>
+            <label>Kalorien pro Tag</label>
+            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+          </div>
+          <div>
+            <label>Mahlzeiten pro Tag</label>
+            <input id="set-mahlzeiten" type="number" min="1" max="12" step="1" inputmode="numeric" />
+          </div>
+          <div>
+            <label>Körpergewicht (kg)</label>
+            <input id="set-weight" type="number" min="0" step="0.5" inputmode="decimal" placeholder="optional" />
+          </div>
+          <div>
+            <label>Eiweiß-Bedarf</label>
+            <select id="set-proteinmode">
+              <option value="0">manuell eingeben</option>
+              <option value="1">1,0 g/kg/Tag</option>
+              <option value="1.2">1,2 g/kg/Tag</option>
+              <option value="1.5">1,5 g/kg/Tag</option>
+              <option value="2">2,0 g/kg/Tag</option>
+            </select>
+          </div>
+          <div>
+            <label>Eiweiß pro Tag (g)</label>
+            <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
+          </div>
+        </div>
+        <div id="verordnung-summary" class="note tip"></div>
+      </div>
+
+      <div class="card">
+        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
+        <div class="preset-row">
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <div class="segmented mini" id="mct-share-ctl"></div>
+        </div>
+        <div class="preset-row">
+          <span class="seg-label">Rechenmodus:</span>
+          <div class="segmented mini" id="mct-mode-ctl">
+            <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
+            <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
+          </div>
+        </div>
+        <details class="collapsible">
+          <summary>ⓘ Was bedeutet das?</summary>
+          <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil. <strong>Kalorien halten:</strong> die Kalorien bleiben, das Verhältnis steigt (das ist eine Änderung der Verordnung, nicht der Fettart). MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+        </details>
+        <div class="settings-grid">
+          <div>
+            <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+            <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+          </div>
+          <div>
+            <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+            <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🍳 Küche</h3>
+        <div class="settings-grid">
+          <div>
+            <label>Verdunstung beim Dämpfen (ml)</label>
+            <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
+          </div>
+        </div>
+        <details class="collapsible">
+          <summary>ⓘ Wie kalibrieren?</summary>
+          <p>Einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts. Die Varoma-Anleitung rechnet damit das Topf-Wasser so, dass nach dem Dämpfen ungefähr die Rezeptmenge übrig bleibt (Dämpfwasser wird mitverwendet).</p>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3>💾 Daten</h3>
+        <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+        <div class="btn-row">
+          <button id="export-btn" class="btn" type="button">⬇️ Backup exportieren</button>
+          <label class="btn secondary file-btn">⬆️ Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+        </div>
+        <details class="collapsible" id="export-details" hidden>
+          <summary>Backup als Text (kopieren / einfügen)</summary>
+          <textarea id="export-text" rows="5" spellcheck="false"></textarea>
+          <div class="btn-row"><button id="import-text-btn" class="btn secondary" type="button">Eingefügten Text importieren</button></div>
+        </details>
+        <details class="collapsible">
+          <summary>🔍 Werte prüfen – verwendete Lebensmittel</summary>
+          <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
+          <div id="werte-list" class="tbl-wrap"></div>
+        </details>
+      </div>
+    </section>
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
   </main>
@@ -1298,7 +1446,7 @@ const RECIPES_SONDE = [
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, withKeto: false, filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketoFilter: "alle", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -1655,7 +1803,6 @@ const RECIPES_SONDE = [
   }
 
   /* ---------- Rezepte rendern ---------- */
-  let infoOpen = false; // Warnhinweis (ohne KetoCal) ein-/ausgeklappt
   function renderRezepte() {
     const s = state.settings;
     const $ = id => document.getElementById(id);
@@ -1671,26 +1818,13 @@ const RECIPES_SONDE = [
     const d = derived();
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     $("set-eiweiss").disabled = d.autoProtein;
-    // Ein einzelner KetoCal-Schalter: aus = ohne KetoCal, ein = mit KetoCal
-    const withKeto = !!s.withKeto;
-    const warn = !withKeto; // Hinweis nur bei Rezepten ohne KetoCal
-    $("permeal").innerHTML =
-      '<div class="permeal-main">' + fmt(d.kcalMahl, 0) + ' <span class="u">kcal pro Mahlzeit</span></div>' +
-      '<div class="permeal-sub">' + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl + " Mahlzeiten · Verhältnis " +
-      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "") +
-      (warn ? ' <button class="info-toggle' + (infoOpen ? " on" : "") + '" id="permeal-info" title="Hinweis ohne KetoCal ein-/ausblenden">ⓘ</button>' : "") +
-      "</div>";
-    const ib = warn ? document.getElementById("permeal-info") : null;
-    if (ib) ib.addEventListener("click", () => {
-      infoOpen = !infoOpen;
-      $("info-note").hidden = !infoOpen;
-      ib.classList.toggle("on", infoOpen);
-    });
+    renderHeader(d);
+    renderVorgaben(d);
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
     const onlyQuelle = !!s.onlyQuelle;
+    const ketoFilter = s.ketoFilter === "mit" || s.ketoFilter === "ohne" ? s.ketoFilter : "alle";
     const fb = $("filter-bar");
     fb.innerHTML = "";
     // Gruppe 1: Kategorie (entweder/oder)
@@ -1701,33 +1835,32 @@ const RECIPES_SONDE = [
       catChips.appendChild(chip);
     });
     fb.appendChild(catChips);
-    // Gruppe 2: unabhängige Schalter (KetoCal + Diätologie), optisch abgesetzt
+    // Gruppe 2: KetoCal als Dreistufe (alle / ohne / mit) + Diätologie-Schalter
     const switchChips = el("div", { class: "chips switches" });
-    [
-      { key: "withKeto", label: "🥄 KetoCal", on: withKeto },
-      { key: "onlyQuelle", label: "👩‍⚕️ Diätologie", on: onlyQuelle },
-    ].forEach(t => {
-      const c = el("button", { class: "chip switch" + (t.on ? " active" : "") }, t.label);
-      c.addEventListener("click", () => { state.settings[t.key] = !state.settings[t.key]; save(); renderRezepte(); });
+    [["alle", "🥄 alle"], ["ohne", "ohne KetoCal"], ["mit", "mit KetoCal"]].forEach(([k, lab]) => {
+      const c = el("button", { class: "chip switch" + (ketoFilter === k ? " active" : "") }, lab);
+      c.addEventListener("click", () => { state.settings.ketoFilter = k; save(); renderRezepte(); });
       switchChips.appendChild(c);
     });
+    const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
+    qc.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
+    switchChips.appendChild(qc);
     fb.appendChild(switchChips);
 
+    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const recipes = allRecipes()
-      // Flaschen-Rezepte enthalten immer KetoCal – der Filter "Flasche" ignoriert daher den KetoCal-Schalter.
-      .filter(r => filter === "flasche" || !!r.ketocal === withKeto)
+      // Flaschen enthalten immer KetoCal – der Filter "Flasche" ignoriert daher die KetoCal-Stufe.
+      .filter(r => filter === "flasche" || ketoFilter === "alle" || !!r.ketocal === (ketoFilter === "mit"))
       .filter(r => matchesFilter(r, filter))
       .filter(r => !onlyQuelle || !!r.quelle)
+      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
       .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
       .filter(x => x.res.ok);
 
-    $("info-note").innerHTML = !warn ? "" :
-      '<div class="diet-note">⚠️ <strong>Wichtig:</strong> Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe. Diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</div>';
-    $("info-note").hidden = !(warn && infoOpen);
-
+    $("info-note").hidden = ketoFilter === "mit";
     $("recipe-count").textContent =
       recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (withKeto ? " mit KetoCal" : " ohne KetoCal");
+      (ketoFilter === "mit" ? " mit KetoCal" : ketoFilter === "ohne" ? " ohne KetoCal" : "");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
@@ -1785,10 +1918,86 @@ const RECIPES_SONDE = [
   }
 
 
+  /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
+  const VIEWS = ["heute", "rezepte", "vorgaben"];
+  function showView(name) {
+    if (VIEWS.indexOf(name) === -1) name = "rezepte";
+    state.settings.view = name; save();
+    VIEWS.forEach(v => {
+      const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
+    });
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+    if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
+  function renderHeader(d) {
+    const chip = document.getElementById("rx-chip"); if (!chip) return;
+    chip.textContent = fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
+      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
+  }
+  function renderVorgaben(d) {
+    const s = state.settings;
+    const sum = document.getElementById("verordnung-summary");
+    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
+      ") · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
+    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
+      b.classList.toggle("active", Math.abs(num(b.dataset.ratio) - d.ratio) < 0.001));
+    const sc = document.getElementById("mct-share-ctl");
+    if (sc) {
+      sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
+        '<button type="button" data-mcts="' + v + '"' + (Math.abs(d.mctShare - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>").join("");
+      sc.querySelectorAll("button[data-mcts]").forEach(b =>
+        b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderRezepte(); }));
+    }
+    document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
+      b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
+  }
+  // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
+  function renderWerte() {
+    const box = document.getElementById("werte-list"); if (!box) return;
+    const used = {};
+    allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
+    const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
+      const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
+      const ovr = f.kcal100 != null || name === "MCT-Öl C8+C10";
+      return "<tr><td>" + escapeHtml(name) + (ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
+    }).join("");
+    box.innerHTML = "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
+  }
+  // Backup: alles, was nur auf diesem Gerät liegt.
+  function exportData() {
+    const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
+    const json = JSON.stringify(payload, null, 1);
+    const ta = document.getElementById("export-text"), det = document.getElementById("export-details");
+    if (ta) ta.value = json;
+    if (det) { det.hidden = false; det.open = true; }
+    try {
+      const blob = new Blob([json], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "hamham-keto-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch (e) {}
+  }
+  function importData(text) {
+    let p;
+    try { p = JSON.parse(text); } catch (e) { alert("Das ist kein gültiges Backup (JSON)."); return; }
+    const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
+    if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
+    if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); } catch (e) {}
+    state = load(); rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
+    alert("Backup importiert.");
+  }
+
   function bindSettingsBar() {
     const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
-      document.getElementById(id).addEventListener("input", e => {
+      const elx = document.getElementById(id); if (!elx) return;
+      elx.addEventListener("input", e => {
         state.settings[map[id]] = num(e.target.value); save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
@@ -1800,14 +2009,26 @@ const RECIPES_SONDE = [
     document.getElementById("sort-select").addEventListener("change", e => {
       state.settings.sort = e.target.value; save(); renderRezepte();
     });
-    const toggle = document.getElementById("settings-toggle");
-    const grid = document.getElementById("settings-grid");
-    toggle.addEventListener("click", () => {
-      const willOpen = grid.hidden;
-      grid.hidden = !willOpen;
-      toggle.setAttribute("aria-expanded", String(willOpen));
-      toggle.classList.toggle("open", willOpen);
+    const search = document.getElementById("recipe-search");
+    if (search) search.addEventListener("input", () => renderRezepte());
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+    const chip = document.getElementById("rx-chip");
+    if (chip) chip.addEventListener("click", () => showView("vorgaben"));
+    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.ratio = num(b.dataset.ratio); save(); renderRezepte(); }));
+    document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
+    const exp = document.getElementById("export-btn");
+    if (exp) exp.addEventListener("click", exportData);
+    const impF = document.getElementById("import-file");
+    if (impF) impF.addEventListener("change", () => {
+      const f = impF.files && impF.files[0]; if (!f) return;
+      const rd = new FileReader(); rd.onload = () => importData(String(rd.result || "")); rd.readAsText(f); impF.value = "";
     });
+    const impT = document.getElementById("import-text-btn");
+    if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
+    const wd = document.querySelector("#werte-list");
+    if (wd) wd.closest("details").addEventListener("toggle", function () { if (this.open) renderWerte(); });
   }
 
   /* ---------- Kachel (Übersicht) ---------- */
@@ -1827,10 +2048,12 @@ const RECIPES_SONDE = [
       "</div>" +
       '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
       '<div class="tile-badge">' +
-        (rec.ketocal ? '<span class="badge keto">mit KetoCal</span>' : '<span class="badge noketo">ohne KetoCal</span>') +
+        // KetoCal-Badge nur, wenn beide Sorten gemischt angezeigt werden; das Verhältnis ist immer auf Ziel gerechnet und
+        // wird daher nicht mehr je Kachel wiederholt (steht im Verordnungs-Chip).
+        (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
-        '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" +
+        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" : "") +
       "</div>" +
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
@@ -2431,6 +2654,7 @@ const RECIPES_SONDE = [
     bindDetail();
     bindCompose();
     renderRezepte();
+    showView(state.settings.view || "rezepte");
   }
   document.addEventListener("DOMContentLoaded", init);
 })();
