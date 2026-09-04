@@ -631,6 +631,28 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .reset-links { display: inline-flex; gap: 8px; align-items: center; }
 .btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
 
+/* ===== Heute: Tagesplan ===== */
+.slots { display: flex; flex-direction: column; gap: 10px; }
+.slot { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
+.slot.empty-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--bg); border-style: dashed; }
+.slot-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.slot-no { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.slot-name { font-weight: 700; font-size: 16px; }
+.slot-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; margin-top: 4px; align-items: center; }
+.slot-actions { display: flex; gap: 12px; margin-top: 6px; }
+.feed summary { margin-top: 6px; }
+.feed-body { padding-top: 4px; }
+.fill-hero.small { padding: 8px 0 6px; }
+.fill-hero.small .fill-big { font-size: 32px; }
+.picker-title { margin: 0 0 10px; padding-right: 40px; }
+.pick-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.pick-row { display: grid; grid-template-columns: 34px 1fr; column-gap: 10px; align-items: center; text-align: left; width: 100%;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; font: inherit; color: var(--ink); }
+.pick-row:hover { border-color: var(--brand); background: var(--brand-soft); }
+.pick-icon { font-size: 26px; grid-row: span 2; }
+.pick-name { font-weight: 700; }
+.pick-meta { color: var(--muted); font-size: 12px; }
+
 </style>
 </head>
 <body>
@@ -806,6 +828,16 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
     <div class="overlay-card">
       <button class="overlay-close" id="compose-close" aria-label="Schließen">✕</button>
       <div id="compose-content"></div>
+    </div>
+  </div>
+
+  <!-- Rezept-Auswahl für den Tagesplan -->
+  <div id="picker-overlay" class="overlay" hidden>
+    <div class="overlay-card">
+      <button class="overlay-close" id="picker-close" aria-label="Schließen">✕</button>
+      <h3 class="picker-title">Rezept für diese Mahlzeit wählen</h3>
+      <input id="picker-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
+      <div id="picker-list" class="pick-list"></div>
     </div>
   </div>
 
@@ -1477,6 +1509,7 @@ const RECIPES_SONDE = [
       savedRecipes: [],
       scales: {},
       water: {},
+      dayPlan: [],
     };
   }
   let state = load();
@@ -1498,6 +1531,7 @@ const RECIPES_SONDE = [
         savedRecipes: p.savedRecipes || [],
         scales: p.scales || {},
         water: p.water || {},
+        dayPlan: Array.isArray(p.dayPlan) ? p.dayPlan : [],
       };
     } catch (e) { return defaultState(); }
   }
@@ -1852,6 +1886,7 @@ const RECIPES_SONDE = [
     $("set-eiweiss").disabled = d.autoProtein;
     renderHeader(d);
     renderVorgaben(d);
+    if (state.settings.view === "heute") renderHeute();
 
     // Schnellfilter-Chips
     const filter = s.filter || "alle";
@@ -2117,19 +2152,19 @@ const RECIPES_SONDE = [
     overlay.hidden = false;
     document.body.classList.add("modal-open");
   }
-  function renderDetail() {
-    const rec = detailRec;
-    const d = derived();
-    // Basis-Rezept auf Einstellungen (140 kcal/Mahlzeit + Verhältnis) anpassen.
+  // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
+  // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
+  // → gemerktes Wasser. Ergebnis ist eine Portion (= eine Mahlzeit).
+  function computeMealView(rec, d, meatChoice) {
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
     const swapSlot = recipeMeatSlot(rec);
-    if (swapSlot && detailMeat && detailMeat !== swapSlot.baseKey) {
+    if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
       // Nur das Fleisch wird getauscht; Gemüse, Wasser UND Öl/Fett bleiben gleich.
       // Die Fleischmenge wird so berechnet, dass das Verhältnis exakt stimmt.
       const swapped = base.items.map((it, i) => i === swapSlot.index
-        ? { food: MEATS[detailMeat].food, grams: num(it.grams) }
+        ? { food: MEATS[meatChoice].food, grams: num(it.grams) }
         : { food: it.food, grams: num(it.grams) });
       const solved = solveMeatForRatio(swapped, swapSlot.index, d.ratio);
       if (solved) {
@@ -2138,7 +2173,7 @@ const RECIPES_SONDE = [
         adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
       }
     }
-    // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Einstellungen; s = 0 lässt alles unverändert.
+    // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Vorgaben; s = 0 lässt alles unverändert.
     // kcal-Ziel für den Modus KALORIEN = Kalorien der Ansicht bei s = 0 (Basis bzw.
     // nach Fleisch-Tausch), damit "kcal konstant" sich auf den sichtbaren Ist-Zustand bezieht.
     const baseOilIndex = oilSlotIndex(res.items);
@@ -2162,6 +2197,30 @@ const RECIPES_SONDE = [
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride };
+  }
+  // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
+  function mealFacts(rec, d) {
+    const mv = computeMealView(rec, d, null);
+    const items = mv.res.items;
+    const isOilN = (n) => /öl|oil/i.test(n || "");
+    const noOil = items.filter(it => !isOilN(it.food));
+    const oils = items.filter(it => isOilN(it.food));
+    const sum = sumMacros(items);
+    return {
+      rec, res: mv.res, sum, ratio: ratioOf(sum),
+      gNoOil: noOil.reduce((a, it) => a + num(it.grams), 0), mlNoOil: volumeMl(noOil),
+      oils, hasOil: oils.length > 0,
+      gMct: oils.filter(it => it.food === "MCT-Öl C8+C10").reduce((a, it) => a + num(it.grams), 0),
+      gRaps: oils.filter(it => it.food === "Rapsöl").reduce((a, it) => a + num(it.grams), 0),
+    };
+  }
+  function renderDetail() {
+    const rec = detailRec;
+    const d = derived();
+    const mv = computeMealView(rec, d, detailMeat);
+    const res = mv.res, adjIndex = mv.adjIndex, adjLabel = mv.adjLabel;
+    const baseOilIndex = mv.baseOilIndex, waterKey = mv.waterKey, hasWaterOverride = mv.hasWaterOverride;
     const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -2431,6 +2490,133 @@ const RECIPES_SONDE = [
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
+  }
+
+  /* ---------- Heute: Tagesplan ---------- */
+  function ensureDayPlan(d) {
+    if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
+    while (state.dayPlan.length < d.mahl) state.dayPlan.push({ key: null });
+    if (state.dayPlan.length > d.mahl) state.dayPlan.length = d.mahl;
+  }
+  function recipeByKey(key) {
+    if (!key) return null;
+    const all = allRecipes();
+    for (let i = 0; i < all.length; i++) if (recipeKey(all[i]) === key) return all[i];
+    return null;
+  }
+  function renderHeute() {
+    const box = document.getElementById("heute-content"); if (!box) return;
+    const d = derived(); ensureDayPlan(d);
+    const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, filled: 0 };
+    const facts = [];
+    const slotsHtml = state.dayPlan.map((slot, i) => {
+      const rec = recipeByKey(slot.key);
+      if (!rec) {
+        facts.push(null);
+        return '<div class="slot empty-slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span></div>' +
+          '<button type="button" class="btn secondary" data-pick="' + i + '">＋ Rezept wählen</button></div>';
+      }
+      const f = mealFacts(rec, d); facts.push(f);
+      tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
+      tot.mct += f.gMct; tot.raps += f.gRaps; tot.filled++;
+      return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
+        '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
+        '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
+        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + (f.ratio === null ? "—" : fmt(f.ratio, 2)) + ':1</span></div>' +
+        '<details class="collapsible feed"><summary>💉 Füttern – Menge</summary><div class="feed-body">' +
+          '<div class="fill-hero small"><div class="fill-big">≈ ' + fmt(f.gNoOil, 0) + ' g</div><div class="fill-sub">≈ ' + fmt(f.mlNoOil, 0) + ' ml' + (f.hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
+          (f.hasOil ? '<ul class="oil-list">' + f.oils.map(o => "<li><span>" + escapeHtml(o.food) + "</span><strong>" + fmt(num(o.grams), 1) + " g</strong></li>").join("") + "</ul>" +
+            '<div class="hint">Öl erst kurz vor dem Füttern einrühren' + (rec.varoma ? "; vorher durch ein feines Sieb streichen" : "") + ".</div>" : "") +
+        "</div></details>" +
+        '<div class="slot-actions"><button type="button" class="linkbtn" data-open="' + i + '">Rezept öffnen</button>' +
+        '<button type="button" class="linkbtn" data-pick="' + i + '">Ändern</button>' +
+        '<button type="button" class="linkbtn" data-clear="' + i + '">Entfernen</button></div></div>';
+    }).join("");
+    const ratioDay = (tot.eiweiss + tot.kh) > 0 ? tot.fett / (tot.eiweiss + tot.kh) : null;
+    const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Ziele anteilig
+    const pct = (v, t) => t > 0 ? Math.round(v / t * 100) : 0;
+    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share;
+    const sums = tot.filled
+      ? '<div class="card"><h3>Σ Tagessummen <span class="hint">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></h3>' +
+        '<div class="detail-tiles">' +
+        '<div class="dstat"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)</div></div>' +
+        '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
+        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ':1</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ':1</div></div>' +
+        '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
+        "</div>" +
+        (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
+        '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
+      : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';
+    box.innerHTML = '<div class="card"><h3>📅 Tagesplan <span class="hint">' + d.mahl + ' Mahlzeiten · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit</span></h3><div class="slots">' + slotsHtml + "</div></div>" + sums;
+    box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => openPicker(num(b.dataset.pick))));
+    box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); }));
+    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", () => { state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
+    const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
+    const cd = box.querySelector("#clear-day");
+    if (cd) cd.addEventListener("click", () => { if (confirm("Tagesplan leeren?")) { state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderHeute(); } });
+  }
+  // Rezept-Auswahl für einen Slot (Overlay mit Suche)
+  let pickerSlot = -1;
+  function openPicker(i) {
+    pickerSlot = i;
+    const ov = document.getElementById("picker-overlay"), q = document.getElementById("picker-search");
+    if (!ov) return;
+    q.value = ""; renderPicker();
+    ov.hidden = false; document.body.classList.add("modal-open");
+    try { q.focus(); } catch (e) {}
+  }
+  function renderPicker() {
+    const list = document.getElementById("picker-list"); if (!list) return;
+    const q = ((document.getElementById("picker-search") || {}).value || "").trim().toLowerCase();
+    const d = derived();
+    const recs = allRecipes()
+      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
+      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
+      .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.rec.name.localeCompare(b.rec.name, "de"); });
+    list.innerHTML = recs.map(x => {
+      const s = sumMacros(x.res.items);
+      return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '"><span class="pick-icon">' + (x.rec.icon || "🥑") + '</span>' +
+        '<span class="pick-name">' + escapeHtml(x.rec.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
+        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + (x.rec.ketocal ? " · KetoCal" : "") + "</span></button>";
+    }).join("") || '<div class="empty">Kein Rezept gefunden.</div>';
+    list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
+      if (pickerSlot >= 0) { ensureDayPlan(derived()); state.dayPlan[pickerSlot] = { key: b.dataset.key }; save(); }
+      closePicker(); renderHeute();
+    }));
+  }
+  function closePicker() {
+    const ov = document.getElementById("picker-overlay"); if (!ov) return;
+    ov.hidden = true; document.body.classList.remove("modal-open");
+  }
+  function bindHeute() {
+    const th = document.getElementById("tab-heute"); if (th) th.hidden = false;
+    const ov = document.getElementById("picker-overlay"); if (!ov) return;
+    document.getElementById("picker-close").addEventListener("click", closePicker);
+    ov.addEventListener("click", e => { if (e.target === ov) closePicker(); });
+    document.getElementById("picker-search").addEventListener("input", renderPicker);
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
+  }
+  function printDayPlan(d, facts, tot, ratioDay) {
+    const rows = facts.map((f, i) => f
+      ? "<tr><td>" + (i + 1) + "</td><td>" + escapeHtml(f.rec.name) + "</td><td>" + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml</td><td>" +
+        (f.hasOil ? f.oils.map(o => escapeHtml(o.food) + " " + fmt(num(o.grams), 1) + " g").join("<br>") : "–") + "</td><td>" + fmt(f.sum.kcal, 0) + "</td><td>" + fmt(f.sum.eiweiss) + " g</td></tr>"
+      : "<tr><td>" + (i + 1) + "</td><td colspan='5' style='color:#888'>– nicht geplant –</td></tr>").join("");
+    const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" +
+      "@page{size:A4 portrait;margin:16mm}body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;font-size:11pt;line-height:1.45;margin:0}" +
+      "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}table{width:100%;border-collapse:collapse}" +
+      "th,td{border-bottom:0.4pt solid #bbb;padding:1.8mm 1.5mm;text-align:left;vertical-align:top;font-size:10.5pt}th{background:#f2f4f6}" +
+      ".tot td{font-weight:bold;border-top:1pt solid #777}.note{color:#666;font-size:8.5pt;margin-top:6mm}</style></head><body>" +
+      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1" +
+      (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + " · " + new Date().toLocaleDateString("de-AT") + "</p>" +
+      "<table><thead><tr><th>#</th><th>Mahlzeit</th><th>Abfüllen (ohne Öl)</th><th>Öl vor dem Füttern</th><th>kcal</th><th>Eiweiß</th></tr></thead><tbody>" + rows +
+      "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
+      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ":1 · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
+      "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
+    let w = null;
+    try { w = window.open("", "_blank"); } catch (e) {}
+    if (!w) { alert("Bitte Pop-ups für diese Seite erlauben, um drucken zu können."); return; }
+    w.document.open(); w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) {} }, 250);
   }
 
   /* ---------- Drucken (A4 Hochformat) ---------- */
@@ -2720,6 +2906,7 @@ const RECIPES_SONDE = [
     bindSettingsBar();
     bindDetail();
     bindCompose();
+    bindHeute();
     renderRezepte();
     showView(state.settings.view || "rezepte");
   }

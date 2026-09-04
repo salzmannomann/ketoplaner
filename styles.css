@@ -613,3 +613,25 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .linkbtn { background: none; border: 0; color: var(--brand-dark); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0 4px; }
 .reset-links { display: inline-flex; gap: 8px; align-items: center; }
 .btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ===== Heute: Tagesplan ===== */
+.slots { display: flex; flex-direction: column; gap: 10px; }
+.slot { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
+.slot.empty-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--bg); border-style: dashed; }
+.slot-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.slot-no { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.slot-name { font-weight: 700; font-size: 16px; }
+.slot-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; margin-top: 4px; align-items: center; }
+.slot-actions { display: flex; gap: 12px; margin-top: 6px; }
+.feed summary { margin-top: 6px; }
+.feed-body { padding-top: 4px; }
+.fill-hero.small { padding: 8px 0 6px; }
+.fill-hero.small .fill-big { font-size: 32px; }
+.picker-title { margin: 0 0 10px; padding-right: 40px; }
+.pick-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.pick-row { display: grid; grid-template-columns: 34px 1fr; column-gap: 10px; align-items: center; text-align: left; width: 100%;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; font: inherit; color: var(--ink); }
+.pick-row:hover { border-color: var(--brand); background: var(--brand-soft); }
+.pick-icon { font-size: 26px; grid-row: span 2; }
+.pick-name { font-weight: 700; }
+.pick-meta { color: var(--muted); font-size: 12px; }

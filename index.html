@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=48fe0696" />
+  <link rel="stylesheet" href="styles.css?v=017419e3" />
 </head>
 <body>
   <header class="topbar">
@@ -192,6 +192,16 @@
     </div>
   </div>
 
+  <!-- Rezept-Auswahl für den Tagesplan -->
+  <div id="picker-overlay" class="overlay" hidden>
+    <div class="overlay-card">
+      <button class="overlay-close" id="picker-close" aria-label="Schließen">✕</button>
+      <h3 class="picker-title">Rezept für diese Mahlzeit wählen</h3>
+      <input id="picker-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
+      <div id="picker-list" class="pick-list"></div>
+    </div>
+  </div>
+
   <!-- Detail-Ansicht eines Rezepts -->
   <div id="detail-overlay" class="overlay" hidden>
     <div class="overlay-card">
@@ -202,7 +212,7 @@
 
   <script src="foods.js?v=9f702f19"></script>
   <script src="recipes.js?v=84bba317"></script>
-  <script src="app.js?v=374ca1f2"></script>
+  <script src="app.js?v=44bf9ee6"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
