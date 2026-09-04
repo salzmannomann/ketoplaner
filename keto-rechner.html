@@ -606,6 +606,31 @@ details.collapsible { margin: 8px 0; }
   .main { padding-bottom: 60px; }
 }
 
+/* ===== Detailansicht mit drei Reitern: Kochen / Abfüllen / Rechnen ===== */
+.detail-tabs { margin: 0 0 14px; }
+.detail-tabs button { font-weight: 600; }
+.pane[hidden] { display: none; }
+.ph { font-size: 15px; font-weight: 700; margin: 16px 0 8px; color: var(--ink); }
+.ph .hint { font-weight: 400; font-size: 13px; }
+table.kitchen { width: 100%; border-collapse: collapse; }
+table.kitchen td { padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; }
+table.kitchen td.amt { text-align: right; white-space: nowrap; width: 1%; }
+table.kitchen td.amt .unit { color: var(--muted); font-size: 13px; }
+table.kitchen .amt-edit { width: 84px; font-size: 17px; }
+table.kitchen tr.fatrow td { background: var(--green-bg); }
+.muted { color: var(--muted); font-size: 12px; }
+.steps { margin: 0; padding-left: 22px; }
+.steps li { margin: 0 0 8px; line-height: 1.5; }
+.fill-hero { text-align: center; padding: 18px 12px 10px; }
+.fill-big { font-size: 44px; font-weight: 800; color: var(--brand-dark); line-height: 1; }
+.fill-sub { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.oil-list { list-style: none; margin: 0; padding: 0; }
+.oil-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 6px; background: #fff; }
+.oil-list strong { font-size: 18px; color: var(--brand-dark); }
+.linkbtn { background: none; border: 0; color: var(--brand-dark); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0 4px; }
+.reset-links { display: inline-flex; gap: 8px; align-items: center; }
+.btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+
 </style>
 </head>
 <body>
@@ -1500,6 +1525,13 @@ const RECIPES_SONDE = [
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
+  // Zubereitungstext in nummerierte Schritte zerlegen (Satzende + Großbuchstabe; kein Lookbehind wegen iOS-Safari).
+  function splitSteps(text) {
+    if (!text) return [];
+    const guarded = String(text).replace(/z\. B\./g, "z. B.");
+    return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
+      .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
+  }
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
   let foodIndex = {};
@@ -2200,10 +2232,10 @@ const RECIPES_SONDE = [
       // Warnhinweise aus der ungerundeten Rechnung (§5)
       let warn = "";
       if (mm) {
-        if (mm.energiePz > 50) warn += '<div class="adjust-note">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
+        if (mm.energiePz > 50) warn += '<div class="note warn">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
         const devTag = mm.dev * d.mahl;
-        if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="adjust-note">⚠️ Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten. Ausgleich mit der Diätologie klären.</div>';
-        if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="adjust-note">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
+        if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note warn">⚠️ Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten. Ausgleich mit der Diätologie klären.</div>';
+        if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="note warn">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
       }
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
         '<div class="segmented mini">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
@@ -2211,24 +2243,42 @@ const RECIPES_SONDE = [
         '<div class="meat-note">' + note + "</div>" + warn + "</div>";
     }
 
-    let rows = "";
+    // Zwei Sichten auf dieselben Zutaten: Küche (abwiegen, editierbar) und Rechnen (Nährwerte, nur lesen).
+    let kRows = "", nRows = "";
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
       const isWaterRow = /wasser/i.test(it.food);
-      rows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
-        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + (isWaterRow && hasWaterOverride ? " ⟵ Wasser angepasst" : "") + "</td>" +
-        '<td><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + (Math.round(g * 10) / 10) + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + (Math.round(g * 10) / 10) + '"></td>' +
-        "<td>" + fmt(m.eiweiss) + "</td><td>" +
-        fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+      const gR = Math.round(g * 10) / 10;
+      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
+        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : "") + "</td>" +
+        '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
+      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
+        "<td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
+    // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).
+    const prepText = rec.varoma
+      ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
+      : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
+    const steps = splitSteps(prepText);
+    const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
+    // Abfüllen: Öl-Zeilen je Portion (kommen erst vor dem Füttern dazu)
+    const oilRowsPer = items.filter(it => isOil(it.food));
+    const dtab = ["kochen", "abfuellen", "rechnen"].indexOf(state.settings.detailTab) >= 0 ? state.settings.detailTab : "kochen";
+    const tabBtn = (k, lab) => '<button type="button" data-dtab="' + k + '"' + (dtab === k ? ' class="active"' : "") + ">" + lab + "</button>";
+    const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k ? " hidden" : "") + ">";
+    const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
 
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
-        '<div class="meta">Verhältnis <span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' +
-        (r === null ? "—" : fmt(r, 2)) + ":1</span> · zeigt: " + portionLabel + "</div></div></div>" +
+        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span> · " +
+        fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
+      '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
+
+      /* ---------- Kochen ---------- */
+      paneOpen("kochen") +
       '<div class="seg-portion batch">' +
         '<span class="seg-label">Menge zubereiten:</span>' +
         '<div class="segmented mini">' +
@@ -2238,36 +2288,52 @@ const RECIPES_SONDE = [
         '<span class="portion-step">Portionen <button type="button" class="stepbtn" data-step="-1">−</button>' +
         '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
+        ((mult !== 1 || hasWaterOverride) ? '<span class="reset-links">' +
+          (mult !== 1 ? '<button type="button" id="scale-reset" class="linkbtn">↺ 1 Portion</button>' : "") +
+          (hasWaterOverride ? '<button type="button" id="water-reset" class="linkbtn">↺ Wasser</button>' : "") + "</span>" : "") +
       "</div>" +
-      ((mult !== 1 || hasWaterOverride) ? '<div class="adjust-note" style="text-align:right">' +
-        (mult !== 1 ? '<button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button>' : "") +
-        (mult !== 1 && hasWaterOverride ? " &nbsp;·&nbsp; " : "") +
-        (hasWaterOverride ? '<button type="button" id="water-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ Wasser zurücksetzen</button>' : "") +
-        "</div>" : "") +
+      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
+      '<div class="tbl-wrap"><table class="kitchen"><tbody>' + kRows + "</tbody></table></div>" +
+      '<details class="collapsible"><summary>ⓘ Menge direkt eingeben</summary><p>Eine Menge in der Liste ändern (z. B. „827 g Zucchini, weil so viel da ist") – die <strong>anderen Zutaten werden proportional mitskaliert</strong>, das Verhältnis bleibt. <strong>Ausnahme Wasser:</strong> wird nur für sich geändert. Beides wird je Rezept gemerkt.</p></details>' +
+      (stepsHtml ? '<h4 class="ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + "</h4>" + stepsHtml : "") +
+      (mult !== 1 ? '<div class="note info">Garzeiten gelten für <strong>eine</strong> Portion – bei größerer Menge länger garen, bis alles weich ist, ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
+      "</div>" +
+
+      /* ---------- Abfüllen ---------- */
+      paneOpen("abfuellen") +
+      '<div class="fill-hero"><div class="fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div>' +
+        '<div class="fill-sub">≈ ' + fmt(perMlNoOil, 0) + ' ml je Portion' + (hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
+      (mult !== 1 ? '<div class="note info">Gesamt' + (hasOil ? " ohne Öl" : "") + ' ≈ <strong>' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g</strong> für ' + portionLabel + ' → <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong> abfüllen.</div>' : "") +
+      (hasOil ? '<h4 class="ph">🧈 Erst vor dem Füttern einrühren <span class="hint">je Portion</span></h4><ul class="oil-list">' +
+        oilRowsPer.map(it => "<li><span>" + escapeHtml(it.food) + "</span><strong>" + fmt(num(it.grams), 1) + " g</strong></li>").join("") + "</ul>" +
+        (mult !== 1 ? '<div class="hint">Für alle ' + portionsTxt + ' Portionen zusammen: ' + oilRowsPer.map(it => escapeHtml(it.food) + " " + fmt(num(it.grams) * mult, 0) + " g").join(" · ") + "</div>" : "") : "") +
+      (res.mct ? '<div class="note ' + (res.mct.energiePz > 50 ? "warn" : "tip") + '">MCT je Portion: <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.</div>' : "") +
+      (rec.varoma ? '<div class="note tip">🫗 Vor dem Abfüllen durch ein feines Sieb streichen, damit die Spritze nicht verstopft.</div>' : "") +
+      "</div>" +
+
+      /* ---------- Rechnen ---------- */
+      paneOpen("rechnen") +
       meatSeg +
       oilSeg +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil * mult : totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>' + (mult !== 1 ? 'je Portion ≈ ' + fmt(perGnoOil, 0) + ' g · ' : '') + 'mit Öl ≈ ' + fmt(totalG, 0) + ' g</small>' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil * mult : ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>' + (mult !== 1 ? 'je Portion ≈ ' + fmt(perMlNoOil, 0) + ' ml · ' : '') + 'mit Öl ≈ ' + fmt(ml, 0) + ' ml</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil * mult : totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil * mult : ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
       "</div>" +
       (res.mct ? '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(res.mct.energiePz, 1) + ' %</div><div class="l">MCT-Anteil der Energie<br><small>' + mctEinordnung(res.mct.energiePz) + '</small></div></div>' +
-        '<div class="dstat"><div class="v">' + (res.mct.dev < -0.05 ? "−" : (res.mct.dev > 0.05 ? "+" : "±")) + fmt(Math.abs(res.mct.dev), 1) + ' kcal</div><div class="l">Abweichung je Portion<br><small>je Tag ' + (res.mct.dev < -0.05 ? "−" : (res.mct.dev > 0.05 ? "+" : "±")) + fmt(Math.abs(res.mct.dev * d.mahl), 0) + ' kcal (×' + d.mahl + ')</small></div></div>' +
+        '<div class="dstat"><div class="v">' + sign(res.mct.dev) + fmt(Math.abs(res.mct.dev), 1) + ' kcal</div><div class="l">Abweichung je Portion<br><small>je Tag ' + sign(res.mct.dev) + fmt(Math.abs(res.mct.dev * d.mahl), 0) + ' kcal (×' + d.mahl + ')</small></div></div>' +
         '<div class="dstat"><div class="v">' + fmt(res.mct.gMct, 1) + ' g</div><div class="l">MCT je Portion<br><small>maßgeblich für die Verträglichkeit</small></div></div>' +
       "</div>" : "") +
-      (!proteinOk ? '<div class="adjust-note">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
-        rows +
+        nRows +
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
-      '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen. <strong>Ausnahme Wasser:</strong> Es wird nur für sich geändert (kein Einfluss auf Verhältnis und kcal) und je Rezept gemerkt.</div>' +
-      (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Varoma-/Garzeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
-      (rec.varoma
-        ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
-        : (rec.zubereitung ? '<div class="prep"><strong>Zubereitung</strong><br>' + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : ""));
+      '<div class="btn-row"><button type="button" class="btn" id="edit-btn">✏️ ' + (rec.custom ? "Rezept bearbeiten" : "Zutaten ändern / tauschen (Editor)") + "</button></div>" +
+      "</div>";
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
       b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; persistScale(); renderDetail(); }));
@@ -2307,15 +2373,16 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => {
         state.settings.mctMode = b.dataset.mctmode; save(); renderDetail();
       }));
+    c.querySelectorAll("#detail-tabs button[data-dtab]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.detailTab = b.dataset.dtab; save(); renderDetail(); }));
+    const editBtn = c.querySelector("#edit-btn");
+    if (editBtn) editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
 
-    const actions = el("div", { class: "btn-row" });
+    const actions = el("div", { class: "btn-row actions" });
     const fav = isFav(rec);
     const favBtn = el("button", { class: "btn secondary" }, (fav ? "★ Favorit (aktiv)" : "☆ Als Favorit"));
     favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
     actions.appendChild(favBtn);
-    const editBtn = el("button", { class: "btn" }, rec.custom ? "✏️ Bearbeiten" : "✏️ Zutaten anpassen / tauschen");
-    editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
-    actions.appendChild(editBtn);
     const printBtn = el("button", { class: "btn secondary" }, "🖨️ Rezept drucken");
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
     actions.appendChild(printBtn);

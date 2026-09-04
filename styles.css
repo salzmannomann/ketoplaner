@@ -588,3 +588,28 @@ details.collapsible { margin: 8px 0; }
   .tabbar button svg { width: 18px; height: 18px; }
   .main { padding-bottom: 60px; }
 }
+
+/* ===== Detailansicht mit drei Reitern: Kochen / Abfüllen / Rechnen ===== */
+.detail-tabs { margin: 0 0 14px; }
+.detail-tabs button { font-weight: 600; }
+.pane[hidden] { display: none; }
+.ph { font-size: 15px; font-weight: 700; margin: 16px 0 8px; color: var(--ink); }
+.ph .hint { font-weight: 400; font-size: 13px; }
+table.kitchen { width: 100%; border-collapse: collapse; }
+table.kitchen td { padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; }
+table.kitchen td.amt { text-align: right; white-space: nowrap; width: 1%; }
+table.kitchen td.amt .unit { color: var(--muted); font-size: 13px; }
+table.kitchen .amt-edit { width: 84px; font-size: 17px; }
+table.kitchen tr.fatrow td { background: var(--green-bg); }
+.muted { color: var(--muted); font-size: 12px; }
+.steps { margin: 0; padding-left: 22px; }
+.steps li { margin: 0 0 8px; line-height: 1.5; }
+.fill-hero { text-align: center; padding: 18px 12px 10px; }
+.fill-big { font-size: 44px; font-weight: 800; color: var(--brand-dark); line-height: 1; }
+.fill-sub { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.oil-list { list-style: none; margin: 0; padding: 0; }
+.oil-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 6px; background: #fff; }
+.oil-list strong { font-size: 18px; color: var(--brand-dark); }
+.linkbtn { background: none; border: 0; color: var(--brand-dark); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0 4px; }
+.reset-links { display: inline-flex; gap: 8px; align-items: center; }
+.btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
