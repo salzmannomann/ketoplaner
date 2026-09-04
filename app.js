@@ -16,6 +16,7 @@
       favorites: [],
       savedRecipes: [],
       scales: {},
+      water: {},
     };
   }
   let state = load();
@@ -36,6 +37,7 @@
         favorites: p.favorites || [],
         savedRecipes: p.savedRecipes || [],
         scales: p.scales || {},
+        water: p.water || {},
       };
     } catch (e) { return defaultState(); }
   }
@@ -600,6 +602,24 @@
     const baseOilIndex = oilSlotIndex(res.items);
     const kcalZielOil = sumMacros(res.items).kcal;
     if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
+    // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
+    // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
+    const waterKey = recipeKey(rec);
+    const hasWaterOverride = Object.prototype.hasOwnProperty.call(state.water, waterKey);
+    if (hasWaterOverride) {
+      const target = Math.max(0, num(state.water[waterKey]));
+      const isW = (it) => /wasser/i.test(it.food);
+      const sumW = res.items.filter(isW).reduce((a, it) => a + num(it.grams), 0);
+      let first = true;
+      const items2 = res.items.map(it => {
+        if (!isW(it)) return it;
+        let g;
+        if (sumW > 0) g = num(it.grams) * target / sumW; else { g = first ? target : 0; first = false; }
+        return { food: it.food, grams: round1(g) };
+      });
+      const sm2 = sumMacros(items2);
+      res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
+    }
     const mult = detailScale > 0 ? detailScale : 1;
     const items = res.items;
     const sumPer = sumMacros(items);
@@ -685,9 +705,10 @@
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
+      const isWaterRow = /wasser/i.test(it.food);
       rows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" +
-        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
-        '<td><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + (Math.round(g * 10) / 10) + '" value="' + (Math.round(g * 10) / 10) + '"></td>' +
+        escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + (isWaterRow && hasWaterOverride ? " ⟵ Wasser angepasst" : "") + "</td>" +
+        '<td><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + (Math.round(g * 10) / 10) + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + (Math.round(g * 10) / 10) + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" +
         fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
@@ -708,7 +729,11 @@
         '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
       "</div>" +
-      (mult !== 1 ? '<div class="adjust-note" style="text-align:right"><button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button></div>' : "") +
+      ((mult !== 1 || hasWaterOverride) ? '<div class="adjust-note" style="text-align:right">' +
+        (mult !== 1 ? '<button type="button" id="scale-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ auf 1 Portion zurücksetzen</button>' : "") +
+        (mult !== 1 && hasWaterOverride ? " &nbsp;·&nbsp; " : "") +
+        (hasWaterOverride ? '<button type="button" id="water-reset" style="background:none;border:none;color:var(--brand-dark);text-decoration:underline;cursor:pointer;font:inherit;padding:0">↺ Wasser zurücksetzen</button>' : "") +
+        "</div>" : "") +
       meatSeg +
       oilSeg +
       '<div class="detail-tiles">' +
@@ -728,7 +753,7 @@
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
-      '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen.</div>' +
+      '<div class="adjust-note">ℹ️ Tipp: Eine Zutatenmenge in der Tabelle ändern – die <strong>anderen Zutaten werden proportional mitskaliert</strong> (z. B. mehr Hendl = größere Menge). Praktisch zum Vorkochen mehrerer Portionen und Einkühlen. <strong>Ausnahme Wasser:</strong> Es wird nur für sich geändert (kein Einfluss auf Verhältnis und kcal) und je Rezept gemerkt.</div>' +
       (mult !== 1 ? '<div class="adjust-note">ℹ️ Menge für <strong>' + portionLabel + '</strong>. Die Varoma-/Garzeiten unten gelten für <strong>eine</strong> Portion – bei größerer Menge entsprechend länger garen, bis alles weich ist, und ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
       (rec.varoma
         ? '<div class="prep varoma"><strong>🫧 Zubereitung mit Varoma (dämpfen)</strong><br>' + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
@@ -748,10 +773,17 @@
     c.querySelectorAll(".amt-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
+        if (inp.dataset.water === "1") {
+          // Nur das Wasser ändern – Rest bleibt; gemerkt wird der Wert je Portion.
+          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); renderDetail(); }
+          return;
+        }
         if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); persistScale(); renderDetail(); }
       }));
     const scaleReset = c.querySelector("#scale-reset");
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
+    const waterReset = c.querySelector("#water-reset");
+    if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
