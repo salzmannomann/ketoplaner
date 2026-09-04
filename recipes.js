@@ -1,7 +1,14 @@
-// Standard-Rezepte für die ketogene Sondennahrung (49 Stück).
+// Standard-Rezepte für die ketogene Sondennahrung (50 Stück).
 // Einheitliche Kurznamen "Hauptzutat & Beilage"; Icon = Sorte (Fleisch/Fisch/Ei) bzw. Gemüse/Obst.
 // Felder: name, icon, ketocal, quelle, zubereitung, thermomix, varoma, items.
 const RECIPES_SONDE = [
+  {
+    name: "Flasche: KetoCal & Pre Apta",
+    icon: "🍼",
+    ketocal: true,
+    zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Trinktemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
+    items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
+  },
   {
     name: "HiPP Hühnchen & Öl",
     icon: "🥫",

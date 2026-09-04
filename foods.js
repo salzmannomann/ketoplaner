@@ -160,6 +160,7 @@ const FOODS_DEFAULT = [
   {"kategorie": "Getreide", "name": "Haferflocken", "pro": 100, "eiweiss": 14.0, "fett": 7.0, "kh": 59.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Himmeltau Grießbrei", "pro": 100, "eiweiss": 10.0, "fett": 0.9, "kh": 68.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Aptamil 1", "pro": 100, "eiweiss": 9.7, "fett": 24.7, "kh": 53.8, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Aptamil Pre (Pulver)", "pro": 100, "eiweiss": 9.5, "fett": 24.8, "kh": 53.3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Ketocal 4:1", "pro": 100, "eiweiss": 14.4, "fett": 69.2, "kh": 2.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Ketocal 3:1", "pro": 100, "eiweiss": 15.4, "fett": 68.6, "kh": 7.2, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Ketocal 4:1 (Vanille)", "pro": 100, "eiweiss": 14.4, "fett": 69.2, "kh": 2.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
