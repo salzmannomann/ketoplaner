@@ -150,7 +150,7 @@ test("Filter: KetoCal-Dreistufe, Flasche immer auffindbar, Unterwegs, Suche", ()
   clickChip(w, "mit KetoCal"); const mit = tileNames(w).length;
   assert.equal(ohne + mit, all);
   clickChip(w, "ohne KetoCal"); clickChip(w, "🍼 Flasche");
-  assert.deepEqual(tileNames(w), ["Flasche: KetoCal & Pre Apta"]);
+  assert.deepEqual(tileNames(w).sort(), ["Flasche: KetoCal & Compleat", "Flasche: KetoCal & Pre Apta"]);
   clickChip(w, "🥫 Unterwegs"); clickChip(w, "🥄 alle");
   assert.ok(tileNames(w).some(n => /HiPP/.test(n)));
   clickChip(w, "Alle");

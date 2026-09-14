@@ -11,6 +11,14 @@ const RECIPES_SONDE = [
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
+    name: "Flasche: KetoCal & Compleat",
+    icon: "🍼",
+    ketocal: true,
+    flasche: true,
+    zubereitung: "KetoCal 3:1 abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Nature Mix abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die KetoCal-Menge rechnet die App auf das eingestellte Verhältnis um – für die Ausschleich-Phase unter Vorgaben das Preset 1:1 wählen. Angebrochene Compleat-Flasche verschlossen im Kühlschrank aufbewahren und innerhalb von 24 Stunden verbrauchen. Compleat Nature Mix ist eine Sondennahrung für Erwachsene (für Kinder gibt es Compleat Paediatric Nature Mix) – Einsatz bitte mit dem Behandlungsteam abstimmen.",
+    items: [ { food: "Ketocal 3:1", grams: 13 }, { food: "Compleat Nature Mix (Nestlé)", grams: 40 }, { food: "Wasser", grams: 30 } ],
+  },
+  {
     name: "HiPP Hühnchen & Öl",
     icon: "🥫",
     ketocal: false,

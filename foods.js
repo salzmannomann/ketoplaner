@@ -151,6 +151,9 @@ const FOODS_DEFAULT = [
   {"kategorie": "Sonde / Spezial", "name": "HIPP Reis mit Karotten und Pute", "pro": 100, "eiweiss": 2.4, "fett": 3.1, "kh": 8.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Kartoffel-Gemüse mit Bio-Rindfleisch", "pro": 100, "eiweiss": 2.3, "fett": 2.9, "kh": 7.6, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HiPP Bio-Hühnchenfleisch Zubereitung", "pro": 100, "eiweiss": 7.8, "fett": 5.8, "kh": 6.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  // Nestlé Compleat Nature Mix (Sondennahrung, 1,1 kcal/ml): Werte je 100 ml laut Produktdatenblatt (1 ml ≈ 1 g)
+  {"kategorie": "Sonde / Spezial", "name": "Compleat Nature Mix (Nestlé)", "pro": 100, "eiweiss": 4.4, "fett": 3.7, "kh": 14.0, "kcal100": 110, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.4},
+  {"kategorie": "Sonde / Spezial", "name": "Compleat Paediatric Nature Mix (Nestlé)", "pro": 100, "eiweiss": 3.6, "fett": 5.0, "kh": 14.0, "kcal100": 117, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Karotten-Kartoffelgemüse mit Bio-Lamm", "pro": 100, "eiweiss": 2.6, "fett": 1.9, "kh": 10.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Äpfel mit Bananen", "pro": 100, "eiweiss": 0.5, "fett": 0.1, "kh": 13.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Milchbrei Grieß-Banane", "pro": 100, "eiweiss": 13.8, "fett": 11.8, "kh": 63.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},

@@ -1,7 +1,7 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 50 fertige Rezepte, die automatisch auf die **verordnete
+enthält 51 fertige Rezepte, die automatisch auf die **verordnete
 Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
@@ -148,14 +148,15 @@ ein feines Sieb gestrichen, damit die Spritze nicht verstopft.
 tragen das Schild **„👩‍⚕️ Diätologie"**. Bei Rezepten ohne KetoCal weist die App
 darauf hin, dass Vitamine und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (50 insgesamt: 21 mit / 29 ohne KetoCal)
+## Rezepte (51 insgesamt: 22 mit / 29 ohne KetoCal)
 
 Ausgewogen über die Kategorien (Fleisch, Fisch, vegetarisch inkl. Ei-,
 Erdäpfel- und Gemüsegerichte sowie Obst). Die Namen folgen dem Schema
 **„Hauptzutat & Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); KetoCal-
 Varianten tragen den Zusatz „(mit KetoCal)". Dazu kommen das Fertigprodukt
-**„HiPP Hühnchen & Öl"** (Unterwegs) und die Sondenflasche **„Flasche: KetoCal &
-Pre Apta"** (Flasche). 35 Rezepte haben eine Varoma-Anleitung, die übrigen
+**„HiPP Hühnchen & Öl"** (Unterwegs) sowie die Sondenflaschen **„Flasche: KetoCal &
+Pre Apta"** und **„Flasche: KetoCal & Compleat"** (Nestlé Compleat Nature Mix,
+Filter Flasche; für die Ausschleich-Phase das Preset 1:1 wählen). 35 Rezepte haben eine Varoma-Anleitung, die übrigen
 werden klassisch zubereitet.
 
 ## Berechnungsgrundlage
