@@ -84,8 +84,8 @@
     const fixIdx = base.findIndex(it => it.food === pk.food);
     const fi = fatItemIndex(base);
     if (fixIdx < 0 || fi < 0 || fi === fixIdx) return null;
-    const fat = lookup(base[fi].food), fill = lookup(pk.auffuellen);
-    if (!fat || !fill) return null;
+    const fat = lookup(base[fi].food), filler = lookup(pk.auffuellen);
+    if (!fat || !filler) return null;
     const scale = base[fixIdx].grams > 0 ? fixedMl / base[fixIdx].grams : 1;
     let P = 0, F = 0, C = 0, Kc = 0;
     base.forEach((it, i) => {
@@ -94,9 +94,9 @@
       const g = i === fixIdx ? fixedMl : it.grams * scale;
       P += f.eiweiss * g / 100; F += f.fett * g / 100; C += f.kh * g / 100; Kc += kcal100Of(f) * g / 100;
     });
-    const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (fill.fett - ratio * (fill.eiweiss + fill.kh)) / 100;
+    const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (filler.fett - ratio * (filler.eiweiss + filler.kh)) / 100;
     const c1 = ratio * (P + C) - F;
-    const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(fill) / 100, c2 = targetKcal - Kc;
+    const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(filler) / 100, c2 = targetKcal - Kc;
     let k, p, filledToMin = false, kcalFree = null;
     const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
     if (mode === "kalorien" && useFill) {
