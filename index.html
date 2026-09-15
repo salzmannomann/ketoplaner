@@ -130,6 +130,10 @@
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
           <div>
+            <label>Wasser je Zwischenzeit (ml)</label>
+            <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
+          </div>
+          <div>
             <label>Höchstmenge je Mahlzeit (ml)</label>
             <input id="set-maxmahl" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
@@ -143,7 +147,7 @@
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
-        <p class="hint">Leer = Richtwerte: Flüssigkeit nach Holliday-Segar (100 ml/kg bis 10 kg), Höchstmenge je Mahlzeit 25 ml/kg. Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Ausgewogen:</strong> Wasser kommt in die Mahlzeit, bis sie die Höchstmenge erreicht; was am Tag noch fehlt, wird zwischen den Mahlzeiten sondiert. <strong>Nur zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind. <strong>Nur in den Mahlzeiten:</strong> jedes Rezept bekommt seinen ganzen Anteil am Tagesbedarf, ohne Obergrenze. Bitte mit dem Behandlungsteam abstimmen.</p>
+        <p class="hint">Leer = Richtwerte: Flüssigkeit nach Holliday-Segar (100 ml/kg bis 10 kg), Höchstmenge je Mahlzeit 25 ml/kg. Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Ausgewogen:</strong> zwischen den Mahlzeiten je eine feste Wassergabe (Vorgabe 60 ml, eine Spritze; bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens bis zur Höchstmenge je Mahlzeit; reicht das nicht, sagt es die App. <strong>Nur zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind. <strong>Nur in den Mahlzeiten:</strong> jedes Rezept bekommt seinen ganzen Anteil am Tagesbedarf, ohne Obergrenze. Bitte mit dem Behandlungsteam abstimmen.</p>
       </div>
 
       <div class="card">
@@ -247,7 +251,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=1aec3849"></script>
+  <script src="app.js?v=4b82a2ea"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

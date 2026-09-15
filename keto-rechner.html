@@ -780,6 +780,10 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
           <div>
+            <label>Wasser je Zwischenzeit (ml)</label>
+            <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
+          </div>
+          <div>
             <label>Höchstmenge je Mahlzeit (ml)</label>
             <input id="set-maxmahl" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
@@ -793,7 +797,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
-        <p class="hint">Leer = Richtwerte: Flüssigkeit nach Holliday-Segar (100 ml/kg bis 10 kg), Höchstmenge je Mahlzeit 25 ml/kg. Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Ausgewogen:</strong> Wasser kommt in die Mahlzeit, bis sie die Höchstmenge erreicht; was am Tag noch fehlt, wird zwischen den Mahlzeiten sondiert. <strong>Nur zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind. <strong>Nur in den Mahlzeiten:</strong> jedes Rezept bekommt seinen ganzen Anteil am Tagesbedarf, ohne Obergrenze. Bitte mit dem Behandlungsteam abstimmen.</p>
+        <p class="hint">Leer = Richtwerte: Flüssigkeit nach Holliday-Segar (100 ml/kg bis 10 kg), Höchstmenge je Mahlzeit 25 ml/kg. Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Ausgewogen:</strong> zwischen den Mahlzeiten je eine feste Wassergabe (Vorgabe 60 ml, eine Spritze; bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens bis zur Höchstmenge je Mahlzeit; reicht das nicht, sagt es die App. <strong>Nur zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind. <strong>Nur in den Mahlzeiten:</strong> jedes Rezept bekommt seinen ganzen Anteil am Tagesbedarf, ohne Obergrenze. Bitte mit dem Behandlungsteam abstimmen.</p>
       </div>
 
       <div class="card">
@@ -1806,9 +1810,16 @@ const RECIPES_SONDE = [
     // Wasser nur bis zu dieser Größe in die Mahlzeit gerechnet, der Rest zwischen den Mahlzeiten.
     const maxMahlAuto = weight > 0 ? r10(weight * 25) : 0;
     const maxMahlMl = num(s.maxMahlMl) > 0 ? num(s.maxMahlMl) : maxMahlAuto;
+    // Wasser je Zwischenzeit (eine Spritze ≈ 60 ml): feste Vorgabe; die Mahlzeiten bekommen den Rest des Tagesbedarfs.
+    const zwischenMl = (s.zwischenMl === "" || s.zwischenMl == null) ? 60 : Math.max(0, num(s.zwischenMl));
+    const gapsDay = Math.max(1, mahl - 1);
+    const zwischenTag = zwischenMl * gapsDay;
+    // Flüssigkeitsziel je Mahlzeit: im Modus „ausgewogen“ nach Abzug der Zwischenzeiten, sonst der volle Anteil.
+    const fluidMahlZiel = wasserModus === "ausgewogen" ? Math.max(0, fluidDay - zwischenTag) / mahl : fluidDay / mahl;
     return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
-      fluidDay, fluidMahl: fluidDay / mahl, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0 };
+      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0,
+      zwischenMl, zwischenTag, gapsDay };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -2074,6 +2085,8 @@ const RECIPES_SONDE = [
     if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
     const fl = $("set-fluid");
     if (fl) { if (document.activeElement !== fl) fl.value = d.fluidManual ? s.fluidMl : ""; fl.placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag"; }
+    const zw = $("set-zwischen");
+    if (zw && document.activeElement !== zw) zw.value = (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl;
     const mm = $("set-maxmahl");
     if (mm) { if (document.activeElement !== mm) mm.value = d.maxMahlManual ? s.maxMahlMl : ""; mm.placeholder = d.maxMahlAuto > 0 ? "auto: " + fmt(d.maxMahlAuto, 0) : "ml"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
@@ -2201,7 +2214,10 @@ const RECIPES_SONDE = [
       if (d.wasserModus !== "mahlzeit") {
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) {
+        if (d.wasserModus === "ausgewogen") {
+          l2 += " · zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml";
+          if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        } else if (n > 0) {
           const rest = Math.max(0, d.fluidDay * (n / d.mahl) - planFluid);
           l2 += " · zwischen den Mahlzeiten: " + (rest > 0.5 ? fmt(rest, 0) + " ml (" + gaps(n) + " × " + fmt(rest / gaps(n), 0) + " ml)" : "nichts nötig");
         } else l2 += " · zwischen den Mahlzeiten: laut Tagesplan";
@@ -2240,7 +2256,7 @@ const RECIPES_SONDE = [
         " · " + fmt(d.fluidMahl, 0) + " ml je Mahlzeit · " +
         (d.wasserModus === "mahlzeit" ? "in den Mahlzeiten enthalten – Rezepte bekommen entsprechend mehr Wasser"
           : d.wasserModus === "zwischen" ? "Rezepte bleiben wie sie sind, der Rest wird zwischen den Mahlzeiten sondiert"
-          : "ausgewogen: Wasser in die Mahlzeit bis höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit" + (d.maxMahlManual ? " (manuell)" : " (25 ml/kg)") + ", der Rest zwischen den Mahlzeiten")
+          : "ausgewogen: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten, der Rest in die Mahlzeiten (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit" + (d.maxMahlManual ? ", manuell" : ", 25 ml/kg") + ")")
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -2329,6 +2345,8 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    const zw = document.getElementById("set-zwischen");
+    if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
@@ -2491,6 +2509,13 @@ const RECIPES_SONDE = [
   // Hinweis auf die globale Rechenregel (Vorgaben) – gilt für MCT und Packung gleichermaßen.
   // Wassergaben „zwischen den Mahlzeiten“: bei N Mahlzeiten N−1 Zwischenzeiten (mindestens 1).
   function gaps(n) { return Math.max(1, Math.round(n) - 1); }
+  // Modus „ausgewogen“: feste Wassergabe je Zwischenzeit; fehlt danach noch etwas (Höchstmenge je Mahlzeit erreicht), wird es genannt.
+  function zwischenText(d, rest, n) {
+    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan;
+    if (diff > 0.5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge liegen – Zwischenzeiten auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen, eine Wassergabe mehr einplanen oder die Höchstmenge je Mahlzeit anheben.</div>';
+    if (diff < -0.5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
+    return '<div class="note tip">💧 Zwischen den Mahlzeiten sondieren: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – damit ist der Tagesbedarf von ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
+  }
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
   }
@@ -2648,7 +2673,7 @@ const RECIPES_SONDE = [
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (d.wasserModus === "ausgewogen" ? ' (nach Abzug von ' + d.gapsDay + ' × ' + fmt(d.zwischenMl, 0) + ' ml zwischen den Mahlzeiten)' : '') +
         (d.wasserModus === "mahlzeit" ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : d.wasserModus === "ausgewogen" ? (mv.fluidAdjusted ? ' – Wasser ' + (mv.waterCapped ? 'bis zur Höchstmenge je Mahlzeit (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest zwischen den Mahlzeiten' : 'dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – Rest zwischen den Mahlzeiten'))
           : ' – Rest wird zwischen den Mahlzeiten sondiert') +
@@ -2659,7 +2684,9 @@ const RECIPES_SONDE = [
       ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
-      ? (d.wasserModus !== "mahlzeit"
+      ? (d.wasserModus === "ausgewogen"
+          ? zwischenText(d, fluidRest, dayN)
+          : d.wasserModus !== "mahlzeit"
           ? (fluidRest > 0.5
               ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidRest, 0) + ' ml Wasser am Tag</strong> – bei ' + dayN + ' Mahlzeiten sind das ' + gaps(dayN) + ' Zwischenzeiten à ≈ ' + fmt(fluidRest / gaps(dayN), 0) + ' ml.</div>'
               : '<div class="note tip">💧 Die Mahlzeiten decken den Flüssigkeitsbedarf – kein zusätzliches Wasser nötig.</div>')
@@ -2909,7 +2936,8 @@ const RECIPES_SONDE = [
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
         "</div>" +
-        (d.fluidDay > 0 && d.wasserModus !== "mahlzeit" ? (fluidZiel - tot.fluid > 0.5
+        (d.fluidDay > 0 && d.wasserModus === "ausgewogen" ? zwischenText(d, fluidZiel - tot.fluid, tot.filled) : "") +
+        (d.fluidDay > 0 && d.wasserModus === "zwischen" ? (fluidZiel - tot.fluid > 0.5
           ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidZiel - tot.fluid, 0) + ' ml Wasser</strong> – bei ' + tot.filled + ' geplanten Mahlzeiten sind das ' + gaps(tot.filled) + ' Zwischenzeiten à ≈ ' + fmt((fluidZiel - tot.fluid) / gaps(tot.filled), 0) + ' ml.</div>'
           : '<div class="note tip">💧 Die geplanten Mahlzeiten decken den Flüssigkeitsbedarf.</div>') : "") +
         (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +

@@ -64,9 +64,11 @@ Vorgaben.
   Eiweiß-Ziel je Mahlzeit.
 - **Flüssigkeit:** Tagesbedarf in ml (leer = Richtwert nach Holliday-Segar,
   100 ml/kg bis 10 kg), **Höchstmenge je Mahlzeit** (leer = 25 ml/kg) und der
-  Modus: **„ausgewogen"** (Standard: Wasser kommt in die Mahlzeit, bis sie die
-  Höchstmenge erreicht; was am Tag noch fehlt, wird auf Mahlzeiten minus eins
-  Zwischenzeiten verteilt), **„nur zwischen den Mahlzeiten"** (Rezepte
+  Modus: **„ausgewogen"** (Standard: zwischen den Mahlzeiten je eine feste
+  Wassergabe – **„Wasser je Zwischenzeit"**, Vorgabe 60 ml = eine Spritze, bei
+  N Mahlzeiten N−1 Gaben; der Rest des Tagesbedarfs kommt in die Mahlzeiten,
+  höchstens bis zur Höchstmenge; reicht das nicht, nennt die App die
+  Fehlmenge), **„nur zwischen den Mahlzeiten"** (Rezepte
   unverändert) oder **„nur in den Mahlzeiten"** (voller Anteil ohne
   Obergrenze). Gemerktes Wasser hat immer Vorrang; liegt eine Mahlzeit über
   der Höchstmenge, warnt die App. Gezählt wird das Wasser der Zutaten (Näherung: Rest

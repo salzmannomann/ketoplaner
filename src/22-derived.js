@@ -26,7 +26,14 @@
     // Wasser nur bis zu dieser Größe in die Mahlzeit gerechnet, der Rest zwischen den Mahlzeiten.
     const maxMahlAuto = weight > 0 ? r10(weight * 25) : 0;
     const maxMahlMl = num(s.maxMahlMl) > 0 ? num(s.maxMahlMl) : maxMahlAuto;
+    // Wasser je Zwischenzeit (eine Spritze ≈ 60 ml): feste Vorgabe; die Mahlzeiten bekommen den Rest des Tagesbedarfs.
+    const zwischenMl = (s.zwischenMl === "" || s.zwischenMl == null) ? 60 : Math.max(0, num(s.zwischenMl));
+    const gapsDay = Math.max(1, mahl - 1);
+    const zwischenTag = zwischenMl * gapsDay;
+    // Flüssigkeitsziel je Mahlzeit: im Modus „ausgewogen“ nach Abzug der Zwischenzeiten, sonst der volle Anteil.
+    const fluidMahlZiel = wasserModus === "ausgewogen" ? Math.max(0, fluidDay - zwischenTag) / mahl : fluidDay / mahl;
     return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
-      fluidDay, fluidMahl: fluidDay / mahl, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0 };
+      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0,
+      zwischenMl, zwischenTag, gapsDay };
   }

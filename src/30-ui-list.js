@@ -16,6 +16,8 @@
     if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
     const fl = $("set-fluid");
     if (fl) { if (document.activeElement !== fl) fl.value = d.fluidManual ? s.fluidMl : ""; fl.placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag"; }
+    const zw = $("set-zwischen");
+    if (zw && document.activeElement !== zw) zw.value = (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl;
     const mm = $("set-maxmahl");
     if (mm) { if (document.activeElement !== mm) mm.value = d.maxMahlManual ? s.maxMahlMl : ""; mm.placeholder = d.maxMahlAuto > 0 ? "auto: " + fmt(d.maxMahlAuto, 0) : "ml"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.

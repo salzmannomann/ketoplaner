@@ -104,6 +104,13 @@
   // Hinweis auf die globale Rechenregel (Vorgaben) – gilt für MCT und Packung gleichermaßen.
   // Wassergaben „zwischen den Mahlzeiten“: bei N Mahlzeiten N−1 Zwischenzeiten (mindestens 1).
   function gaps(n) { return Math.max(1, Math.round(n) - 1); }
+  // Modus „ausgewogen“: feste Wassergabe je Zwischenzeit; fehlt danach noch etwas (Höchstmenge je Mahlzeit erreicht), wird es genannt.
+  function zwischenText(d, rest, n) {
+    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan;
+    if (diff > 0.5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge liegen – Zwischenzeiten auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen, eine Wassergabe mehr einplanen oder die Höchstmenge je Mahlzeit anheben.</div>';
+    if (diff < -0.5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
+    return '<div class="note tip">💧 Zwischen den Mahlzeiten sondieren: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – damit ist der Tagesbedarf von ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
+  }
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
   }
@@ -261,7 +268,7 @@
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (d.wasserModus === "ausgewogen" ? ' (nach Abzug von ' + d.gapsDay + ' × ' + fmt(d.zwischenMl, 0) + ' ml zwischen den Mahlzeiten)' : '') +
         (d.wasserModus === "mahlzeit" ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : d.wasserModus === "ausgewogen" ? (mv.fluidAdjusted ? ' – Wasser ' + (mv.waterCapped ? 'bis zur Höchstmenge je Mahlzeit (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest zwischen den Mahlzeiten' : 'dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – Rest zwischen den Mahlzeiten'))
           : ' – Rest wird zwischen den Mahlzeiten sondiert') +
@@ -272,7 +279,9 @@
       ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
-      ? (d.wasserModus !== "mahlzeit"
+      ? (d.wasserModus === "ausgewogen"
+          ? zwischenText(d, fluidRest, dayN)
+          : d.wasserModus !== "mahlzeit"
           ? (fluidRest > 0.5
               ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidRest, 0) + ' ml Wasser am Tag</strong> – bei ' + dayN + ' Mahlzeiten sind das ' + gaps(dayN) + ' Zwischenzeiten à ≈ ' + fmt(fluidRest / gaps(dayN), 0) + ' ml.</div>'
               : '<div class="note tip">💧 Die Mahlzeiten decken den Flüssigkeitsbedarf – kein zusätzliches Wasser nötig.</div>')

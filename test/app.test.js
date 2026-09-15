@@ -268,7 +268,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
   assert.match($(w, "verordnung-summary").textContent, /KetoCal bevorzugt · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
   assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
-  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · max\. 200 ml je Mahlzeit · zwischen den Mahlzeiten: laut Tagesplan/);
+  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · max\. 200 ml je Mahlzeit · zwischen den Mahlzeiten: 4 × 60 ml/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl
   {
@@ -376,16 +376,23 @@ test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs
   assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);
   // Standard „ausgewogen“: Wasser bis zur Höchstmenge (210 ml) in die Mahlzeit, Rest zwischen den Mahlzeiten
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
-  assert.match($(w3, "fluid-summary").textContent, /ausgewogen: Wasser in die Mahlzeit bis höchstens 210 ml/);
+  assert.match($(w3, "fluid-summary").textContent, /ausgewogen: 3 × 60 ml zwischen den Mahlzeiten, der Rest in die Mahlzeiten \(höchstens 210 ml/);
   let c3 = openRecipe(w3, "Compleat & KetoCal");
   const kochen = c3.querySelector(".pane[data-pane=kochen]").textContent;
-  assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /bis zur Höchstmenge je Mahlzeit \(210 ml\) erhöht/);
+  assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /Ziel 168 ml je Mahlzeit \(nach Abzug von 3 × 60 ml zwischen den Mahlzeiten\)/);
   const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
-  assert.ok(Math.abs(vol - 210) <= 2, "Mahlzeit ≈ 210 ml: " + vol);
+  assert.ok(vol <= 212 && vol >= 180, "Mahlzeit unter Höchstmenge: " + vol);
+  const fluidTile = [...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
+  assert.ok(Math.abs(parseFloat(fluidTile.querySelector(".v").textContent) - 670) <= 3, "Mahlzeiten liefern 850 − 180: " + fluidTile.textContent);
   const paneA = c3.querySelector(".pane[data-pane=rechnen]").textContent;
-  assert.match(paneA, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser am Tag – bei 4 Mahlzeiten sind das 3 Zwischenzeiten/);
-  const restA = parseFloat(paneA.match(/sondieren: (\d+) ml/)[1]);
-  assert.ok(restA > 50 && restA < 250, "Rest zwischen den Mahlzeiten moderat: " + restA);
+  assert.match(paneA, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\) – damit ist der Tagesbedarf von 850 ml erreicht/);
+  assert.match($(w3, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml/);
+  // Zwischenzeit auf 0 ml: Mahlzeiten müssten 213 ml Flüssigkeit liefern – über der Höchstmenge → Hinweis auf Fehlmenge
+  fire(w3, $(w3, "detail-close"));
+  const zw = $(w3, "set-zwischen"); zw.value = "0"; fire(w3, zw, "input");
+  c3 = openRecipe(w3, "Compleat & KetoCal");
+  assert.match(c3.querySelector(".pane[data-pane=rechnen]").textContent, /fehlen am Tag noch \d+ ml/);
+  zw.value = ""; fire(w3, zw, "input");
   assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
   fire(w3, $(w3, "detail-close"));
   // Gericht, das von selbst groß ist: kein Wasser über die Höchstmenge hinaus

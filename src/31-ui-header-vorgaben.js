@@ -25,7 +25,10 @@
       if (d.wasserModus !== "mahlzeit") {
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) {
+        if (d.wasserModus === "ausgewogen") {
+          l2 += " · zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml";
+          if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        } else if (n > 0) {
           const rest = Math.max(0, d.fluidDay * (n / d.mahl) - planFluid);
           l2 += " · zwischen den Mahlzeiten: " + (rest > 0.5 ? fmt(rest, 0) + " ml (" + gaps(n) + " × " + fmt(rest / gaps(n), 0) + " ml)" : "nichts nötig");
         } else l2 += " · zwischen den Mahlzeiten: laut Tagesplan";
@@ -64,7 +67,7 @@
         " · " + fmt(d.fluidMahl, 0) + " ml je Mahlzeit · " +
         (d.wasserModus === "mahlzeit" ? "in den Mahlzeiten enthalten – Rezepte bekommen entsprechend mehr Wasser"
           : d.wasserModus === "zwischen" ? "Rezepte bleiben wie sie sind, der Rest wird zwischen den Mahlzeiten sondiert"
-          : "ausgewogen: Wasser in die Mahlzeit bis höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit" + (d.maxMahlManual ? " (manuell)" : " (25 ml/kg)") + ", der Rest zwischen den Mahlzeiten")
+          : "ausgewogen: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten, der Rest in die Mahlzeiten (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit" + (d.maxMahlManual ? ", manuell" : ", 25 ml/kg") + ")")
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -153,6 +156,8 @@
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    const zw = document.getElementById("set-zwischen");
+    if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
