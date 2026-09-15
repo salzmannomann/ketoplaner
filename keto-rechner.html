@@ -687,12 +687,14 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
   #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
   #mct-share-ctl button { padding: 8px 4px; }
 }
-/* Vorgaben: Zurücksetzen-Links stehen rechts in der Beschriftungszeile – die Feldhöhe bleibt dadurch immer gleich */
-.settings-grid { align-items: start; }
-.label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.label-row label { margin: 0; }
-.label-row .linkbtn { font-size: 12px; white-space: nowrap; padding: 0; }
-.label-row .linkbtn[hidden] { display: none; }
+/* Vorgaben: unter jedem Feld ist eine feste Zeile für den Zurücksetzen-Link reserviert – die Höhe bleibt
+   immer gleich, egal ob ein Link gerade sichtbar ist. Beschriftungen bleiben unverändert. */
+.settings-grid > div { position: relative; padding-bottom: 20px; }
+.reset-line { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; }
+.reset-line .linkbtn { font-size: 12px; padding: 0; }
+.reset-line .linkbtn[hidden] { display: none; }
+input:disabled { background: var(--bg); color: var(--muted); }
+#verordnung-summary #ratio-hint { margin: 0 0 8px; }
 
 </style>
 </head>
@@ -756,15 +758,16 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
-            <div class="hint" id="ratio-hint"></div>
           </div>
           <div>
-            <div class="label-row"><label>Kalorien pro Tag (Ziel)</label><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Kalorien pro Tag (Ziel)</label>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
-            <div class="label-row"><label>Kalorien mindestens pro Tag</label><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Kalorien mindestens pro Tag</label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -775,7 +778,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
           <div>
-            <div class="label-row"><label>Eiweiß-Bedarf</label><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+            <label>Eiweiß-Bedarf</label>
             <div class="inline-row">
               <select id="set-proteinmode">
                 <option value="0">manuell eingeben</option>
@@ -786,6 +789,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -813,12 +817,14 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
         </div>
         <div class="settings-grid">
           <div>
-            <div class="label-row"><label>Flüssigkeit gesamt pro Tag (ml)</label><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Flüssigkeit gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
-            <div class="label-row"><label>Wasser je Zwischenzeit (ml)</label><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
+            <label>Wasser je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -2124,12 +2130,14 @@ const RECIPES_SONDE = [
     show("reset-kcal", d.kcalManual);
     show("reset-kcalmin", d.kcalMinManual);
     show("reset-fluid", d.fluidManual);
-    show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    show("reset-zwischen", d.wasserModus === "zwischen" && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
     show("reset-protein", d.proteinPerKg !== d.proteinStandard);
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
-    put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
-    const zf = $("zwischen-field"); if (zf) zf.hidden = d.wasserModus !== "zwischen"; // Menge je Zwischenzeit nur, wenn sondiert wird
+    // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
+    const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
+    put("set-zwischen", zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) ? s.zwischenMl : "");
+    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "60 (eine Spritze)" : "– (alles in den Mahlzeiten)"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
@@ -2262,8 +2270,14 @@ const RECIPES_SONDE = [
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
+    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
+    // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
+    const ratioWarn = d.ratio < 1
+      ? '<div id="ratio-hint">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      : "";
     const sum = document.getElementById("verordnung-summary");
-    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
+    if (sum) sum.className = "note " + (d.ratio < 1 ? "warn" : "tip");
+    if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
       ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
       (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
@@ -2272,13 +2286,6 @@ const RECIPES_SONDE = [
       " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
-    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
-    const rh = document.getElementById("ratio-hint");
-    if (rh) {
-      if (d.ratio >= 1) rh.innerHTML = "";
-      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.";
-      rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
-    }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // Flüssigkeit: Modus-Buttons und Zusammenfassung

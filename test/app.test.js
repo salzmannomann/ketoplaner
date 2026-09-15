@@ -360,8 +360,10 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   ri.value = "0,67"; fire(w, ri, "input"); fire(w, ri, "change");
   assert.equal(ri.value, "0,67");
   assert.match($(w, "ratio-hint").textContent, /0,67:1 heißt nur 0,67 g Fett je 1 g Eiweiß\+KH – weniger Fett als Eiweiß\+KH/);
+  assert.ok($(w, "verordnung-summary").classList.contains("warn"), "Zusammenfassung als Warnung");
   ri.value = "1,5"; fire(w, ri, "input");
-  assert.ok($(w, "ratio-hint").hidden && $(w, "ratio-hint").textContent === "", "kein Hinweis bei Werten ab 1:1");
+  assert.equal($(w, "ratio-hint"), null, "kein Hinweis bei Werten ab 1:1");
+  assert.ok($(w, "verordnung-summary").classList.contains("tip"));
   ri.value = "1:1,5"; fire(w, ri, "input"); // alte Schreibweise wird weiterhin verstanden
   assert.match($(w, "rx-chip").textContent, /^0,67:1 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
@@ -399,7 +401,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 850");
   assert.equal(w.document.querySelectorAll("#wasser-modus-ctl button").length, 2, "nur zwei Stellungen");
   assert.ok(w.document.querySelector("#wasser-modus-ctl button[data-wmodus=zwischen]").classList.contains("active"));
-  assert.ok(!$(w, "zwischen-field").hidden, "Menge je Zwischenzeit sichtbar");
+  assert.ok(!$(w, "set-zwischen").disabled, "Menge je Zwischenzeit aktiv");
   assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge mehr");
   assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*3 × 60 ml zwischen den Mahlzeiten sondieren \(180 ml\), der Rest von 670 ml in den Mahlzeiten: je 168 ml/);
   // „zwischen“: Mahlzeit wird auf 168 ml aufgefüllt, Rest per Spritze
@@ -411,7 +413,8 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml; Feld je Zwischenzeit verschwindet
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
-  assert.ok($(w, "zwischen-field").hidden, "Menge je Zwischenzeit ausgeblendet");
+  assert.ok($(w, "set-zwischen").disabled, "Menge je Zwischenzeit ausgegraut, Feld bleibt an Ort und Stelle");
+  assert.ok(!$(w, "zwischen-field").hidden);
   assert.match($(w, "fluid-summary").textContent, /alles in den Mahlzeiten: je 213 ml/);
   assert.match($(w, "rx-chip").textContent, /alles in den Mahlzeiten \(je 213 ml\)/);
   c = openRecipe(w, "Hendl & Brokkoli");

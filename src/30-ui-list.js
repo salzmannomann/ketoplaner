@@ -20,12 +20,14 @@
     show("reset-kcal", d.kcalManual);
     show("reset-kcalmin", d.kcalMinManual);
     show("reset-fluid", d.fluidManual);
-    show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    show("reset-zwischen", d.wasserModus === "zwischen" && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
     show("reset-protein", d.proteinPerKg !== d.proteinStandard);
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
-    put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
-    const zf = $("zwischen-field"); if (zf) zf.hidden = d.wasserModus !== "zwischen"; // Menge je Zwischenzeit nur, wenn sondiert wird
+    // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
+    const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
+    put("set-zwischen", zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) ? s.zwischenMl : "");
+    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "60 (eine Spritze)" : "– (alles in den Mahlzeiten)"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;

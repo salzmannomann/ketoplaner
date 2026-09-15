@@ -32,8 +32,14 @@
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
+    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
+    // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
+    const ratioWarn = d.ratio < 1
+      ? '<div id="ratio-hint">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      : "";
     const sum = document.getElementById("verordnung-summary");
-    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
+    if (sum) sum.className = "note " + (d.ratio < 1 ? "warn" : "tip");
+    if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
       ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
       (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
@@ -42,13 +48,6 @@
       " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
-    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
-    const rh = document.getElementById("ratio-hint");
-    if (rh) {
-      if (d.ratio >= 1) rh.innerHTML = "";
-      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.";
-      rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
-    }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // Flüssigkeit: Modus-Buttons und Zusammenfassung

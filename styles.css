@@ -670,9 +670,11 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
   #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
   #mct-share-ctl button { padding: 8px 4px; }
 }
-/* Vorgaben: Zurücksetzen-Links stehen rechts in der Beschriftungszeile – die Feldhöhe bleibt dadurch immer gleich */
-.settings-grid { align-items: start; }
-.label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.label-row label { margin: 0; }
-.label-row .linkbtn { font-size: 12px; white-space: nowrap; padding: 0; }
-.label-row .linkbtn[hidden] { display: none; }
+/* Vorgaben: unter jedem Feld ist eine feste Zeile für den Zurücksetzen-Link reserviert – die Höhe bleibt
+   immer gleich, egal ob ein Link gerade sichtbar ist. Beschriftungen bleiben unverändert. */
+.settings-grid > div { position: relative; padding-bottom: 20px; }
+.reset-line { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; }
+.reset-line .linkbtn { font-size: 12px; padding: 0; }
+.reset-line .linkbtn[hidden] { display: none; }
+input:disabled { background: var(--bg); color: var(--muted); }
+#verordnung-summary #ratio-hint { margin: 0 0 8px; }

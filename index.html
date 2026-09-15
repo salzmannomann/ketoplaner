@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=736919db" />
+  <link rel="stylesheet" href="styles.css?v=421de520" />
 </head>
 <body>
   <header class="topbar">
@@ -76,15 +76,16 @@
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
-            <div class="hint" id="ratio-hint"></div>
           </div>
           <div>
-            <div class="label-row"><label>Kalorien pro Tag (Ziel)</label><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Kalorien pro Tag (Ziel)</label>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
-            <div class="label-row"><label>Kalorien mindestens pro Tag</label><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Kalorien mindestens pro Tag</label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -95,7 +96,7 @@
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
           <div>
-            <div class="label-row"><label>Eiweiß-Bedarf</label><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+            <label>Eiweiß-Bedarf</label>
             <div class="inline-row">
               <select id="set-proteinmode">
                 <option value="0">manuell eingeben</option>
@@ -106,6 +107,7 @@
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -133,12 +135,14 @@
         </div>
         <div class="settings-grid">
           <div>
-            <div class="label-row"><label>Flüssigkeit gesamt pro Tag (ml)</label><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <label>Flüssigkeit gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
-            <div class="label-row"><label>Wasser je Zwischenzeit (ml)</label><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
+            <label>Wasser je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
+            <div class="reset-line"><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -246,7 +250,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=bda1d80f"></script>
+  <script src="app.js?v=cd7f5ae1"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
