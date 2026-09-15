@@ -115,8 +115,8 @@ Vorgaben.
 
 Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
 
-1. **Rechnen** – Kennzahlen der Mahlzeit (kcal, Verhältnis, Eiweiß, Fett,
-   KH), die MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
+1. **Rechnen** – Kennzahlen **einer Portion** (kcal, Verhältnis, Eiweiß, Fett,
+   KH; unabhängig von der Zubereitungsmenge), die MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
    🥩 Rind / 🦃 Pute**, ein fester Block **„Ein Tag = N × diese Mahlzeit"** (eine
    Portion × Mahlzeiten pro Tag mit Ziel und Minimum sowie einer Zutatentabelle je Tag mit
    Gramm, Eiweiß, Fett, KH und kcal je Zutat, unabhängig von der gewählten
@@ -128,7 +128,8 @@ Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
    **Varoma-Anleitung** als nummerierte Schritte. Ändert man
    eine Zutatenmenge direkt (z. B. „827 g Zucchini"), skalieren alle anderen
    Zutaten proportional mit; **Wasser** ist davon ausgenommen und kann
-   unabhängig angepasst werden. Menge und Wasser werden **je Rezept gemerkt**.
+   unabhängig angepasst werden. Menge und Wasser werden **je Rezept gemerkt**;
+   „Ganzer Tag" wird als Wahl gemerkt und folgt der Mahlzeitenzahl aus den Vorgaben.
 3. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
    vor dem Verabreichen dazu), darunter die Öl-Menge je Portion (Rapsöl / MCT
    getrennt) und die Gesamtmenge.

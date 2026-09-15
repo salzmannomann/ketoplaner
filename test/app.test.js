@@ -298,6 +298,37 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 1.000");
 });
 
+test("Zubereitungsmenge: „Ganzer Tag“ folgt der Mahlzeitenzahl; Rechnen zeigt immer eine Portion", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 5 } });
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const tagBtn = c.querySelector('.seg-portion button[data-scale="tag"]');
+  assert.match(tagBtn.textContent, /Ganzer Tag \(×5\)/); fire(w, tagBtn);
+  c = $(w, "detail-content");
+  assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Abwiegen für 5 Portionen/);
+  assert.match(c.querySelector(".detail-head").textContent, /Zubereitung: 5 Portionen \(ganzer Tag\)/);
+  // Rechnen: Mahlzeit-Kacheln und Tabelle je Portion, obwohl 5 Portionen zubereitet werden
+  const kcalTile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 140) <= 1, kcalTile.textContent);
+  assert.match(c.querySelector(".pane[data-pane=rechnen]").textContent, /Mahlzeit eine Portion/);
+  assert.match(c.querySelector(".pane[data-pane=rechnen]").textContent, /Summe je Portion/);
+  fire(w, $(w, "detail-close"));
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], "tag");
+  // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
+  const mi = $(w, "set-mahlzeiten"); mi.value = "4"; fire(w, mi, "input");
+  c = openRecipe(w, "Hendl & Brokkoli");
+  assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
+  assert.match(c.querySelector('.seg-portion button[data-scale="tag"]').textContent, /×4/);
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Abwiegen für 4 Portionen/);
+  const kcal4 = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
+  // Zurück auf 1 Portion
+  fire(w, c.querySelector('.seg-portion button[data-scale="1"]'));
+  c = $(w, "detail-content");
+  assert.doesNotMatch(c.querySelector(".detail-head").textContent, /Zubereitung/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], undefined);
+});
+
 test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {
   const w = boot({ settings: { weight: 8 } });
   const wi = $(w, "set-weight");

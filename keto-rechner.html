@@ -2454,17 +2454,22 @@ const RECIPES_SONDE = [
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  let detailRec = null, detailScale = 1, detailMeat = null; // detailScale: Portionen-Faktor, detailMeat: temporäre Fleischwahl
-  // Merkt sich die zuletzt eingegebene Menge (Portionen-Faktor) je Rezept – bleibt auch nach dem Schließen erhalten.
+  // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" (= ganzer Tag, folgt der Mahlzeitenzahl). detailMeat: temporäre Fleischwahl.
+  let detailRec = null, detailScale = 1, detailMeat = null;
+  // Merkt sich die Zubereitungsmenge je Rezept – bleibt auch nach dem Schließen erhalten. „Ganzer Tag“ wird als
+  // Wahl gemerkt, nicht als Zahl: ändert sich die Mahlzeitenzahl in den Vorgaben, zieht die Menge mit.
   function persistScale() {
     if (!detailRec) return;
     const k = familyKey(detailRec);
-    if (Math.abs(detailScale - 1) < 1e-6) delete state.scales[k];
-    else state.scales[k] = detailScale;
+    if (detailScale === "tag") state.scales[k] = "tag";
+    else if (Math.abs(num(detailScale) - 1) < 1e-6) delete state.scales[k];
+    else state.scales[k] = num(detailScale);
     save();
   }
+  function scaleMult(d) { return detailScale === "tag" ? d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = num(state.scales[familyKey(rec)]) || 1; detailMeat = null;
+    const sv = state.scales[familyKey(rec)];
+    detailRec = rec; detailScale = sv === "tag" ? "tag" : (num(sv) || 1); detailMeat = null;
     state.settings.detailTab = "rechnen"; // jedes Rezept öffnet mit Rechnen; innerhalb der Ansicht bleibt der gewählte Reiter
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
@@ -2575,7 +2580,7 @@ const RECIPES_SONDE = [
     const mv = computeMealView(rec, d, detailMeat);
     const res = mv.res, adjIndex = mv.adjIndex, adjLabel = mv.adjLabel;
     const baseOilIndex = mv.baseOilIndex, waterKey = mv.waterKey, hasWaterOverride = mv.hasWaterOverride;
-    const mult = detailScale > 0 ? detailScale : 1;
+    const mult = scaleMult(d); // gilt für Kochen und Abfüllen; Rechnen zeigt immer eine Portion
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
@@ -2684,14 +2689,14 @@ const RECIPES_SONDE = [
     let kRows = "", nRows = "";
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
-      const m = lineMacros({ food: it.food, grams: g });
+      const m = lineMacros({ food: it.food, grams: num(it.grams) }); // Rechnen: je Portion
       const isWaterRow = /wasser/i.test(it.food);
       const gR = Math.round(g * 10) / 10;
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
         (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
-        "<td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+        "<td>" + fmt(num(it.grams), 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).
     const prepText = rec.varoma
@@ -2758,7 +2763,7 @@ const RECIPES_SONDE = [
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + " " + ketoBadge + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
-        fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
+        fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("rechnen", "📊 Rechnen") + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + "</div>" +
 
       /* ---------- Kochen ---------- */
@@ -2767,8 +2772,8 @@ const RECIPES_SONDE = [
       '<div class="seg-portion batch">' +
         '<span class="seg-label">Menge zubereiten:</span>' +
         '<div class="segmented mini">' +
-          '<button type="button" data-scale="1"' + (mult === 1 ? ' class="active"' : "") + ">1 Portion</button>" +
-          '<button type="button" data-scale="' + d.mahl + '"' + (Math.abs(mult - d.mahl) < 0.01 ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
+          '<button type="button" data-scale="1"' + (detailScale !== "tag" && mult === 1 ? ' class="active"' : "") + ">1 Portion</button>" +
+          '<button type="button" data-scale="tag"' + (detailScale === "tag" ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
         "</div>" +
         '<span class="portion-step">Portionen <button type="button" class="stepbtn" data-step="-1">−</button>' +
         '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
@@ -2803,12 +2808,12 @@ const RECIPES_SONDE = [
       meatSeg +
       oilSeg +
       packInfoSeg +
-      '<h4 class="ph">🍽️ Mahlzeit <span class="hint">' + (mult === 1 ? "je Portion" : "für " + portionLabel) + '</span></h4>' +
+      '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
       '<div class="detail-tiles">' +
-        '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil * mult : totalG, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG, 0) + ' g</small>' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil * mult : ml, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml, 0) + ' ml</small>' : "") + '</div></div>' +
-        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(proteinTarget) + ' g)</div></div>' +
+        '<div class="dstat"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
+        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
       "</div>" +
       (res.mct ? '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(res.mct.energiePz, 1) + ' %</div><div class="l">MCT-Anteil der Energie<br><small>' + mctEinordnung(res.mct.energiePz) + '</small></div></div>' +
@@ -2818,15 +2823,15 @@ const RECIPES_SONDE = [
       (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         nRows +
-        "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
-        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
+        "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG / mult, 0) + "</td><td>" + fmt(sumPer.eiweiss) + "</td><td>" +
+        fmt(sumPer.fett) + "</td><td>" + fmt(sumPer.kh) + "</td><td>" + fmt(sumPer.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       daySeg +
       '<div class="btn-row"><button type="button" class="btn" id="edit-btn">✏️ ' + (rec.custom ? "Rezept bearbeiten" : "Zutaten ändern / tauschen (Editor)") + "</button></div>" +
       "</div>";
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
-      b.addEventListener("click", () => { detailScale = parseFloat(b.dataset.scale) || 1; persistScale(); renderDetail(); }));
+      b.addEventListener("click", () => { detailScale = b.dataset.scale === "tag" ? "tag" : (parseFloat(b.dataset.scale) || 1); persistScale(); renderDetail(); }));
     c.querySelectorAll(".seg-portion button[data-step]").forEach(b =>
       b.addEventListener("click", () => {
         detailScale = Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2);
