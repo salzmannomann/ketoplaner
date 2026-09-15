@@ -560,31 +560,29 @@
 
     // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
     const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
+    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const onlyQuelle = !!s.onlyQuelle;
     const phase = ketoPhase();
+    // Eine wischbare Zeile mit den Gruppen; der aktive Chip wird ins Bild gerückt. KetoCal-Phase steht in
+    // Kopfzeile und Vorgaben, der Diätologie-Filter und die Sortierung im „⋯“-Aufklapper.
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    const catChips = el("div", { class: "chips cat" });
+    let activeChip = null;
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
-      catChips.appendChild(chip);
+      fb.appendChild(chip);
+      if (f.id === filter) activeChip = chip;
     });
-    fb.appendChild(catChips);
-    const switchChips = el("div", { class: "chips switches" });
-    [["mit", "🥄 KetoCal bevorzugt"], ["ohne", "ohne KetoCal bevorzugt"]].forEach(([k, lab]) => {
-      const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
-      c.addEventListener("click", () => setKetoPhase(k));
-      switchChips.appendChild(c);
-    });
-    const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
-    qc.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
-    switchChips.appendChild(qc);
-    fb.appendChild(switchChips);
+    if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
+      fb.scrollLeft = Math.max(0, activeChip.offsetLeft - (fb.clientWidth - activeChip.offsetWidth) / 2);
+    }
+    const oq = $("only-quelle"); if (oq) oq.checked = onlyQuelle;
+    const mt = $("more-toggle"); if (mt) mt.classList.toggle("open", onlyQuelle || (s.sort && s.sort !== "kategorie") || !$("more-row").hidden);
+    const stg = $("search-toggle"); if (stg) stg.classList.toggle("open", !!q || !$("search-row").hidden);
 
     // Ein Eintrag je Gericht; gezeigt wird die Variante laut Wahl/Phase (bei „Diätologie“ die Original-Variante).
     // Erreicht die gezeigte Variante das Verhältnis nicht, wird eine andere Variante des Gerichts versucht.
-    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
     const entries = [];
     allFamilies().forEach(fam => {
@@ -602,9 +600,6 @@
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
       entries.push({ fam, rec, res: computeMealView(rec, d, null).res });
     });
-
-    $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
-      (phase === "mit" ? " · KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die mit KetoCal" : " · ohne KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die ohne");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
@@ -791,6 +786,17 @@
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
+    const sRow = document.getElementById("search-row"), sTog = document.getElementById("search-toggle"), sClose = document.getElementById("search-close");
+    if (sTog) sTog.addEventListener("click", () => {
+      sRow.hidden = !sRow.hidden;
+      if (!sRow.hidden) { try { search.focus(); } catch (e) {} } else if (search.value) { search.value = ""; }
+      renderRezepte();
+    });
+    if (sClose) sClose.addEventListener("click", () => { search.value = ""; sRow.hidden = true; renderRezepte(); });
+    const mRow = document.getElementById("more-row"), mTog = document.getElementById("more-toggle");
+    if (mTog) mTog.addEventListener("click", () => { mRow.hidden = !mRow.hidden; renderRezepte(); });
+    const oq = document.getElementById("only-quelle");
+    if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => showView("vorgaben"));

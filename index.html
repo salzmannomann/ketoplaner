@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=2490eb93" />
+  <link rel="stylesheet" href="styles.css?v=3df85c7e" />
 </head>
 <body>
   <header class="topbar">
@@ -46,24 +46,30 @@
 
     <!-- ===== Rezepte ===== -->
     <section id="view-rezepte" class="view">
-      <div class="toolbar top">
-        <input id="recipe-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
-        <button id="compose-btn" class="iconbtn primary" type="button" title="Eigenes Rezept zusammenstellen">🧪 <span class="lbl">Eigenes Rezept</span></button>
-      </div>
-      <div class="filter-sort">
-        <div id="filter-bar"></div>
-        <div class="toolbar">
-          <span class="hint" id="recipe-count"></span>
-          <span class="sort-wrap">
-            <label for="sort-select" class="sort-label">Sortieren:</label>
-            <select id="sort-select">
-              <option value="kategorie">Nach Kategorie</option>
-              <option value="name">Name (A–Z)</option>
-              <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-              <option value="volumen">Menge (wenig zuerst)</option>
-            </select>
-          </span>
+      <!-- Eine Zeile: wischbare Gruppen-Chips + Lupe, Eigenes Rezept, Mehr. Suche und Mehr klappen darunter auf. -->
+      <div class="listbar">
+        <div id="filter-bar" class="chips cat" aria-label="Gruppen"></div>
+        <div class="listbar-actions">
+          <button id="search-toggle" class="iconbtn round" type="button" title="Suchen" aria-label="Suchen">🔍</button>
+          <button id="compose-btn" class="iconbtn round primary" type="button" title="Eigenes Rezept zusammenstellen" aria-label="Eigenes Rezept">🧪</button>
+          <button id="more-toggle" class="iconbtn round" type="button" title="Sortierung und Filter" aria-label="Sortierung und Filter">⋯</button>
         </div>
+      </div>
+      <div id="search-row" class="toolbar top" hidden>
+        <input id="recipe-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
+        <button id="search-close" class="iconbtn" type="button" title="Suche schließen" aria-label="Suche schließen">✕</button>
+      </div>
+      <div id="more-row" class="more-row" hidden>
+        <label class="check"><input type="checkbox" id="only-quelle" /> 👩‍⚕️ nur Rezepte der Diätologie</label>
+        <span class="sort-wrap">
+          <label for="sort-select" class="sort-label">Sortieren:</label>
+          <select id="sort-select">
+            <option value="kategorie">Nach Kategorie</option>
+            <option value="name">Name (A–Z)</option>
+            <option value="eiweiss">Eiweiß (meiste zuerst)</option>
+            <option value="volumen">Menge (wenig zuerst)</option>
+          </select>
+        </span>
       </div>
       <div id="recipe-list"></div>
     </section>
@@ -250,7 +256,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=d241a820"></script>
+  <script src="app.js?v=02d1ce53"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

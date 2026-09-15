@@ -38,31 +38,29 @@
 
     // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
     const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
+    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const onlyQuelle = !!s.onlyQuelle;
     const phase = ketoPhase();
+    // Eine wischbare Zeile mit den Gruppen; der aktive Chip wird ins Bild gerückt. KetoCal-Phase steht in
+    // Kopfzeile und Vorgaben, der Diätologie-Filter und die Sortierung im „⋯“-Aufklapper.
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    const catChips = el("div", { class: "chips cat" });
+    let activeChip = null;
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
-      catChips.appendChild(chip);
+      fb.appendChild(chip);
+      if (f.id === filter) activeChip = chip;
     });
-    fb.appendChild(catChips);
-    const switchChips = el("div", { class: "chips switches" });
-    [["mit", "🥄 KetoCal bevorzugt"], ["ohne", "ohne KetoCal bevorzugt"]].forEach(([k, lab]) => {
-      const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
-      c.addEventListener("click", () => setKetoPhase(k));
-      switchChips.appendChild(c);
-    });
-    const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
-    qc.addEventListener("click", () => { state.settings.onlyQuelle = !state.settings.onlyQuelle; save(); renderRezepte(); });
-    switchChips.appendChild(qc);
-    fb.appendChild(switchChips);
+    if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
+      fb.scrollLeft = Math.max(0, activeChip.offsetLeft - (fb.clientWidth - activeChip.offsetWidth) / 2);
+    }
+    const oq = $("only-quelle"); if (oq) oq.checked = onlyQuelle;
+    const mt = $("more-toggle"); if (mt) mt.classList.toggle("open", onlyQuelle || (s.sort && s.sort !== "kategorie") || !$("more-row").hidden);
+    const stg = $("search-toggle"); if (stg) stg.classList.toggle("open", !!q || !$("search-row").hidden);
 
     // Ein Eintrag je Gericht; gezeigt wird die Variante laut Wahl/Phase (bei „Diätologie“ die Original-Variante).
     // Erreicht die gezeigte Variante das Verhältnis nicht, wird eine andere Variante des Gerichts versucht.
-    const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
     const entries = [];
     allFamilies().forEach(fam => {
@@ -80,9 +78,6 @@
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
       entries.push({ fam, rec, res: computeMealView(rec, d, null).res });
     });
-
-    $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
-      (phase === "mit" ? " · KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die mit KetoCal" : " · ohne KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die ohne");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;

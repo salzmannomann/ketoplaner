@@ -270,16 +270,21 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 }
 .chip:hover { background: var(--bg); }
 .chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
-/* Unabhängige Schalter (KetoCal + Diätologie) – als Gruppe abgesetzt */
-#filter-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
-#filter-bar .chips { margin-bottom: 0; }
-.chip.switch { border-color: #ddd6fe; color: #6d28d9; }
-.chip.switch:hover { background: #f5f3ff; }
-.chip.switch.active { background: #6d28d9; border-color: #6d28d9; color: #fff; }
-@media (max-width: 600px) {
-  #filter-bar .chips.cat, #filter-bar .chips.switches { width: 100%; }
-  #filter-bar .chips.switches { padding-top: 8px; border-top: 1px solid var(--line); }
-}
+/* Rezeptliste: eine Zeile – wischbare Gruppen-Chips + Lupe / Eigenes Rezept / Mehr; darunter sofort die Rezepte */
+.listbar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+#filter-bar { flex: 1; min-width: 0; margin: 0; flex-wrap: nowrap; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+#filter-bar::-webkit-scrollbar { display: none; }
+#filter-bar .chip { flex: 0 0 auto; white-space: nowrap; }
+.listbar-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+.iconbtn.round { width: 38px; height: 38px; padding: 0; justify-content: center; border-radius: 999px; font-size: 17px; }
+.iconbtn.round.open { background: var(--brand-soft); border-color: var(--brand-soft); }
+.more-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 0 0 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.more-row .check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); margin: 0; cursor: pointer; }
+.more-row .check input { width: 18px; height: 18px; }
+.more-row .sort-wrap { display: inline-flex; align-items: center; gap: 8px; }
+.more-row .sort-label { color: var(--muted); font-size: 14px; white-space: nowrap; }
+@media (min-width: 821px) { #filter-bar { flex-wrap: wrap; overflow: visible; } }
+@media (max-width: 560px) { .more-row .sort-wrap { width: 100%; } .more-row #sort-select { flex: 1; max-width: none; } }
 
 /* Portions-Umschalter im Detail */
 .seg-portion { margin: 0 0 14px; }
@@ -697,3 +702,5 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .collapsible.mini p { font-size: 12px; }
 .meat-swap details.collapsible { margin: 8px 0 0; }
 .meat-note.stat-line { color: var(--ink); }
+.toolbar.top[hidden], .more-row[hidden] { display: none; }
+@media (max-width: 360px) { .detail-tiles.strip { grid-template-columns: 1fr 1fr; } }

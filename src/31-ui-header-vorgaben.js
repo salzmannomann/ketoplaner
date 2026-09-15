@@ -141,6 +141,17 @@
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
+    const sRow = document.getElementById("search-row"), sTog = document.getElementById("search-toggle"), sClose = document.getElementById("search-close");
+    if (sTog) sTog.addEventListener("click", () => {
+      sRow.hidden = !sRow.hidden;
+      if (!sRow.hidden) { try { search.focus(); } catch (e) {} } else if (search.value) { search.value = ""; }
+      renderRezepte();
+    });
+    if (sClose) sClose.addEventListener("click", () => { search.value = ""; sRow.hidden = true; renderRezepte(); });
+    const mRow = document.getElementById("more-row"), mTog = document.getElementById("more-toggle");
+    if (mTog) mTog.addEventListener("click", () => { mRow.hidden = !mRow.hidden; renderRezepte(); });
+    const oq = document.getElementById("only-quelle");
+    if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => showView("vorgaben"));

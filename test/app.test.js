@@ -56,6 +56,7 @@ function clickChip(w, label) {
   assert.ok(b, "Filter-Chip fehlt: " + label);
   fire(w, b);
 }
+const setPhase = (w, k) => fire(w, w.document.querySelector("#ketocal-ctl button[data-ketocal=" + k + "]"));
 function switchDetailTab(w, k) { fire(w, $(w, "detail-content").querySelector("#detail-tabs button[data-dtab=" + k + "]")); return $(w, "detail-content"); }
 
 test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
@@ -157,7 +158,7 @@ test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Anger�
   assert.equal(new Set(tileNames(w)).size, all, "doppelte Gerichte");
   assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
   const kcMit = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
-  clickChip(w, "ohne KetoCal bevorzugt");
+  setPhase(w, "ohne");
   assert.equal(tileNames(w).length, all, "Phase ändert nicht die Anzahl der Gerichte");
   const kcOhne = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
   assert.ok(tiles(w).some(t => /nur mit KetoCal/.test(badgeOf(t))), "Kennzeichen „nur mit KetoCal“ in der ohne-Phase");
@@ -198,7 +199,7 @@ test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favori
   const tile = () => tiles(w2).find(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
   assert.match(badgeOf(tile()), /Rapsöl/); assert.ok(!/KetoCal/.test(badgeOf(tile())));
   assert.ok(tile().querySelector(".favbtn").classList.contains("on"));
-  clickChip(w2, "ohne KetoCal bevorzugt"); clickChip(w2, "🥄 KetoCal bevorzugt");
+  setPhase(w2, "ohne"); setPhase(w2, "mit");
   assert.match(badgeOf(tile()), /KetoCal/);
 });
 
