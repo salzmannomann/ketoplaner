@@ -60,6 +60,14 @@ die Vorgaben.
   6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
+- **Flüssigkeit:** Tagesbedarf in ml (leer = Richtwert nach Holliday-Segar,
+  100 ml/kg bis 10 kg) und der Modus **„zwischen den Mahlzeiten sondieren"**
+  (Rezepte unverändert; Rezept und Tagesplan zeigen, wie viel Wasser noch zu
+  sondieren ist) oder **„in den Mahlzeiten"** (jedes Rezept bekommt so viel
+  Wasser, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert; gemerktes
+  Wasser hat Vorrang). Gezählt wird das Wasser der Zutaten (Näherung: Rest
+  ohne Eiweiß, Fett, KH, Ballaststoffe; Pulver und Fertigprodukte mit
+  Etikettwert) plus das Rezept-Wasser.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
   Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
   wird die Regel nur angezeigt.

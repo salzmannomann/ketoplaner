@@ -32,12 +32,20 @@
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     const rh = document.getElementById("ratio-hint");
     if (rh) {
-      if (d.ratio >= 1) rh.innerHTML = fmtTarget(d.ratio) + " = " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH" + (d.ratio > 1 ? " (mehr Fett als Eiweiß+KH)" : " (gleich viel Fett wie Eiweiß+KH)") + ".";
+      if (d.ratio >= 1) rh.innerHTML = "";
       else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
-      rh.classList.toggle("warnish", d.ratio < 1);
+      rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
     }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
+    // Flüssigkeit: Modus-Buttons und Zusammenfassung
+    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
+      b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
+    const fs = document.getElementById("fluid-summary");
+    if (fs) fs.innerHTML = d.fluidDay > 0
+      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Richtwert nach Holliday-Segar: 100 ml/kg bis 10 kg)") +
+        " · " + fmt(d.fluidMahl, 0) + " ml je Mahlzeit · " + (d.wasserModus === "mahlzeit" ? "in den Mahlzeiten enthalten – Rezepte bekommen entsprechend mehr Wasser" : "Rezepte bleiben wie sie sind, der Rest wird zwischen den Mahlzeiten sondiert")
+      : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
     if (more) more.hidden = !(d.mctShare > 0);
@@ -92,7 +100,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -125,6 +133,8 @@
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus === "mahlzeit" ? "mahlzeit" : "zwischen"; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
     const impF = document.getElementById("import-file");

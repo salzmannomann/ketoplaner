@@ -13,7 +13,7 @@
   function renderHeute() {
     const box = document.getElementById("heute-content"); if (!box) return;
     const d = derived(); ensureDayPlan(d);
-    const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, filled: 0 };
+    const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, fluid: 0, filled: 0 };
     const facts = [];
     const slotsHtml = state.dayPlan.map((slot, i) => {
       const rec = recipeByKey(slot.key);
@@ -24,7 +24,7 @@
       }
       const f = mealFacts(rec, d); facts.push(f);
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
-      tot.mct += f.gMct; tot.raps += f.gRaps; tot.filled++;
+      tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
       return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
         '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
         '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
@@ -41,7 +41,7 @@
     const ratioDay = (tot.eiweiss + tot.kh) > 0 ? tot.fett / (tot.eiweiss + tot.kh) : null;
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Ziele anteilig
     const pct = (v, t) => t > 0 ? Math.round(v / t * 100) : 0;
-    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share;
+    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.kcal < kcalMinZiel - 0.5;
     const sums = tot.filled
       ? '<div class="card"><h3>Σ Tagessummen <span class="hint">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></h3>' +
@@ -50,7 +50,12 @@
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
+        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
         "</div>" +
+        (d.fluidDay > 0 && d.wasserModus === "zwischen" ? (fluidZiel - tot.fluid > 0.5
+          ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidZiel - tot.fluid, 0) + ' ml Wasser</strong> (≈ ' + fmt((fluidZiel - tot.fluid) / tot.filled, 0) + ' ml nach jeder geplanten Mahlzeit).</div>'
+          : '<div class="note tip">💧 Die geplanten Mahlzeiten decken den Flüssigkeitsbedarf.</div>') : "") +
+        (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
         (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'

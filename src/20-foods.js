@@ -46,3 +46,13 @@
       return a + g / ((f && f.fett >= 50) ? 0.92 : 1.0);
     }, 0);
   }
+  // Wasseranteil je 100 g: Etikett/Override („wasser“), sonst Rest ohne Eiweiß, Fett, KH und Ballaststoffe (Näherung
+  // für frische Zutaten; Öle 0, Wasser 100). Damit lässt sich die Flüssigkeit einer Mahlzeit abschätzen.
+  function waterOf(f) {
+    if (!f) return 0;
+    if (f.wasser != null) return num(f.wasser);
+    return Math.max(0, 100 - (num(f.eiweiss) + num(f.fett) + num(f.kh) + num(f.ballaststoffe)));
+  }
+  function fluidOf(items) {
+    return items.reduce((a, it) => { const f = lookup(it.food); return a + (f ? waterOf(f) * num(it.grams) / 100 : 0); }, 0);
+  }

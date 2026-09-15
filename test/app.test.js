@@ -300,7 +300,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.equal(ri.value, "1:1,5");
   assert.match($(w, "ratio-hint").textContent, /weniger Fett als Eiweiß\+KH.*„1,5:1“, bitte „1,5“ eingeben/);
   ri.value = "1,5"; fire(w, ri, "input");
-  assert.match($(w, "ratio-hint").textContent, /^1,5:1 = 1,50 g Fett je 1 g Eiweiß\+KH \(mehr Fett/);
+  assert.ok($(w, "ratio-hint").hidden && $(w, "ratio-hint").textContent === "", "kein Hinweis bei Werten ab 1:1");
   ri.value = "1:1,5"; fire(w, ri, "input");
   assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
@@ -331,4 +331,44 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.match(mctTile, /1,2/);
   $(w, "set-mahlzeiten").value = "3"; fire(w, $(w, "set-mahlzeiten"), "input");
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
+});
+
+test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs. in den Mahlzeiten; Tagesplan", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5 } });
+  assert.equal($(w, "set-fluid").placeholder, "auto: 850");
+  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar/);
+  // Standard „zwischen“: Rezept unverändert, Rest zum Sondieren wird ausgewiesen
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const waterZ = kitchenRows(c)["Wasser"];
+  const paneZ = c.querySelector(".pane[data-pane=rechnen]").textContent;
+  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser am Tag/);
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Flüssigkeit je Portion ≈ \d+ ml .*Rest wird zwischen den Mahlzeiten sondiert/);
+  fire(w, $(w, "detail-close"));
+  // „in den Mahlzeiten“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml
+  fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
+  assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Flüssigkeit je Portion ≈ 21[23] ml/);
+  const tile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
+  assert.ok(Math.abs(parseFloat(tile.querySelector(".v").textContent) - 850) <= 3, tile.textContent);
+  assert.equal(ratioOf(c), 1.8);
+  // Gemerktes Wasser hat Vorrang
+  const win = [...c.querySelectorAll("table.kitchen tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
+  win.value = "50"; fire(w, win, "change");
+  c = $(w, "detail-content");
+  assert.equal(kitchenRows(c)["Wasser"], 50);
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /nicht erreicht/);
+  fire(w, $(w, "detail-close"));
+  // Tagesplan im Modus „zwischen“: Flüssigkeits-Kachel und Sondier-Hinweis
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  st.settings.wasserModus = "zwischen"; st.water = {};
+  st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:Hendl & Brokkoli" }));
+  const w2 = boot(st);
+  fire(w2, $(w2, "tab-heute"));
+  const t2 = $(w2, "heute-content").textContent;
+  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser/);
+  // Manuelle Vorgabe
+  const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
+  assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);
 });

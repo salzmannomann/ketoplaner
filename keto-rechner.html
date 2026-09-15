@@ -770,6 +770,25 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
       </div>
 
       <div class="card">
+        <h3>💧 Flüssigkeit <span class="hint">– Tagesbedarf und wie das Wasser gegeben wird</span></h3>
+        <div class="settings-grid">
+          <div>
+            <label>Flüssigkeit pro Tag (ml)</label>
+            <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
+          </div>
+        </div>
+        <div class="preset-row">
+          <span class="seg-label">Wasser geben:</span>
+          <div class="segmented mini" id="wasser-modus-ctl">
+            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten sondieren</button>
+            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
+          </div>
+        </div>
+        <div id="fluid-summary" class="note tip"></div>
+        <p class="hint">Leer = Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind; App und Tagesplan zeigen, wie viel Wasser noch zu sondieren ist. <strong>In den Mahlzeiten:</strong> jedes Rezept bekommt so viel Wasser, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert – die Portionen werden dadurch größer. Bitte mit dem Behandlungsteam abstimmen.</p>
+      </div>
+
+      <div class="card">
         <h3>🧭 Rechenregel <span class="hint">– wenn Verhältnis und Kalorien nicht beide zu halten sind</span></h3>
         <div class="preset-row">
           <div class="segmented mini" id="mct-mode-ctl">
@@ -1015,16 +1034,16 @@ const FOODS_DEFAULT = [
   {"kategorie": "Sonde / Spezial", "name": "Benefiber (Lösliche Ballaststoffe)", "pro": 100, "eiweiss": 0.0, "fett": 0.0, "kh": 0.0, "cholesterin": 0.0, "natrium": 20.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Guarkernmehl (Bindefix)", "pro": 100, "eiweiss": 4.5, "fett": 0.5, "kh": 1.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Protifar plus (Eiweißkonzentrat)", "pro": 100, "eiweiss": 88.5, "fett": 2.0, "kh": 1.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "Johannisbrotkernmehl", "pro": 100, "eiweiss": 4.5, "fett": 1.4, "kh": 7.3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Johannisbrotkernmehl", "pro": 100, "eiweiss": 4.5, "fett": 1.4, "kh": 7.3, "wasser": 10, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Getreide", "name": "Wasa köstlich mit 24% Ballaststoffen", "pro": 100, "eiweiss": 13.0, "fett": 8.0, "kh": 45.2, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Grießbrei Ja Natürlich milchfrei, zuckerfrei", "pro": 100, "eiweiss": 11.9, "fett": 2.5, "kh": 67.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Getreide", "name": "Leicht & Cross Knusperbrot", "pro": 100, "eiweiss": 13.0, "fett": 3.5, "kh": 72.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Reis mit Karotten und Pute", "pro": 100, "eiweiss": 2.4, "fett": 3.1, "kh": 8.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Kartoffel-Gemüse mit Bio-Rindfleisch", "pro": 100, "eiweiss": 2.3, "fett": 2.9, "kh": 7.6, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "HiPP Bio-Hühnchenfleisch Zubereitung", "pro": 100, "eiweiss": 7.8, "fett": 5.8, "kh": 6.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "HiPP Bio-Hühnchenfleisch Zubereitung", "pro": 100, "eiweiss": 7.8, "fett": 5.8, "kh": 6.0, "wasser": 80, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   // Nestlé Compleat Nature Mix (Sondennahrung, 1,1 kcal/ml): Werte je 100 ml laut Produktdatenblatt (1 ml ≈ 1 g)
-  {"kategorie": "Sonde / Spezial", "name": "Compleat Nature Mix (Nestlé)", "pro": 100, "eiweiss": 4.4, "fett": 3.7, "kh": 14.0, "kcal100": 110, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.4},
-  {"kategorie": "Sonde / Spezial", "name": "Compleat Paediatric Nature Mix (Nestlé)", "pro": 100, "eiweiss": 3.6, "fett": 5.0, "kh": 14.0, "kcal100": 117, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.0},
+  {"kategorie": "Sonde / Spezial", "name": "Compleat Nature Mix (Nestlé)", "pro": 100, "eiweiss": 4.4, "fett": 3.7, "kh": 14.0, "kcal100": 110, "wasser": 80, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.4},
+  {"kategorie": "Sonde / Spezial", "name": "Compleat Paediatric Nature Mix (Nestlé)", "pro": 100, "eiweiss": 3.6, "fett": 5.0, "kh": 14.0, "kcal100": 117, "wasser": 80, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 1.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Karotten-Kartoffelgemüse mit Bio-Lamm", "pro": 100, "eiweiss": 2.6, "fett": 1.9, "kh": 10.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Äpfel mit Bananen", "pro": 100, "eiweiss": 0.5, "fett": 0.1, "kh": 13.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "HIPP Milchbrei Grieß-Banane", "pro": 100, "eiweiss": 13.8, "fett": 11.8, "kh": 63.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
@@ -1032,11 +1051,11 @@ const FOODS_DEFAULT = [
   {"kategorie": "Sonde / Spezial", "name": "Kohlenhydratfrei SHS", "pro": 100, "eiweiss": 28.9, "fett": 60.6, "kh": 0.1, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Getreide", "name": "Hartweizengrießteigwaren gekocht gewogen", "pro": 100, "eiweiss": 5.38, "fett": 0.51, "kh": 30.32, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Getreide", "name": "Haferflocken", "pro": 100, "eiweiss": 14.0, "fett": 7.0, "kh": 59.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "Himmeltau Grießbrei", "pro": 100, "eiweiss": 10.0, "fett": 0.9, "kh": 68.0, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "Aptamil 1", "pro": 100, "eiweiss": 9.7, "fett": 24.7, "kh": 53.8, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "Aptamil Pre (Pulver)", "pro": 100, "eiweiss": 9.5, "fett": 24.8, "kh": 53.3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Himmeltau Grießbrei", "pro": 100, "eiweiss": 10.0, "fett": 0.9, "kh": 68.0, "wasser": 10, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Aptamil 1", "pro": 100, "eiweiss": 9.7, "fett": 24.7, "kh": 53.8, "wasser": 3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Aptamil Pre (Pulver)", "pro": 100, "eiweiss": 9.5, "fett": 24.8, "kh": 53.3, "wasser": 3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Ketocal 4:1", "pro": 100, "eiweiss": 14.4, "fett": 69.2, "kh": 2.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
-  {"kategorie": "Sonde / Spezial", "name": "Ketocal 3:1", "pro": 100, "eiweiss": 15.4, "fett": 68.6, "kh": 7.2, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
+  {"kategorie": "Sonde / Spezial", "name": "Ketocal 3:1", "pro": 100, "eiweiss": 15.4, "fett": 68.6, "kh": 7.2, "wasser": 3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Ketocal 4:1 (Vanille)", "pro": 100, "eiweiss": 14.4, "fett": 69.2, "kh": 2.9, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Aptamil Profutura 1 (trinkfertig)", "pro": 100, "eiweiss": 1.3, "fett": 3.4, "kh": 7.3, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
   {"kategorie": "Sonde / Spezial", "name": "Aptamil Profutura 1", "pro": 100, "eiweiss": 9.7, "fett": 25.0, "kh": 53.7, "cholesterin": 0.0, "natrium": 0.0, "ballaststoffe": 0.0},
@@ -1708,6 +1727,16 @@ const RECIPES_SONDE = [
       return a + g / ((f && f.fett >= 50) ? 0.92 : 1.0);
     }, 0);
   }
+  // Wasseranteil je 100 g: Etikett/Override („wasser“), sonst Rest ohne Eiweiß, Fett, KH und Ballaststoffe (Näherung
+  // für frische Zutaten; Öle 0, Wasser 100). Damit lässt sich die Flüssigkeit einer Mahlzeit abschätzen.
+  function waterOf(f) {
+    if (!f) return 0;
+    if (f.wasser != null) return num(f.wasser);
+    return Math.max(0, 100 - (num(f.eiweiss) + num(f.fett) + num(f.kh) + num(f.ballaststoffe)));
+  }
+  function fluidOf(items) {
+    return items.reduce((a, it) => { const f = lookup(it.food); return a + (f ? waterOf(f) * num(it.grams) / 100 : 0); }, 0);
+  }
 
   /* ---------- Gruppen & Schnellfilter ----------
      Die Rezepte sind nach der Hauptzutat gruppiert („Was habe ich da?“):
@@ -1759,8 +1788,15 @@ const RECIPES_SONDE = [
     const kcalMaxAuto = weight > 0 ? r10(weight * 90) : null;
     const kcalMinAuto = weight > 0 ? r10(weight * 70) : r10(kcal * 0.85);
     const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
+    // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg);
+    // manuell übersteuerbar. Modus: Wasser zwischen den Mahlzeiten sondieren oder in den Mahlzeiten enthalten.
+    const hs = (w) => w <= 0 ? 0 : w <= 10 ? 100 * w : w <= 20 ? 1000 + 50 * (w - 10) : 1500 + 20 * (w - 20);
+    const fluidAuto = weight > 0 ? r10(hs(weight)) : 0;
+    const fluidDay = num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto;
+    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : "zwischen";
     return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
-      kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight };
+      kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
+      fluidDay, fluidMahl: fluidDay / mahl, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -2024,6 +2060,8 @@ const RECIPES_SONDE = [
     const d = derived();
     const km = $("set-kcalmin");
     if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
+    const fl = $("set-fluid");
+    if (fl) { if (document.activeElement !== fl) fl.value = d.fluidManual ? s.fluidMl : ""; fl.placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
@@ -2156,12 +2194,20 @@ const RECIPES_SONDE = [
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     const rh = document.getElementById("ratio-hint");
     if (rh) {
-      if (d.ratio >= 1) rh.innerHTML = fmtTarget(d.ratio) + " = " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH" + (d.ratio > 1 ? " (mehr Fett als Eiweiß+KH)" : " (gleich viel Fett wie Eiweiß+KH)") + ".";
+      if (d.ratio >= 1) rh.innerHTML = "";
       else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
-      rh.classList.toggle("warnish", d.ratio < 1);
+      rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
     }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
+    // Flüssigkeit: Modus-Buttons und Zusammenfassung
+    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
+      b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
+    const fs = document.getElementById("fluid-summary");
+    if (fs) fs.innerHTML = d.fluidDay > 0
+      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Richtwert nach Holliday-Segar: 100 ml/kg bis 10 kg)") +
+        " · " + fmt(d.fluidMahl, 0) + " ml je Mahlzeit · " + (d.wasserModus === "mahlzeit" ? "in den Mahlzeiten enthalten – Rezepte bekommen entsprechend mehr Wasser" : "Rezepte bleiben wie sie sind, der Rest wird zwischen den Mahlzeiten sondiert")
+      : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
     if (more) more.hidden = !(d.mctShare > 0);
@@ -2216,7 +2262,7 @@ const RECIPES_SONDE = [
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -2249,6 +2295,8 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus === "mahlzeit" ? "mahlzeit" : "zwischen"; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
     const impF = document.getElementById("import-file");
@@ -2366,7 +2414,24 @@ const RECIPES_SONDE = [
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride };
+    // Flüssigkeit „in den Mahlzeiten“: Wasser so setzen, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert
+    // (Zutaten-Wasser + Wasser = Flüssigkeit je Mahlzeit). Nie weniger als das Rezept-Wasser; gemerktes Wasser hat Vorrang.
+    let fluidAdjusted = false;
+    if (d.wasserModus === "mahlzeit" && d.fluidMahl > 0 && !hasWaterOverride) {
+      const isW2 = (it) => /wasser/i.test(it.food);
+      const foodFluid = fluidOf(res.items.filter(it => !isW2(it)));
+      const stdWater = res.items.filter(isW2).reduce((a, it) => a + num(it.grams), 0);
+      const need = d.fluidMahl - foodFluid;
+      if (need > stdWater + 0.05) {
+        const items3 = stdWater > 0
+          ? res.items.map(it => isW2(it) ? { food: it.food, grams: round1(num(it.grams) * need / stdWater) } : it)
+          : res.items.concat([{ food: "Wasser", grams: round1(need) }]);
+        res = Object.assign({}, res, { items: items3 });
+        fluidAdjusted = true;
+      }
+    }
+    const fluid = fluidOf(res.items);
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, fluid };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
@@ -2377,7 +2442,7 @@ const RECIPES_SONDE = [
     const oils = items.filter(it => isOilN(it.food));
     const sum = sumMacros(items);
     return {
-      rec, res: mv.res, sum, ratio: ratioOf(sum),
+      rec, res: mv.res, sum, ratio: ratioOf(sum), fluid: mv.fluid,
       gNoOil: noOil.reduce((a, it) => a + num(it.grams), 0), mlNoOil: volumeMl(noOil),
       oils, hasOil: oils.length > 0,
       gMct: oils.filter(it => it.food === "MCT-Öl C8+C10").reduce((a, it) => a + num(it.grams), 0),
@@ -2507,7 +2572,7 @@ const RECIPES_SONDE = [
       const isWaterRow = /wasser/i.test(it.food);
       const gR = Math.round(g * 10) / 10;
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : "") + "</td>" +
+        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
         "<td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
@@ -2538,6 +2603,27 @@ const RECIPES_SONDE = [
     const dayTotalG = items.reduce((a, it) => a + num(it.grams), 0) * dayN;
     const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel · je Tag</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
       dayRows + "<tr class='sum'><td class='name'>Summe je Tag</td><td>" + fmt(dayTotalG, 0) + "</td><td>" + fmt(dayP) + "</td><td>" + fmt(dayF) + "</td><td>" + fmt(dayC) + "</td><td>" + fmt(dayKcal, 0) + "</td></tr></tbody></table></div>";
+    // Flüssigkeit je Portion: Zutaten-Wasser + Rezept-Wasser, gegen den Anteil am Tagesbedarf.
+    const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
+    const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
+    const fluidLine = d.fluidDay > 0
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
+        (d.wasserModus === "mahlzeit" ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)')) : ' – Rest wird zwischen den Mahlzeiten sondiert') + '</div>'
+      : "";
+    const dayFluid = fluidPer * dayN, fluidRest = d.fluidDay - dayFluid;
+    const fluidDayTile = d.fluidDay > 0
+      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
+      : "";
+    const fluidDayNote = d.fluidDay > 0
+      ? (d.wasserModus === "zwischen"
+          ? (fluidRest > 0.5
+              ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidRest, 0) + ' ml Wasser am Tag</strong> (≈ ' + fmt(fluidRest / dayN, 0) + ' ml nach jeder der ' + dayN + ' Mahlzeiten).</div>'
+              : '<div class="note tip">💧 Die Mahlzeiten decken den Flüssigkeitsbedarf – kein zusätzliches Wasser nötig.</div>')
+          : (dayFluid < d.fluidDay - 0.5
+              ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel – das gemerkte Wasser im Rezept ist kleiner als der rechnerische Anteil.</div>'
+              : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten enthalten – Wasser je Rezept entsprechend erhöht.</div>'))
+      : "";
+
     const daySeg =
       '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit (nicht die Packung)</span></h4>' +
       '<div class="detail-tiles">' +
@@ -2545,8 +2631,9 @@ const RECIPES_SONDE = [
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(dayF) + ' g</div><div class="l">Fett/Tag</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(dayC) + ' g</div><div class="l">KH/Tag</div></div>' +
+        fluidDayTile +
       '</div>' +
-      dayTable +
+      dayTable + fluidDayNote +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
 
     const c = document.getElementById("detail-content");
@@ -2575,6 +2662,7 @@ const RECIPES_SONDE = [
       "</div>" +
       '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
       '<div class="tbl-wrap"><table class="kitchen"><tbody>' + kRows + "</tbody></table></div>" +
+      fluidLine +
       '<details class="collapsible"><summary>ⓘ Menge direkt eingeben</summary><p>Eine Menge in der Liste ändern (z. B. „827 g Zucchini, weil so viel da ist") – die <strong>anderen Zutaten werden proportional mitskaliert</strong>, das Verhältnis bleibt. <strong>Ausnahme Wasser:</strong> wird nur für sich geändert. Beides wird je Rezept gemerkt.</p></details>' +
       (stepsHtml ? '<h4 class="ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + "</h4>" + stepsHtml : "") +
       (mult !== 1 ? '<div class="note info">Garzeiten gelten für <strong>eine</strong> Portion – bei größerer Menge länger garen, bis alles weich ist, ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
@@ -2738,7 +2826,7 @@ const RECIPES_SONDE = [
   function renderHeute() {
     const box = document.getElementById("heute-content"); if (!box) return;
     const d = derived(); ensureDayPlan(d);
-    const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, filled: 0 };
+    const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, fluid: 0, filled: 0 };
     const facts = [];
     const slotsHtml = state.dayPlan.map((slot, i) => {
       const rec = recipeByKey(slot.key);
@@ -2749,7 +2837,7 @@ const RECIPES_SONDE = [
       }
       const f = mealFacts(rec, d); facts.push(f);
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
-      tot.mct += f.gMct; tot.raps += f.gRaps; tot.filled++;
+      tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
       return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
         '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
         '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
@@ -2766,7 +2854,7 @@ const RECIPES_SONDE = [
     const ratioDay = (tot.eiweiss + tot.kh) > 0 ? tot.fett / (tot.eiweiss + tot.kh) : null;
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Ziele anteilig
     const pct = (v, t) => t > 0 ? Math.round(v / t * 100) : 0;
-    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share;
+    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.kcal < kcalMinZiel - 0.5;
     const sums = tot.filled
       ? '<div class="card"><h3>Σ Tagessummen <span class="hint">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></h3>' +
@@ -2775,7 +2863,12 @@ const RECIPES_SONDE = [
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
+        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
         "</div>" +
+        (d.fluidDay > 0 && d.wasserModus === "zwischen" ? (fluidZiel - tot.fluid > 0.5
+          ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidZiel - tot.fluid, 0) + ' ml Wasser</strong> (≈ ' + fmt((fluidZiel - tot.fluid) / tot.filled, 0) + ' ml nach jeder geplanten Mahlzeit).</div>'
+          : '<div class="note tip">💧 Die geplanten Mahlzeiten decken den Flüssigkeitsbedarf.</div>') : "") +
+        (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
         (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'

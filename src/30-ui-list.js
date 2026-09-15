@@ -14,6 +14,8 @@
     const d = derived();
     const km = $("set-kcalmin");
     if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
+    const fl = $("set-fluid");
+    if (fl) { if (document.activeElement !== fl) fl.value = d.fluidManual ? s.fluidMl : ""; fl.placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag"; }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
