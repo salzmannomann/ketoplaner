@@ -20,7 +20,13 @@
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
   // → gemerktes Wasser. Ergebnis ist eine Portion (= eine Mahlzeit).
   function computeMealView(rec, d, meatChoice) {
-    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    let base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+    // Packungs-Modus (z. B. Compleat): feste Menge je Mahlzeit, KetoCal + Auffüller gelöst.
+    let packSplit = null;
+    if (rec.packung) {
+      const n = num((state.pack || {})[familyKey(rec)]);
+      if (n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, n); if (packSplit && packSplit.ok) base = packSplit; }
+    }
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
     const swapSlot = recipeMeatSlot(rec);
@@ -61,7 +67,7 @@
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride };
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, packSplit };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
@@ -134,6 +140,33 @@
           (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join("") +
         '</div><div class="meat-note">Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
         (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</div></div>';
+    }
+
+    // Packung aufteilen (z. B. Compleat 500 ml, 2 Tage haltbar): auf N Mahlzeiten – Auffüller ergänzt die Kalorien.
+    let packSeg = "";
+    const packNSet = rec.packung ? num((state.pack || {})[fam.key]) : 0;
+    if (rec.packung) {
+      const pi = packInfo(rec, d), pk = pi.pk, ps = mv.packSplit;
+      const active = packNSet > 0 && ps && ps.ok;
+      const tage = (n) => fmt(n / d.mahl, 1) + " Tag" + (Math.abs(n / d.mahl - 1) < 0.05 ? "" : "e") + " bei " + d.mahl + " Mahlzeiten/Tag";
+      let txt;
+      if (packNSet > 0 && !active) {
+        txt = '<div class="note warn">⚠️ Auf ' + packNSet + ' Mahlzeiten geht die Packung bei ' + fmtTarget(d.ratio) + ' nicht auf (' +
+          (ps && ps.pack && ps.pack.p < -0.05 ? escapeHtml(pk.auffuellen) + ' müsste negativ werden – so wenig ' + escapeHtml(pk.food) + ' je Mahlzeit bräuchte mehr Kalorien aus KH, als das Verhältnis erlaubt' : 'KetoCal müsste negativ werden – so viel ' + escapeHtml(pk.food) + ' je Mahlzeit liefert schon mehr als ' + fmt(d.kcalMahl, 0) + ' kcal') +
+          '). Gerechnet wird ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit, die Packung reicht für ' + pi.nAuto + ' Mahlzeiten.</div>';
+      } else if (active) {
+        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> je Mahlzeit; damit Verhältnis und ' + fmt(d.kcalMahl, 0) + ' kcal stimmen, kommen <strong>' +
+          fmt(ps.pack.k, 1) + ' g KetoCal</strong> (Fett fürs Verhältnis) und <strong>' + fmt(Math.max(0, ps.pack.p), 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> (Kalorien) dazu. ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
+      } else {
+        txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
+          'Für mehr Mahlzeiten je Packung wird mit ' + escapeHtml(pk.auffuellen) + ' aufgefüllt – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
+      }
+      packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
+        '<span class="portion-step">Auf <button type="button" class="stepbtn" data-pstep="-1">−</button>' +
+        '<input id="pack-n" type="number" min="1" step="1" inputmode="numeric" value="' + (packNSet > 0 ? packNSet : pi.nAuto) + '">' +
+        '<button type="button" class="stepbtn" data-pstep="1">+</button> Mahlzeiten aufteilen' +
+        (packNSet > 0 ? ' <button type="button" id="pack-reset" class="linkbtn">↺ ohne Aufteilung</button>' : "") + '</span>' + txt + '</div>';
     }
 
     const meatSlot = recipeMeatSlot(rec);
@@ -248,6 +281,7 @@
 
       /* ---------- Rechnen ---------- */
       paneOpen("rechnen") +
+      packSeg +
       meatSeg +
       oilSeg +
       '<div class="detail-tiles">' +
@@ -295,6 +329,18 @@
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
+    const setPackN = (v) => {
+      if (!state.pack || typeof state.pack !== "object") state.pack = {};
+      if (v > 0) state.pack[fam.key] = Math.round(v); else delete state.pack[fam.key];
+      save(); renderDetail();
+    };
+    const packIn = c.querySelector("#pack-n");
+    if (packIn) {
+      packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPackN(v); });
+      c.querySelectorAll(".pack button[data-pstep]").forEach(b =>
+        b.addEventListener("click", () => setPackN(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)))));
+      const pr = c.querySelector("#pack-reset"); if (pr) pr.addEventListener("click", () => setPackN(0));
+    }
     c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
       b.addEventListener("click", () => {
         const v = fam.variants.find(x => recipeKey(x) === b.dataset.basis); if (!v) return;

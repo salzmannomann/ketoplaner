@@ -11,6 +11,7 @@
       water: {},
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
+      pack: {},  // Packungs-Aufteilung je Gericht (Familien-Schlüssel → Mahlzeiten je Packung)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -63,6 +64,7 @@
         water: remapKeys(p.water),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
+        pack: p.pack && typeof p.pack === "object" ? p.pack : {},
       };
     } catch (e) { return defaultState(); }
   }

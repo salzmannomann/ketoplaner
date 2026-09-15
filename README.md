@@ -165,8 +165,19 @@ Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); in `recipes.js` tragen
 KetoCal-Varianten den Zusatz „(mit KetoCal)" und werden in der App mit der
 Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen das
 Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„KetoCal &
-Pre Apta"** und **„KetoCal & Compleat"** (Nestlé Compleat Nature Mix; für die
-Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben). 34 Varianten
+Pre Apta"** und **„KetoCal & Compleat"** (Nestlé Compleat **Paediatric** Nature
+Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
+
+**Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
+Unter Rechnen zeigt das Rezept, für wie viele Mahlzeiten sie bei der aktuellen
+Rechnung reicht, und lässt sie auf **N Mahlzeiten** aufteilen (z. B. 10 für
+2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit; damit Verhältnis
+und kcal trotzdem stimmen, löst die App zwei Hebel gleichzeitig: **KetoCal**
+(Fett fürs Verhältnis) und **Pre Apta** (Kohlenhydrate für die Kalorien). Geht
+die Aufteilung bei diesem Verhältnis nicht auf (eine Menge würde negativ), sagt
+die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
+**Packungsstand**: heute verplant, Rest für morgen und ob die Packung bei
+gleichem Plan über die 2 Tage genau aufgeht. 34 Varianten
 haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
 
 ## Berechnungsgrundlage

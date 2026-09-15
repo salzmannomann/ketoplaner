@@ -199,6 +199,40 @@ test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favori
   assert.match(badgeOf(tile()), /KetoCal/);
 });
 
+test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Packungsstand im Tagesplan", () => {
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3 } });
+  let c = openRecipe(w, "KetoCal & Compleat");
+  const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
+  assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
+  assert.equal(pack().querySelector("#pack-n").value, "7");
+  let n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
+  c = $(w, "detail-content");
+  const rows = kitchenRows(c);
+  assert.equal(rows["Compleat Paediatric Nature Mix (Nestlé)"], 50);
+  assert.ok(Math.abs(rows["Aptamil Pre (Pulver)"] - 5.3) < 0.2, "Pre Apta " + rows["Aptamil Pre (Pulver)"]);
+  assert.ok(Math.abs(rows["Ketocal 3:1"] - 8.0) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
+  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  assert.ok(Math.abs(kcalOf(c) - 140) <= 1, "kcal " + kcalOf(c));
+  assert.match(pack().textContent, /2,0 Tage bei 5 Mahlzeiten\/Tag/);
+  // Zu wenige Mahlzeiten je Packung: geht nicht auf → Warnung und Standardrechnung
+  n = pack().querySelector("#pack-n"); n.value = "5"; fire(w, n, "change");
+  c = $(w, "detail-content");
+  assert.match(pack().textContent, /geht die Packung .* nicht auf/);
+  assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
+  assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  fire(w, pack().querySelector("#pack-reset"));
+  assert.equal(pack().querySelector("#pack-n").value, "7");
+  fire(w, $(w, "detail-close"));
+  // Tagesplan: 5 × Compleat mit Aufteilung auf 10 → heute 250 ml, 250 ml bleiben, geht an 2 Tagen genau auf
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  st.pack = { "fam:KetoCal & Compleat": 10 };
+  st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:KetoCal & Compleat" }));
+  const w2 = boot(st);
+  fire(w2, $(w2, "tab-heute"));
+  const hc = $(w2, "heute-content").textContent;
+  assert.match(hc, /250 ml/); assert.match(hc, /bleibt für morgen · reicht für 5 Mahlzeiten/); assert.match(hc, /geht die Packung genau auf/);
+});
+
 test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden auf Gerichte umgezogen", () => {
   const w = boot({
     settings: { ketoFilter: "ohne", filter: "flasche" },
