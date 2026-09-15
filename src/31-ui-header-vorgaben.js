@@ -53,7 +53,7 @@
     const rh = document.getElementById("ratio-hint");
     if (rh) {
       if (d.ratio >= 1) rh.innerHTML = "";
-      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
+      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.";
       rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
     }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
@@ -150,7 +150,7 @@
         const r = parseRatio(ri.value);
         if (r > 0 && Math.abs(r - num(state.settings.ratio)) > 1e-9) { state.settings.ratio = r; save(); renderRezepte(); }
       });
-      ri.addEventListener("change", () => { ri.value = fmtTarget(num(state.settings.ratio)); });
+      ri.addEventListener("change", () => { ri.value = fmtRatioNum(num(state.settings.ratio)); });
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));

@@ -589,6 +589,8 @@ details.collapsible { margin: 8px 0; }
 .inline-row { display: flex; align-items: center; gap: 10px; }
 .inline-row select { flex: 1; min-width: 0; }
 .inline-row .calc { white-space: nowrap; font-weight: 600; color: var(--green); }
+.inline-row input { flex: 1; min-width: 0; }
+.inline-row .ratio-suffix { font-size: 18px; color: var(--ink); }
 .meat-swap.basis .segmented.mini button { white-space: normal; line-height: 1.25; }
 .werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
 .werte-table td:first-child, .werte-table th:first-child { text-align: left; }

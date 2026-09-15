@@ -7,18 +7,19 @@
     return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d))
       .toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
   }
-  // Verhältnis-Notation (Fett : Eiweiß+KH): ≥ 1 als „1,8:1", < 1 als „1:1,5".
+  // Verhältnis-Notation (Fett : Eiweiß+KH): immer „x:1" – auch unter 1 (z. B. „0,67:1"), damit die Zahl
+  // vorne immer die eingegebene ist.
   function fmtRatio(r, dec) {
     if (r === null || r === undefined || !isFinite(r) || r <= 0) return "—";
-    return r >= 1 ? fmt(r, dec) + ":1" : "1:" + fmt(1 / r, dec);
+    return fmt(r, dec) + ":1";
   }
-  // Ziel-Verhältnis kompakt: so viele Nachkommastellen wie nötig (max. 2).
-  function fmtTarget(r) {
-    if (!(r > 0) || !isFinite(r)) return "—";
-    const v = r >= 1 ? r : 1 / r;
-    const dec = Math.abs(v - Math.round(v)) < 0.005 ? 0 : (Math.abs(v * 10 - Math.round(v * 10)) < 0.05 ? 1 : 2);
-    return fmtRatio(r, dec);
+  // Ziel-Verhältnis: nur die vordere Zahl, so viele Nachkommastellen wie nötig (max. 2).
+  function fmtRatioNum(r) {
+    if (!(r > 0) || !isFinite(r)) return "";
+    const dec = Math.abs(r - Math.round(r)) < 0.005 ? 0 : (Math.abs(r * 10 - Math.round(r * 10)) < 0.05 ? 1 : 2);
+    return fmt(r, dec);
   }
+  function fmtTarget(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + ":1" : "—"; }
   // Eingabe „1,8", „1.8", „1,8:1" oder „1:1,5" → Zahl (g Fett je 1 g Eiweiß+KH); 0 wenn ungültig.
   function parseRatio(text) {
     const t = String(text || "").replace(/,/g, ".").replace(/\s+/g, "");

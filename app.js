@@ -91,18 +91,19 @@
     return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d))
       .toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
   }
-  // Verhältnis-Notation (Fett : Eiweiß+KH): ≥ 1 als „1,8:1", < 1 als „1:1,5".
+  // Verhältnis-Notation (Fett : Eiweiß+KH): immer „x:1" – auch unter 1 (z. B. „0,67:1"), damit die Zahl
+  // vorne immer die eingegebene ist.
   function fmtRatio(r, dec) {
     if (r === null || r === undefined || !isFinite(r) || r <= 0) return "—";
-    return r >= 1 ? fmt(r, dec) + ":1" : "1:" + fmt(1 / r, dec);
+    return fmt(r, dec) + ":1";
   }
-  // Ziel-Verhältnis kompakt: so viele Nachkommastellen wie nötig (max. 2).
-  function fmtTarget(r) {
-    if (!(r > 0) || !isFinite(r)) return "—";
-    const v = r >= 1 ? r : 1 / r;
-    const dec = Math.abs(v - Math.round(v)) < 0.005 ? 0 : (Math.abs(v * 10 - Math.round(v * 10)) < 0.05 ? 1 : 2);
-    return fmtRatio(r, dec);
+  // Ziel-Verhältnis: nur die vordere Zahl, so viele Nachkommastellen wie nötig (max. 2).
+  function fmtRatioNum(r) {
+    if (!(r > 0) || !isFinite(r)) return "";
+    const dec = Math.abs(r - Math.round(r)) < 0.005 ? 0 : (Math.abs(r * 10 - Math.round(r * 10)) < 0.05 ? 1 : 2);
+    return fmt(r, dec);
   }
+  function fmtTarget(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + ":1" : "—"; }
   // Eingabe „1,8", „1.8", „1,8:1" oder „1:1,5" → Zahl (g Fett je 1 g Eiweiß+KH); 0 wenn ungültig.
   function parseRatio(text) {
     const t = String(text || "").replace(/,/g, ".").replace(/\s+/g, "");
@@ -514,7 +515,7 @@
     const $ = id => document.getElementById(id);
     $("set-kcal").value = s.kcal;
     $("set-mahlzeiten").value = s.mahlzeiten;
-    if (document.activeElement !== $("set-ratio")) $("set-ratio").value = fmtTarget(num(s.ratio)); // nicht während des Tippens überschreiben
+    if (document.activeElement !== $("set-ratio")) $("set-ratio").value = fmtRatioNum(num(s.ratio)); // nicht während des Tippens überschreiben
     $("set-weight").value = s.weight;
     $("set-mct-fett").value = s.mctFett100 || "";
     $("set-mct-kcal").value = s.mctKcal100 || "";
@@ -683,7 +684,7 @@
     const rh = document.getElementById("ratio-hint");
     if (rh) {
       if (d.ratio >= 1) rh.innerHTML = "";
-      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
+      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.";
       rh.classList.toggle("warnish", d.ratio < 1); rh.hidden = d.ratio >= 1;
     }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
@@ -780,7 +781,7 @@
         const r = parseRatio(ri.value);
         if (r > 0 && Math.abs(r - num(state.settings.ratio)) > 1e-9) { state.settings.ratio = r; save(); renderRezepte(); }
       });
-      ri.addEventListener("change", () => { ri.value = fmtTarget(num(state.settings.ratio)); });
+      ri.addEventListener("change", () => { ri.value = fmtRatioNum(num(state.settings.ratio)); });
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));

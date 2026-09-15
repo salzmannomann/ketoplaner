@@ -205,7 +205,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   let c = openRecipe(w, "Compleat & KetoCal");
   const rK = kitchenRows(c);
   assert.equal(rK["Aptamil Pre (Pulver)"], undefined); assert.ok(rK["Ketocal 3:1"] > 0);
-  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50"); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
   const mlK = rK["Compleat Paediatric Nature Mix (Nestlé)"];
   const info = c.querySelector(".meat-swap.pack").textContent;
   assert.match(info, /reicht für \d+ Mahlzeiten/); assert.ok(!/aufteilen|aufbrauchen in/i.test(info), "keine Aufteilungs-Steuerung mehr");
@@ -214,7 +214,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   c = openRecipe(w, "Compleat & KetoCal & Pre Apta");
   const rP = kitchenRows(c);
   assert.ok(rP["Aptamil Pre (Pulver)"] > 0, "Pre Apta enthalten");
-  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50"); assert.ok(Math.abs(kcalOf(c) - 188) <= 1);
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1);
   assert.ok(rP["Compleat Paediatric Nature Mix (Nestlé)"] < mlK, "mit Pre Apta weniger Compleat je Mahlzeit");
   fire(w, $(w, "detail-close"));
   // Tagesplan: 4 × Compleat & KetoCal → Packungsstand (heute verplant, Rest)
@@ -260,10 +260,11 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
   assert.match($(w, "heute-content").textContent, /KetoCal & Pre Apta/);
 });
 
-test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
+test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
   const w = boot();
   const ri = $(w, "set-ratio");
-  assert.equal(ri.value, "1,8:1");
+  assert.equal(ri.value, "1,8");
+  assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
   assert.match($(w, "verordnung-summary").textContent, /KetoCal bevorzugt · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
@@ -292,21 +293,21 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}").settings.ratio, 1.8);
-  ri.value = "1:1"; fire(w, ri, "input");
+  ri.value = "1"; fire(w, ri, "input");
   assert.match($(w, "rx-chip").textContent, /^1:1 /);
   let c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(Math.abs(ratioOf(c) - 1.0) <= 0.05);
   fire(w, $(w, "detail-close"));
-  ri.value = "1:1,5"; fire(w, ri, "input"); fire(w, ri, "change");
-  assert.equal(ri.value, "1:1,5");
-  assert.match($(w, "ratio-hint").textContent, /weniger Fett als Eiweiß\+KH.*„1,5:1“, bitte „1,5“ eingeben/);
+  ri.value = "0,67"; fire(w, ri, "input"); fire(w, ri, "change");
+  assert.equal(ri.value, "0,67");
+  assert.match($(w, "ratio-hint").textContent, /0,67:1 heißt nur 0,67 g Fett je 1 g Eiweiß\+KH – weniger Fett als Eiweiß\+KH/);
   ri.value = "1,5"; fire(w, ri, "input");
   assert.ok($(w, "ratio-hint").hidden && $(w, "ratio-hint").textContent === "", "kein Hinweis bei Werten ab 1:1");
-  ri.value = "1:1,5"; fire(w, ri, "input");
-  assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
+  ri.value = "1:1,5"; fire(w, ri, "input"); // alte Schreibweise wird weiterhin verstanden
+  assert.match($(w, "rx-chip").textContent, /^0,67:1 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
   c = openRecipe(w, "Compleat");
-  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/);
   fire(w, $(w, "detail-close"));
   ri.value = "1"; fire(w, ri, "input");
   fire(w, $(w, "export-btn"));

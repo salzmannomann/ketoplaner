@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=539e6119" />
+  <link rel="stylesheet" href="styles.css?v=0764ecdf" />
 </head>
 <body>
   <header class="topbar">
@@ -75,7 +75,7 @@
         <div class="settings-grid">
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
-            <input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8 oder 1,5" />
+            <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
             <div class="hint" id="ratio-hint"></div>
           </div>
           <div>
@@ -251,7 +251,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=4b82a2ea"></script>
+  <script src="app.js?v=da3f6eda"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
