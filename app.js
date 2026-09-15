@@ -518,7 +518,7 @@
     });
     fb.appendChild(catChips);
     const switchChips = el("div", { class: "chips switches" });
-    [["mit", "🥄 mit KetoCal"], ["ohne", "ohne KetoCal"]].forEach(([k, lab]) => {
+    [["mit", "🥄 KetoCal bevorzugt"], ["ohne", "ohne KetoCal bevorzugt"]].forEach(([k, lab]) => {
       const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
       c.addEventListener("click", () => setKetoPhase(k));
       switchChips.appendChild(c);
@@ -545,12 +545,12 @@
         if (!alt) return;
         rec = alt; res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       }
-      // Kachel zeigt die tatsächliche Mahlzeit (inkl. Packungs-Aufteilung, MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
+      // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
       entries.push({ fam, rec, res: computeMealView(rec, d, null).res });
     });
 
     $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
-      (phase === "mit" ? " · mit KetoCal, wo es die Variante gibt" : " · ohne KetoCal, wo es die Variante gibt");
+      (phase === "mit" ? " · KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die mit KetoCal" : " · ohne KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die ohne");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
@@ -622,7 +622,7 @@
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
-      " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
+      " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
@@ -755,7 +755,9 @@
       '<div class="tile-badge">' +
         // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
         (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
-               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
+               : (rec.ketocal
+                    ? (ketoPhase() === "mit" ? '<span class="badge keto-mini">🥄 KetoCal</span>' : '<span class="badge only">nur mit KetoCal</span>')
+                    : (ketoPhase() === "ohne" || rec.custom ? "" : '<span class="badge only">nur ohne KetoCal</span>'))) +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +

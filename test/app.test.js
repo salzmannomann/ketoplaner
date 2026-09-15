@@ -154,10 +154,11 @@ test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Anger�
   assert.ok(all >= 30 && all <= 40, "Gerichte: " + all);
   assert.equal(new Set(tileNames(w)).size, all, "doppelte Gerichte");
   assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
-  const kcMit = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
-  clickChip(w, "ohne KetoCal");
+  const kcMit = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
+  clickChip(w, "ohne KetoCal bevorzugt");
   assert.equal(tileNames(w).length, all, "Phase ändert nicht die Anzahl der Gerichte");
-  const kcOhne = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
+  const kcOhne = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
+  assert.ok(tiles(w).some(t => /nur mit KetoCal/.test(badgeOf(t))), "Kennzeichen „nur mit KetoCal“ in der ohne-Phase");
   assert.ok(kcOhne < kcMit, "ohne KetoCal: " + kcOhne + " < mit: " + kcMit);
   clickChip(w, "🥤 Angerührt");
   assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Öl", "KetoCal & Pre Apta"]);
@@ -195,7 +196,7 @@ test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favori
   const tile = () => tiles(w2).find(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
   assert.match(badgeOf(tile()), /Rapsöl/); assert.ok(!/KetoCal/.test(badgeOf(tile())));
   assert.ok(tile().querySelector(".favbtn").classList.contains("on"));
-  clickChip(w2, "ohne KetoCal"); clickChip(w2, "🥄 mit KetoCal");
+  clickChip(w2, "ohne KetoCal bevorzugt"); clickChip(w2, "🥄 KetoCal bevorzugt");
   assert.match(badgeOf(tile()), /KetoCal/);
 });
 
@@ -265,7 +266,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.equal(ri.value, "1,8:1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
-  assert.match($(w, "verordnung-summary").textContent, /mit KetoCal · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
+  assert.match($(w, "verordnung-summary").textContent, /KetoCal bevorzugt · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
   assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl

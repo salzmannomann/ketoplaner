@@ -597,6 +597,7 @@ details.collapsible { margin: 8px 0; }
 .tile-stats { font-size: 13px; }
 .badge.keto-mini { background: #ede9fe; color: #5b21b6; }
 .badge.basis { background: #fff4e0; color: #9a5b00; }
+.badge.only { background: #f1f5f9; color: #475569; }
 #ratio-hint { margin-top: 6px; font-size: 13px; }
 #ratio-hint.warnish { color: #9a5b00; }
 .inline-row { display: flex; align-items: center; gap: 10px; }
@@ -713,7 +714,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
       </div>
       <details class="note info collapsible" id="info-note">
         <summary>ⓘ Gerichte, Fettbasis und KetoCal</summary>
-        <p>Jedes Gericht steht einmal in der Liste; hat es eine Variante mit und ohne KetoCal, entscheidet die Vorgabe „KetoCal: mit / ohne“ (auch als Schalter oben), welche gezeigt wird – im Rezept lässt sich die Fettbasis jederzeit umschalten. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
+        <p>Jedes Gericht steht einmal in der Liste. Der Schalter „KetoCal bevorzugt / ohne KetoCal bevorzugt“ blendet nichts aus: Bei Gerichten, die es in beiden Varianten gibt, entscheidet er, welche gezeigt wird (im Rezept jederzeit umschaltbar). Gerichte, die es nur in einer Ausführung gibt, tragen das Kennzeichen „nur mit KetoCal“ bzw. „nur ohne KetoCal“. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
       </details>
       <div id="recipe-list"></div>
     </section>
@@ -765,8 +766,8 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
         <div class="preset-row">
           <span class="seg-label">KetoCal:</span>
           <div class="segmented mini" id="ketocal-ctl">
-            <button type="button" data-ketocal="mit">🥄 mit KetoCal</button>
-            <button type="button" data-ketocal="ohne">ohne KetoCal</button>
+            <button type="button" data-ketocal="mit">🥄 KetoCal bevorzugt</button>
+            <button type="button" data-ketocal="ohne">ohne KetoCal bevorzugt</button>
           </div>
         </div>
         <div id="verordnung-summary" class="note tip"></div>
@@ -2049,7 +2050,7 @@ const RECIPES_SONDE = [
     });
     fb.appendChild(catChips);
     const switchChips = el("div", { class: "chips switches" });
-    [["mit", "🥄 mit KetoCal"], ["ohne", "ohne KetoCal"]].forEach(([k, lab]) => {
+    [["mit", "🥄 KetoCal bevorzugt"], ["ohne", "ohne KetoCal bevorzugt"]].forEach(([k, lab]) => {
       const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
       c.addEventListener("click", () => setKetoPhase(k));
       switchChips.appendChild(c);
@@ -2076,12 +2077,12 @@ const RECIPES_SONDE = [
         if (!alt) return;
         rec = alt; res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       }
-      // Kachel zeigt die tatsächliche Mahlzeit (inkl. Packungs-Aufteilung, MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
+      // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
       entries.push({ fam, rec, res: computeMealView(rec, d, null).res });
     });
 
     $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
-      (phase === "mit" ? " · mit KetoCal, wo es die Variante gibt" : " · ohne KetoCal, wo es die Variante gibt");
+      (phase === "mit" ? " · KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die mit KetoCal" : " · ohne KetoCal bevorzugt: Gerichte mit beiden Varianten zeigen die ohne");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
@@ -2153,7 +2154,7 @@ const RECIPES_SONDE = [
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
-      " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
+      " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
@@ -2286,7 +2287,9 @@ const RECIPES_SONDE = [
       '<div class="tile-badge">' +
         // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
         (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
-               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
+               : (rec.ketocal
+                    ? (ketoPhase() === "mit" ? '<span class="badge keto-mini">🥄 KetoCal</span>' : '<span class="badge only">nur mit KetoCal</span>')
+                    : (ketoPhase() === "ohne" || rec.custom ? "" : '<span class="badge only">nur ohne KetoCal</span>'))) +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +

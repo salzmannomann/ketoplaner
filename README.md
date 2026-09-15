@@ -51,8 +51,9 @@ die Vorgaben.
   der Verordnung, **Fett zuerst**: „1,8" oder „1,8:1" (Keto), „1,5" für 1,5:1,
   „1:1"; Werte unter 1:1 wie „1:1,5" (0,67 g Fett je 1 g Eiweiß+KH) zeigt die
   App überall als „1:x" und warnt unter dem Feld, damit die Richtung nicht
-  verwechselt wird, **KetoCal:
-  mit / ohne** (wählt bei Gerichten mit beiden Varianten die Fettbasis),
+  verwechselt wird, **KetoCal bevorzugt /
+  ohne KetoCal bevorzugt** (wählt bei Gerichten mit beiden Varianten die Fettbasis,
+  blendet nichts aus),
   **Kalorien pro Tag (Ziel)** und **Kalorien mindestens pro Tag** (leer =
   automatisch 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
   ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
@@ -78,9 +79,11 @@ die Vorgaben.
 - **Ein Eintrag je Gericht.** Hat ein Gericht eine Variante mit und ohne
   KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter),
   steht es nur einmal in der Liste. Welche **Fettbasis** gezeigt wird,
-  entscheidet die Vorgabe **„KetoCal: mit / ohne"** (unter Vorgaben
-  und als Schalter über der Liste); im Rezept lässt sich die Fettbasis
-  jederzeit umschalten, die Wahl wird je Gericht gemerkt.
+  entscheidet die Vorgabe **„KetoCal bevorzugt / ohne KetoCal bevorzugt"**
+  (unter Vorgaben und als Schalter über der Liste); im Rezept lässt sich die
+  Fettbasis jederzeit umschalten, die Wahl wird je Gericht gemerkt. Der Schalter
+  blendet nichts aus: Gerichte, die es nur in einer Ausführung gibt, tragen das
+  Kennzeichen „nur mit KetoCal" bzw. „nur ohne KetoCal".
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
   HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Dazu **Suche**

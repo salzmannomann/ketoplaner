@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=a1152613" />
+  <link rel="stylesheet" href="styles.css?v=94203da0" />
 </head>
 <body>
   <header class="topbar">
@@ -67,7 +67,7 @@
       </div>
       <details class="note info collapsible" id="info-note">
         <summary>ⓘ Gerichte, Fettbasis und KetoCal</summary>
-        <p>Jedes Gericht steht einmal in der Liste; hat es eine Variante mit und ohne KetoCal, entscheidet die Vorgabe „KetoCal: mit / ohne“ (auch als Schalter oben), welche gezeigt wird – im Rezept lässt sich die Fettbasis jederzeit umschalten. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
+        <p>Jedes Gericht steht einmal in der Liste. Der Schalter „KetoCal bevorzugt / ohne KetoCal bevorzugt“ blendet nichts aus: Bei Gerichten, die es in beiden Varianten gibt, entscheidet er, welche gezeigt wird (im Rezept jederzeit umschaltbar). Gerichte, die es nur in einer Ausführung gibt, tragen das Kennzeichen „nur mit KetoCal“ bzw. „nur ohne KetoCal“. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
       </details>
       <div id="recipe-list"></div>
     </section>
@@ -119,8 +119,8 @@
         <div class="preset-row">
           <span class="seg-label">KetoCal:</span>
           <div class="segmented mini" id="ketocal-ctl">
-            <button type="button" data-ketocal="mit">🥄 mit KetoCal</button>
-            <button type="button" data-ketocal="ohne">ohne KetoCal</button>
+            <button type="button" data-ketocal="mit">🥄 KetoCal bevorzugt</button>
+            <button type="button" data-ketocal="ohne">ohne KetoCal bevorzugt</button>
           </div>
         </div>
         <div id="verordnung-summary" class="note tip"></div>
@@ -227,7 +227,7 @@
 
   <script src="foods.js?v=b5dc5f3a"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=9cc85984"></script>
+  <script src="app.js?v=dafdd15a"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

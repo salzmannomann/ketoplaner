@@ -26,7 +26,7 @@
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
-      " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
+      " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
