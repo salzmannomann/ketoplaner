@@ -1,7 +1,7 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 35 fertige Gerichte (50 Rezept-Varianten), die automatisch auf die **verordnete
+enthält 36 fertige Gerichte (50 Rezept-Varianten), die automatisch auf die **verordnete
 Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
@@ -60,8 +60,8 @@ die Vorgaben.
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
-  Regel für alle Fälle, in denen nicht beides geht (MCT-Anteil,
-  Packungs-Aufteilung). In den Rezepten wird die Regel nur angezeigt.
+  Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
+  wird die Regel nur angezeigt.
 - **MCT-Öl:** Anteil an der Öl-Fettmasse in Stufen (0 / 10 / 20 / 30 / 50 /
   100 %; Vorbelegung 10 %); Erklärung und die vom Etikett übersteuerbaren
   Fett-/kcal-Werte erscheinen erst ab 10 %.
@@ -83,7 +83,7 @@ die Vorgaben.
   jederzeit umschalten, die Wahl wird je Gericht gemerkt.
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
-  HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat mit Rapsöl oder KetoCal). Dazu **Suche**
+  HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Dazu **Suche**
   nach Name oder Zutat, der Schalter **👩‍⚕️ Diätologie** (nur Original-Rezepte
   aus den Vorlagen) und Sortierung nach Gruppe, Name, Eiweiß oder Menge.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
@@ -169,7 +169,7 @@ ein feines Sieb gestrichen, damit die Spritze nicht verstopft.
 tragen das Schild **„👩‍⚕️ Diätologie"**. Bei Rezepten ohne KetoCal weist die App
 darauf hin, dass Vitamine und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (35 Gerichte, 50 Varianten: 21 mit / 29 ohne KetoCal)
+## Rezepte (36 Gerichte, 50 Varianten: 22 mit / 28 ohne KetoCal)
 
 Ausgewogen über die Gruppen Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel &
 Gemüse sowie Obst & Brei. Die Namen folgen dem Schema **„Hauptzutat &
@@ -177,35 +177,20 @@ Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); in `recipes.js` tragen
 KetoCal-Varianten den Zusatz „(mit KetoCal)" und werden in der App mit der
 Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen das
 Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„KetoCal &
-Pre Apta"** und **„Compleat"** mit den Fettbasis-Varianten Rapsöl (Standard
-ohne KetoCal) und KetoCal (Nestlé Compleat **Paediatric** Nature
-Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
+Pre Apta"**, **„Compleat & KetoCal"** und **„Compleat & KetoCal & Pre Apta"**
+(Nestlé Compleat **Paediatric** Nature Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
 
-**Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
-Unter Rechnen zeigt das Rezept, für wie viele Mahlzeiten sie bei der aktuellen
-Rechnung reicht, und lässt sie **„in 1 Tag" oder „in 2 Tagen" aufbrauchen**,
-wahlweise nur an einem Teil der Mahlzeiten je Tag (z. B. 3 von 4). Die
-Mahlzeiten je Packung (Tage × je Tag) rechnet die App; Compleat ist dann fest
-500 ÷ N ml je Mahlzeit. Was exakt bleibt,
-legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
-(Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
-abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
-Mahlzeit unter das Kalorien-Minimum, füllt die App nur bis zum Minimum mit Pre
-Apta auf. Mit **„nicht auffüllen"** bleibt es bei Compleat + Fett, und die
-App warnt nur. Treibt eine Aufteilung die Mahlzeit weit über das Ziel (bei
-1,5:1 braucht 63 ml Compleat 38,5 g KetoCal = 346 kcal, weil KetoCal selbst
-Eiweiß und KH mitbringt), sperrt die App mit einer deutlichen Warnung und nennt
-die Alternative: Fettbasis Rapsöl, dann sind es 63 ml + 13,4 g Öl ≈ 194 kcal. Reicht die Packung ohne Aufteilung länger, als sie offen haltbar
-ist (z. B. bei 1,5:1: 34 ml je Mahlzeit, 14 Mahlzeiten = 3,5 Tage), warnt die
-App, wie viel verfallen würde, und rechnet vor, wie viele Kalorien eine Mahlzeit
-hätte, wenn man die Packung trotzdem in 2 Tagen aufbraucht. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die
-Kachel in der Liste zeigt die aufgeteilte Mahlzeit mit Kennzeichen („🧃 2 Tage",
-„+ Pre Apta"), also dieselben Zahlen wie Detail und Tagesplan. **🎯 Kalorien
-halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
-Verhältnis und kcal exakt stimmen; geht das bei diesem Verhältnis nicht auf,
-sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
-**Packungsstand**: heute verplant, Rest für morgen und ob die Packung bei
-gleichem Plan über die 2 Tage genau aufgeht. 34 Varianten
+**Compleat-Packung (500 ml, offen 2 Tage haltbar):** Die Compleat-Rezepte zeigen
+unter Rechnen, für wie viele Mahlzeiten eine Packung bei der aktuellen Rechnung
+reicht und ob nach 2 Tagen etwas verfällt; der Tagesplan zeigt den
+**Packungsstand** (heute verplant, Rest für morgen). Soll eine Packung auf mehr
+Mahlzeiten reichen, hilft das Rezept **„Compleat & KetoCal & Pre Apta"**: Pre
+Apta liefert Kohlenhydrate, damit braucht die Mahlzeit weniger Compleat für
+dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich unter Kochen
+ändern. Achtung bei hohen Verhältnissen (z. B. 1,5:1): Viel Compleat je
+Mahlzeit erzwingt viel KetoCal, weil KetoCal selbst Eiweiß und KH mitbringt.
+
+Varianten
 haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
 
 ## Berechnungsgrundlage

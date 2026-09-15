@@ -11,14 +11,15 @@
       water: {},
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
-      pack: {},  // Packungs-Aufteilung je Gericht (Familien-Schlüssel → Mahlzeiten je Packung)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
   const RENAMES = {
     "Flasche: KetoCal & Pre Apta": "KetoCal & Pre Apta",
-    "Flasche: KetoCal & Compleat": "Compleat (mit KetoCal)",
-    "KetoCal & Compleat": "Compleat (mit KetoCal)",
+    "Flasche: KetoCal & Compleat": "Compleat & KetoCal",
+    "KetoCal & Compleat": "Compleat & KetoCal",
+    "Compleat (mit KetoCal)": "Compleat & KetoCal",
+    "Compleat": "Compleat & KetoCal",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 1": "Erdäpfel & Zucchini (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 2": "Erdäpfel & Zucchini (mit KetoCal)",
   };
@@ -68,7 +69,6 @@
         water: remapKeys(p.water),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
-        pack: remapKeys(p.pack),
       };
     } catch (e) { return defaultState(); }
   }

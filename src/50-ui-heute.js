@@ -51,7 +51,7 @@
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         "</div>" +
-        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen oder bei Packungs-Rezepten die Aufteilung prüfen.</div>' : "") +
+        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
       : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';
@@ -71,8 +71,8 @@
         '<div class="dstat"><div class="v">' + fmt(x.ml, 0) + ' ml</div><div class="l">heute · ' + x.meals + ' Mahlzeit' + (x.meals === 1 ? "" : "en") + ' à ' + fmt(per, 0) + ' ml</div></div>' +
         '<div class="dstat' + (rest < -0.5 ? " warn" : "") + '"><div class="v">' + fmt(Math.max(0, rest), 0) + ' ml</div><div class="l">' +
           (rest < -0.5 ? 'fehlen ' + fmt(-rest, 0) + ' ml – der Plan braucht mehr als eine Packung' : 'bleibt für morgen · reicht für ' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en")) + '</div></div></div>' +
-        (rest >= -0.5 && zweiTage > x.pk.ml + 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen fehlen ' + fmt(zweiTage - x.pk.ml, 0) + ' ml. Im Rezept unter Rechnen „auf N Mahlzeiten aufteilen" höher stellen, dann geht die Packung auf.</div>' : "") +
-        (rest >= -0.5 && zweiTage < x.pk.ml - 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - zweiTage, 0) + ' ml übrig (danach entsorgen). Im Rezept „auf N Mahlzeiten aufteilen" niedriger stellen oder mehr Mahlzeiten damit planen.</div>' : "") +
+        (rest >= -0.5 && zweiTage > x.pk.ml + 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen fehlen ' + fmt(zweiTage - x.pk.ml, 0) + ' ml – dafür braucht es eine zweite Packung.</div>' : "") +
+        (rest >= -0.5 && zweiTage < x.pk.ml - 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - zweiTage, 0) + ' ml übrig (danach entsorgen) – oder mehr Mahlzeiten damit planen bzw. das Rezept mit Pre Apta wählen, das je Mahlzeit weniger Compleat braucht.</div>' : "") +
         (Math.abs(zweiTage - x.pk.ml) <= 0.5 ? '<div class="note tip">✅ Bei gleichem Plan an ' + x.pk.tage + ' Tagen geht die Packung genau auf.</div>' : "") +
         '</div>';
     }).join("");

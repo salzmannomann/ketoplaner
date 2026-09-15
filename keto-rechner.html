@@ -780,7 +780,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
           </div>
         </div>
-        <p class="hint">Gilt für den MCT-Anteil und für die Packungs-Aufteilung (z. B. Compleat). <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien dürfen zwischen dem Minimum und dem Ziel liegen – fällt eine Packungs-Mahlzeit unter das Minimum, wird nur bis dorthin mit Pre Apta aufgefüllt; bei MCT gibt es eine Warnung. <strong>Kalorien halten:</strong> die Kalorien treffen das Ziel exakt; bei MCT steigt dafür das Verhältnis (eine Änderung der Verordnung), bei der Packung wird bis zum Ziel mit Pre Apta aufgefüllt.</p>
+        <p class="hint">Gilt für den MCT-Anteil. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil – fällt der Tag unter das Minimum, gibt es eine Warnung. <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis (das ist eine Änderung der Verordnung).</p>
       </div>
 
       <div class="card">
@@ -1071,26 +1071,26 @@ const RECIPES_SONDE = [
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
-    // Compleat mit Rapsöl als Fett: Öl bringt keine Eiweiß/KH mit, daher bleibt die Mahlzeit auch bei
-    // Packungs-Aufteilung nahe am Kalorienziel (bei 1,5:1 z. B. 63 ml + 13 g Öl ≈ 194 kcal).
-    name: "Compleat",
-    icon: "🥤",
-    ketocal: false,
-    angeruehrt: true,
-    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2, auffuellen: "Aptamil Pre (Pulver)", kurz: "Pre Apta" },
-    zubereitung: "Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und auf Zimmertemperatur bringen. Das Rapsöl erst kurz vor dem Füttern gründlich einrühren – Compleat ist bereits eine Vollnahrung, das Öl liefert nur das Fett fürs Verhältnis. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – unter Rechnen lässt sich die Packung auf die Mahlzeiten von zwei Tagen aufteilen.",
-    items: [ { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 60 }, { food: "Rapsöl", grams: 13 } ],
-  },
-  {
-    name: "Compleat (mit KetoCal)",
+    name: "Compleat & KetoCal",
     icon: "🥤",
     ketocal: true,
     angeruehrt: true,
-    // Packung: 500 ml, offen 2 Tage haltbar. Wird die Packung auf mehr Mahlzeiten aufgeteilt, als ohne
-    // Auffüllen aufgehen, ergänzt die App Pre Apta (KH) für die Kalorien und KetoCal (Fett) fürs Verhältnis.
-    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2, auffuellen: "Aptamil Pre (Pulver)", kurz: "Pre Apta" },
-    zubereitung: "KetoCal 3:1 (und, falls angezeigt, Pre Apta) abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die Mengen rechnet die App auf das eingestellte Verhältnis um – für die Ausschleich-Phase unter Vorgaben das verordnete Verhältnis eingeben (z. B. 1:1 oder 1:1,5). Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – unter Rechnen lässt sich die Packung auf die Mahlzeiten von zwei Tagen aufteilen.",
+    // Packung (nur für den Packungsstand im Tagesplan): 500 ml, offen 2 Tage haltbar
+    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2 },
+    zubereitung: "KetoCal 3:1 abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die Mengen rechnet die App auf das eingestellte Verhältnis und die Kalorien je Mahlzeit um. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – der Tagesplan zeigt, wie viel davon heute verplant ist.",
     items: [ { food: "Ketocal 3:1", grams: 13 }, { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 40 }, { food: "Wasser", grams: 30 } ],
+  },
+  {
+    // Pre Apta liefert Kohlenhydrate: damit kommt die Mahlzeit mit weniger Compleat je Mahlzeit auf die Kalorien,
+    // z. B. wenn eine Packung auf mehr Mahlzeiten reichen soll. Das Verhältnis Compleat : Pre Apta ist im Rezept
+    // hinterlegt (50 ml : 5 g) und lässt sich unter Kochen durch Ändern einer Menge anpassen.
+    name: "Compleat & KetoCal & Pre Apta",
+    icon: "🥤",
+    ketocal: true,
+    angeruehrt: true,
+    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2 },
+    zubereitung: "KetoCal 3:1 und Pre Apta abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Pre Apta liefert Kohlenhydrate – so braucht die Mahlzeit weniger Compleat für dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich unter Kochen ändern. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen.",
+    items: [ { food: "Ketocal 3:1", grams: 8 }, { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 50 }, { food: "Aptamil Pre (Pulver)", grams: 5 }, { food: "Wasser", grams: 35 } ],
   },
   {
     name: "HiPP Hühnchen & Öl",
@@ -1550,14 +1550,15 @@ const RECIPES_SONDE = [
       water: {},
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
-      pack: {},  // Packungs-Aufteilung je Gericht (Familien-Schlüssel → Mahlzeiten je Packung)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
   const RENAMES = {
     "Flasche: KetoCal & Pre Apta": "KetoCal & Pre Apta",
-    "Flasche: KetoCal & Compleat": "Compleat (mit KetoCal)",
-    "KetoCal & Compleat": "Compleat (mit KetoCal)",
+    "Flasche: KetoCal & Compleat": "Compleat & KetoCal",
+    "KetoCal & Compleat": "Compleat & KetoCal",
+    "Compleat (mit KetoCal)": "Compleat & KetoCal",
+    "Compleat": "Compleat & KetoCal",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 1": "Erdäpfel & Zucchini (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 2": "Erdäpfel & Zucchini (mit KetoCal)",
   };
@@ -1607,7 +1608,6 @@ const RECIPES_SONDE = [
         water: remapKeys(p.water),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
-        pack: remapKeys(p.pack),
       };
     } catch (e) { return defaultState(); }
   }
@@ -1834,89 +1834,6 @@ const RECIPES_SONDE = [
     return items.map((it, i) => i === mi
       ? { food: it.food, grams: round1(m) }
       : { food: it.food, grams: round1(num(it.grams)) });
-  }
-  /* ---------- Packungs-Modus ----------
-     Eine Zutat (z. B. Compleat) ist fest: Packung ÷ N Mahlzeiten. Zwei Hebel werden gleichzeitig
-     gelöst – das Fett (KetoCal) fürs Verhältnis und ein KH-reicher Auffüller (Pre Apta) für die
-     Kalorien – sodass Verhältnis UND kcal je Mahlzeit exakt stimmen (2×2 lineares System).
-     Übrige Zutaten (Wasser) skalieren proportional zur festen Zutat. */
-  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen,
-  //   aber nicht unter minKcal: dann wird mit dem Auffüller nur bis zum Minimum aufgefüllt.
-  // mode "kalorien": zusätzlich der Auffüller – Verhältnis UND Kalorien exakt.
-  // fill === false: kein Auffüller – dann wird in jedem Modus nur das Verhältnis gehalten (Minimum ggf. unterschritten).
-  function computePackSplit(rec, targetKcal, ratio, n, mode, minKcal, fill) {
-    const useFill = fill !== false;
-    const pk = rec.packung; if (!pk || !(n > 0)) return null;
-    const fixedMl = pk.ml / n;
-    const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
-    const fixIdx = base.findIndex(it => it.food === pk.food);
-    const fi = fatItemIndex(base);
-    if (fixIdx < 0 || fi < 0 || fi === fixIdx) return null;
-    const fat = lookup(base[fi].food), filler = lookup(pk.auffuellen);
-    if (!fat || !filler) return null;
-    const scale = base[fixIdx].grams > 0 ? fixedMl / base[fixIdx].grams : 1;
-    let P = 0, F = 0, C = 0, Kc = 0;
-    base.forEach((it, i) => {
-      if (i === fi) return;
-      const f = lookup(it.food); if (!f) return;
-      const g = i === fixIdx ? fixedMl : it.grams * scale;
-      P += f.eiweiss * g / 100; F += f.fett * g / 100; C += f.kh * g / 100; Kc += kcal100Of(f) * g / 100;
-    });
-    const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (filler.fett - ratio * (filler.eiweiss + filler.kh)) / 100;
-    const c1 = ratio * (P + C) - F;
-    const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(filler) / 100, c2 = targetKcal - Kc;
-    // Grundlösung: nur das Fett (Verhältnis exakt). Auffüllen nur, wenn dadurch Kalorien dazukommen –
-    // ein negativer Auffüller (Mahlzeit schon über Ziel) wird übersprungen, nicht „gerechnet“.
-    if (Math.abs(a1) < 1e-9) return null;
-    const k0 = c1 / a1, kcalFree = Kc + k0 * a2;
-    let k = k0, p = 0, filledToMin = false, fillSkipped = false;
-    const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
-    if (mode === "kalorien" && useFill) {
-      const s2 = solve2(c2);
-      if (s2 && s2.k >= 0 && s2.p > 0.05) { k = s2.k; p = s2.p; } else fillSkipped = true;
-    } else if (useFill && minKcal > 0 && kcalFree < minKcal - 0.5) {
-      const s2 = solve2(minKcal - Kc);
-      if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
-    }
-    // Zu viel je Mahlzeit (> 125 % des Ziels): die Aufteilung wird nicht angewendet, sondern erklärt.
-    const kcalPre = Kc + k * a2 + p * b2;
-    const tooHigh = targetKcal > 0 && kcalPre > targetKcal * 1.25 + 0.5;
-    const ok = k >= 0 && !tooHigh;
-    const items = [];
-    base.forEach((it, i) => {
-      if (i === fi) items.push({ food: it.food, grams: round1(Math.max(0, k)) });
-      else if (i === fixIdx) items.push({ food: it.food, grams: round1(fixedMl) });
-      else items.push({ food: it.food, grams: round1(it.grams * scale) });
-    });
-    if (p > 0.05) items.splice(items.findIndex(it => it.food === pk.food) + 1, 0, { food: pk.auffuellen, grams: round1(p) });
-    const sum = sumMacros(items);
-    return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
-      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal,
-        fill: useFill, belowMin: minKcal > 0 && sum.kcal < minKcal - 0.5, fillSkipped, tooHigh } };
-  }
-  // Gemerkte Packungs-Aufteilung je Gericht: { tage, perDay, fill } – „Packung in T Tagen aufbrauchen,
-  // an P Mahlzeiten je Tag“; die Mahlzeiten je Packung (n = T × P) rechnet die App. Ältere Speicherformen
-  // (nur n) werden umgerechnet. Der Modus ist die globale Rechenregel (Vorgaben).
-  function packSetting(key) {
-    const v = (state.pack || {})[key];
-    const mahl = Math.max(1, num(state.settings.mahlzeiten) || 1);
-    const fill = !(v && typeof v === "object" && v.fill === false);
-    let tage = 0, perDay = mahl;
-    if (v && typeof v === "object" && num(v.tage) > 0) {
-      tage = Math.round(num(v.tage)); perDay = Math.max(1, Math.min(mahl, Math.round(num(v.perDay)) || mahl));
-    } else if (v) {
-      const n = typeof v === "number" ? v : num(v.n);
-      if (n > 0) { tage = Math.max(1, Math.min(2, Math.round(n / mahl))); perDay = Math.max(1, Math.min(mahl, Math.round(n / tage))); }
-    }
-    return { n: tage * perDay, tage, perDay, fill, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
-  }
-  // Packungs-Übersicht ohne Aufteilung: Menge je Mahlzeit laut Standardrechnung → Mahlzeiten je Packung.
-  function packInfo(rec, d) {
-    const pk = rec.packung; if (!pk) return null;
-    const std = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
-    const mlStd = std.items.filter(it => it.food === pk.food).reduce((a, it) => a + num(it.grams), 0);
-    const nAuto = mlStd > 0 ? Math.floor(pk.ml / mlStd + 1e-9) : 0;
-    return { pk, mlStd, nAuto, rest: pk.ml - nAuto * mlStd };
   }
 
   /* ---------- Fleisch-Tausch ----------
@@ -2358,14 +2275,6 @@ const RECIPES_SONDE = [
     const name = fam ? fam.name : familyOf(rec);
     const multi = !!fam && fam.variants.length > 1;
 
-    // Packung: Aufteilung und Auffüller als Kennzeichen, damit die Liste zeigt, was gerechnet wird.
-    let packBadges = "";
-    if (rec.packung) {
-      const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) packBadges += '<span class="badge basis">🧃 ' + ps.tage + ' Tag' + (ps.tage > 1 ? 'e' : '') + (ps.perDay < num(state.settings.mahlzeiten) ? ' · ' + ps.perDay + '/Tag' : '') + '</span>';
-      if (res.items.some(it => it.food === rec.packung.auffuellen)) packBadges += '<span class="badge basis">+ ' + escapeHtml(rec.packung.kurz || rec.packung.auffuellen) + '</span>';
-    }
-
     const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
@@ -2378,7 +2287,6 @@ const RECIPES_SONDE = [
         // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
         (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
                : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
-        packBadges +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
@@ -2418,13 +2326,7 @@ const RECIPES_SONDE = [
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
   // → gemerktes Wasser. Ergebnis ist eine Portion (= eine Mahlzeit).
   function computeMealView(rec, d, meatChoice) {
-    let base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
-    // Packungs-Modus (z. B. Compleat): feste Menge je Mahlzeit, KetoCal + Auffüller gelöst.
-    let packSplit = null;
-    if (rec.packung) {
-      const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode, d.kcalMinMahl, ps.fill); if (packSplit && packSplit.ok) base = packSplit; }
-    }
+    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
     const swapSlot = recipeMeatSlot(rec);
@@ -2465,7 +2367,7 @@ const RECIPES_SONDE = [
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, packSplit };
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
@@ -2544,89 +2446,20 @@ const RECIPES_SONDE = [
         (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</div></div>';
     }
 
-    // Packung aufteilen (z. B. Compleat 500 ml, 2 Tage haltbar): auf N Mahlzeiten – Auffüller ergänzt die Kalorien.
-    let packSeg = "";
-    const pset = rec.packung ? packSetting(fam.key) : { n: 0, mode: "verhaeltnis" };
-    const packNSet = pset.n;
+    // Packungs-Hinweis (z. B. Compleat 500 ml, 2 Tage haltbar): reine Information, wie weit eine Packung reicht.
+    let packInfoSeg = "";
     if (rec.packung) {
-      const pi = packInfo(rec, d), pk = pi.pk, ps = mv.packSplit;
-      const active = packNSet > 0 && ps && ps.ok;
-      const kcalMode = pset.mode === "kalorien" && pset.fill; // ohne Auffüller lässt sich „Kalorien halten“ nicht rechnen
-      const kurz = pk.kurz || pk.auffuellen;
-      const tage = (n) => fmt(n / d.mahl, 1) + " Tag" + (Math.abs(n / d.mahl - 1) < 0.05 ? "" : "e") + " bei " + d.mahl + " Mahlzeiten/Tag";
-      const sgn = (v) => (v < -0.05 ? "−" : v > 0.05 ? "+" : "±") + fmt(Math.abs(v), 0);
-      // Haltbarkeit: reicht die Packung ohne Aufteilung länger als sie offen haltbar ist, verfällt der Rest –
-      // aufbrauchen ginge dann nur mit mehr Compleat je Mahlzeit, also mehr Kalorien (wird vorgerechnet).
-      const maxInTage = d.mahl * pk.tage;
-      let haltNote = "";
-      if (pi.nAuto > maxInTage) {
-        const alt = computePackSplit(rec, d.kcalMahl, d.ratio, maxInTage, "verhaeltnis", 0, false);
-        const used = maxInTage * pi.mlStd;
-        haltNote = '<div class="note warn">⚠️ Haltbarkeit: In ' + pk.tage + ' Tagen werden bei ' + d.mahl + ' Mahlzeiten/Tag nur ' + maxInTage + ' × ' + fmt(pi.mlStd, 0) + ' ml = ' + fmt(used, 0) + ' ml verbraucht, <strong>' + fmt(pk.ml - used, 0) + ' ml verfallen</strong>. ' +
-          'Bei ' + fmtTarget(d.ratio) + ' lässt sich die Packung in ' + pk.tage + ' Tagen nur mit deutlich mehr Kalorien aufbrauchen' +
-          (alt && alt.pack ? ' (auf ' + maxInTage + ' aufgeteilt: ' + fmt(alt.pack.fixedMl, 0) + ' ml + ' + fmt(alt.pack.k, 1) + ' g KetoCal = <strong>' + fmt(alt.kcal, 0) + ' kcal</strong> je Mahlzeit statt ' + fmt(d.kcalMahl, 0) + ')' : '') + '.</div>';
+      const pk = rec.packung, mlMeal = items.filter(it => it.food === pk.food).reduce((a, it) => a + num(it.grams), 0);
+      if (mlMeal > 0) {
+        const nMeals = Math.floor(pk.ml / mlMeal + 1e-9), maxMeals = d.mahl * pk.tage;
+        const usedInTage = Math.min(nMeals, maxMeals) * mlMeal;
+        packInfoSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
+          '<div class="meat-note">' + fmt(mlMeal, 0) + ' ml je Mahlzeit → eine Packung reicht für <strong>' + nMeals + ' Mahlzeiten</strong> (' + fmt(nMeals / d.mahl, 1) + ' Tage bei ' + d.mahl + ' Mahlzeiten/Tag).' +
+          (nMeals > maxMeals ? ' In ' + pk.tage + ' Tagen werden davon höchstens ' + maxMeals + ' verbraucht (' + fmt(usedInTage, 0) + ' ml), <strong>' + fmt(pk.ml - usedInTage, 0) + ' ml verfallen</strong> – oder an weniger Mahlzeiten je Tag verwenden.' : '') +
+          (nMeals < maxMeals ? ' Für ' + pk.tage + ' volle Tage (' + maxMeals + ' Mahlzeiten) braucht es mehr als eine Packung.' : '') +
+          ' Der Tagesplan zeigt, wie viel heute verplant ist.</div></div>';
       }
-      let txt;
-      const rejected = packNSet > 0 && !active;
-      if (rejected && ps && ps.pack && ps.pack.tooHigh) {
-        // Abgelehnt: so viel Compleat je Mahlzeit ergäbe viel zu viele Kalorien – gilt unabhängig vom Auffüll-Schalter.
-        const other = fam.variants.find(v => recipeKey(v) !== recipeKey(rec) && v.packung);
-        let altTxt = "";
-        if (other) {
-          const alt = computePackSplit(other, d.kcalMahl, d.ratio, packNSet, pset.mode, d.kcalMinMahl, pset.fill);
-          if (alt && alt.ok) altTxt = ' <strong>Ausweg:</strong> Fettbasis <strong>' + escapeHtml(basisLabel(other)) + '</strong> statt ' + escapeHtml(basisLabel(rec)) + ' – dann sind es <strong>' + fmt(alt.kcal, 0) + ' kcal</strong> je Mahlzeit und die Packung geht auf (Umschalter unter Kochen).';
-        }
-        txt = '<div class="note warn">⛔ <strong>Aufteilung auf ' + packNSet + ' Mahlzeiten (' + pset.tage + ' Tag' + (pset.tage > 1 ? 'e' : '') + ' × ' + pset.perDay + ' je Tag) nicht angewendet:</strong> ' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + ' je Mahlzeit bräuchten bei ' + fmtTarget(d.ratio) + ' ' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) +
-          (hasKetoCal(rec.items) ? ' (KetoCal bringt selbst Eiweiß und KH mit, die wieder Fett brauchen)' : '') + ' – das wären <strong>' + fmt(ps.kcal, 0) + ' kcal je Mahlzeit</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + fmt(ps.kcal * d.mahl, 0) + ' kcal am Tag). ' +
-          'Auffüllen hilft hier nicht, die Mahlzeit ist ohnehin zu groß. Gerechnet wird deshalb <strong>ohne Aufteilung</strong>: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit, die Packung reicht für ' + pi.nAuto + ' Mahlzeiten' +
-          (pi.nAuto > maxInTage ? ', <strong>' + fmt(pk.ml - maxInTage * pi.mlStd, 0) + ' ml verfallen</strong> nach ' + pk.tage + ' Tagen' : '') + '.' + altTxt + '</div>';
-      } else if (rejected) {
-        txt = '<div class="note warn">⚠️ Auf ' + packNSet + ' Mahlzeiten geht die Packung bei ' + fmtTarget(d.ratio) + ' nicht auf (' + escapeHtml(basisLabel(rec)) + ' müsste negativ werden – ' + escapeHtml(pk.food) + ' allein liegt schon über dem Verhältnis). ' +
-          'Gerechnet wird ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit, die Packung reicht für ' + pi.nAuto + ' Mahlzeiten.</div>';
-      } else if (active && kcalMode && !ps.pack.fillSkipped) {
-        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> je Mahlzeit; damit Verhältnis und ' + fmt(d.kcalMahl, 0) + ' kcal stimmen, kommen <strong>' +
-          fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) + '</strong> (Fett fürs Verhältnis) und <strong>' + fmt(Math.max(0, ps.pack.p), 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> (Kalorien) dazu. ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
-      } else if (active && ps.pack.filledToMin) {
-        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) + '</strong> + <strong>' + fmt(ps.pack.p, 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> je Mahlzeit. ' +
-          'Ohne Auffüllen wären es nur ' + fmt(ps.pack.kcalFree, 0) + ' kcal – unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag). ' +
-          'Deshalb mit ' + escapeHtml(pk.auffuellen) + ' auf <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> aufgefüllt (Ziel wäre ' + fmt(d.kcalMahl, 0) + '); Verhältnis exakt. ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
-      } else if (active && ps.pack.belowMin) {
-        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) + '</strong> je Mahlzeit – Verhältnis exakt, <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + '. ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>' +
-          '<div class="note warn">⚠️ Unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag) – nicht aufgefüllt, weil „nicht auffüllen“ gewählt ist. Am Tag mit einer anderen Mahlzeit ausgleichen (der Tagesplan prüft das) oder Auffüllen mit ' + escapeHtml(kurz) + ' zulassen.</div>';
-      } else if (active) {
-        const devTag = ps.pack.dev * d.mahl;
-        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) + '</strong> je Mahlzeit – Verhältnis exakt, ' +
-          '<strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + sgn(ps.pack.dev) + ' kcal je Mahlzeit, ' + sgn(devTag) + ' kcal je Tag; Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag eingehalten). ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.' +
-          (kcalMode && ps.pack.fillSkipped ? ' Auffüllen mit ' + escapeHtml(kurz) + ' ist hier nicht nötig – die Mahlzeit liegt schon über dem Ziel.' : '') + '</div>';
-      } else {
-        txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
-          'Zum Aufteilen oben wählen, in wie vielen Tagen die Packung aufgebraucht sein soll – die App rechnet die Menge je Mahlzeit.</div>' + haltNote;
-      }
-      const showFill = packNSet > 0 && !(ps && ps.pack && ps.pack.tooHigh);
-      // Steuerung: „Packung aufbrauchen in T Tagen“ (bis zur Haltbarkeit) und „Mahlzeiten je Tag damit“ –
-      // die Mahlzeiten je Packung ergeben sich daraus (T × P); ohne Aufteilung gilt die Standardrechnung.
-      const prodWord = String(pk.food).split(" ")[0];
-      const tageBtn = (t, lab) => '<button type="button" data-ptage="' + t + '"' + (pset.tage === t ? ' class="active"' : "") + '>' + lab + '</button>';
-      let tageBtns = tageBtn(0, "ohne Aufteilung");
-      for (let t = 1; t <= pk.tage; t++) tageBtns += tageBtn(t, "in " + t + " Tag" + (t > 1 ? "en" : "") + " aufbrauchen");
-      packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
-        '<div class="segmented mini">' + tageBtns + '</div>' +
-        (pset.tage > 0 ? '<div class="portion-step" style="margin-top:8px">Mahlzeiten je Tag mit ' + escapeHtml(prodWord) + ': ' +
-          '<button type="button" class="stepbtn" data-pstep="-1">−</button>' +
-          '<input id="pack-perday" type="number" min="1" max="' + d.mahl + '" step="1" inputmode="numeric" value="' + pset.perDay + '">' +
-          '<button type="button" class="stepbtn" data-pstep="1">+</button> von ' + d.mahl + ' → <strong>' + packNSet + ' Mahlzeiten</strong> je Packung</div>' : "") +
-        (showFill ? '<div class="segmented mini" style="margin-top:8px">' +
-          '<button type="button" data-pfill="1"' + (pset.fill ? ' class="active"' : "") + '>Auffüllen mit ' + escapeHtml(kurz) + '</button>' +
-          '<button type="button" data-pfill="0"' + (!pset.fill ? ' class="active"' : "") + '>nicht auffüllen</button>' +
-        '</div>' : "") +
-        (showFill && pset.mode === "kalorien" && !pset.fill ? '<div class="hint" style="margin-top:6px">„Kalorien halten“ braucht einen Auffüller – ohne ihn wird nur das Verhältnis gehalten.</div>' : "") +
-        txt + regelZeile(d) + '</div>';
     }
-
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
@@ -2762,9 +2595,9 @@ const RECIPES_SONDE = [
 
       /* ---------- Rechnen ---------- */
       paneOpen("rechnen") +
-      packSeg +
       meatSeg +
       oilSeg +
+      packInfoSeg +
       '<h4 class="ph">🍽️ Mahlzeit <span class="hint">' + (mult === 1 ? "je Portion" : "für " + portionLabel) + '</span></h4>' +
       '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
@@ -2812,22 +2645,6 @@ const RECIPES_SONDE = [
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
-    const setPack = (tage, perDay, fill) => {
-      if (!state.pack || typeof state.pack !== "object") state.pack = {};
-      if (tage > 0) state.pack[fam.key] = { tage: Math.round(tage), perDay: Math.max(1, Math.min(d.mahl, Math.round(perDay) || d.mahl)), fill: fill !== false };
-      else delete state.pack[fam.key];
-      save(); renderDetail(); renderRezepte(); // Kachel zeigt die aufgeteilte Mahlzeit mit
-    };
-    c.querySelectorAll(".pack button[data-ptage]").forEach(b =>
-      b.addEventListener("click", () => setPack(parseInt(b.dataset.ptage, 10), pset.perDay, pset.fill)));
-    const perIn = c.querySelector("#pack-perday");
-    if (perIn) {
-      perIn.addEventListener("change", () => setPack(pset.tage, parseInt(perIn.value, 10) || d.mahl, pset.fill));
-      c.querySelectorAll(".pack button[data-pstep]").forEach(b =>
-        b.addEventListener("click", () => setPack(pset.tage, (parseInt(perIn.value, 10) || d.mahl) + parseInt(b.dataset.pstep, 10), pset.fill)));
-    }
-    c.querySelectorAll(".pack button[data-pfill]").forEach(b =>
-      b.addEventListener("click", () => setPack(pset.tage, pset.perDay, b.dataset.pfill === "1")));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
@@ -2960,7 +2777,7 @@ const RECIPES_SONDE = [
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         "</div>" +
-        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen oder bei Packungs-Rezepten die Aufteilung prüfen.</div>' : "") +
+        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
       : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';
@@ -2980,8 +2797,8 @@ const RECIPES_SONDE = [
         '<div class="dstat"><div class="v">' + fmt(x.ml, 0) + ' ml</div><div class="l">heute · ' + x.meals + ' Mahlzeit' + (x.meals === 1 ? "" : "en") + ' à ' + fmt(per, 0) + ' ml</div></div>' +
         '<div class="dstat' + (rest < -0.5 ? " warn" : "") + '"><div class="v">' + fmt(Math.max(0, rest), 0) + ' ml</div><div class="l">' +
           (rest < -0.5 ? 'fehlen ' + fmt(-rest, 0) + ' ml – der Plan braucht mehr als eine Packung' : 'bleibt für morgen · reicht für ' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en")) + '</div></div></div>' +
-        (rest >= -0.5 && zweiTage > x.pk.ml + 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen fehlen ' + fmt(zweiTage - x.pk.ml, 0) + ' ml. Im Rezept unter Rechnen „auf N Mahlzeiten aufteilen" höher stellen, dann geht die Packung auf.</div>' : "") +
-        (rest >= -0.5 && zweiTage < x.pk.ml - 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - zweiTage, 0) + ' ml übrig (danach entsorgen). Im Rezept „auf N Mahlzeiten aufteilen" niedriger stellen oder mehr Mahlzeiten damit planen.</div>' : "") +
+        (rest >= -0.5 && zweiTage > x.pk.ml + 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen fehlen ' + fmt(zweiTage - x.pk.ml, 0) + ' ml – dafür braucht es eine zweite Packung.</div>' : "") +
+        (rest >= -0.5 && zweiTage < x.pk.ml - 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - zweiTage, 0) + ' ml übrig (danach entsorgen) – oder mehr Mahlzeiten damit planen bzw. das Rezept mit Pre Apta wählen, das je Mahlzeit weniger Compleat braucht.</div>' : "") +
         (Math.abs(zweiTage - x.pk.ml) <= 0.5 ? '<div class="note tip">✅ Bei gleichem Plan an ' + x.pk.tage + ' Tagen geht die Packung genau auf.</div>' : "") +
         '</div>';
     }).join("");

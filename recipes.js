@@ -13,26 +13,26 @@ const RECIPES_SONDE = [
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
-    // Compleat mit Rapsöl als Fett: Öl bringt keine Eiweiß/KH mit, daher bleibt die Mahlzeit auch bei
-    // Packungs-Aufteilung nahe am Kalorienziel (bei 1,5:1 z. B. 63 ml + 13 g Öl ≈ 194 kcal).
-    name: "Compleat",
-    icon: "🥤",
-    ketocal: false,
-    angeruehrt: true,
-    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2, auffuellen: "Aptamil Pre (Pulver)", kurz: "Pre Apta" },
-    zubereitung: "Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und auf Zimmertemperatur bringen. Das Rapsöl erst kurz vor dem Füttern gründlich einrühren – Compleat ist bereits eine Vollnahrung, das Öl liefert nur das Fett fürs Verhältnis. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – unter Rechnen lässt sich die Packung auf die Mahlzeiten von zwei Tagen aufteilen.",
-    items: [ { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 60 }, { food: "Rapsöl", grams: 13 } ],
-  },
-  {
-    name: "Compleat (mit KetoCal)",
+    name: "Compleat & KetoCal",
     icon: "🥤",
     ketocal: true,
     angeruehrt: true,
-    // Packung: 500 ml, offen 2 Tage haltbar. Wird die Packung auf mehr Mahlzeiten aufgeteilt, als ohne
-    // Auffüllen aufgehen, ergänzt die App Pre Apta (KH) für die Kalorien und KetoCal (Fett) fürs Verhältnis.
-    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2, auffuellen: "Aptamil Pre (Pulver)", kurz: "Pre Apta" },
-    zubereitung: "KetoCal 3:1 (und, falls angezeigt, Pre Apta) abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die Mengen rechnet die App auf das eingestellte Verhältnis um – für die Ausschleich-Phase unter Vorgaben das verordnete Verhältnis eingeben (z. B. 1:1 oder 1:1,5). Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – unter Rechnen lässt sich die Packung auf die Mahlzeiten von zwei Tagen aufteilen.",
+    // Packung (nur für den Packungsstand im Tagesplan): 500 ml, offen 2 Tage haltbar
+    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2 },
+    zubereitung: "KetoCal 3:1 abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die Mengen rechnet die App auf das eingestellte Verhältnis und die Kalorien je Mahlzeit um. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – der Tagesplan zeigt, wie viel davon heute verplant ist.",
     items: [ { food: "Ketocal 3:1", grams: 13 }, { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 40 }, { food: "Wasser", grams: 30 } ],
+  },
+  {
+    // Pre Apta liefert Kohlenhydrate: damit kommt die Mahlzeit mit weniger Compleat je Mahlzeit auf die Kalorien,
+    // z. B. wenn eine Packung auf mehr Mahlzeiten reichen soll. Das Verhältnis Compleat : Pre Apta ist im Rezept
+    // hinterlegt (50 ml : 5 g) und lässt sich unter Kochen durch Ändern einer Menge anpassen.
+    name: "Compleat & KetoCal & Pre Apta",
+    icon: "🥤",
+    ketocal: true,
+    angeruehrt: true,
+    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2 },
+    zubereitung: "KetoCal 3:1 und Pre Apta abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Pre Apta liefert Kohlenhydrate – so braucht die Mahlzeit weniger Compleat für dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich unter Kochen ändern. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen.",
+    items: [ { food: "Ketocal 3:1", grams: 8 }, { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 50 }, { food: "Aptamil Pre (Pulver)", grams: 5 }, { food: "Wasser", grams: 35 } ],
   },
   {
     name: "HiPP Hühnchen & Öl",

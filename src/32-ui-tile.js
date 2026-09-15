@@ -8,14 +8,6 @@
     const name = fam ? fam.name : familyOf(rec);
     const multi = !!fam && fam.variants.length > 1;
 
-    // Packung: Aufteilung und Auffüller als Kennzeichen, damit die Liste zeigt, was gerechnet wird.
-    let packBadges = "";
-    if (rec.packung) {
-      const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) packBadges += '<span class="badge basis">🧃 ' + ps.tage + ' Tag' + (ps.tage > 1 ? 'e' : '') + (ps.perDay < num(state.settings.mahlzeiten) ? ' · ' + ps.perDay + '/Tag' : '') + '</span>';
-      if (res.items.some(it => it.food === rec.packung.auffuellen)) packBadges += '<span class="badge basis">+ ' + escapeHtml(rec.packung.kurz || rec.packung.auffuellen) + '</span>';
-    }
-
     const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
     tile.innerHTML =
@@ -28,7 +20,6 @@
         // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
         (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
                : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
-        packBadges +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
