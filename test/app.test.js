@@ -363,6 +363,10 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   fire(w, $(w, "detail-close"));
   ri.value = "1:1,5"; fire(w, ri, "input"); fire(w, ri, "change");
   assert.equal(ri.value, "1:1,5");
+  assert.match($(w, "ratio-hint").textContent, /weniger Fett als Eiweiß\+KH.*„1,5:1“, bitte „1,5“ eingeben/);
+  ri.value = "1,5"; fire(w, ri, "input");
+  assert.match($(w, "ratio-hint").textContent, /^1,5:1 = 1,50 g Fett je 1 g Eiweiß\+KH \(mehr Fett/);
+  ri.value = "1:1,5"; fire(w, ri, "input");
   assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
   c = openRecipe(w, "KetoCal & Compleat");

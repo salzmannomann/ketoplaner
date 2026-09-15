@@ -597,6 +597,8 @@ details.collapsible { margin: 8px 0; }
 .tile-stats { font-size: 13px; }
 .badge.keto-mini { background: #ede9fe; color: #5b21b6; }
 .badge.basis { background: #fff4e0; color: #9a5b00; }
+#ratio-hint { margin-top: 6px; font-size: 13px; }
+#ratio-hint.warnish { color: #9a5b00; }
 .inline-row { display: flex; align-items: center; gap: 10px; }
 .inline-row select { flex: 1; min-width: 0; }
 .inline-row .calc { white-space: nowrap; font-weight: 600; color: var(--green); }
@@ -723,7 +725,8 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
         <div class="settings-grid">
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
-            <input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8 oder 1:1,5" />
+            <input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8 oder 1,5" />
+            <div class="hint" id="ratio-hint"></div>
           </div>
           <div>
             <label>Kalorien pro Tag (Ziel)</label>
@@ -2209,6 +2212,13 @@ const RECIPES_SONDE = [
       " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
+    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
+    const rh = document.getElementById("ratio-hint");
+    if (rh) {
+      if (d.ratio >= 1) rh.innerHTML = fmtTarget(d.ratio) + " = " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH" + (d.ratio > 1 ? " (mehr Fett als Eiweiß+KH)" : " (gleich viel Fett wie Eiweiß+KH)") + ".";
+      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
+      rh.classList.toggle("warnish", d.ratio < 1);
+    }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.

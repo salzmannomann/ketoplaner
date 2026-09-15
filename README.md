@@ -48,8 +48,10 @@ die Vorgaben.
 ### Vorgaben
 
 - **Verordnung:** Verhältnis wird **händisch** eingegeben, in der Schreibweise
-  der Verordnung: „1,8" oder „1,8:1" (Keto), „1:1" oder „1:1,5" (Ausschleichen;
-  Verhältnisse unter 1 zeigt die App überall als „1:x"), **KetoCal:
+  der Verordnung, **Fett zuerst**: „1,8" oder „1,8:1" (Keto), „1,5" für 1,5:1,
+  „1:1"; Werte unter 1:1 wie „1:1,5" (0,67 g Fett je 1 g Eiweiß+KH) zeigt die
+  App überall als „1:x" und warnt unter dem Feld, damit die Richtung nicht
+  verwechselt wird, **KetoCal:
   mit / ohne** (wählt bei Gerichten mit beiden Varianten die Fettbasis),
   **Kalorien pro Tag (Ziel)** und **Kalorien mindestens pro Tag** (leer =
   automatisch 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert

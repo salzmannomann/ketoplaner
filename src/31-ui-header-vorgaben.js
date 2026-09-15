@@ -29,6 +29,13 @@
       " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
+    // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
+    const rh = document.getElementById("ratio-hint");
+    if (rh) {
+      if (d.ratio >= 1) rh.innerHTML = fmtTarget(d.ratio) + " = " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH" + (d.ratio > 1 ? " (mehr Fett als Eiweiß+KH)" : " (gleich viel Fett wie Eiweiß+KH)") + ".";
+      else rh.innerHTML = "⚠️ " + fmtTarget(d.ratio) + " = nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Lautet die Verordnung „" + fmt(1 / d.ratio, 1) + ":1“, bitte „" + fmt(1 / d.ratio, 1) + "“ eingeben.";
+      rh.classList.toggle("warnish", d.ratio < 1);
+    }
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
