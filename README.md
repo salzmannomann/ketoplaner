@@ -87,23 +87,22 @@ die Vorgaben.
 
 ### Detailansicht eines Rezepts
 
-Die Detailansicht ist in drei Reiter geteilt – so, wie man in der Küche
-arbeitet:
+Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
 
-1. **Kochen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter,
+1. **Rechnen** – Kennzahlen (kcal, Verhältnis, Eiweiß, Fett, KH), die
+   MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind /
+   🦃 Pute** sowie die Links „Zutaten anpassen / tauschen" (öffnet das Rezept
+   im freien Rechner) und **Drucken** (A4 Hochformat).
+2. **Kochen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter,
    wenn es das Gericht in beiden Varianten gibt), Zutatentabelle für die
    gewählte Menge (Portionen-Stepper, „1 Portion" / „Ganzer Tag") und die
-   **Varoma-Anleitung** als nummerierte Schritte; der **Fleisch-Umschalter
-   🍗 Huhn / 🥩 Rind / 🦃 Pute** steht unter Rechnen. Ändert man
+   **Varoma-Anleitung** als nummerierte Schritte. Ändert man
    eine Zutatenmenge direkt (z. B. „827 g Zucchini"), skalieren alle anderen
    Zutaten proportional mit; **Wasser** ist davon ausgenommen und kann
    unabhängig angepasst werden. Menge und Wasser werden **je Rezept gemerkt**.
-2. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
+3. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
    vor dem Verabreichen dazu), darunter die Öl-Menge je Portion (Rapsöl / MCT
    getrennt) und die Gesamtmenge.
-3. **Rechnen** – Kennzahlen (kcal, Verhältnis, Eiweiß, Fett, KH), die
-   MCT-Kacheln und Warnungen sowie die Links „Zutaten anpassen / tauschen"
-   (öffnet das Rezept im freien Rechner) und **Drucken** (A4 Hochformat).
 
 ### Heute (Tagesplan)
 

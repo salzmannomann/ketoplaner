@@ -10,6 +10,7 @@
   }
   function openRecipeDetail(rec) {
     detailRec = rec; detailScale = num(state.scales[familyKey(rec)]) || 1; detailMeat = null;
+    state.settings.detailTab = "rechnen"; // jedes Rezept öffnet mit Rechnen; innerhalb der Ansicht bleibt der gewählte Reiter
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -197,7 +198,7 @@
     const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (kommen erst vor dem Füttern dazu)
     const oilRowsPer = items.filter(it => isOil(it.food));
-    const dtab = ["kochen", "abfuellen", "rechnen"].indexOf(state.settings.detailTab) >= 0 ? state.settings.detailTab : "kochen";
+    const dtab = ["rechnen", "kochen", "abfuellen"].indexOf(state.settings.detailTab) >= 0 ? state.settings.detailTab : "rechnen";
     const tabBtn = (k, lab) => '<button type="button" data-dtab="' + k + '"' + (dtab === k ? ' class="active"' : "") + ">" + lab + "</button>";
     const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k ? " hidden" : "") + ">";
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
@@ -208,7 +209,7 @@
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + " " + ketoBadge + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
         fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
-      '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
+      '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("rechnen", "📊 Rechnen") + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + "</div>" +
 
       /* ---------- Kochen ---------- */
       paneOpen("kochen") +
