@@ -25,7 +25,8 @@
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
   const RENAMES = {
     "Flasche: KetoCal & Pre Apta": "KetoCal & Pre Apta",
-    "Flasche: KetoCal & Compleat": "KetoCal & Compleat",
+    "Flasche: KetoCal & Compleat": "Compleat (mit KetoCal)",
+    "KetoCal & Compleat": "Compleat (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 1": "Erdäpfel & Zucchini (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 2": "Erdäpfel & Zucchini (mit KetoCal)",
   };
@@ -34,10 +35,13 @@
     const n = k.slice(4); return RENAMES[n] ? "std:" + RENAMES[n] : k;
   }
   // Familien-Schlüssel (Favoriten, Mengen, Wasser gelten je Gericht, nicht je Fettbasis-Variante).
+  const stripVariant = (n) => n.replace(/ \(mit KetoCal\)|, mit KetoCal/g, "");
   function toFamilyKey(k) {
+    if (typeof k !== "string") return k;
+    if (k.indexOf("fam:") === 0) { const n = k.slice(4); return RENAMES[n] ? "fam:" + stripVariant(RENAMES[n]) : k; }
     k = renameKey(k);
-    if (typeof k !== "string" || k.indexOf("std:") !== 0) return k;
-    return "fam:" + k.slice(4).replace(/ \(mit KetoCal\)|, mit KetoCal/g, "");
+    if (k.indexOf("std:") !== 0) return k;
+    return "fam:" + stripVariant(k.slice(4));
   }
   function remapKeys(obj) {
     const o = {};
@@ -72,7 +76,7 @@
         water: remapKeys(p.water),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
-        pack: p.pack && typeof p.pack === "object" ? p.pack : {},
+        pack: remapKeys(p.pack),
       };
     } catch (e) { return defaultState(); }
   }
@@ -1049,6 +1053,20 @@
       } else {
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
           'Zum Aufteilen die Mahlzeiten je Packung eintragen – z. B. ' + maxInTage + ' für ' + pk.tage + ' volle Tage.</div>' + haltNote;
+      }
+      // Sperr-Warnung: Aufteilung treibt die Mahlzeit weit über das Ziel (z. B. KetoCal bei 1,5:1) –
+      // mit Hinweis auf die andere Fettbasis desselben Gerichts, falls sie das Problem löst.
+      if (active && ps.kcal > d.kcalMahl * 1.25) {
+        const other = fam.variants.find(v => recipeKey(v) !== recipeKey(rec) && v.packung);
+        let altTxt = "";
+        if (other) {
+          const alt = computePackSplit(other, d.kcalMahl, d.ratio, packNSet, pset.mode, d.kcalMinMahl, pset.fill);
+          if (alt && alt.ok) altTxt = ' Mit Fettbasis <strong>' + escapeHtml(basisLabel(other)) + '</strong> statt ' + escapeHtml(basisLabel(rec)) + ' wären es <strong>' + fmt(alt.kcal, 0) + ' kcal</strong> je Mahlzeit (Umschalter unter Kochen).';
+        }
+        txt = '<div class="note warn">⛔ <strong>So geht es nicht auf:</strong> Diese Aufteilung ergibt <strong>' + fmt(ps.kcal, 0) + ' kcal je Mahlzeit</strong> (Ziel ' + fmt(d.kcalMahl, 0) + ', ' + fmt(ps.kcal * d.mahl, 0) + ' kcal am Tag). ' +
+          'Bei ' + fmtTarget(d.ratio) + ' brauchen ' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + ' ' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) +
+          (hasKetoCal(rec.items) ? ', weil KetoCal selbst Eiweiß und KH mitbringt, die wieder Fett brauchen' : '') + '.' + altTxt +
+          ' Sonst Aufteilung aufheben – die Packung reicht dann ' + pi.nAuto + ' Mahlzeiten, der Rest verfällt.</div>' + txt;
       }
       packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
         '<span class="portion-step">Auf <button type="button" class="stepbtn" data-pstep="-1">−</button>' +

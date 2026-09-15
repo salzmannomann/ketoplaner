@@ -17,7 +17,8 @@
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
   const RENAMES = {
     "Flasche: KetoCal & Pre Apta": "KetoCal & Pre Apta",
-    "Flasche: KetoCal & Compleat": "KetoCal & Compleat",
+    "Flasche: KetoCal & Compleat": "Compleat (mit KetoCal)",
+    "KetoCal & Compleat": "Compleat (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 1": "Erdäpfel & Zucchini (mit KetoCal)",
     "Erdäpfel & Zucchini (mit KetoCal) – Variante 2": "Erdäpfel & Zucchini (mit KetoCal)",
   };
@@ -26,10 +27,13 @@
     const n = k.slice(4); return RENAMES[n] ? "std:" + RENAMES[n] : k;
   }
   // Familien-Schlüssel (Favoriten, Mengen, Wasser gelten je Gericht, nicht je Fettbasis-Variante).
+  const stripVariant = (n) => n.replace(/ \(mit KetoCal\)|, mit KetoCal/g, "");
   function toFamilyKey(k) {
+    if (typeof k !== "string") return k;
+    if (k.indexOf("fam:") === 0) { const n = k.slice(4); return RENAMES[n] ? "fam:" + stripVariant(RENAMES[n]) : k; }
     k = renameKey(k);
-    if (typeof k !== "string" || k.indexOf("std:") !== 0) return k;
-    return "fam:" + k.slice(4).replace(/ \(mit KetoCal\)|, mit KetoCal/g, "");
+    if (k.indexOf("std:") !== 0) return k;
+    return "fam:" + stripVariant(k.slice(4));
   }
   function remapKeys(obj) {
     const o = {};
@@ -64,7 +68,7 @@
         water: remapKeys(p.water),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
-        pack: p.pack && typeof p.pack === "object" ? p.pack : {},
+        pack: remapKeys(p.pack),
       };
     } catch (e) { return defaultState(); }
   }

@@ -160,7 +160,7 @@ test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Anger�
   const kcOhne = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
   assert.ok(kcOhne < kcMit, "ohne KetoCal: " + kcOhne + " < mit: " + kcMit);
   clickChip(w, "🥤 Angerührt");
-  assert.deepEqual(tileNames(w).sort(), ["HiPP Hühnchen & Öl", "KetoCal & Compleat", "KetoCal & Pre Apta"]);
+  assert.deepEqual(tileNames(w).sort(), ["Compleat", "HiPP Hühnchen & Öl", "KetoCal & Pre Apta"]);
   clickChip(w, "🥚 Ei");
   assert.equal(tileNames(w).length, 4); assert.ok(tileNames(w).every(n => /^Ei /.test(n)));
   clickChip(w, "🍗 Geflügel");
@@ -203,7 +203,7 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   // kcalMin 400 (80 je Mahlzeit) → das Minimum greift in diesem Teil nicht
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, kcalMin: 400 } });
   assert.ok($(w, "mct-more").hidden && !$(w, "mct-zero-hint").hidden, "MCT-Karte bei 0 % eingeklappt");
-  let c = openRecipe(w, "KetoCal & Compleat");
+  let c = openRecipe(w, "Compleat");
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
   assert.match(pack().textContent, /Rechenregel: ⚖️ Verhältnis halten/);
   assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
@@ -228,7 +228,7 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   // Rechenregel „Kalorien halten“ (global unter Vorgaben): Pre Apta füllt auf, 140 kcal exakt
   fire(w, $(w, "detail-close"));
   fire(w, w.document.querySelector("#mct-mode-ctl button[data-mctmode=kalorien]"));
-  c = openRecipe(w, "KetoCal & Compleat");
+  c = openRecipe(w, "Compleat");
   assert.match(pack().textContent, /Rechenregel: 🎯 Kalorien halten/);
   n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
   c = $(w, "detail-content");
@@ -249,16 +249,28 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   fire(w, $(w, "detail-close"));
   // 1,5:1 mit 4 Mahlzeiten: ohne Aufteilung reicht die Packung 14 Mahlzeiten = 3,5 Tage > 2 Tage haltbar → Warnung mit Vorrechnung
   const w15 = boot({ settings: { mctShare: 0, ratio: 1.5, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
-  const c15 = openRecipe(w15, "KetoCal & Compleat");
+  const c15 = openRecipe(w15, "Compleat");
   const p15 = c15.querySelector(".meat-swap.pack").textContent;
   assert.match(p15, /reicht für 14 Mahlzeiten/); assert.match(p15, /22[89] ml verfallen/); assert.match(p15, /346 kcal/);
   fire(w15, [...c15.querySelectorAll(".pack button[data-pstep]")].find(b => b.dataset.pstep === "1")); // + ab Platzhalter: 15
   assert.equal($(w15, "detail-content").querySelector("#pack-n").value, "15");
+  // KetoCal-Variante auf 8 aufgeteilt: 346 kcal je Mahlzeit → Sperr-Warnung mit Rapsöl-Alternative
+  const n15 = $(w15, "detail-content").querySelector("#pack-n"); n15.value = "8"; fire(w15, n15, "change");
+  const p15b = $(w15, "detail-content").querySelector(".meat-swap.pack").textContent;
+  assert.match(p15b, /So geht es nicht auf/); assert.match(p15b, /Rapsöl.*19[34] kcal/);
+  fire(w15, $(w15, "detail-close"));
+  // Phase „ohne KetoCal“: Compleat & Rapsöl – 63 ml + 13,4 g Rapsöl ≈ 194 kcal, Verhältnis exakt, keine Warnung
+  clickChip(w15, "ohne KetoCal");
+  const cO = openRecipe(w15, "Compleat");
+  const rO = kitchenRows(cO);
+  assert.equal(rO["Ketocal 3:1"], undefined); assert.ok(Math.abs(rO["Rapsöl"] - 13.4) < 0.2, "Rapsöl " + rO["Rapsöl"]);
+  assert.ok(Math.abs(kcalOf(cO) - 194) <= 1, "kcal " + kcalOf(cO)); assert.equal(cO.querySelector(".ratio-pill").textContent, "1,50:1");
+  assert.ok(!/So geht es nicht auf/.test(cO.querySelector(".meat-swap.pack").textContent));
   fire(w15, $(w15, "detail-close"));
   // Tagesplan: 5 × Compleat mit Aufteilung auf 10 → heute 250 ml, 250 ml bleiben, geht an 2 Tagen genau auf
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
-  st.pack = { "fam:KetoCal & Compleat": { n: 10, mode: "verhaeltnis" } };
-  st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:KetoCal & Compleat" }));
+  st.pack = { "fam:Compleat": { n: 10, mode: "verhaeltnis" } };
+  st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:Compleat (mit KetoCal)" }));
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const hc = $(w2, "heute-content").textContent;
@@ -267,11 +279,11 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
 
 test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minimum auf, Tagesplan warnt", () => {
   // 8,5 kg, 1:1,5, 4 Mahlzeiten, Packung auf 8: ohne Auffüllen 129 kcal < Minimum 150 → Pre Apta bis 150
-  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, pack: { "fam:KetoCal & Compleat": { n: 8 } } });
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, pack: { "fam:Compleat": { n: 8 } } });
   assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
   assert.match($(w, "verordnung-summary").textContent, /Richtwert nach Gewicht ≈ 680 kcal\/Tag \(80 kcal\/kg, Korridor 600–770\)/);
   assert.equal($(w, "set-kcalmin").placeholder, "auto: 600");
-  let c = openRecipe(w, "KetoCal & Compleat");
+  let c = openRecipe(w, "Compleat");
   const rows = kitchenRows(c);
   assert.equal(rows["Compleat Paediatric Nature Mix (Nestlé)"], 62.5);
   assert.ok(Math.abs(rows["Ketocal 3:1"] - 8.8) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
@@ -281,11 +293,11 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minim
   assert.match(c.querySelector(".meat-swap.pack").textContent, /nur 129 kcal – unter dem Minimum von 150/);
   fire(w, $(w, "detail-close"));
   // Kachel zeigt dieselbe Mahlzeit wie das Detail: 150 kcal, Packung auf 8, + Pre Apta
-  const tileC = () => tiles(w).find(x => x.querySelector(".tile-name").textContent.trim() === "KetoCal & Compleat");
+  const tileC = () => tiles(w).find(x => x.querySelector(".tile-name").textContent.trim() === "Compleat");
   assert.match(tileC().querySelector(".tile-stats").textContent, /150 kcal/);
   assert.match(badgeOf(tileC()), /🧃 auf 8/); assert.match(badgeOf(tileC()), /\+ Pre Apta/);
   // „nicht auffüllen“: nur Compleat + KetoCal, 129 kcal, Warnung statt Auffüllen; Kachel ohne „+ Pre Apta“
-  c = openRecipe(w, "KetoCal & Compleat");
+  c = openRecipe(w, "Compleat");
   fire(w, c.querySelector("button[data-pfill='0']"));
   c = $(w, "detail-content");
   assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
@@ -294,12 +306,12 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minim
   fire(w, $(w, "detail-close"));
   assert.match(tileC().querySelector(".tile-stats").textContent, /129 kcal/);
   assert.ok(!/Pre Apta/.test(badgeOf(tileC())));
-  c = openRecipe(w, "KetoCal & Compleat");
+  c = openRecipe(w, "Compleat");
   fire(w, c.querySelector("button[data-pfill='1']"));
   fire(w, $(w, "detail-close"));
   // Manuelles Minimum 500 (125 je Mahlzeit): 129 reicht → kein Pre Apta
   const km = $(w, "set-kcalmin"); km.value = "500"; fire(w, km, "input");
-  c = openRecipe(w, "KetoCal & Compleat");
+  c = openRecipe(w, "Compleat");
   assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
   assert.ok(Math.abs(kcalOf(c) - 129) <= 1);
   fire(w, $(w, "detail-close"));
@@ -307,7 +319,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minim
   km.value = ""; fire(w, km, "input");
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 500; // Minimum bewusst unter 129×4, damit die Mixe nicht auffüllen …
-  st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:KetoCal & Compleat" }));
+  st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:Compleat (mit KetoCal)" }));
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   assert.match($(w2, "heute-content").textContent, /Minimum 500 ✓/);
@@ -328,7 +340,7 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
   });
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.equal(st.settings.ketocal, "ohne"); assert.equal(st.settings.filter, "alle");
-  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini", "fam:KetoCal & Compleat"]);
+  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini", "fam:Compleat"]);
   assert.equal(st.scales["fam:Erdäpfel & Zucchini"], 3);
   assert.equal(st.dayPlan[0].key, "std:KetoCal & Pre Apta");
   fire(w, $(w, "tab-heute"));
@@ -379,7 +391,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   ri.value = "1:1,5"; fire(w, ri, "input");
   assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
-  c = openRecipe(w, "KetoCal & Compleat");
+  c = openRecipe(w, "Compleat");
   assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   fire(w, $(w, "detail-close"));
   ri.value = "1"; fire(w, ri, "input");

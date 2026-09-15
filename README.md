@@ -78,12 +78,12 @@ die Vorgaben.
 - **Ein Eintrag je Gericht.** Hat ein Gericht eine Variante mit und ohne
   KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter),
   steht es nur einmal in der Liste. Welche **Fettbasis** gezeigt wird,
-  entscheidet die Vorgabe **„KetoCal derzeit: mit / ohne"** (unter Vorgaben
+  entscheidet die Vorgabe **„KetoCal: mit / ohne"** (unter Vorgaben
   und als Schalter über der Liste); im Rezept lässt sich die Fettbasis
   jederzeit umschalten, die Wahl wird je Gericht gemerkt.
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
-  🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥄 Angerührt (ohne Kochen:
-  HiPP-Fertigprodukt, KetoCal & Pre Apta, KetoCal & Compleat). Dazu **Suche**
+  🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
+  HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat mit Rapsöl oder KetoCal). Dazu **Suche**
   nach Name oder Zutat, der Schalter **👩‍⚕️ Diätologie** (nur Original-Rezepte
   aus den Vorlagen) und Sortierung nach Gruppe, Name, Eiweiß oder Menge.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
@@ -99,8 +99,8 @@ Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
 
 1. **Rechnen** – Kennzahlen der Mahlzeit (kcal, Verhältnis, Eiweiß, Fett,
    KH), die MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
-   🥩 Rind / 🦃 Pute**, ein fester Block **„Ganzer Tag"** (eine Portion ×
-   Mahlzeiten pro Tag mit Ziel und Minimum sowie einer Zutatentabelle je Tag mit
+   🥩 Rind / 🦃 Pute**, ein fester Block **„Ein Tag = N × diese Mahlzeit"** (eine
+   Portion × Mahlzeiten pro Tag mit Ziel und Minimum sowie einer Zutatentabelle je Tag mit
    Gramm, Eiweiß, Fett, KH und kcal je Zutat, unabhängig von der gewählten
    Portionenzahl) sowie die Links „Zutaten anpassen / tauschen"
    (öffnet das Rezept im freien Rechner) und **Drucken** (A4 Hochformat).
@@ -177,7 +177,8 @@ Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); in `recipes.js` tragen
 KetoCal-Varianten den Zusatz „(mit KetoCal)" und werden in der App mit der
 Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen das
 Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„KetoCal &
-Pre Apta"** und **„KetoCal & Compleat"** (Nestlé Compleat **Paediatric** Nature
+Pre Apta"** und **„Compleat"** mit den Fettbasis-Varianten Rapsöl (Standard
+ohne KetoCal) und KetoCal (Nestlé Compleat **Paediatric** Nature
 Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
 
 **Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
@@ -188,8 +189,11 @@ legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
 (Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
 abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
 Mahlzeit unter das Kalorien-Minimum, füllt die App nur bis zum Minimum mit Pre
-Apta auf. Mit **„nicht auffüllen"** bleibt es bei Compleat + KetoCal, und die
-App warnt nur. Reicht die Packung ohne Aufteilung länger, als sie offen haltbar
+Apta auf. Mit **„nicht auffüllen"** bleibt es bei Compleat + Fett, und die
+App warnt nur. Treibt eine Aufteilung die Mahlzeit weit über das Ziel (bei
+1,5:1 braucht 63 ml Compleat 38,5 g KetoCal = 346 kcal, weil KetoCal selbst
+Eiweiß und KH mitbringt), sperrt die App mit einer deutlichen Warnung und nennt
+die Alternative: Fettbasis Rapsöl, dann sind es 63 ml + 13,4 g Öl ≈ 194 kcal. Reicht die Packung ohne Aufteilung länger, als sie offen haltbar
 ist (z. B. bei 1,5:1: 34 ml je Mahlzeit, 14 Mahlzeiten = 3,5 Tage), warnt die
 App, wie viel verfallen würde, und rechnet vor, wie viele Kalorien eine Mahlzeit
 hätte, wenn man die Packung trotzdem in 2 Tagen aufbraucht. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die

@@ -199,6 +199,20 @@
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
           'Zum Aufteilen die Mahlzeiten je Packung eintragen – z. B. ' + maxInTage + ' für ' + pk.tage + ' volle Tage.</div>' + haltNote;
       }
+      // Sperr-Warnung: Aufteilung treibt die Mahlzeit weit über das Ziel (z. B. KetoCal bei 1,5:1) –
+      // mit Hinweis auf die andere Fettbasis desselben Gerichts, falls sie das Problem löst.
+      if (active && ps.kcal > d.kcalMahl * 1.25) {
+        const other = fam.variants.find(v => recipeKey(v) !== recipeKey(rec) && v.packung);
+        let altTxt = "";
+        if (other) {
+          const alt = computePackSplit(other, d.kcalMahl, d.ratio, packNSet, pset.mode, d.kcalMinMahl, pset.fill);
+          if (alt && alt.ok) altTxt = ' Mit Fettbasis <strong>' + escapeHtml(basisLabel(other)) + '</strong> statt ' + escapeHtml(basisLabel(rec)) + ' wären es <strong>' + fmt(alt.kcal, 0) + ' kcal</strong> je Mahlzeit (Umschalter unter Kochen).';
+        }
+        txt = '<div class="note warn">⛔ <strong>So geht es nicht auf:</strong> Diese Aufteilung ergibt <strong>' + fmt(ps.kcal, 0) + ' kcal je Mahlzeit</strong> (Ziel ' + fmt(d.kcalMahl, 0) + ', ' + fmt(ps.kcal * d.mahl, 0) + ' kcal am Tag). ' +
+          'Bei ' + fmtTarget(d.ratio) + ' brauchen ' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + ' ' + fmt(ps.pack.k, 1) + ' g ' + escapeHtml(basisLabel(rec)) +
+          (hasKetoCal(rec.items) ? ', weil KetoCal selbst Eiweiß und KH mitbringt, die wieder Fett brauchen' : '') + '.' + altTxt +
+          ' Sonst Aufteilung aufheben – die Packung reicht dann ' + pi.nAuto + ' Mahlzeiten, der Rest verfällt.</div>' + txt;
+      }
       packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
         '<span class="portion-step">Auf <button type="button" class="stepbtn" data-pstep="-1">−</button>' +
         // Leer = keine Aufteilung; der Platzhalter nennt nur, wie viele Mahlzeiten ohne Aufteilung aufgehen.

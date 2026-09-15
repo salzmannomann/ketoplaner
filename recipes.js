@@ -13,7 +13,18 @@ const RECIPES_SONDE = [
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
-    name: "KetoCal & Compleat",
+    // Compleat mit Rapsöl als Fett: Öl bringt keine Eiweiß/KH mit, daher bleibt die Mahlzeit auch bei
+    // Packungs-Aufteilung nahe am Kalorienziel (bei 1,5:1 z. B. 63 ml + 13 g Öl ≈ 194 kcal).
+    name: "Compleat",
+    icon: "🥤",
+    ketocal: false,
+    angeruehrt: true,
+    packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 2, auffuellen: "Aptamil Pre (Pulver)", kurz: "Pre Apta" },
+    zubereitung: "Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und auf Zimmertemperatur bringen. Das Rapsöl erst kurz vor dem Füttern gründlich einrühren – Compleat ist bereits eine Vollnahrung, das Öl liefert nur das Fett fürs Verhältnis. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 2 Tagen verbrauchen – unter Rechnen lässt sich die Packung auf die Mahlzeiten von zwei Tagen aufteilen.",
+    items: [ { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 60 }, { food: "Rapsöl", grams: 13 } ],
+  },
+  {
+    name: "Compleat (mit KetoCal)",
     icon: "🥤",
     ketocal: true,
     angeruehrt: true,
