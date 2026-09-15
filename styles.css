@@ -202,17 +202,10 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   .card { padding: 16px; }
   .overlay { padding: 0; }
   .overlay-card { border-radius: 0; min-height: 100vh; padding: 18px 14px 28px; }
-  .tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .tile { padding: 12px; }
-  .tile-icon { font-size: 28px; }
-  .tile-name { font-size: 15px; }
 }
 @media (max-width: 560px) {
   .iconbtn .lbl { display: none; }
   .iconbtn { padding: 7px 10px; font-size: 16px; }
-}
-@media (max-width: 420px) {
-  .tiles { grid-template-columns: 1fr; }
 }
 
 .footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
@@ -704,3 +697,17 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .meat-note.stat-line { color: var(--ink); }
 .toolbar.top[hidden], .more-row[hidden] { display: none; }
 @media (max-width: 360px) { .detail-tiles.strip { grid-template-columns: 1fr 1fr; } }
+/* Rezept-Zeilen statt Karten: eine Zeile je Gericht, am Desktop zwei Spalten */
+.tiles { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 8px; }
+.tile { flex-direction: row; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; }
+.tile-icon { font-size: 26px; flex: 0 0 auto; }
+.tile-body { flex: 1; min-width: 0; }
+.tile-line1 { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.tile-name { font-size: 15px; line-height: 1.25; }
+.tile-badge { margin: 0; display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tile-badge .badge { margin-left: 0; font-size: 10px; padding: 1px 7px; }
+.tile-badge .ratio-pill { font-size: 11px; padding: 1px 7px; }
+.tile-stats { font-size: 12.5px; gap: 2px 10px; margin-top: 2px; }
+.favbtn { font-size: 20px; flex: 0 0 auto; }
+.tile-chev { color: var(--muted); font-size: 22px; line-height: 1; flex: 0 0 auto; margin-left: -4px; }
+@media (max-width: 560px) { .tiles { grid-template-columns: 1fr; gap: 6px; } }
