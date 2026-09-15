@@ -75,7 +75,9 @@
   // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen,
   //   aber nicht unter minKcal: dann wird mit dem Auffüller nur bis zum Minimum aufgefüllt.
   // mode "kalorien": zusätzlich der Auffüller – Verhältnis UND Kalorien exakt.
-  function computePackSplit(rec, targetKcal, ratio, n, mode, minKcal) {
+  // fill === false: kein Auffüller – dann wird in jedem Modus nur das Verhältnis gehalten (Minimum ggf. unterschritten).
+  function computePackSplit(rec, targetKcal, ratio, n, mode, minKcal, fill) {
+    const useFill = fill !== false;
     const pk = rec.packung; if (!pk || !(n > 0)) return null;
     const fixedMl = pk.ml / n;
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
@@ -97,13 +99,13 @@
     const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(fill) / 100, c2 = targetKcal - Kc;
     let k, p, filledToMin = false, kcalFree = null;
     const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
-    if (mode === "kalorien") {
+    if (mode === "kalorien" && useFill) {
       const s2 = solve2(c2); if (!s2) return null; k = s2.k; p = s2.p;
     } else {
       if (Math.abs(a1) < 1e-9) return null;
       k = c1 / a1; p = 0;
       kcalFree = Kc + k * a2;
-      if (minKcal > 0 && kcalFree < minKcal - 0.5) {
+      if (useFill && minKcal > 0 && kcalFree < minKcal - 0.5) {
         const s2 = solve2(minKcal - Kc);
         if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
       }
@@ -118,13 +120,15 @@
     if (p > 0.05) items.splice(items.findIndex(it => it.food === pk.food) + 1, 0, { food: pk.auffuellen, grams: round1(p) });
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
-      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal } };
+      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal,
+        fill: useFill, belowMin: minKcal > 0 && sum.kcal < minKcal - 0.5 } };
   }
-  // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n }); der Modus ist die globale Rechenregel (Vorgaben).
+  // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n, fill }); der Modus ist die globale Rechenregel (Vorgaben).
   function packSetting(key) {
     const v = (state.pack || {})[key];
     const n = !v ? 0 : (typeof v === "number" ? v : num(v.n));
-    return { n, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
+    const fill = !(v && typeof v === "object" && v.fill === false);
+    return { n, fill, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
   }
   // Packungs-Übersicht ohne Aufteilung: Menge je Mahlzeit laut Standardrechnung → Mahlzeiten je Packung.
   function packInfo(rec, d) {

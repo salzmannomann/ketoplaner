@@ -63,7 +63,8 @@
         if (!alt) return;
         rec = alt; res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       }
-      entries.push({ fam, rec, res });
+      // Kachel zeigt die tatsächliche Mahlzeit (inkl. Packungs-Aufteilung, MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
+      entries.push({ fam, rec, res: computeMealView(rec, d, null).res });
     });
 
     $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +

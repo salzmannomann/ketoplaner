@@ -183,7 +183,10 @@ legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
 (Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
 abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
 Mahlzeit unter das Kalorien-Minimum, füllt die App nur bis zum Minimum mit Pre
-Apta auf. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. **🎯 Kalorien
+Apta auf. Mit **„nicht auffüllen"** bleibt es bei Compleat + KetoCal, und die
+App warnt nur. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die
+Kachel in der Liste zeigt die aufgeteilte Mahlzeit mit Kennzeichen („🧃 auf 8",
+„+ Pre Apta"), also dieselben Zahlen wie Detail und Tagesplan. **🎯 Kalorien
 halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
 Verhältnis und kcal exakt stimmen; geht das bei diesem Verhältnis nicht auf,
 sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein

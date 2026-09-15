@@ -270,6 +270,23 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minim
   assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   assert.match(c.querySelector(".meat-swap.pack").textContent, /nur 129 kcal – unter dem Minimum von 150/);
   fire(w, $(w, "detail-close"));
+  // Kachel zeigt dieselbe Mahlzeit wie das Detail: 150 kcal, Packung auf 8, + Pre Apta
+  const tileC = () => tiles(w).find(x => x.querySelector(".tile-name").textContent.trim() === "KetoCal & Compleat");
+  assert.match(tileC().querySelector(".tile-stats").textContent, /150 kcal/);
+  assert.match(badgeOf(tileC()), /🧃 auf 8/); assert.match(badgeOf(tileC()), /\+ Pre Apta/);
+  // „nicht auffüllen“: nur Compleat + KetoCal, 129 kcal, Warnung statt Auffüllen; Kachel ohne „+ Pre Apta“
+  c = openRecipe(w, "KetoCal & Compleat");
+  fire(w, c.querySelector("button[data-pfill='0']"));
+  c = $(w, "detail-content");
+  assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  assert.ok(Math.abs(kcalOf(c) - 129) <= 1);
+  assert.match(c.querySelector(".meat-swap.pack .note.warn").textContent, /nicht aufgefüllt/);
+  fire(w, $(w, "detail-close"));
+  assert.match(tileC().querySelector(".tile-stats").textContent, /129 kcal/);
+  assert.ok(!/Pre Apta/.test(badgeOf(tileC())));
+  c = openRecipe(w, "KetoCal & Compleat");
+  fire(w, c.querySelector("button[data-pfill='1']"));
+  fire(w, $(w, "detail-close"));
   // Manuelles Minimum 500 (125 je Mahlzeit): 129 reicht → kein Pre Apta
   const km = $(w, "set-kcalmin"); km.value = "500"; fire(w, km, "input");
   c = openRecipe(w, "KetoCal & Compleat");

@@ -25,7 +25,7 @@
     let packSplit = null;
     if (rec.packung) {
       const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode, d.kcalMinMahl); if (packSplit && packSplit.ok) base = packSplit; }
+      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode, d.kcalMinMahl, ps.fill); if (packSplit && packSplit.ok) base = packSplit; }
     }
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
@@ -153,7 +153,8 @@
     if (rec.packung) {
       const pi = packInfo(rec, d), pk = pi.pk, ps = mv.packSplit;
       const active = packNSet > 0 && ps && ps.ok;
-      const kcalMode = pset.mode === "kalorien";
+      const kcalMode = pset.mode === "kalorien" && pset.fill; // ohne Auffüller lässt sich „Kalorien halten“ nicht rechnen
+      const kurz = pk.kurz || pk.auffuellen;
       const tage = (n) => fmt(n / d.mahl, 1) + " Tag" + (Math.abs(n / d.mahl - 1) < 0.05 ? "" : "e") + " bei " + d.mahl + " Mahlzeiten/Tag";
       const sgn = (v) => (v < -0.05 ? "−" : v > 0.05 ? "+" : "±") + fmt(Math.abs(v), 0);
       let txt;
@@ -174,6 +175,10 @@
           'Ohne Auffüllen wären es nur ' + fmt(ps.pack.kcalFree, 0) + ' kcal – unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag). ' +
           'Deshalb mit ' + escapeHtml(pk.auffuellen) + ' auf <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> aufgefüllt (Ziel wäre ' + fmt(d.kcalMahl, 0) + '); Verhältnis exakt. ' +
           packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
+      } else if (active && ps.pack.belowMin) {
+        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> je Mahlzeit – Verhältnis exakt, <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + '. ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>' +
+          '<div class="note warn">⚠️ Unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag) – nicht aufgefüllt, weil „nicht auffüllen“ gewählt ist. Am Tag mit einer anderen Mahlzeit ausgleichen (der Tagesplan prüft das) oder Auffüllen mit ' + escapeHtml(kurz) + ' zulassen.</div>';
       } else if (active) {
         const devTag = ps.pack.dev * d.mahl;
         txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> je Mahlzeit – Verhältnis exakt, ' +
@@ -188,6 +193,11 @@
         '<input id="pack-n" type="number" min="1" step="1" inputmode="numeric" value="' + (packNSet > 0 ? packNSet : pi.nAuto) + '">' +
         '<button type="button" class="stepbtn" data-pstep="1">+</button> Mahlzeiten aufteilen' +
         (packNSet > 0 ? ' <button type="button" id="pack-reset" class="linkbtn">↺ ohne Aufteilung</button>' : "") + '</span>' +
+        '<div class="segmented mini" style="margin-top:8px">' +
+          '<button type="button" data-pfill="1"' + (pset.fill ? ' class="active"' : "") + '>Auffüllen mit ' + escapeHtml(kurz) + '</button>' +
+          '<button type="button" data-pfill="0"' + (!pset.fill ? ' class="active"' : "") + '>nicht auffüllen</button>' +
+        '</div>' +
+        (pset.mode === "kalorien" && !pset.fill ? '<div class="hint" style="margin-top:6px">„Kalorien halten“ braucht einen Auffüller – ohne ihn wird nur das Verhältnis gehalten.</div>' : "") +
         txt + regelZeile(d) + '</div>';
     }
 
@@ -350,16 +360,18 @@
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
-    const setPack = (v) => {
+    const setPack = (v, fill) => {
       if (!state.pack || typeof state.pack !== "object") state.pack = {};
-      if (v > 0) state.pack[fam.key] = { n: Math.round(v) }; else delete state.pack[fam.key];
-      save(); renderDetail();
+      if (v > 0) state.pack[fam.key] = { n: Math.round(v), fill: fill !== false }; else delete state.pack[fam.key];
+      save(); renderDetail(); renderRezepte(); // Kachel zeigt die aufgeteilte Mahlzeit mit
     };
     const packIn = c.querySelector("#pack-n");
     if (packIn) {
-      packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPack(v); });
+      packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPack(v, pset.fill); });
       c.querySelectorAll(".pack button[data-pstep]").forEach(b =>
-        b.addEventListener("click", () => setPack(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)))));
+        b.addEventListener("click", () => setPack(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)), pset.fill)));
+      c.querySelectorAll(".pack button[data-pfill]").forEach(b =>
+        b.addEventListener("click", () => setPack(parseInt(packIn.value, 10) || 1, b.dataset.pfill === "1")));
       const pr = c.querySelector("#pack-reset"); if (pr) pr.addEventListener("click", () => setPack(0));
     }
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
