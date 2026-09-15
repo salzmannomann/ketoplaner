@@ -260,6 +260,27 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
   assert.match($(w, "heute-content").textContent, /KetoCal & Pre Apta/);
 });
 
+test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {
+  const w = boot({ settings: { weight: 8 } });
+  const wi = $(w, "set-weight");
+  assert.equal(wi.getAttribute("type"), "text");
+  assert.equal(wi.getAttribute("inputmode"), "decimal");
+  assert.equal(wi.value, "8");
+  wi.focus();
+  wi.value = "8,"; fire(w, wi, "input");
+  assert.equal(wi.value, "8,", "Feld bleibt beim Tippen unangetastet");
+  wi.value = "8,5"; fire(w, wi, "input");
+  assert.equal(wi.value, "8,5");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.weight, 8.5);
+  assert.match($(w, "rx-chip").textContent, /850 ml\/Tag/);
+  fire(w, wi, "change"); wi.blur();
+  assert.equal(wi.value, "8,5");
+  // Punkt geht ebenso
+  wi.value = "9.5"; fire(w, wi, "input"); fire(w, wi, "change");
+  assert.equal(wi.value, "9,5");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.weight, 9.5);
+});
+
 test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
   const w = boot();
   const ri = $(w, "set-ratio");

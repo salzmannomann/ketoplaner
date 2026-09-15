@@ -2,26 +2,24 @@
   function renderRezepte() {
     const s = state.settings;
     const $ = id => document.getElementById(id);
-    $("set-kcal").value = s.kcal;
-    $("set-mahlzeiten").value = s.mahlzeiten;
-    if (document.activeElement !== $("set-ratio")) $("set-ratio").value = fmtRatioNum(num(s.ratio)); // nicht während des Tippens überschreiben
-    $("set-weight").value = s.weight;
-    $("set-mct-fett").value = s.mctFett100 || "";
-    $("set-mct-kcal").value = s.mctKcal100 || "";
-    $("set-verdunstung").value = (s.dampfVerdunstung === 0 || s.dampfVerdunstung) ? s.dampfVerdunstung : "";
+    // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
+    const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
+    put("set-kcal", s.kcal);
+    put("set-mahlzeiten", s.mahlzeiten);
+    put("set-ratio", fmtRatioNum(num(s.ratio)));
+    put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
+    put("set-mct-fett", s.mctFett100 || "");
+    put("set-mct-kcal", s.mctKcal100 || "");
+    put("set-verdunstung", (s.dampfVerdunstung === 0 || s.dampfVerdunstung) ? s.dampfVerdunstung : "");
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    const km = $("set-kcalmin");
-    if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
-    const fl = $("set-fluid");
-    if (fl) { if (document.activeElement !== fl) fl.value = d.fluidManual ? s.fluidMl : ""; fl.placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag"; }
-    const zw = $("set-zwischen");
-    if (zw && document.activeElement !== zw) zw.value = (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl;
-    const mm = $("set-maxmahl");
-    if (mm) { if (document.activeElement !== mm) mm.value = d.maxMahlManual ? s.maxMahlMl : ""; mm.placeholder = d.maxMahlAuto > 0 ? "auto: " + fmt(d.maxMahlAuto, 0) : "ml"; }
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "auto: " + fmt(d.kcalMinAuto, 0);
+    put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag";
+    put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
+    put("set-maxmahl", d.maxMahlManual ? s.maxMahlMl : ""); $("set-maxmahl").placeholder = d.maxMahlAuto > 0 ? "auto: " + fmt(d.maxMahlAuto, 0) : "ml";
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
-    $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
+    put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
     renderHeader(d);

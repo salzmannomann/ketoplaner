@@ -1,5 +1,8 @@
   /* ---------- Helpers ---------- */
-  function num(v) { const n = parseFloat(v); return isFinite(n) ? n : 0; }
+  // Zahl aus Eingabe oder Wert; ein Komma als Dezimaltrenner („8,5") wird akzeptiert.
+  function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
+  // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
+  function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
   function round1(v) { return Math.round(v * 10) / 10; }
   function fmt(v, dec) {
     if (v === "" || v === null || v === undefined || !isFinite(v)) return "—";

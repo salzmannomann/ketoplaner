@@ -132,6 +132,9 @@
         renderRezepte();
       });
     });
+    // Gewicht ist ein Textfeld (Dezimaltastatur am Handy, Komma erlaubt): beim Verlassen sauber formatieren.
+    const wi = document.getElementById("set-weight");
+    if (wi) wi.addEventListener("change", () => { wi.value = fmtNum(num(wi.value) > 0 ? num(wi.value) : ""); });
     document.getElementById("set-proteinmode").addEventListener("change", e => {
       state.settings.proteinPerKg = num(e.target.value); save(); renderRezepte();
     });
