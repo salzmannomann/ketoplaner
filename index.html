@@ -80,11 +80,13 @@
           </div>
           <div>
             <label>Kalorien pro Tag (Ziel)</label>
-            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="hint reset-hint" id="reset-kcal" hidden><button type="button" class="linkbtn" data-reset="kcal">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div>
             <label>Kalorien mindestens pro Tag</label>
-            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
+            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="hint reset-hint" id="reset-kcalmin" hidden><button type="button" class="linkbtn" data-reset="kcalMin">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -101,11 +103,12 @@
                 <option value="0">manuell eingeben</option>
                 <option value="1">1,0 g/kg/Tag</option>
                 <option value="1.2">1,2 g/kg/Tag</option>
-                <option value="1.5">1,5 g/kg/Tag</option>
+                <option value="1.5">1,5 g/kg/Tag (Standard)</option>
                 <option value="2">2,0 g/kg/Tag</option>
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
+            <div class="hint" id="eiweiss-hint"></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -135,10 +138,12 @@
           <div>
             <label>Flüssigkeit gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="hint reset-hint" id="reset-fluid" hidden><button type="button" class="linkbtn" data-reset="fluidMl">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div id="zwischen-field">
             <label>Wasser je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
+            <div class="hint reset-hint" id="reset-zwischen" hidden><button type="button" class="linkbtn" data-reset="zwischenMl">↺ zurück auf 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -246,7 +251,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=eaa94ced"></script>
+  <script src="app.js?v=71cac416"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

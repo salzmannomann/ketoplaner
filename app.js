@@ -11,7 +11,7 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketocal: "mit", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: "", ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketocal: "mit", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
@@ -228,11 +228,18 @@
   }
 
   /* ---------- Abgeleitete Werte ---------- */
+  // Voreinstellung der App für den Eiweißbedarf (g je kg Körpergewicht und Tag); die Verordnung geht immer vor.
+  const PROTEIN_STANDARD = 1.5;
   function derived() {
     const s = state.settings;
-    const kcal = num(s.kcal), ratio = num(s.ratio);
+    const ratio = num(s.ratio);
     const mahl = Math.max(1, num(s.mahlzeiten) || 1);
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
+    // Kalorien: leer = Vorschlag nach Gewicht (80 kcal/kg, FAO/WHO/UNU 2004, 6–24 Monate); ohne Gewicht 700 kcal.
+    const r10 = (v) => Math.round(v / 10) * 10;
+    const kcalManual = num(s.kcal) > 0;
+    const kcalAuto = weight > 0 ? r10(weight * 80) : 700;
+    const kcal = kcalManual ? num(s.kcal) : kcalAuto;
     const autoProtein = perKg > 0 && weight > 0;
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
@@ -240,7 +247,6 @@
     const dampfVerdunstung = num(s.dampfVerdunstung);
     // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
-    const r10 = (v) => Math.round(v / 10) * 10;
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
     const kcalMaxAuto = weight > 0 ? r10(weight * 90) : null;
     const kcalMinAuto = weight > 0 ? r10(weight * 70) : r10(kcal * 0.85);
@@ -261,7 +267,7 @@
     const zwischenTag = wasserModus === "zwischen" ? zwischenMl * gapsDay : 0;
     // Flüssigkeitsziel je Mahlzeit: nach Abzug der Zwischenzeiten (im Modus „mahlzeit“ der volle Anteil).
     const fluidMahlZiel = Math.max(0, fluidDay - zwischenTag) / mahl;
-    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
+    return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
       fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl,
       zwischenMl, zwischenTag, gapsDay };
@@ -518,7 +524,6 @@
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
-    put("set-kcal", s.kcal);
     put("set-mahlzeiten", s.mahlzeiten);
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
@@ -528,7 +533,15 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "auto: " + fmt(d.kcalMinAuto, 0);
+    put("set-kcal", d.kcalManual ? s.kcal : "");
+    $("set-kcal").placeholder = d.weight > 0 ? "Vorschlag: " + fmt(d.kcalAuto, 0) + " (80 kcal/kg)" : "Vorschlag: 700 (Gewicht eintragen)";
+    // Zurücksetzen-Links nur, wenn ein eigener Wert den Vorschlag ersetzt
+    const show = (id, on) => { const el = $(id); if (el) el.hidden = !on; };
+    show("reset-kcal", d.kcalManual);
+    show("reset-kcalmin", d.kcalMinManual);
+    show("reset-fluid", d.fluidManual);
+    show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
     put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
     const zf = $("zwischen-field"); if (zf) zf.hidden = d.wasserModus !== "zwischen"; // Menge je Zwischenzeit nur, wenn sondiert wird
@@ -536,6 +549,10 @@
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
+    const eh = $("eiweiss-hint");
+    if (eh) eh.innerHTML = d.proteinPerKg === d.proteinStandard
+      ? "Standard: " + fmt(d.proteinStandard, 1) + " g je kg Körpergewicht und Tag – die Verordnung geht vor."
+      : "Standard wäre " + fmt(d.proteinStandard, 1) + " g/kg/Tag" + (d.weight > 0 ? " (= " + fmt(Math.round(d.weight * d.proteinStandard), 0) + " g/Tag)" : "") + '<br><button type="button" class="linkbtn" data-reset="proteinPerKg">↺ Standard übernehmen</button>';
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
@@ -665,12 +682,12 @@
   function renderVorgaben(d) {
     const s = state.settings;
     const sum = document.getElementById("verordnung-summary");
-    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
+    if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
       ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
-      (d.kcalRichtwert ? " · Richtwert nach Gewicht ≈ " + fmt(d.kcalRichtwert, 0) + " kcal/Tag (80 kcal/kg, Korridor " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + ")" : "") +
+      (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
       " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)") +
       " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
       " · MCT " + Math.round(d.mctShare * 100) + " %" +
       " · Rechenregel " + regelLabel(d);
@@ -755,6 +772,13 @@
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
       });
+    });
+    // Zurücksetzen auf den Vorschlag: eigener Wert wird gelöscht (bzw. Eiweiß auf den Standard gestellt)
+    document.addEventListener("click", e => {
+      const b = e.target.closest && e.target.closest("button[data-reset]"); if (!b) return;
+      const k = b.dataset.reset;
+      state.settings[k] = k === "proteinPerKg" ? derived().proteinStandard : "";
+      save(); renderRezepte();
     });
     // Gewicht ist ein Textfeld (Dezimaltastatur am Handy, Komma erlaubt): beim Verlassen sauber formatieren.
     const wi = document.getElementById("set-weight");

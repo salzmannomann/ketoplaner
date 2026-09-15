@@ -4,7 +4,6 @@
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
-    put("set-kcal", s.kcal);
     put("set-mahlzeiten", s.mahlzeiten);
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
@@ -14,7 +13,15 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "auto: " + fmt(d.kcalMinAuto, 0);
+    put("set-kcal", d.kcalManual ? s.kcal : "");
+    $("set-kcal").placeholder = d.weight > 0 ? "Vorschlag: " + fmt(d.kcalAuto, 0) + " (80 kcal/kg)" : "Vorschlag: 700 (Gewicht eintragen)";
+    // Zurücksetzen-Links nur, wenn ein eigener Wert den Vorschlag ersetzt
+    const show = (id, on) => { const el = $(id); if (el) el.hidden = !on; };
+    show("reset-kcal", d.kcalManual);
+    show("reset-kcalmin", d.kcalMinManual);
+    show("reset-fluid", d.fluidManual);
+    show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
     put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
     const zf = $("zwischen-field"); if (zf) zf.hidden = d.wasserModus !== "zwischen"; // Menge je Zwischenzeit nur, wenn sondiert wird
@@ -22,6 +29,10 @@
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
+    const eh = $("eiweiss-hint");
+    if (eh) eh.innerHTML = d.proteinPerKg === d.proteinStandard
+      ? "Standard: " + fmt(d.proteinStandard, 1) + " g je kg Körpergewicht und Tag – die Verordnung geht vor."
+      : "Standard wäre " + fmt(d.proteinStandard, 1) + " g/kg/Tag" + (d.weight > 0 ? " (= " + fmt(Math.round(d.weight * d.proteinStandard), 0) + " g/Tag)" : "") + '<br><button type="button" class="linkbtn" data-reset="proteinPerKg">↺ Standard übernehmen</button>';
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

@@ -22,7 +22,9 @@ function boot(stored) {
   window.alert = () => {};
   window.__asserts = [];
   window.console.assert = (ok, msg) => { if (!ok) window.__asserts.push(msg); };
-  if (stored) window.localStorage.setItem("ketoplaner.v5", JSON.stringify(stored));
+  // Feste 700 kcal/Tag als Ausgangspunkt (der App-Standard ist „leer = Vorschlag nach Gewicht“); kcal: "" testet den Vorschlag.
+  stored = stored || {}; stored.settings = Object.assign({ kcal: 700 }, stored.settings || {});
+  window.localStorage.setItem("ketoplaner.v5", JSON.stringify(stored));
   window.eval(CODE);
   window.document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true }));
   return window;
@@ -101,7 +103,7 @@ test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus 
   }
   let lastR = 0;
   for (const s of [0.1, 0.5, 1]) {
-    const w = boot({ settings: { mctShare: s, mctMode: "kalorien" } });
+    const w = boot({ settings: { mctShare: s, mctMode: "kalorien", kcal: 700 } });
     const c = openRecipe(w, "Hendl & Brokkoli");
     const kc = kcalOf(switchDetailTab(w, "rechnen"));
     assert.ok(Math.abs(kc - 140) <= 1, "Kalorien-Modus s=" + s + ": " + kc + " kcal");
@@ -231,8 +233,8 @@ function fmtDe(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g
 test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung, Tagesplan warnt bei Unterschreitung", () => {
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
   assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
-  assert.match($(w, "verordnung-summary").textContent, /Richtwert nach Gewicht ≈ 680 kcal\/Tag \(80 kcal\/kg, Korridor 600–770\)/);
-  assert.equal($(w, "set-kcalmin").placeholder, "auto: 600");
+  assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell ÷ 4.*Korridor nach Gewicht 600–770 kcal\/Tag \(70–90 kcal\/kg\)/);
+  assert.equal($(w, "set-kcalmin").placeholder, "Vorschlag: 600 (70 kcal/kg)");
   // Manuelles Minimum über dem Ziel → Tagesplan mit 4 × 188 kcal = 750 liegt darunter → Warnung
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 800;
@@ -260,6 +262,42 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
   assert.match($(w, "heute-content").textContent, /KetoCal & Pre Apta/);
 });
 
+test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener Wert lässt sich zurücksetzen; Eiweiß-Standard sichtbar", () => {
+  const w = boot({ settings: { weight: 8.5, mahlzeiten: 4, kcal: "" } });
+  // Vorschlag: 80 kcal/kg → 680 kcal/Tag, Feld leer, kein Zurücksetzen-Link
+  assert.equal($(w, "set-kcal").value, "");
+  assert.equal($(w, "set-kcal").placeholder, "Vorschlag: 680 (80 kcal/kg)");
+  assert.ok($(w, "reset-kcal").hidden);
+  assert.match($(w, "verordnung-summary").textContent, /170 kcal pro Mahlzeit \(680 kcal\/Tag, Vorschlag 80 kcal\/kg ÷ 4\)/);
+  assert.match($(w, "rx-chip").textContent, /170 kcal × 4/);
+  assert.equal($(w, "set-kcalmin").placeholder, "Vorschlag: 600 (70 kcal/kg)");
+  assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 850");
+  // Eiweiß: Standard 1,5 g/kg erkennbar
+  assert.match(w.document.querySelector("#set-proteinmode option[value='1.5']").textContent, /Standard/);
+  assert.match($(w, "eiweiss-hint").textContent, /Standard: 1,5 g je kg/);
+  // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
+  const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
+  assert.ok(!$(w, "reset-kcal").hidden);
+  assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell/);
+  fire(w, w.document.querySelector("#reset-kcal button"));
+  assert.equal($(w, "set-kcal").value, "");
+  assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, Vorschlag/);
+  const fl = $(w, "set-fluid"); fl.value = "900"; fire(w, fl, "input");
+  assert.ok(!$(w, "reset-fluid").hidden);
+  fire(w, w.document.querySelector("#reset-fluid button"));
+  assert.equal($(w, "set-fluid").value, ""); assert.ok($(w, "reset-fluid").hidden);
+  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag \(Vorschlag/);
+  // Eiweiß abweichend → Standard-Link
+  const pm = $(w, "set-proteinmode"); pm.value = "2"; fire(w, pm, "change");
+  assert.match($(w, "eiweiss-hint").textContent, /Standard wäre 1,5 g\/kg\/Tag \(= 13 g\/Tag\)/);
+  fire(w, $(w, "eiweiss-hint").querySelector("button"));
+  assert.equal($(w, "set-proteinmode").value, "1.5");
+  // Gewicht ändern → Vorschläge ziehen mit
+  const wi = $(w, "set-weight"); wi.value = "10"; fire(w, wi, "input");
+  assert.equal($(w, "set-kcal").placeholder, "Vorschlag: 800 (80 kcal/kg)");
+  assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 1.000");
+});
+
 test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {
   const w = boot({ settings: { weight: 8 } });
   const wi = $(w, "set-weight");
@@ -282,7 +320,7 @@ test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird b
 });
 
 test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
-  const w = boot();
+  const w = boot({ settings: { kcal: 700 } });
   const ri = $(w, "set-ratio");
   assert.equal(ri.value, "1,8");
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");

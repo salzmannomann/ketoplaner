@@ -55,12 +55,14 @@ Vorgaben.
   Feld, **KetoCal bevorzugt /
   ohne KetoCal bevorzugt** (wählt bei Gerichten mit beiden Varianten die Fettbasis,
   blendet nichts aus),
-  **Kalorien pro Tag (Ziel)** und **Kalorien mindestens pro Tag** (leer =
-  automatisch 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
+  **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg) und
+  **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
   ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
   6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
-  und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
-  Eiweiß-Ziel je Mahlzeit.
+  und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
+  markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Überall,
+  wo ein eigener Wert einen Vorschlag ersetzt, erscheint ein Link
+  **„↺ Vorschlag übernehmen"** zum Zurücksetzen.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
   Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
   dazu **Flüssigkeit gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
