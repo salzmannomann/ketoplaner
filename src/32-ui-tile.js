@@ -20,7 +20,7 @@
         (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
-        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" : "") +
+        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
       "</div>" +
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +

@@ -54,6 +54,26 @@
     return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d))
       .toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
   }
+  // Verhältnis-Notation (Fett : Eiweiß+KH): ≥ 1 als „1,8:1", < 1 als „1:1,5".
+  function fmtRatio(r, dec) {
+    if (r === null || r === undefined || !isFinite(r) || r <= 0) return "—";
+    return r >= 1 ? fmt(r, dec) + ":1" : "1:" + fmt(1 / r, dec);
+  }
+  // Ziel-Verhältnis kompakt: so viele Nachkommastellen wie nötig (max. 2).
+  function fmtTarget(r) {
+    if (!(r > 0) || !isFinite(r)) return "—";
+    const v = r >= 1 ? r : 1 / r;
+    const dec = Math.abs(v - Math.round(v)) < 0.005 ? 0 : (Math.abs(v * 10 - Math.round(v * 10)) < 0.05 ? 1 : 2);
+    return fmtRatio(r, dec);
+  }
+  // Eingabe „1,8", „1.8", „1,8:1" oder „1:1,5" → Zahl (g Fett je 1 g Eiweiß+KH); 0 wenn ungültig.
+  function parseRatio(text) {
+    const t = String(text || "").replace(/,/g, ".").replace(/\s+/g, "");
+    const m = t.match(/^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/);
+    if (m) { const a = parseFloat(m[1]), b = parseFloat(m[2]); return a > 0 && b > 0 ? a / b : 0; }
+    if (!/^\d+(?:\.\d+)?$/.test(t)) return 0;
+    const n = parseFloat(t); return isFinite(n) && n > 0 ? n : 0;
+  }
   function el(tag, attrs, html) {
     const e = document.createElement(tag);
     if (attrs) for (const k in attrs) {
@@ -382,7 +402,7 @@
     const $ = id => document.getElementById(id);
     $("set-kcal").value = s.kcal;
     $("set-mahlzeiten").value = s.mahlzeiten;
-    $("set-ratio").value = s.ratio;
+    if (document.activeElement !== $("set-ratio")) $("set-ratio").value = fmtTarget(num(s.ratio)); // nicht während des Tippens überschreiben
     $("set-weight").value = s.weight;
     $("set-mct-fett").value = s.mctFett100 || "";
     $("set-mct-kcal").value = s.mctKcal100 || "";
@@ -507,17 +527,16 @@
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    chip.textContent = fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
+    chip.textContent = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
   }
   function renderVorgaben(d) {
     const s = state.settings;
     const sum = document.getElementById("verordnung-summary");
     if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
-      ") · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
+      ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
+      " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
-    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
-      b.classList.toggle("active", Math.abs(num(b.dataset.ratio) - d.ratio) < 0.001));
     const sc = document.getElementById("mct-share-ctl");
     if (sc) {
       sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
@@ -568,7 +587,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -588,8 +607,15 @@
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => showView("vorgaben"));
-    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.ratio = num(b.dataset.ratio); save(); renderRezepte(); }));
+    // Verhältnis wird händisch eingegeben – „1,8", „1,8:1" oder „1:1,5"; ungültige Zwischenstände (z. B. „1:") bleiben folgenlos.
+    const ri = document.getElementById("set-ratio");
+    if (ri) {
+      ri.addEventListener("input", () => {
+        const r = parseRatio(ri.value);
+        if (r > 0 && Math.abs(r - num(state.settings.ratio)) > 1e-9) { state.settings.ratio = r; save(); renderRezepte(); }
+      });
+      ri.addEventListener("change", () => { ri.value = fmtTarget(num(state.settings.ratio)); });
+    }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
@@ -627,7 +653,7 @@
         (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
-        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span>" : "") +
+        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
       "</div>" +
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
@@ -839,7 +865,7 @@
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
-        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span> · " +
+        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
         fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
 
@@ -1029,7 +1055,7 @@
       return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
         '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
         '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
-        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + (f.ratio === null ? "—" : fmt(f.ratio, 2)) + ':1</span></div>' +
+        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span></div>' +
         '<details class="collapsible feed"><summary>💉 Füttern – Menge</summary><div class="feed-body">' +
           '<div class="fill-hero small"><div class="fill-big">≈ ' + fmt(f.gNoOil, 0) + ' g</div><div class="fill-sub">≈ ' + fmt(f.mlNoOil, 0) + ' ml' + (f.hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
           (f.hasOil ? '<ul class="oil-list">' + f.oils.map(o => "<li><span>" + escapeHtml(o.food) + "</span><strong>" + fmt(num(o.grams), 1) + " g</strong></li>").join("") + "</ul>" +
@@ -1048,7 +1074,7 @@
         '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)</div></div>' +
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
-        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ':1</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ':1</div></div>' +
+        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         "</div>" +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
@@ -1113,11 +1139,11 @@
       "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}table{width:100%;border-collapse:collapse}" +
       "th,td{border-bottom:0.4pt solid #bbb;padding:1.8mm 1.5mm;text-align:left;vertical-align:top;font-size:10.5pt}th{background:#f2f4f6}" +
       ".tot td{font-weight:bold;border-top:1pt solid #777}.note{color:#666;font-size:8.5pt;margin-top:6mm}</style></head><body>" +
-      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1" +
+      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmtTarget(d.ratio) +
       (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + " · " + new Date().toLocaleDateString("de-AT") + "</p>" +
       "<table><thead><tr><th>#</th><th>Mahlzeit</th><th>Abfüllen (ohne Öl)</th><th>Öl vor dem Füttern</th><th>kcal</th><th>Eiweiß</th></tr></thead><tbody>" + rows +
       "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
-      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ":1 · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
+      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + fmtRatio(ratioDay, 2) + " · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
     let w = null;
     try { w = window.open("", "_blank"); } catch (e) {}
@@ -1171,7 +1197,7 @@
       "<h1>" + (rec.icon || "") + " " + escapeHtml(rec.name) + (rec.ketocal ? " (mit KetoCal)" : " (ohne KetoCal)") + "</h1>" +
       "<p class='sub'><strong>" + portionLabel + "</strong> · " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) + " g · Verhältnis " +
-      (r === null ? "—" : fmt(r, 2)) + ":1<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
+      fmtRatio(r, 2) + "<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für den ganzen Tag (×" + d.mahl + "). Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
@@ -1249,7 +1275,7 @@
       '<div class="title">🧪 Eigenes Rezept' + (compose.fromRecipe ? " (angepasst)" : " zusammenstellen") + "</div>" +
       '<div class="meta">' + (compose.fromRecipe ? "Basierend auf „" + escapeHtml(compose.fromRecipe) + "“. " : "") +
       "Zutaten und Fett(e) frei wählen – die App berechnet die Mengen für eine Mahlzeit (Verhältnis " +
-      fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1, Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
+      fmtTarget(d.ratio) + ", Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
     const clearBtn = el("button", { class: "btn ghost" }, "🗑️ Leeren / neu beginnen");
     clearBtn.addEventListener("click", () => {
       state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true };
@@ -1372,7 +1398,7 @@
       box.innerHTML =
         '<div class="detail-tiles">' +
           '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-          '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ':1</span></div><div class="l">Verhältnis</div></div>' +
+          '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span></div><div class="l">Verhältnis</div></div>' +
           '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge (' + fmt(ml, 0) + ' ml)</div></div>' +
           '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
         "</div>" +

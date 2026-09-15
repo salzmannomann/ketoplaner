@@ -76,17 +76,11 @@
     <section id="view-vorgaben" class="view" hidden>
       <div class="card">
         <h3>🩺 Verordnung <span class="hint">– kommt vom Behandlungsteam, ändert sich selten</span></h3>
-        <div class="preset-row">
-          <span class="seg-label">Voreinstellung:</span>
-          <div class="segmented mini" id="ratio-presets">
-            <button type="button" data-ratio="1.8">1,8:1 Keto</button>
-            <button type="button" data-ratio="1">1:1 Ausschleichen</button>
-          </div>
-        </div>
         <div class="settings-grid">
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
-            <input id="set-ratio" type="number" min="0" step="0.1" inputmode="decimal" />
+            <input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8 oder 1:1,5" />
+            <div class="hint">Eingabe wie verordnet: <strong>1,8</strong> oder <strong>1,8:1</strong> (Keto), <strong>1:1</strong>, <strong>1:1,5</strong> (Ausschleichen).</div>
           </div>
           <div>
             <label>Kalorien pro Tag</label>
@@ -211,8 +205,8 @@
   </div>
 
   <script src="foods.js?v=b5dc5f3a"></script>
-  <script src="recipes.js?v=91de99ed"></script>
-  <script src="app.js?v=64bb5c25"></script>
+  <script src="recipes.js?v=83e0fc61"></script>
+  <script src="app.js?v=4b3cfd85"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

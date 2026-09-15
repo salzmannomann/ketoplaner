@@ -13,17 +13,16 @@
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    chip.textContent = fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
+    chip.textContent = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
   }
   function renderVorgaben(d) {
     const s = state.settings;
     const sum = document.getElementById("verordnung-summary");
     if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
-      ") · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1 · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
+      ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
+      " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
-    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
-      b.classList.toggle("active", Math.abs(num(b.dataset.ratio) - d.ratio) < 0.001));
     const sc = document.getElementById("mct-share-ctl");
     if (sc) {
       sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
@@ -74,7 +73,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-ratio": "ratio", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -94,8 +93,15 @@
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => showView("vorgaben"));
-    document.querySelectorAll("#ratio-presets button[data-ratio]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.ratio = num(b.dataset.ratio); save(); renderRezepte(); }));
+    // Verhältnis wird händisch eingegeben – „1,8", „1,8:1" oder „1:1,5"; ungültige Zwischenstände (z. B. „1:") bleiben folgenlos.
+    const ri = document.getElementById("set-ratio");
+    if (ri) {
+      ri.addEventListener("input", () => {
+        const r = parseRatio(ri.value);
+        if (r > 0 && Math.abs(r - num(state.settings.ratio)) > 1e-9) { state.settings.ratio = r; save(); renderRezepte(); }
+      });
+      ri.addEventListener("change", () => { ri.value = fmtTarget(num(state.settings.ratio)); });
+    }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");

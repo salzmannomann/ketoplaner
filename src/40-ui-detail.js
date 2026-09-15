@@ -195,7 +195,7 @@
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
-        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + (r === null ? "—" : fmt(r, 2)) + ":1</span> · " +
+        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
         fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
 

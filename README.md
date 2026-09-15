@@ -47,8 +47,9 @@ die Vorgaben.
 
 ### Vorgaben
 
-- **Verordnung:** Presets **1,8:1** / **1:1** (z. B. für die Ausschleichphase),
-  Verhältnis frei, **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
+- **Verordnung:** Verhältnis wird **händisch** eingegeben, in der Schreibweise
+  der Verordnung: „1,8" oder „1,8:1" (Keto), „1:1" oder „1:1,5" (Ausschleichen;
+  Verhältnisse unter 1 zeigt die App überall als „1:x"), **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
 - **MCT-Öl:** Anteil an der Öl-Fettmasse in Stufen (0 / 10 / 20 / 30 / 50 /
@@ -156,7 +157,7 @@ Erdäpfel- und Gemüsegerichte sowie Obst). Die Namen folgen dem Schema
 Varianten tragen den Zusatz „(mit KetoCal)". Dazu kommen das Fertigprodukt
 **„HiPP Hühnchen & Öl"** (Unterwegs) sowie die Sondenflaschen **„Flasche: KetoCal &
 Pre Apta"** und **„Flasche: KetoCal & Compleat"** (Nestlé Compleat Nature Mix,
-Filter Flasche; für die Ausschleich-Phase das Preset 1:1 wählen). 35 Rezepte haben eine Varoma-Anleitung, die übrigen
+Filter Flasche; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben). 35 Rezepte haben eine Varoma-Anleitung, die übrigen
 werden klassisch zubereitet.
 
 ## Berechnungsgrundlage

@@ -4,7 +4,7 @@
     const $ = id => document.getElementById(id);
     $("set-kcal").value = s.kcal;
     $("set-mahlzeiten").value = s.mahlzeiten;
-    $("set-ratio").value = s.ratio;
+    if (document.activeElement !== $("set-ratio")) $("set-ratio").value = fmtTarget(num(s.ratio)); // nicht während des Tippens überschreiben
     $("set-weight").value = s.weight;
     $("set-mct-fett").value = s.mctFett100 || "";
     $("set-mct-kcal").value = s.mctKcal100 || "";

@@ -37,7 +37,10 @@ function openRecipe(w, name) {
   fire(w, t);
   return $(w, "detail-content");
 }
-const ratioOf = (c) => parseFloat(c.querySelector(".ratio-pill").textContent.replace(",", ".").replace(":1", ""));
+const ratioOf = (c) => {
+  const t = c.querySelector(".ratio-pill").textContent.replace(",", ".");
+  return t.startsWith("1:") ? 1 / parseFloat(t.slice(2)) : parseFloat(t.replace(":1", ""));
+};
 const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=rechnen] .dstat .v")][0].textContent.replace(".", ""));
 function kitchenRows(c) {
   const out = {};
@@ -158,12 +161,25 @@ test("Filter: KetoCal-Dreistufe, Flasche immer auffindbar, Unterwegs, Suche", ()
   assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n) || true));
 });
 
-test("Vorgaben: Preset 1:1 wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
+test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
   const w = boot();
-  fire(w, [...w.document.querySelectorAll("#ratio-presets button")].find(b => b.dataset.ratio === "1"));
-  assert.match($(w, "rx-chip").textContent, /^1:1/);
-  const c = openRecipe(w, "Hendl & Brokkoli");
+  const ri = $(w, "set-ratio");
+  assert.equal(ri.value, "1,8:1");
+  ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}").settings.ratio, 1.8);
+  ri.value = "1:1"; fire(w, ri, "input");
+  assert.match($(w, "rx-chip").textContent, /^1:1 /);
+  let c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(Math.abs(ratioOf(c) - 1.0) <= 0.05);
+  fire(w, $(w, "detail-close"));
+  ri.value = "1:1,5"; fire(w, ri, "input"); fire(w, ri, "change");
+  assert.equal(ri.value, "1:1,5");
+  assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
+  assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
+  c = openRecipe(w, "Flasche: KetoCal & Compleat");
+  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  fire(w, $(w, "detail-close"));
+  ri.value = "1"; fire(w, ri, "input");
   fire(w, $(w, "export-btn"));
   const json = $(w, "export-text").value;
   const w2 = boot();

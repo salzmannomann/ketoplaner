@@ -28,7 +28,7 @@
       return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
         '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
         '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
-        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + (f.ratio === null ? "—" : fmt(f.ratio, 2)) + ':1</span></div>' +
+        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span></div>' +
         '<details class="collapsible feed"><summary>💉 Füttern – Menge</summary><div class="feed-body">' +
           '<div class="fill-hero small"><div class="fill-big">≈ ' + fmt(f.gNoOil, 0) + ' g</div><div class="fill-sub">≈ ' + fmt(f.mlNoOil, 0) + ' ml' + (f.hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
           (f.hasOil ? '<ul class="oil-list">' + f.oils.map(o => "<li><span>" + escapeHtml(o.food) + "</span><strong>" + fmt(num(o.grams), 1) + " g</strong></li>").join("") + "</ul>" +
@@ -47,7 +47,7 @@
         '<div class="detail-tiles">' +
         '<div class="dstat"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)</div></div>' +
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
-        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ':1</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ':1</div></div>' +
+        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         "</div>" +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
@@ -112,11 +112,11 @@
       "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}table{width:100%;border-collapse:collapse}" +
       "th,td{border-bottom:0.4pt solid #bbb;padding:1.8mm 1.5mm;text-align:left;vertical-align:top;font-size:10.5pt}th{background:#f2f4f6}" +
       ".tot td{font-weight:bold;border-top:1pt solid #777}.note{color:#666;font-size:8.5pt;margin-top:6mm}</style></head><body>" +
-      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmt(d.ratio, d.ratio % 1 ? 1 : 0) + ":1" +
+      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmtTarget(d.ratio) +
       (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + " · " + new Date().toLocaleDateString("de-AT") + "</p>" +
       "<table><thead><tr><th>#</th><th>Mahlzeit</th><th>Abfüllen (ohne Öl)</th><th>Öl vor dem Füttern</th><th>kcal</th><th>Eiweiß</th></tr></thead><tbody>" + rows +
       "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
-      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + (ratioDay === null ? "—" : fmt(ratioDay, 2)) + ":1 · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
+      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + fmtRatio(ratioDay, 2) + " · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
     let w = null;
     try { w = window.open("", "_blank"); } catch (e) {}
