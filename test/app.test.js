@@ -268,6 +268,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
   assert.match($(w, "verordnung-summary").textContent, /KetoCal bevorzugt · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
   assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
+  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · max\. 200 ml je Mahlzeit · zwischen den Mahlzeiten: laut Tagesplan/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl
   {
@@ -369,6 +370,7 @@ test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs
   fire(w2, $(w2, "tab-heute"));
   const t2 = $(w2, "heute-content").textContent;
   assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser – bei 4 geplanten Mahlzeiten sind das 3 Zwischenzeiten/);
+  assert.match($(w2, "rx-chip").textContent, /zwischen den Mahlzeiten: \d+ ml \(3 × \d+ ml\)/);
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
   assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);

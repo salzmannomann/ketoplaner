@@ -13,8 +13,25 @@
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    chip.textContent = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal · " + (ketoPhase() === "mit" ? "🥄 KetoCal" : "ohne KetoCal") +
+    // Zeile 1: Verordnung. Zeile 2: Flüssigkeit – Ziel, Modus und (laut Tagesplan) die Menge zwischen den Mahlzeiten.
+    const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl + " · " + (ketoPhase() === "mit" ? "🥄 KetoCal" : "ohne KetoCal") +
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
+    let l2 = "";
+    if (d.fluidDay > 0) {
+      l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · " +
+        (d.wasserModus === "mahlzeit" ? "alles in den Mahlzeiten"
+          : d.wasserModus === "zwischen" ? "Rezepte unverändert"
+          : "max. " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit");
+      if (d.wasserModus !== "mahlzeit") {
+        let planFluid = 0, n = 0;
+        (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
+        if (n > 0) {
+          const rest = Math.max(0, d.fluidDay * (n / d.mahl) - planFluid);
+          l2 += " · zwischen den Mahlzeiten: " + (rest > 0.5 ? fmt(rest, 0) + " ml (" + gaps(n) + " × " + fmt(rest / gaps(n), 0) + " ml)" : "nichts nötig");
+        } else l2 += " · zwischen den Mahlzeiten: laut Tagesplan";
+      }
+    }
+    chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {

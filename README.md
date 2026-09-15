@@ -41,9 +41,11 @@ Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
 | **Vorgaben** | Verordnung, MCT-Öl, Küche, Daten (Backup) |
 
-Oben rechts zeigt der **Verordnungs-Chip** (z. B. „1,8:1 · 140 kcal · 🥄 KetoCal ·
-MCT 10 % ⚖️") jederzeit, womit gerade gerechnet wird; ein Tipp darauf öffnet
-die Vorgaben.
+Oben rechts zeigt der **Verordnungs-Chip** jederzeit, womit gerade gerechnet
+wird: Zeile 1 die Verordnung (z. B. „1,8:1 · 140 kcal × 5 · 🥄 KetoCal · MCT
+10 % ⚖️"), Zeile 2 die Flüssigkeit (Ziel je Tag, Modus, und laut Tagesplan die
+Menge, die zwischen den Mahlzeiten zu sondieren ist). Ein Tipp darauf öffnet die
+Vorgaben.
 
 ### Vorgaben
 

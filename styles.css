@@ -547,9 +547,12 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 .tabbar button[hidden] { display: none; }
 .rx-chip {
   border: 1px solid var(--brand-soft); background: var(--brand-soft); color: var(--brand-dark);
-  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600;
-  cursor: pointer; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+  border-radius: 14px; padding: 5px 12px; font: inherit; font-size: 13px; font-weight: 600; line-height: 1.3;
+  cursor: pointer; max-width: 62vw; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
 }
+.rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.rx-chip .rx-sub { font-weight: 500; font-size: 12px; opacity: .9; }
+@media (max-width: 560px) { .rx-chip { font-size: 12px; padding: 4px 10px; } .rx-chip .rx-sub { font-size: 11px; } }
 .rx-chip:hover { background: #d9ecdf; }
 .toolbar.top { margin-bottom: 12px; }
 .toolbar.top input[type=search] { flex: 1; max-width: none; min-width: 0; }
