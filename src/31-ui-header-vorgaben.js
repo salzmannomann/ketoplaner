@@ -23,6 +23,8 @@
       ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
+    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
+      b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     const sc = document.getElementById("mct-share-ctl");
     if (sc) {
       sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
@@ -104,6 +106,8 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
+    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
+      b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
     const impF = document.getElementById("import-file");

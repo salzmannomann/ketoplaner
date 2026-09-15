@@ -66,9 +66,10 @@ test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
   R.forEach(r => r.items.forEach(it => assert.ok(idx.has(it.food), r.name + ": Zutat fehlt: " + it.food)));
 });
 
-test("Alle Rezepte treffen das Zielverhältnis bei 1,8:1 und 1:1 (ohne MCT)", () => {
-  for (const ratio of [1.8, 1.0]) {
-    const w = boot({ settings: { ratio: ratio, mctShare: 0, ketoFilter: "alle" } });
+test("Alle Rezepte (beide KetoCal-Phasen) treffen das Zielverhältnis bei 1,8:1 und 1:1 (ohne MCT)", () => {
+  for (const ratio of [1.8, 1.0]) for (const phase of ["mit", "ohne"]) {
+    const w = boot({ settings: { ratio: ratio, mctShare: 0, ketocal: phase } });
+    assert.ok(tiles(w).length >= 30, "zu wenige Gerichte: " + tiles(w).length);
     for (const t of tiles(w)) {
       fire(w, t);
       const c = $(w, "detail-content");
@@ -146,19 +147,72 @@ test("Abfüllen: Menge je Portion ohne Öl × Portionen = ölfreie Gesamtmenge",
   assert.ok(Math.abs(total - per * 10) <= 10, "gesamt " + total + " vs 10×" + per);
 });
 
-test("Filter: KetoCal-Dreistufe, Flasche immer auffindbar, Unterwegs, Suche", () => {
+const badgeOf = (t) => t.querySelector(".tile-badge").textContent;
+test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Angerührt, Suche", () => {
   const w = boot();
   const all = tileNames(w).length;
-  clickChip(w, "ohne KetoCal"); const ohne = tileNames(w).length;
-  clickChip(w, "mit KetoCal"); const mit = tileNames(w).length;
-  assert.equal(ohne + mit, all);
-  clickChip(w, "ohne KetoCal"); clickChip(w, "🍼 Flasche");
-  assert.deepEqual(tileNames(w).sort(), ["Flasche: KetoCal & Compleat", "Flasche: KetoCal & Pre Apta"]);
-  clickChip(w, "🥫 Unterwegs"); clickChip(w, "🥄 alle");
-  assert.ok(tileNames(w).some(n => /HiPP/.test(n)));
+  assert.ok(all >= 30 && all <= 40, "Gerichte: " + all);
+  assert.equal(new Set(tileNames(w)).size, all, "doppelte Gerichte");
+  assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
+  const kcMit = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
+  clickChip(w, "ohne KetoCal");
+  assert.equal(tileNames(w).length, all, "Phase ändert nicht die Anzahl der Gerichte");
+  const kcOhne = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
+  assert.ok(kcOhne < kcMit, "ohne KetoCal: " + kcOhne + " < mit: " + kcMit);
+  clickChip(w, "🥄 Angerührt");
+  assert.deepEqual(tileNames(w).sort(), ["HiPP Hühnchen & Öl", "KetoCal & Compleat", "KetoCal & Pre Apta"]);
+  clickChip(w, "🥚 Ei");
+  assert.equal(tileNames(w).length, 4); assert.ok(tileNames(w).every(n => /^Ei /.test(n)));
+  clickChip(w, "🍗 Geflügel");
+  assert.ok(tileNames(w).length >= 8 && tileNames(w).every(n => /^(Hendl|Pute)/.test(n)));
+  clickChip(w, "🍓 Obst & Brei");
+  assert.ok(tileNames(w).some(n => /Grieß/.test(n)) && tileNames(w).some(n => /Banane/.test(n)));
   clickChip(w, "Alle");
   const s = $(w, "recipe-search"); s.value = "zucchini"; fire(w, s, "input");
-  assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n) || true));
+  assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n)));
+});
+
+test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favorit gelten fürs Gericht", () => {
+  const w = boot({ settings: { mctShare: 0 } });
+  let c = openRecipe(w, "Hendl & Zucchini");
+  assert.ok(kitchenRows(c)["Ketocal 3:1"] > 0, "Phase „mit“ zeigt die KetoCal-Variante");
+  const pin = c.querySelector("#portion-input"); pin.value = "4"; fire(w, pin, "change");
+  c = $(w, "detail-content");
+  const btn = [...c.querySelectorAll("button[data-basis]")].find(b => /Rapsöl/.test(b.textContent) && !/KetoCal/.test(b.textContent));
+  assert.ok(btn, "Fettbasis-Schalter fehlt"); fire(w, btn);
+  c = $(w, "detail-content");
+  const rows = kitchenRows(c);
+  assert.equal(rows["Ketocal 3:1"], undefined); assert.ok(rows["Rapsöl"] > 0);
+  assert.equal(c.querySelector("#portion-input").value, "4", "Portionen bleiben beim Umschalten");
+  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
+  [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent)).click();
+  fire(w, $(w, "detail-close"));
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini"]);
+  assert.equal(st.scales["fam:Hendl & Zucchini"], 4);
+  // Neustart: Kachel zeigt die gemerkte Basis; Phase umschalten setzt die Einzelwahl zurück
+  const w2 = boot(st);
+  const tile = () => tiles(w2).find(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
+  assert.match(badgeOf(tile()), /Rapsöl/); assert.ok(!/KetoCal/.test(badgeOf(tile())));
+  assert.ok(tile().querySelector(".favbtn").classList.contains("on"));
+  clickChip(w2, "ohne KetoCal"); clickChip(w2, "🥄 mit KetoCal");
+  assert.match(badgeOf(tile()), /KetoCal/);
+});
+
+test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden auf Gerichte umgezogen", () => {
+  const w = boot({
+    settings: { ketoFilter: "ohne", filter: "flasche" },
+    favorites: ["std:Hendl & Zucchini (mit KetoCal)", "std:Flasche: KetoCal & Compleat"],
+    scales: { "std:Erdäpfel & Zucchini (mit KetoCal) – Variante 1": 3 },
+    dayPlan: [{ key: "std:Flasche: KetoCal & Pre Apta" }, { key: null }],
+  });
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.equal(st.settings.ketocal, "ohne"); assert.equal(st.settings.filter, "alle");
+  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini", "fam:KetoCal & Compleat"]);
+  assert.equal(st.scales["fam:Erdäpfel & Zucchini"], 3);
+  assert.equal(st.dayPlan[0].key, "std:KetoCal & Pre Apta");
+  fire(w, $(w, "tab-heute"));
+  assert.match($(w, "heute-content").textContent, /KetoCal & Pre Apta/);
 });
 
 test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
@@ -176,7 +230,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.equal(ri.value, "1:1,5");
   assert.match($(w, "rx-chip").textContent, /^1:1,5 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
-  c = openRecipe(w, "Flasche: KetoCal & Compleat");
+  c = openRecipe(w, "KetoCal & Compleat");
   assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   fire(w, $(w, "detail-close"));
   ri.value = "1"; fire(w, ri, "input");

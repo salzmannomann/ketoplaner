@@ -18,13 +18,12 @@
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
 
-    // Schnellfilter-Chips
-    const filter = s.filter || "alle";
+    // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
+    const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const onlyQuelle = !!s.onlyQuelle;
-    const ketoFilter = s.ketoFilter === "mit" || s.ketoFilter === "ohne" ? s.ketoFilter : "alle";
+    const phase = ketoPhase();
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    // Gruppe 1: Kategorie (entweder/oder)
     const catChips = el("div", { class: "chips cat" });
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
@@ -32,11 +31,10 @@
       catChips.appendChild(chip);
     });
     fb.appendChild(catChips);
-    // Gruppe 2: KetoCal als Dreistufe (alle / ohne / mit) + Diätologie-Schalter
     const switchChips = el("div", { class: "chips switches" });
-    [["alle", "🥄 alle"], ["ohne", "ohne KetoCal"], ["mit", "mit KetoCal"]].forEach(([k, lab]) => {
-      const c = el("button", { class: "chip switch" + (ketoFilter === k ? " active" : "") }, lab);
-      c.addEventListener("click", () => { state.settings.ketoFilter = k; save(); renderRezepte(); });
+    [["mit", "🥄 mit KetoCal"], ["ohne", "ohne KetoCal"]].forEach(([k, lab]) => {
+      const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
+      c.addEventListener("click", () => setKetoPhase(k));
       switchChips.appendChild(c);
     });
     const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
@@ -44,72 +42,67 @@
     switchChips.appendChild(qc);
     fb.appendChild(switchChips);
 
+    // Ein Eintrag je Gericht; gezeigt wird die Variante laut Wahl/Phase (bei „Diätologie“ die Original-Variante).
+    // Erreicht die gezeigte Variante das Verhältnis nicht, wird eine andere Variante des Gerichts versucht.
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
-    const recipes = allRecipes()
-      // Flaschen enthalten immer KetoCal – der Filter "Flasche" ignoriert daher die KetoCal-Stufe.
-      .filter(r => filter === "flasche" || ketoFilter === "alle" || !!r.ketocal === (ketoFilter === "mit"))
-      .filter(r => matchesFilter(r, filter))
-      .filter(r => !onlyQuelle || !!r.quelle)
-      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
-      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
-      .filter(x => x.res.ok);
+    const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
+    const entries = [];
+    allFamilies().forEach(fam => {
+      let rec = chosenVariant(fam);
+      if (onlyQuelle && !rec.quelle) rec = fam.variants.find(r => !!r.quelle) || null;
+      if (!rec) return;
+      if (!matchesFilter(rec, filter)) return;
+      if (q && fam.name.toLowerCase().indexOf(q) === -1 && !fam.variants.some(hitItems)) return;
+      let res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+      if (!res.ok) {
+        const alt = fam.variants.find(r => r !== rec && computeAdjustedRecipe(r, d.kcalMahl, d.ratio).ok);
+        if (!alt) return;
+        rec = alt; res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+      }
+      entries.push({ fam, rec, res });
+    });
 
-    $("info-note").hidden = ketoFilter === "mit";
-    $("recipe-count").textContent =
-      recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (ketoFilter === "mit" ? " mit KetoCal" : ketoFilter === "ohne" ? " ohne KetoCal" : "");
+    $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
+      (phase === "mit" ? " · mit KetoCal, wo es die Variante gibt" : " · ohne KetoCal, wo es die Variante gibt");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
 
     const list = $("recipe-list");
     list.innerHTML = "";
-    if (recipes.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte für diese Auswahl."));
+    if (entries.length === 0) {
+      list.appendChild(el("div", { class: "card empty" }, "Keine Gerichte für diese Auswahl."));
       return;
     }
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
-      const sorted = arr.slice().sort((a, b) => {
-        const ka = a.rec.name.toLowerCase(), kb = b.rec.name.toLowerCase();
-        return ka < kb ? -1 : ka > kb ? 1 : 0;
-      });
+      const sorted = arr.slice().sort((a, b) => a.fam.name.localeCompare(b.fam.name, "de"));
       list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
-      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
 
     if (sort === "kategorie") {
-      const favs = recipes.filter(x => isFav(x.rec));
-      const rest = recipes.filter(x => !isFav(x.rec));
+      const favs = entries.filter(x => isFav(x.rec));
+      const rest = entries.filter(x => !isFav(x.rec));
       appendGroup("⭐ Favoriten", favs);
-      [["Fleisch", "🥩 Fleisch"], ["Fisch", "🐟 Fisch"], ["Vegetarisch", "🥦 Vegetarisch"], ["Obst", "🍓 Obst"]]
-        .forEach(([key, label]) => appendGroup(label, rest.filter(x => recipeGroup(x.rec) === key)));
+      FILTERS.filter(f => f.id !== "alle").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
         : sort === "volumen"
         ? x => volumeMl(x.res.items)
-        : x => x.rec.name.toLowerCase();
-      const sorted = recipes.slice().sort((a, b) => {
+        : x => x.fam.name.toLowerCase();
+      const sorted = entries.slice().sort((a, b) => {
         const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1;
         if (fa !== fb) return fa - fb;
         const ka = keyFn(a), kb = keyFn(b);
         return ka < kb ? -1 : ka > kb ? 1 : 0;
       });
       const grid = el("div", { class: "tiles" });
-      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
-  }
-
-  // Primäre Anzeige-Gruppe eines Rezepts
-  function recipeGroup(rec) {
-    const t = recipeTags(rec);
-    if (t.fleisch) return "Fleisch";
-    if (t.fisch) return "Fisch";
-    if (t.obst) return "Obst";
-    return "Vegetarisch";
   }

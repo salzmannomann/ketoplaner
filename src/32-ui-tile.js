@@ -1,10 +1,12 @@
-  /* ---------- Kachel (Übersicht) ---------- */
-  function renderRecipeTile(rec, res, d) {
+  /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */
+  function renderRecipeTile(rec, res, d, fam) {
     const sum = sumMacros(res.items);
     const r = ratioOf(sum);
     const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
     const ml = volumeMl(res.items);
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+    const name = fam ? fam.name : familyOf(rec);
+    const multi = !!fam && fam.variants.length > 1;
 
     const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
@@ -13,11 +15,11 @@
         '<span class="tile-icon">' + (rec.icon || "🥑") + "</span>" +
         '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       "</div>" +
-      '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
+      '<div class="tile-name">' + escapeHtml(name) + "</div>" +
       '<div class="tile-badge">' +
-        // KetoCal-Badge nur, wenn beide Sorten gemischt angezeigt werden; das Verhältnis ist immer auf Ziel gerechnet und
-        // wird daher nicht mehr je Kachel wiederholt (steht im Verordnungs-Chip).
-        (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
+        // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
+        (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
+               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +

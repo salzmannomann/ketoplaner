@@ -1,34 +1,31 @@
-  /* ---------- Schnellfilter ---------- */
+  /* ---------- Gruppen & Schnellfilter ----------
+     Die Rezepte sind nach der Hauptzutat gruppiert („Was habe ich da?“):
+     Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel & Gemüse, Obst & Brei und
+     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen). */
   const FILTERS = [
     { id: "alle", label: "Alle" },
-    { id: "fleisch", label: "🥩 Fleisch" },
+    { id: "gefluegel", label: "🍗 Geflügel" },
+    { id: "rind", label: "🥩 Rind & Schwein" },
     { id: "fisch", label: "🐟 Fisch" },
-    { id: "vegetarisch", label: "🥦 Vegetarisch" },
-    { id: "obst", label: "🍓 Obst" },
-    { id: "unterwegs", label: "🥫 Unterwegs" },
-    { id: "flasche", label: "🍼 Flasche" },
+    { id: "ei", label: "🥚 Ei" },
+    { id: "gemuese", label: "🥔 Erdäpfel & Gemüse" },
+    { id: "obst", label: "🍓 Obst & Brei" },
+    { id: "angeruehrt", label: "🥄 Angerührt" },
   ];
-  function recipeTags(rec) {
-    let fleisch = false, fisch = false, obst = false;
+  // Primäre Gruppe eines Rezepts (aus den Zutaten abgeleitet; Fleisch/Fisch haben Vorrang).
+  function recipeGroup(rec) {
+    if (rec.angeruehrt) return "angeruehrt";
+    let g = null, egg = false, fruit = false;
     rec.items.forEach(it => {
       const f = lookup(it.food); if (!f) return;
-      const k = f.kategorie;
-      if (k === "Fleisch" || k === "Wurst") fleisch = true;
-      if (k === "Fisch") fisch = true;
-      if (k === "Obst") obst = true;
+      const k = f.kategorie, n = it.food || "";
+      if (k === "Fleisch" || k === "Wurst") g = g || (/hühner|puten|hendl|pute|huhn/i.test(n) ? "gefluegel" : "rind");
+      else if (k === "Fisch") g = g || "fisch";
+      if (k === "Eier") egg = true;
+      if (k === "Obst") fruit = true;
     });
-    const unterwegs = !!rec.unterwegs, flasche = !!rec.flasche;
-    return { fleisch, fisch, obst, unterwegs, flasche, veg: !fleisch && !fisch && !unterwegs && !flasche };
+    return g || (egg ? "ei" : fruit ? "obst" : "gemuese");
   }
   function matchesFilter(rec, filter) {
-    const t = recipeTags(rec);
-    switch (filter) {
-      case "fleisch": return t.fleisch;
-      case "fisch": return t.fisch;
-      case "vegetarisch": return t.veg;
-      case "obst": return t.obst;
-      case "unterwegs": return t.unterwegs;
-      case "flasche": return t.flasche;
-      default: return true;
-    }
+    return !filter || filter === "alle" || recipeGroup(rec) === filter;
   }

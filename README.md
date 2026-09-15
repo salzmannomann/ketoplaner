@@ -1,7 +1,7 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 51 fertige Rezepte, die automatisch auf die **verordnete
+enthält 35 fertige Gerichte (50 Rezept-Varianten), die automatisch auf die **verordnete
 Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
@@ -49,7 +49,9 @@ die Vorgaben.
 
 - **Verordnung:** Verhältnis wird **händisch** eingegeben, in der Schreibweise
   der Verordnung: „1,8" oder „1,8:1" (Keto), „1:1" oder „1:1,5" (Ausschleichen;
-  Verhältnisse unter 1 zeigt die App überall als „1:x"), **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
+  Verhältnisse unter 1 zeigt die App überall als „1:x"), **KetoCal derzeit:
+  mit / ohne** (wählt bei Gerichten mit beiden Varianten die Fettbasis),
+  **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
 - **MCT-Öl:** Anteil an der Öl-Fettmasse in Stufen (0 / 10 / 20 / 30 / 50 /
@@ -65,14 +67,19 @@ die Vorgaben.
 
 ### Rezepte
 
-- **Suche** nach Name oder Zutat.
-- **Schnellfilter:** KetoCal dreistufig (**alle / ohne / mit**), Kategorie
-  (Alle, Fleisch, Fisch, Vegetarisch, Obst), **👩‍⚕️ Diätologie** (nur
-  Original-Rezepte aus den Vorlagen), **🥫 Unterwegs** (Fertigprodukt) und
-  **🍼 Flasche** (Sondenflasche aus KetoCal + Pre-Milch; unabhängig vom
-  KetoCal-Filter immer auffindbar). Sortierung nach Kategorie, Name oder Eiweiß.
-- Die **Kacheln** zeigen Icon, Name, kcal, Verhältnis und Eiweiß; ein Stern
-  markiert Favoriten (immer ganz oben).
+- **Ein Eintrag je Gericht.** Hat ein Gericht eine Variante mit und ohne
+  KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter),
+  steht es nur einmal in der Liste. Welche **Fettbasis** gezeigt wird,
+  entscheidet die Vorgabe **„KetoCal derzeit: mit / ohne"** (unter Vorgaben
+  und als Schalter über der Liste); im Rezept lässt sich die Fettbasis
+  jederzeit umschalten, die Wahl wird je Gericht gemerkt.
+- **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
+  🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥄 Angerührt (ohne Kochen:
+  HiPP-Fertigprodukt, KetoCal & Pre Apta, KetoCal & Compleat). Dazu **Suche**
+  nach Name oder Zutat, der Schalter **👩‍⚕️ Diätologie** (nur Original-Rezepte
+  aus den Vorlagen) und Sortierung nach Gruppe, Name, Eiweiß oder Menge.
+- Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
+  Stern markiert Favoriten (immer ganz oben).
 - **🧪 Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
   mehrere Fette zum Ausgleich; die App berechnet die Fettmenge fürs
   Verhältnis, wahlweise für eine fixe Zutatenmenge oder hochgerechnet auf eine
@@ -83,9 +90,11 @@ die Vorgaben.
 Die Detailansicht ist in drei Reiter geteilt – so, wie man in der Küche
 arbeitet:
 
-1. **Kochen** – Zutatentabelle für die gewählte Menge (Portionen-Stepper,
-   „1 Portion" / „Ganzer Tag"), **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind /
-   🦃 Pute** und die **Varoma-Anleitung** als nummerierte Schritte. Ändert man
+1. **Kochen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter,
+   wenn es das Gericht in beiden Varianten gibt), Zutatentabelle für die
+   gewählte Menge (Portionen-Stepper, „1 Portion" / „Ganzer Tag") und die
+   **Varoma-Anleitung** als nummerierte Schritte; der **Fleisch-Umschalter
+   🍗 Huhn / 🥩 Rind / 🦃 Pute** steht unter Rechnen. Ändert man
    eine Zutatenmenge direkt (z. B. „827 g Zucchini"), skalieren alle anderen
    Zutaten proportional mit; **Wasser** ist davon ausgenommen und kann
    unabhängig angepasst werden. Menge und Wasser werden **je Rezept gemerkt**.
@@ -149,16 +158,17 @@ ein feines Sieb gestrichen, damit die Spritze nicht verstopft.
 tragen das Schild **„👩‍⚕️ Diätologie"**. Bei Rezepten ohne KetoCal weist die App
 darauf hin, dass Vitamine und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (51 insgesamt: 22 mit / 29 ohne KetoCal)
+## Rezepte (35 Gerichte, 50 Varianten: 21 mit / 29 ohne KetoCal)
 
-Ausgewogen über die Kategorien (Fleisch, Fisch, vegetarisch inkl. Ei-,
-Erdäpfel- und Gemüsegerichte sowie Obst). Die Namen folgen dem Schema
-**„Hauptzutat & Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); KetoCal-
-Varianten tragen den Zusatz „(mit KetoCal)". Dazu kommen das Fertigprodukt
-**„HiPP Hühnchen & Öl"** (Unterwegs) sowie die Sondenflaschen **„Flasche: KetoCal &
-Pre Apta"** und **„Flasche: KetoCal & Compleat"** (Nestlé Compleat Nature Mix,
-Filter Flasche; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben). 35 Rezepte haben eine Varoma-Anleitung, die übrigen
-werden klassisch zubereitet.
+Ausgewogen über die Gruppen Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel &
+Gemüse sowie Obst & Brei. Die Namen folgen dem Schema **„Hauptzutat &
+Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); in `recipes.js` tragen
+KetoCal-Varianten den Zusatz „(mit KetoCal)" und werden in der App mit der
+Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen das
+Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„KetoCal &
+Pre Apta"** und **„KetoCal & Compleat"** (Nestlé Compleat Nature Mix; für die
+Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben). 34 Varianten
+haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
 
 ## Berechnungsgrundlage
 

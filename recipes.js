@@ -1,20 +1,22 @@
-// Standard-Rezepte für die ketogene Sondennahrung (50 Stück).
+// Standard-Rezepte für die ketogene Sondennahrung.
 // Einheitliche Kurznamen "Hauptzutat & Beilage"; Icon = Sorte (Fleisch/Fisch/Ei) bzw. Gemüse/Obst.
-// Felder: name, icon, ketocal, quelle, zubereitung, thermomix, varoma, items.
+// Ein Gericht kann mehrere Fettbasis-Varianten haben: "X" (Rapsöl/Butter) und "X (mit KetoCal)" werden
+// in der App zu einem Eintrag mit Umschalter zusammengefasst (Familie = Name ohne "(mit KetoCal)").
+// Felder: name, icon, ketocal, quelle, angeruehrt (ohne Kochen), zubereitung, thermomix, varoma, items.
 const RECIPES_SONDE = [
   {
-    name: "Flasche: KetoCal & Pre Apta",
-    icon: "🍼",
+    name: "KetoCal & Pre Apta",
+    icon: "🥄",
     ketocal: true,
-    flasche: true,
+    angeruehrt: true,
     zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Trinktemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
-    name: "Flasche: KetoCal & Compleat",
-    icon: "🍼",
+    name: "KetoCal & Compleat",
+    icon: "🥄",
     ketocal: true,
-    flasche: true,
+    angeruehrt: true,
     zubereitung: "KetoCal 3:1 abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Nature Mix abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Das Wasser dient nur zum Anrühren und lässt sich unabhängig anpassen. Die KetoCal-Menge rechnet die App auf das eingestellte Verhältnis um – für die Ausschleich-Phase unter Vorgaben das verordnete Verhältnis eingeben (z. B. 1:1 oder 1:1,5). Angebrochene Compleat-Flasche verschlossen im Kühlschrank aufbewahren und innerhalb von 24 Stunden verbrauchen. Compleat Nature Mix ist eine Sondennahrung für Erwachsene (für Kinder gibt es Compleat Paediatric Nature Mix) – Einsatz bitte mit dem Behandlungsteam abstimmen.",
     items: [ { food: "Ketocal 3:1", grams: 13 }, { food: "Compleat Nature Mix (Nestlé)", grams: 40 }, { food: "Wasser", grams: 30 } ],
   },
@@ -22,7 +24,7 @@ const RECIPES_SONDE = [
     name: "HiPP Hühnchen & Öl",
     icon: "🥫",
     ketocal: false,
-    unterwegs: true,
+    angeruehrt: true,
     zubereitung: "HiPP-Glas öffnen, die angezeigten Mengen abmessen und das Rapsöl gründlich einrühren – fertig, ganz ohne Kochen. Das Öl am besten erst kurz vor dem Füttern zugeben. Ein 125-g-Glas reicht für mehrere Mahlzeiten – Reste im Kühlschrank aufbewahren.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
@@ -271,7 +273,7 @@ const RECIPES_SONDE = [
     items: [ { food: "Rotbarsch, gegart", grams: 25 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
-    name: "Erdäpfel & Zucchini (mit KetoCal) – Variante 1",
+    name: "Erdäpfel & Zucchini (mit KetoCal)",
     icon: "🥔",
     ketocal: true,
     quelle: "diätologie",
@@ -279,16 +281,6 @@ const RECIPES_SONDE = [
     thermomix: "Erdäpfel und Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
-  },
-  {
-    name: "Erdäpfel & Zucchini (mit KetoCal) – Variante 2",
-    icon: "🥔",
-    ketocal: true,
-    quelle: "diätologie",
-    zubereitung: "Erdäpfel und Zucchini weich garen, mit Wasser und KetoCal 3:1 fein pürieren und Rapsöl untermischen.",
-    thermomix: "Erdäpfel und Zucchini 5 Sek./Stufe 5 zerkleinern, mit Wasser 8 Min./90 °C/Stufe 1 garen. KetoCal 3:1 und Rapsöl zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
-    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Erdäpfel und Zucchini klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Rapsöl und KetoCal 30–40 Sek./Stufe 7–8 cremig pürieren.",
-    items: [ { food: "Kartoffel gekocht", grams: 30 }, { food: "Zucchini gegart", grams: 50 }, { food: "Ketocal 3:1", grams: 12 }, { food: "Rapsöl", grams: 7 }, { food: "Wasser", grams: 40 } ],
   },
   {
     name: "Erdäpfel & Karfiol (mit KetoCal)",

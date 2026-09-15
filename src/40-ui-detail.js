@@ -3,13 +3,13 @@
   // Merkt sich die zuletzt eingegebene Menge (Portionen-Faktor) je Rezept – bleibt auch nach dem Schließen erhalten.
   function persistScale() {
     if (!detailRec) return;
-    const k = recipeKey(detailRec);
+    const k = familyKey(detailRec);
     if (Math.abs(detailScale - 1) < 1e-6) delete state.scales[k];
     else state.scales[k] = detailScale;
     save();
   }
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = num(state.scales[recipeKey(rec)]) || 1; detailMeat = null;
+    detailRec = rec; detailScale = num(state.scales[familyKey(rec)]) || 1; detailMeat = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -44,7 +44,7 @@
     if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
     // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
     // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
-    const waterKey = recipeKey(rec);
+    const waterKey = familyKey(rec);
     const hasWaterOverride = Object.prototype.hasOwnProperty.call(state.water, waterKey);
     if (hasWaterOverride) {
       const target = Math.max(0, num(state.water[waterKey]));
@@ -124,6 +124,17 @@
       : '<span class="badge noketo">ohne KetoCal</span>') +
       (rec.quelle ? ' <span class="badge quelle">👩‍⚕️ Diätologie</span>' : "");
 
+    // Fettbasis-Umschalter: gleiches Gericht, andere Variante (z. B. Rapsöl ↔ KetoCal + Butter).
+    const fam = familyOfRecipe(rec);
+    let basisSeg = "";
+    if (fam.variants.length > 1) {
+      basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis</div><div class="segmented mini">' +
+        fam.variants.map(v => '<button type="button" data-basis="' + escapeHtml(recipeKey(v)) + '"' + (recipeKey(v) === recipeKey(rec) ? ' class="active"' : "") + ">" +
+          (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join("") +
+        '</div><div class="meat-note">Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
+        (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</div></div>';
+    }
+
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
@@ -194,13 +205,14 @@
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
-        '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
+        '<div><div class="title">' + escapeHtml(familyOf(rec)) + " " + ketoBadge + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
         fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
 
       /* ---------- Kochen ---------- */
       paneOpen("kochen") +
+      basisSeg +
       '<div class="seg-portion batch">' +
         '<span class="seg-label">Menge zubereiten:</span>' +
         '<div class="segmented mini">' +
@@ -282,6 +294,14 @@
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
+    c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
+      b.addEventListener("click", () => {
+        const v = fam.variants.find(x => recipeKey(x) === b.dataset.basis); if (!v) return;
+        if (!state.basis || typeof state.basis !== "object") state.basis = {};
+        state.basis[fam.key] = recipeKey(v); save();
+        detailRec = v; detailMeat = null;
+        renderDetail(); renderRezepte();
+      }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;

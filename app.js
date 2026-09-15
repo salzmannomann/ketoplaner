@@ -11,14 +11,37 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketoFilter: "alle", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: 700, ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketocal: "mit", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
       scales: {},
       water: {},
       dayPlan: [],
+      basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
     };
+  }
+  // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
+  const RENAMES = {
+    "Flasche: KetoCal & Pre Apta": "KetoCal & Pre Apta",
+    "Flasche: KetoCal & Compleat": "KetoCal & Compleat",
+    "Erdäpfel & Zucchini (mit KetoCal) – Variante 1": "Erdäpfel & Zucchini (mit KetoCal)",
+    "Erdäpfel & Zucchini (mit KetoCal) – Variante 2": "Erdäpfel & Zucchini (mit KetoCal)",
+  };
+  function renameKey(k) {
+    if (typeof k !== "string" || k.indexOf("std:") !== 0) return k;
+    const n = k.slice(4); return RENAMES[n] ? "std:" + RENAMES[n] : k;
+  }
+  // Familien-Schlüssel (Favoriten, Mengen, Wasser gelten je Gericht, nicht je Fettbasis-Variante).
+  function toFamilyKey(k) {
+    k = renameKey(k);
+    if (typeof k !== "string" || k.indexOf("std:") !== 0) return k;
+    return "fam:" + k.slice(4).replace(/ \(mit KetoCal\)|, mit KetoCal/g, "");
+  }
+  function remapKeys(obj) {
+    const o = {};
+    Object.keys(obj || {}).forEach(k => { const nk = toFamilyKey(k); if (!(nk in o)) o[nk] = obj[k]; });
+    return o;
   }
   let state = load();
   function load() {
@@ -30,16 +53,24 @@
       // Migration alter KetoCal-Felder auf einen einzelnen Schalter (withKeto)
       if (p.settings && typeof p.settings.withKeto !== "boolean") {
         if (typeof p.settings.showMitKeto === "boolean") settings.withKeto = p.settings.showMitKeto && !p.settings.showOhneKeto;
-        else if (p.settings.ketocal) settings.withKeto = p.settings.ketocal === "mit";
+        else if (p.settings.ketocal && p.settings.ketocal !== "mit" && p.settings.ketocal !== "ohne") settings.withKeto = false;
       }
+      // KetoCal-Phase (früher Dreistufen-Filter „alle/ohne/mit“) und alte Gruppen-Filter
+      const ps = p.settings || {};
+      if (ps.ketocal !== "mit" && ps.ketocal !== "ohne") settings.ketocal = ps.ketoFilter === "ohne" ? "ohne" : "mit";
+      delete settings.ketoFilter;
+      if (["fleisch", "vegetarisch", "unterwegs", "flasche"].indexOf(settings.filter) !== -1) settings.filter = "alle";
+      const favorites = [];
+      (p.favorites || []).forEach(k => { const nk = toFamilyKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
       return {
         settings: settings,
         compose: Object.assign(d.compose, p.compose || {}),
-        favorites: p.favorites || [],
+        favorites: favorites,
         savedRecipes: p.savedRecipes || [],
-        scales: p.scales || {},
-        water: p.water || {},
-        dayPlan: Array.isArray(p.dayPlan) ? p.dayPlan : [],
+        scales: remapKeys(p.scales),
+        water: remapKeys(p.water),
+        dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
+        basis: p.basis && typeof p.basis === "object" ? p.basis : {},
       };
     } catch (e) { return defaultState(); }
   }
@@ -144,39 +175,36 @@
     }, 0);
   }
 
-  /* ---------- Schnellfilter ---------- */
+  /* ---------- Gruppen & Schnellfilter ----------
+     Die Rezepte sind nach der Hauptzutat gruppiert („Was habe ich da?“):
+     Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel & Gemüse, Obst & Brei und
+     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen). */
   const FILTERS = [
     { id: "alle", label: "Alle" },
-    { id: "fleisch", label: "🥩 Fleisch" },
+    { id: "gefluegel", label: "🍗 Geflügel" },
+    { id: "rind", label: "🥩 Rind & Schwein" },
     { id: "fisch", label: "🐟 Fisch" },
-    { id: "vegetarisch", label: "🥦 Vegetarisch" },
-    { id: "obst", label: "🍓 Obst" },
-    { id: "unterwegs", label: "🥫 Unterwegs" },
-    { id: "flasche", label: "🍼 Flasche" },
+    { id: "ei", label: "🥚 Ei" },
+    { id: "gemuese", label: "🥔 Erdäpfel & Gemüse" },
+    { id: "obst", label: "🍓 Obst & Brei" },
+    { id: "angeruehrt", label: "🥄 Angerührt" },
   ];
-  function recipeTags(rec) {
-    let fleisch = false, fisch = false, obst = false;
+  // Primäre Gruppe eines Rezepts (aus den Zutaten abgeleitet; Fleisch/Fisch haben Vorrang).
+  function recipeGroup(rec) {
+    if (rec.angeruehrt) return "angeruehrt";
+    let g = null, egg = false, fruit = false;
     rec.items.forEach(it => {
       const f = lookup(it.food); if (!f) return;
-      const k = f.kategorie;
-      if (k === "Fleisch" || k === "Wurst") fleisch = true;
-      if (k === "Fisch") fisch = true;
-      if (k === "Obst") obst = true;
+      const k = f.kategorie, n = it.food || "";
+      if (k === "Fleisch" || k === "Wurst") g = g || (/hühner|puten|hendl|pute|huhn/i.test(n) ? "gefluegel" : "rind");
+      else if (k === "Fisch") g = g || "fisch";
+      if (k === "Eier") egg = true;
+      if (k === "Obst") fruit = true;
     });
-    const unterwegs = !!rec.unterwegs, flasche = !!rec.flasche;
-    return { fleisch, fisch, obst, unterwegs, flasche, veg: !fleisch && !fisch && !unterwegs && !flasche };
+    return g || (egg ? "ei" : fruit ? "obst" : "gemuese");
   }
   function matchesFilter(rec, filter) {
-    const t = recipeTags(rec);
-    switch (filter) {
-      case "fleisch": return t.fleisch;
-      case "fisch": return t.fisch;
-      case "vegetarisch": return t.veg;
-      case "obst": return t.obst;
-      case "unterwegs": return t.unterwegs;
-      case "flasche": return t.flasche;
-      default: return true;
-    }
+    return !filter || filter === "alle" || recipeGroup(rec) === filter;
   }
 
   /* ---------- Abgeleitete Werte ---------- */
@@ -376,12 +404,19 @@
     return "über der traditionellen MCT-Diät (60 %)";
   }
 
-  /* ---------- Favoriten & Rezeptquellen ---------- */
+  /* ---------- Rezeptfamilien, Favoriten & Rezeptquellen ----------
+     Ein „Gericht“ (Familie) fasst die Fettbasis-Varianten eines Rezepts zusammen,
+     z. B. „Hendl & Zucchini“ (Rapsöl) und „Hendl & Zucchini (mit KetoCal)“.
+     Favoriten, gemerkte Menge und Wasser gelten je Gericht; der Tagesplan merkt
+     sich die konkrete Variante. */
   function hasKetoCal(items) { return items.some(it => (it.food || "").toLowerCase().indexOf("ketocal") !== -1); }
   function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
-  function isFav(rec) { return state.favorites.indexOf(recipeKey(rec)) !== -1; }
+  const FAMILY_STRIP_RE = / \(mit KetoCal\)|, mit KetoCal/g;
+  function familyOf(rec) { return rec.custom ? rec.name : (rec.familie || rec.name.replace(FAMILY_STRIP_RE, "")); }
+  function familyKey(rec) { return rec.custom ? rec.key : ("fam:" + familyOf(rec)); }
+  function isFav(rec) { return state.favorites.indexOf(familyKey(rec)) !== -1; }
   function toggleFav(rec) {
-    const k = recipeKey(rec), i = state.favorites.indexOf(k);
+    const k = familyKey(rec), i = state.favorites.indexOf(k);
     if (i === -1) state.favorites.push(k); else state.favorites.splice(i, 1);
     save();
   }
@@ -394,6 +429,41 @@
       zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten, fein pürieren und das Fett untermischen.",
     }));
     return saved.concat(RECIPES_SONDE);
+  }
+  // Fettbasis einer Variante als Kurztext: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
+  function basisLabel(rec) {
+    const fi = fatItemIndex(rec.items);
+    const lever = fi >= 0 ? String(rec.items[fi].food).replace(/ NÖM$/, "") : "";
+    if (hasKetoCal(rec.items)) return lever && !/ketocal/i.test(lever) ? "KetoCal + " + lever : "KetoCal";
+    return lever || "ohne Fett";
+  }
+  // Alle Gerichte in Reihenfolge des ersten Auftretens: { key, name, icon, variants: [rec …] }
+  function allFamilies() {
+    const map = {}, order = [];
+    allRecipes().forEach(r => {
+      const k = familyKey(r);
+      if (!map[k]) { map[k] = { key: k, name: familyOf(r), icon: r.icon, variants: [] }; order.push(k); }
+      map[k].variants.push(r);
+    });
+    return order.map(k => map[k]);
+  }
+  function familyOfRecipe(rec) {
+    const k = familyKey(rec);
+    return allFamilies().find(f => f.key === k) || { key: k, name: familyOf(rec), icon: rec.icon, variants: [rec] };
+  }
+  // KetoCal-Phase (Vorgabe): entscheidet, welche Variante ein Gericht standardmäßig zeigt.
+  function ketoPhase() { return state.settings.ketocal === "ohne" ? "ohne" : "mit"; }
+  function setKetoPhase(k) {
+    state.settings.ketocal = k === "ohne" ? "ohne" : "mit";
+    state.basis = {}; // Einzelwahl je Gericht zurücksetzen – die Phase gilt wieder überall
+    save(); renderRezepte();
+  }
+  // Gezeigte Variante eines Gerichts: gemerkte Wahl, sonst Phase, sonst erste.
+  function chosenVariant(fam) {
+    const pick = state.basis && state.basis[fam.key];
+    if (pick) { const v = fam.variants.find(r => recipeKey(r) === pick); if (v) return v; }
+    const wantKc = ketoPhase() === "mit";
+    return fam.variants.find(r => !!r.ketocal === wantKc) || fam.variants[0];
   }
 
   /* ---------- Rezepte rendern ---------- */
@@ -416,13 +486,12 @@
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
 
-    // Schnellfilter-Chips
-    const filter = s.filter || "alle";
+    // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
+    const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const onlyQuelle = !!s.onlyQuelle;
-    const ketoFilter = s.ketoFilter === "mit" || s.ketoFilter === "ohne" ? s.ketoFilter : "alle";
+    const phase = ketoPhase();
     const fb = $("filter-bar");
     fb.innerHTML = "";
-    // Gruppe 1: Kategorie (entweder/oder)
     const catChips = el("div", { class: "chips cat" });
     FILTERS.forEach(f => {
       const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
@@ -430,11 +499,10 @@
       catChips.appendChild(chip);
     });
     fb.appendChild(catChips);
-    // Gruppe 2: KetoCal als Dreistufe (alle / ohne / mit) + Diätologie-Schalter
     const switchChips = el("div", { class: "chips switches" });
-    [["alle", "🥄 alle"], ["ohne", "ohne KetoCal"], ["mit", "mit KetoCal"]].forEach(([k, lab]) => {
-      const c = el("button", { class: "chip switch" + (ketoFilter === k ? " active" : "") }, lab);
-      c.addEventListener("click", () => { state.settings.ketoFilter = k; save(); renderRezepte(); });
+    [["mit", "🥄 mit KetoCal"], ["ohne", "ohne KetoCal"]].forEach(([k, lab]) => {
+      const c = el("button", { class: "chip switch" + (phase === k ? " active" : "") }, lab);
+      c.addEventListener("click", () => setKetoPhase(k));
       switchChips.appendChild(c);
     });
     const qc = el("button", { class: "chip switch" + (onlyQuelle ? " active" : "") }, "👩‍⚕️ Diätologie");
@@ -442,74 +510,69 @@
     switchChips.appendChild(qc);
     fb.appendChild(switchChips);
 
+    // Ein Eintrag je Gericht; gezeigt wird die Variante laut Wahl/Phase (bei „Diätologie“ die Original-Variante).
+    // Erreicht die gezeigte Variante das Verhältnis nicht, wird eine andere Variante des Gerichts versucht.
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
-    const recipes = allRecipes()
-      // Flaschen enthalten immer KetoCal – der Filter "Flasche" ignoriert daher die KetoCal-Stufe.
-      .filter(r => filter === "flasche" || ketoFilter === "alle" || !!r.ketocal === (ketoFilter === "mit"))
-      .filter(r => matchesFilter(r, filter))
-      .filter(r => !onlyQuelle || !!r.quelle)
-      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
-      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) }))
-      .filter(x => x.res.ok);
+    const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
+    const entries = [];
+    allFamilies().forEach(fam => {
+      let rec = chosenVariant(fam);
+      if (onlyQuelle && !rec.quelle) rec = fam.variants.find(r => !!r.quelle) || null;
+      if (!rec) return;
+      if (!matchesFilter(rec, filter)) return;
+      if (q && fam.name.toLowerCase().indexOf(q) === -1 && !fam.variants.some(hitItems)) return;
+      let res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+      if (!res.ok) {
+        const alt = fam.variants.find(r => r !== rec && computeAdjustedRecipe(r, d.kcalMahl, d.ratio).ok);
+        if (!alt) return;
+        rec = alt; res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
+      }
+      entries.push({ fam, rec, res });
+    });
 
-    $("info-note").hidden = ketoFilter === "mit";
-    $("recipe-count").textContent =
-      recipes.length + " Rezept" + (recipes.length === 1 ? "" : "e") +
-      (ketoFilter === "mit" ? " mit KetoCal" : ketoFilter === "ohne" ? " ohne KetoCal" : "");
+    $("recipe-count").textContent = entries.length + " Gericht" + (entries.length === 1 ? "" : "e") +
+      (phase === "mit" ? " · mit KetoCal, wo es die Variante gibt" : " · ohne KetoCal, wo es die Variante gibt");
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
 
     const list = $("recipe-list");
     list.innerHTML = "";
-    if (recipes.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Keine Rezepte für diese Auswahl."));
+    if (entries.length === 0) {
+      list.appendChild(el("div", { class: "card empty" }, "Keine Gerichte für diese Auswahl."));
       return;
     }
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
-      const sorted = arr.slice().sort((a, b) => {
-        const ka = a.rec.name.toLowerCase(), kb = b.rec.name.toLowerCase();
-        return ka < kb ? -1 : ka > kb ? 1 : 0;
-      });
+      const sorted = arr.slice().sort((a, b) => a.fam.name.localeCompare(b.fam.name, "de"));
       list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
-      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
 
     if (sort === "kategorie") {
-      const favs = recipes.filter(x => isFav(x.rec));
-      const rest = recipes.filter(x => !isFav(x.rec));
+      const favs = entries.filter(x => isFav(x.rec));
+      const rest = entries.filter(x => !isFav(x.rec));
       appendGroup("⭐ Favoriten", favs);
-      [["Fleisch", "🥩 Fleisch"], ["Fisch", "🐟 Fisch"], ["Vegetarisch", "🥦 Vegetarisch"], ["Obst", "🍓 Obst"]]
-        .forEach(([key, label]) => appendGroup(label, rest.filter(x => recipeGroup(x.rec) === key)));
+      FILTERS.filter(f => f.id !== "alle").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
         : sort === "volumen"
         ? x => volumeMl(x.res.items)
-        : x => x.rec.name.toLowerCase();
-      const sorted = recipes.slice().sort((a, b) => {
+        : x => x.fam.name.toLowerCase();
+      const sorted = entries.slice().sort((a, b) => {
         const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1;
         if (fa !== fb) return fa - fb;
         const ka = keyFn(a), kb = keyFn(b);
         return ka < kb ? -1 : ka > kb ? 1 : 0;
       });
       const grid = el("div", { class: "tiles" });
-      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d)));
+      sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
-  }
-
-  // Primäre Anzeige-Gruppe eines Rezepts
-  function recipeGroup(rec) {
-    const t = recipeTags(rec);
-    if (t.fleisch) return "Fleisch";
-    if (t.fisch) return "Fisch";
-    if (t.obst) return "Obst";
-    return "Vegetarisch";
   }
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
@@ -537,6 +600,8 @@
       ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
+    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
+      b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     const sc = document.getElementById("mct-share-ctl");
     if (sc) {
       sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
@@ -618,6 +683,8 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
+    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
+      b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
     const impF = document.getElementById("import-file");
@@ -631,13 +698,15 @@
     if (wd) wd.closest("details").addEventListener("toggle", function () { if (this.open) renderWerte(); });
   }
 
-  /* ---------- Kachel (Übersicht) ---------- */
-  function renderRecipeTile(rec, res, d) {
+  /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */
+  function renderRecipeTile(rec, res, d, fam) {
     const sum = sumMacros(res.items);
     const r = ratioOf(sum);
     const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
     const ml = volumeMl(res.items);
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+    const name = fam ? fam.name : familyOf(rec);
+    const multi = !!fam && fam.variants.length > 1;
 
     const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
@@ -646,11 +715,11 @@
         '<span class="tile-icon">' + (rec.icon || "🥑") + "</span>" +
         '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       "</div>" +
-      '<div class="tile-name">' + escapeHtml(rec.name) + "</div>" +
+      '<div class="tile-name">' + escapeHtml(name) + "</div>" +
       '<div class="tile-badge">' +
-        // KetoCal-Badge nur, wenn beide Sorten gemischt angezeigt werden; das Verhältnis ist immer auf Ziel gerechnet und
-        // wird daher nicht mehr je Kachel wiederholt (steht im Verordnungs-Chip).
-        (rec.ketocal && (state.settings.ketoFilter !== "mit") ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "") +
+        // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
+        (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
+               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
@@ -673,13 +742,13 @@
   // Merkt sich die zuletzt eingegebene Menge (Portionen-Faktor) je Rezept – bleibt auch nach dem Schließen erhalten.
   function persistScale() {
     if (!detailRec) return;
-    const k = recipeKey(detailRec);
+    const k = familyKey(detailRec);
     if (Math.abs(detailScale - 1) < 1e-6) delete state.scales[k];
     else state.scales[k] = detailScale;
     save();
   }
   function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = num(state.scales[recipeKey(rec)]) || 1; detailMeat = null;
+    detailRec = rec; detailScale = num(state.scales[familyKey(rec)]) || 1; detailMeat = null;
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
@@ -714,7 +783,7 @@
     if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
     // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
     // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
-    const waterKey = recipeKey(rec);
+    const waterKey = familyKey(rec);
     const hasWaterOverride = Object.prototype.hasOwnProperty.call(state.water, waterKey);
     if (hasWaterOverride) {
       const target = Math.max(0, num(state.water[waterKey]));
@@ -794,6 +863,17 @@
       : '<span class="badge noketo">ohne KetoCal</span>') +
       (rec.quelle ? ' <span class="badge quelle">👩‍⚕️ Diätologie</span>' : "");
 
+    // Fettbasis-Umschalter: gleiches Gericht, andere Variante (z. B. Rapsöl ↔ KetoCal + Butter).
+    const fam = familyOfRecipe(rec);
+    let basisSeg = "";
+    if (fam.variants.length > 1) {
+      basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis</div><div class="segmented mini">' +
+        fam.variants.map(v => '<button type="button" data-basis="' + escapeHtml(recipeKey(v)) + '"' + (recipeKey(v) === recipeKey(rec) ? ' class="active"' : "") + ">" +
+          (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join("") +
+        '</div><div class="meat-note">Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
+        (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</div></div>';
+    }
+
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
@@ -864,13 +944,14 @@
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
-        '<div><div class="title">' + escapeHtml(rec.name) + " " + ketoBadge + "</div>" +
+        '<div><div class="title">' + escapeHtml(familyOf(rec)) + " " + ketoBadge + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
         fmt(sumPer.kcal, 0) + " kcal je Portion · zeigt: " + portionLabel + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + tabBtn("rechnen", "📊 Rechnen") + "</div>" +
 
       /* ---------- Kochen ---------- */
       paneOpen("kochen") +
+      basisSeg +
       '<div class="seg-portion batch">' +
         '<span class="seg-label">Menge zubereiten:</span>' +
         '<div class="segmented mini">' +
@@ -952,6 +1033,14 @@
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
+    c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
+      b.addEventListener("click", () => {
+        const v = fam.variants.find(x => recipeKey(x) === b.dataset.basis); if (!v) return;
+        if (!state.basis || typeof state.basis !== "object") state.basis = {};
+        state.basis[fam.key] = recipeKey(v); save();
+        detailRec = v; detailMeat = null;
+        renderDetail(); renderRezepte();
+      }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
         detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
@@ -1102,16 +1191,19 @@
     const list = document.getElementById("picker-list"); if (!list) return;
     const q = ((document.getElementById("picker-search") || {}).value || "").trim().toLowerCase();
     const d = derived();
-    const recs = allRecipes()
-      .filter(r => !q || r.name.toLowerCase().indexOf(q) !== -1 || r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1))
-      .map(rec => ({ rec, res: computeAdjustedRecipe(rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
-      .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.rec.name.localeCompare(b.rec.name, "de"); });
+    // Ein Eintrag je Gericht (Variante laut Wahl/Phase); gespeichert wird die konkrete Variante.
+    const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
+    const recs = allFamilies()
+      .map(fam => ({ fam, rec: chosenVariant(fam) }))
+      .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || x.fam.variants.some(hitItems))
+      .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
+      .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de"); });
     list.innerHTML = recs.map(x => {
       const s = sumMacros(x.res.items);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '"><span class="pick-icon">' + (x.rec.icon || "🥑") + '</span>' +
-        '<span class="pick-name">' + escapeHtml(x.rec.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + (x.rec.ketocal ? " · KetoCal" : "") + "</span></button>";
-    }).join("") || '<div class="empty">Kein Rezept gefunden.</div>';
+        '<span class="pick-name">' + escapeHtml(x.fam.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
+        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + (x.rec.ketocal ? " · " + escapeHtml(basisLabel(x.rec)) : "") + "</span></button>";
+    }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
       if (pickerSlot >= 0) { ensureDayPlan(derived()); state.dayPlan[pickerSlot] = { key: b.dataset.key }; save(); }
       closePicker(); renderHeute();
