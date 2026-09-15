@@ -1116,7 +1116,14 @@
     const dayN = d.mahl;
     const dayKcal = sumPer.kcal * dayN, dayP = sumPer.eiweiss * dayN, dayF = sumPer.fett * dayN, dayC = sumPer.kh * dayN;
     const dayLow = dayKcal < d.kcalMin - 0.5, dayHigh = d.kcalMaxAuto && dayKcal > d.kcalMaxAuto + 0.5;
-    const dayItems = items.map(it => escapeHtml(it.food) + " <strong>" + fmt(num(it.grams) * dayN, 0) + " g</strong>").join(" · ");
+    // Zutatentabelle je Tag: jede Zeile × Mahlzeiten (gleiche Spalten wie die Mahlzeit-Tabelle).
+    const dayRows = items.map((it, i) => {
+      const g = num(it.grams) * dayN, m = lineMacros({ food: it.food, grams: g });
+      return "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + "</td><td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+    }).join("");
+    const dayTotalG = items.reduce((a, it) => a + num(it.grams), 0) * dayN;
+    const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel · je Tag</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+      dayRows + "<tr class='sum'><td class='name'>Summe je Tag</td><td>" + fmt(dayTotalG, 0) + "</td><td>" + fmt(dayP) + "</td><td>" + fmt(dayF) + "</td><td>" + fmt(dayC) + "</td><td>" + fmt(dayKcal, 0) + "</td></tr></tbody></table></div>";
     const daySeg =
       '<h4 class="ph">📅 Ganzer Tag <span class="hint">wenn alle ' + dayN + ' Mahlzeiten dieses Rezept sind</span></h4>' +
       '<div class="detail-tiles">' +
@@ -1125,7 +1132,7 @@
         '<div class="dstat"><div class="v">' + fmt(dayF) + ' g</div><div class="l">Fett/Tag</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(dayC) + ' g</div><div class="l">KH/Tag</div></div>' +
       '</div>' +
-      '<div class="hint">Zutaten je Tag: ' + dayItems + '</div>' +
+      dayTable +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
 
     const c = document.getElementById("detail-content");
@@ -1189,12 +1196,12 @@
         '<div class="dstat"><div class="v">' + fmt(res.mct.gMct, 1) + ' g</div><div class="l">MCT je Portion<br><small>maßgeblich für die Verträglichkeit</small></div></div>' +
       "</div>" : "") +
       (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
-      daySeg +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         nRows +
         "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
+      daySeg +
       '<div class="btn-row"><button type="button" class="btn" id="edit-btn">✏️ ' + (rec.custom ? "Rezept bearbeiten" : "Zutaten ändern / tauschen (Editor)") + "</button></div>" +
       "</div>";
 

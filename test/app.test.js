@@ -342,6 +342,12 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
     const dayKcal = parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent);
     assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
     assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
+    // Zutatentabelle je Tag: jede Zeile = 5 × Mahlzeit
+    const mealRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][0].querySelectorAll("tbody tr:not(.sum)");
+    const dayRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][1].querySelectorAll("tbody tr:not(.sum)");
+    assert.equal(dayRows.length, mealRows.length);
+    const gramsOf = (tr) => parseFloat(tr.children[1].textContent.replace(".", "").replace(",", "."));
+    for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
     const day2 = [...c2.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ganzer Tag/.test(h.textContent));
