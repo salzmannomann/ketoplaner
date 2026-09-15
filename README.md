@@ -171,11 +171,12 @@ Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingebe
 **Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
 Unter Rechnen zeigt das Rezept, für wie viele Mahlzeiten sie bei der aktuellen
 Rechnung reicht, und lässt sie auf **N Mahlzeiten** aufteilen (z. B. 10 für
-2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit; damit Verhältnis
-und kcal trotzdem stimmen, löst die App zwei Hebel gleichzeitig: **KetoCal**
-(Fett fürs Verhältnis) und **Pre Apta** (Kohlenhydrate für die Kalorien). Geht
-die Aufteilung bei diesem Verhältnis nicht auf (eine Menge würde negativ), sagt
-die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
+2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit. Zwei Modi:
+**⚖️ Verhältnis halten** (Standard) rechnet nur KetoCal fürs Verhältnis; die
+Kalorien je Mahlzeit dürfen abweichen (werden angezeigt), dafür geht die Packung
+sicher auf. **🎯 Kalorien halten** löst zusätzlich **Pre Apta** (Kohlenhydrate)
+als zweiten Hebel, sodass Verhältnis und kcal exakt stimmen; geht das bei diesem
+Verhältnis nicht auf, sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
 **Packungsstand**: heute verplant, Rest für morgen und ob die Packung bei
 gleichem Plan über die 2 Tage genau aufgeht. 34 Varianten
 haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.

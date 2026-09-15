@@ -72,7 +72,9 @@
      gelöst – das Fett (KetoCal) fürs Verhältnis und ein KH-reicher Auffüller (Pre Apta) für die
      Kalorien – sodass Verhältnis UND kcal je Mahlzeit exakt stimmen (2×2 lineares System).
      Übrige Zutaten (Wasser) skalieren proportional zur festen Zutat. */
-  function computePackSplit(rec, targetKcal, ratio, n) {
+  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen.
+  // mode "kalorien": zusätzlich der Auffüller – Verhältnis UND Kalorien exakt.
+  function computePackSplit(rec, targetKcal, ratio, n, mode) {
     const pk = rec.packung; if (!pk || !(n > 0)) return null;
     const fixedMl = pk.ml / n;
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
@@ -92,8 +94,14 @@
     const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (fill.fett - ratio * (fill.eiweiss + fill.kh)) / 100;
     const c1 = ratio * (P + C) - F;
     const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(fill) / 100, c2 = targetKcal - Kc;
-    const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null;
-    const k = (c1 * b2 - c2 * b1) / det, p = (a1 * c2 - a2 * c1) / det;
+    let k, p;
+    if (mode === "kalorien") {
+      const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null;
+      k = (c1 * b2 - c2 * b1) / det; p = (a1 * c2 - a2 * c1) / det;
+    } else {
+      if (Math.abs(a1) < 1e-9) return null;
+      k = c1 / a1; p = 0;
+    }
     const ok = k >= 0 && p >= -0.05;
     const items = [];
     base.forEach((it, i) => {
@@ -103,7 +111,15 @@
     });
     if (p > 0.05) items.splice(items.findIndex(it => it.food === pk.food) + 1, 0, { food: pk.auffuellen, grams: round1(p) });
     const sum = sumMacros(items);
-    return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food), pack: { n, fixedMl, k, p } };
+    return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
+      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal } };
+  }
+  // Gemerkte Packungs-Aufteilung je Gericht: { n, mode } (ältere Speicherstände: nur die Zahl).
+  function packSetting(key) {
+    const v = (state.pack || {})[key];
+    if (!v) return { n: 0, mode: "verhaeltnis" };
+    if (typeof v === "number") return { n: v, mode: "verhaeltnis" };
+    return { n: num(v.n), mode: v.mode === "kalorien" ? "kalorien" : "verhaeltnis" };
   }
   // Packungs-Übersicht ohne Aufteilung: Menge je Mahlzeit laut Standardrechnung → Mahlzeiten je Packung.
   function packInfo(rec, d) {

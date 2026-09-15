@@ -205,30 +205,43 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
   assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
   assert.equal(pack().querySelector("#pack-n").value, "7");
+  // Standard-Modus „Verhältnis halten“: nur KetoCal als Hebel, Kalorien dürfen abweichen, Packung geht auf
   let n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
   c = $(w, "detail-content");
-  const rows = kitchenRows(c);
+  let rows = kitchenRows(c);
   assert.equal(rows["Compleat Paediatric Nature Mix (Nestlé)"], 50);
+  assert.equal(rows["Aptamil Pre (Pulver)"], undefined);
+  assert.ok(Math.abs(rows["Ketocal 3:1"] - 6.3) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
+  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  assert.ok(Math.abs(kcalOf(c) - 103) <= 2, "kcal " + kcalOf(c));
+  assert.match(pack().textContent, /103 kcal statt 140/); assert.match(pack().textContent, /2,0 Tage bei 5 Mahlzeiten\/Tag/);
+  // Weniger Mahlzeiten je Packung → mehr Compleat und mehr kcal, Verhältnis bleibt
+  n = pack().querySelector("#pack-n"); n.value = "5"; fire(w, n, "change");
+  c = $(w, "detail-content");
+  assert.equal(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"], 100);
+  assert.ok(kcalOf(c) > 160); assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  // Modus „Kalorien halten“: Pre Apta füllt auf, 140 kcal exakt
+  fire(w, pack().querySelector("button[data-pmode=kalorien]"));
+  n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
+  c = $(w, "detail-content");
+  rows = kitchenRows(c);
   assert.ok(Math.abs(rows["Aptamil Pre (Pulver)"] - 5.3) < 0.2, "Pre Apta " + rows["Aptamil Pre (Pulver)"]);
   assert.ok(Math.abs(rows["Ketocal 3:1"] - 8.0) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
-  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   assert.ok(Math.abs(kcalOf(c) - 140) <= 1, "kcal " + kcalOf(c));
-  assert.match(pack().textContent, /2,0 Tage bei 5 Mahlzeiten\/Tag/);
-  // N ≤ 7 (geht ohne Auffüllen auf): keine Warnung, Hinweis, Standardrechnung – auch bei genau 7
+  // Kalorien-Modus, N ≤ 7: kein Auffüllen nötig → Hinweis statt Warnung, Standardrechnung
   for (const v of ["5", "7"]) {
     n = pack().querySelector("#pack-n"); n.value = v; fire(w, n, "change");
     c = $(w, "detail-content");
     assert.ok(!pack().querySelector(".note.warn"), "keine Warnung bei N=" + v);
     assert.match(pack().textContent, /greift erst ab 8 Mahlzeiten/);
     assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
-    assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
   }
   fire(w, pack().querySelector("#pack-reset"));
   assert.equal(pack().querySelector("#pack-n").value, "7");
   fire(w, $(w, "detail-close"));
   // Tagesplan: 5 × Compleat mit Aufteilung auf 10 → heute 250 ml, 250 ml bleiben, geht an 2 Tagen genau auf
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
-  st.pack = { "fam:KetoCal & Compleat": 10 };
+  st.pack = { "fam:KetoCal & Compleat": { n: 10, mode: "verhaeltnis" } };
   st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:KetoCal & Compleat" }));
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
