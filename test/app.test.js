@@ -341,7 +341,7 @@ test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
   const paneZ = c.querySelector(".pane[data-pane=rechnen]").textContent;
-  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser am Tag/);
+  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser am Tag – bei 4 Mahlzeiten sind das 3 Zwischenzeiten/);
   assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Flüssigkeit je Portion ≈ \d+ ml .*Rest wird zwischen den Mahlzeiten sondiert/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml
@@ -367,7 +367,7 @@ test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const t2 = $(w2, "heute-content").textContent;
-  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser/);
+  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser – bei 4 geplanten Mahlzeiten sind das 3 Zwischenzeiten/);
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
   assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);

@@ -63,7 +63,7 @@ die Vorgaben.
 - **Flüssigkeit:** Tagesbedarf in ml (leer = Richtwert nach Holliday-Segar,
   100 ml/kg bis 10 kg) und der Modus **„zwischen den Mahlzeiten sondieren"**
   (Rezepte unverändert; Rezept und Tagesplan zeigen, wie viel Wasser noch zu
-  sondieren ist) oder **„in den Mahlzeiten"** (jedes Rezept bekommt so viel
+  sondieren ist – verteilt auf Mahlzeiten minus eins Zwischenzeiten) oder **„in den Mahlzeiten"** (jedes Rezept bekommt so viel
   Wasser, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert; gemerktes
   Wasser hat Vorrang). Gezählt wird das Wasser der Zutaten (Näherung: Rest
   ohne Eiweiß, Fett, KH, Ballaststoffe; Pulver und Fertigprodukte mit
