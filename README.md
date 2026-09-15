@@ -49,9 +49,12 @@ die Vorgaben.
 
 - **Verordnung:** Verhältnis wird **händisch** eingegeben, in der Schreibweise
   der Verordnung: „1,8" oder „1,8:1" (Keto), „1:1" oder „1:1,5" (Ausschleichen;
-  Verhältnisse unter 1 zeigt die App überall als „1:x"), **KetoCal derzeit:
+  Verhältnisse unter 1 zeigt die App überall als „1:x"), **KetoCal:
   mit / ohne** (wählt bei Gerichten mit beiden Varianten die Fettbasis),
-  **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
+  **Kalorien pro Tag (Ziel)** und **Kalorien mindestens pro Tag** (leer =
+  automatisch 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
+  ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
+  6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
@@ -178,7 +181,9 @@ Rechnung reicht, und lässt sie auf **N Mahlzeiten** aufteilen (z. B. 10 für
 2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit. Was exakt bleibt,
 legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
 (Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
-abweichen (werden angezeigt), dafür geht die Packung sicher auf. **🎯 Kalorien
+abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
+Mahlzeit unter das Kalorien-Minimum, füllt die App nur bis zum Minimum mit Pre
+Apta auf. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. **🎯 Kalorien
 halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
 Verhältnis und kcal exakt stimmen; geht das bei diesem Verhältnis nicht auf,
 sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein

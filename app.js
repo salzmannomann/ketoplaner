@@ -220,7 +220,15 @@
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
-    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung };
+    // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
+    // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
+    const r10 = (v) => Math.round(v / 10) * 10;
+    const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
+    const kcalMaxAuto = weight > 0 ? r10(weight * 90) : null;
+    const kcalMinAuto = weight > 0 ? r10(weight * 70) : r10(kcal * 0.85);
+    const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
+    return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
+      kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight };
   }
 
   /* ---------- Rezept-Anpassung ---------- */
@@ -297,9 +305,10 @@
      gelöst – das Fett (KetoCal) fürs Verhältnis und ein KH-reicher Auffüller (Pre Apta) für die
      Kalorien – sodass Verhältnis UND kcal je Mahlzeit exakt stimmen (2×2 lineares System).
      Übrige Zutaten (Wasser) skalieren proportional zur festen Zutat. */
-  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen.
+  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen,
+  //   aber nicht unter minKcal: dann wird mit dem Auffüller nur bis zum Minimum aufgefüllt.
   // mode "kalorien": zusätzlich der Auffüller – Verhältnis UND Kalorien exakt.
-  function computePackSplit(rec, targetKcal, ratio, n, mode) {
+  function computePackSplit(rec, targetKcal, ratio, n, mode, minKcal) {
     const pk = rec.packung; if (!pk || !(n > 0)) return null;
     const fixedMl = pk.ml / n;
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
@@ -319,13 +328,18 @@
     const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (fill.fett - ratio * (fill.eiweiss + fill.kh)) / 100;
     const c1 = ratio * (P + C) - F;
     const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(fill) / 100, c2 = targetKcal - Kc;
-    let k, p;
+    let k, p, filledToMin = false, kcalFree = null;
+    const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
     if (mode === "kalorien") {
-      const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null;
-      k = (c1 * b2 - c2 * b1) / det; p = (a1 * c2 - a2 * c1) / det;
+      const s2 = solve2(c2); if (!s2) return null; k = s2.k; p = s2.p;
     } else {
       if (Math.abs(a1) < 1e-9) return null;
       k = c1 / a1; p = 0;
+      kcalFree = Kc + k * a2;
+      if (minKcal > 0 && kcalFree < minKcal - 0.5) {
+        const s2 = solve2(minKcal - Kc);
+        if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
+      }
     }
     const ok = k >= 0 && p >= -0.05;
     const items = [];
@@ -337,7 +351,7 @@
     if (p > 0.05) items.splice(items.findIndex(it => it.food === pk.food) + 1, 0, { food: pk.auffuellen, grams: round1(p) });
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
-      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal } };
+      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal } };
   }
   // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n }); der Modus ist die globale Rechenregel (Vorgaben).
   function packSetting(key) {
@@ -543,6 +557,8 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
+    const km = $("set-kcalmin");
+    if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
@@ -663,7 +679,9 @@
     const s = state.settings;
     const sum = document.getElementById("verordnung-summary");
     if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
-      ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
+      ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
+      (d.kcalRichtwert ? " · Richtwert nach Gewicht ≈ " + fmt(d.kcalRichtwert, 0) + " kcal/Tag (80 kcal/kg, Korridor " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + ")" : "") +
+      " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
       " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
@@ -725,7 +743,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -837,7 +855,7 @@
     let packSplit = null;
     if (rec.packung) {
       const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode); if (packSplit && packSplit.ok) base = packSplit; }
+      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode, d.kcalMinMahl); if (packSplit && packSplit.ok) base = packSplit; }
     }
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
@@ -981,12 +999,16 @@
         txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> je Mahlzeit; damit Verhältnis und ' + fmt(d.kcalMahl, 0) + ' kcal stimmen, kommen <strong>' +
           fmt(ps.pack.k, 1) + ' g KetoCal</strong> (Fett fürs Verhältnis) und <strong>' + fmt(Math.max(0, ps.pack.p), 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> (Kalorien) dazu. ' +
           packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
+      } else if (active && ps.pack.filledToMin) {
+        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> + <strong>' + fmt(ps.pack.p, 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> je Mahlzeit. ' +
+          'Ohne Auffüllen wären es nur ' + fmt(ps.pack.kcalFree, 0) + ' kcal – unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag). ' +
+          'Deshalb mit ' + escapeHtml(pk.auffuellen) + ' auf <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> aufgefüllt (Ziel wäre ' + fmt(d.kcalMahl, 0) + '); Verhältnis exakt. ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
       } else if (active) {
         const devTag = ps.pack.dev * d.mahl;
         txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> je Mahlzeit – Verhältnis exakt, ' +
-          '<strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + sgn(ps.pack.dev) + ' kcal je Mahlzeit, ' + sgn(devTag) + ' kcal je Tag). ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.' +
-          (Math.abs(devTag) > d.kcal * 0.1 ? ' Die Abweichung liegt über 10 % des Tagesziels – bitte im Blick behalten.' : '') + '</div>';
+          '<strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + sgn(ps.pack.dev) + ' kcal je Mahlzeit, ' + sgn(devTag) + ' kcal je Tag; Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag eingehalten). ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
       } else {
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
           'Zum Aufteilen die Mahlzeiten je Packung einstellen – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
@@ -1029,8 +1051,9 @@
       let warn = "";
       if (mm) {
         if (mm.energiePz > 50) warn += '<div class="note warn">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
-        const devTag = mm.dev * d.mahl;
-        if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note warn">⚠️ Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten. Ausgleich mit der Diätologie klären.</div>';
+        const devTag = mm.dev * d.mahl, kcalTag = mm.kcalNeu * d.mahl;
+        if (d.mctMode !== "kalorien" && kcalTag < d.kcalMin - 0.5) warn += '<div class="note warn">⚠️ Mit diesem MCT-Anteil kämen nur ' + fmt(kcalTag, 0) + ' kcal/Tag zusammen – unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal. MCT-Anteil senken, Rechenregel „Kalorien halten“ wählen oder mit der Diätologie klären.</div>';
+        else if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note info">Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten (Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag ist eingehalten).</div>';
         if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="note warn">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
       }
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
@@ -1291,15 +1314,17 @@
     const ratioDay = (tot.eiweiss + tot.kh) > 0 ? tot.fett / (tot.eiweiss + tot.kh) : null;
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Ziele anteilig
     const pct = (v, t) => t > 0 ? Math.round(v / t * 100) : 0;
-    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share;
+    const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share;
+    const kcalLow = tot.kcal < kcalMinZiel - 0.5;
     const sums = tot.filled
       ? '<div class="card"><h3>Σ Tagessummen <span class="hint">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></h3>' +
         '<div class="detail-tiles">' +
-        '<div class="dstat"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)</div></div>' +
+        '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)<br><small>Minimum ' + fmt(kcalMinZiel, 0) + (kcalLow ? ' – unterschritten!' : ' ✓') + '</small></div></div>' +
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
         "</div>" +
+        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen oder bei Packungs-Rezepten die Aufteilung prüfen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
       : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';

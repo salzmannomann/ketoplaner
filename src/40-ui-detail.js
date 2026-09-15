@@ -25,7 +25,7 @@
     let packSplit = null;
     if (rec.packung) {
       const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode); if (packSplit && packSplit.ok) base = packSplit; }
+      if (ps.n > 0) { packSplit = computePackSplit(rec, d.kcalMahl, d.ratio, ps.n, ps.mode, d.kcalMinMahl); if (packSplit && packSplit.ok) base = packSplit; }
     }
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
@@ -169,12 +169,16 @@
         txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> je Mahlzeit; damit Verhältnis und ' + fmt(d.kcalMahl, 0) + ' kcal stimmen, kommen <strong>' +
           fmt(ps.pack.k, 1) + ' g KetoCal</strong> (Fett fürs Verhältnis) und <strong>' + fmt(Math.max(0, ps.pack.p), 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> (Kalorien) dazu. ' +
           packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
+      } else if (active && ps.pack.filledToMin) {
+        txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> + <strong>' + fmt(ps.pack.p, 1) + ' g ' + escapeHtml(pk.auffuellen) + '</strong> je Mahlzeit. ' +
+          'Ohne Auffüllen wären es nur ' + fmt(ps.pack.kcalFree, 0) + ' kcal – unter dem Minimum von ' + fmt(d.kcalMinMahl, 0) + ' kcal je Mahlzeit (' + fmt(d.kcalMin, 0) + ' kcal/Tag). ' +
+          'Deshalb mit ' + escapeHtml(pk.auffuellen) + ' auf <strong>' + fmt(ps.kcal, 0) + ' kcal</strong> aufgefüllt (Ziel wäre ' + fmt(d.kcalMahl, 0) + '); Verhältnis exakt. ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
       } else if (active) {
         const devTag = ps.pack.dev * d.mahl;
         txt = '<div class="meat-note"><strong>' + fmt(ps.pack.fixedMl, 0) + ' ml ' + escapeHtml(pk.food) + '</strong> + <strong>' + fmt(ps.pack.k, 1) + ' g KetoCal</strong> je Mahlzeit – Verhältnis exakt, ' +
-          '<strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + sgn(ps.pack.dev) + ' kcal je Mahlzeit, ' + sgn(devTag) + ' kcal je Tag). ' +
-          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.' +
-          (Math.abs(devTag) > d.kcal * 0.1 ? ' Die Abweichung liegt über 10 % des Tagesziels – bitte im Blick behalten.' : '') + '</div>';
+          '<strong>' + fmt(ps.kcal, 0) + ' kcal</strong> statt ' + fmt(d.kcalMahl, 0) + ' (' + sgn(ps.pack.dev) + ' kcal je Mahlzeit, ' + sgn(devTag) + ' kcal je Tag; Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag eingehalten). ' +
+          packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
       } else {
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
           'Zum Aufteilen die Mahlzeiten je Packung einstellen – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
@@ -217,8 +221,9 @@
       let warn = "";
       if (mm) {
         if (mm.energiePz > 50) warn += '<div class="note warn">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
-        const devTag = mm.dev * d.mahl;
-        if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note warn">⚠️ Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten. Ausgleich mit der Diätologie klären.</div>';
+        const devTag = mm.dev * d.mahl, kcalTag = mm.kcalNeu * d.mahl;
+        if (d.mctMode !== "kalorien" && kcalTag < d.kcalMin - 0.5) warn += '<div class="note warn">⚠️ Mit diesem MCT-Anteil kämen nur ' + fmt(kcalTag, 0) + ' kcal/Tag zusammen – unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal. MCT-Anteil senken, Rechenregel „Kalorien halten“ wählen oder mit der Diätologie klären.</div>';
+        else if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note info">Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten (Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag ist eingehalten).</div>';
         if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="note warn">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
       }
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +

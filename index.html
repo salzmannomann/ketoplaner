@@ -82,8 +82,12 @@
             <input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8 oder 1:1,5" />
           </div>
           <div>
-            <label>Kalorien pro Tag</label>
+            <label>Kalorien pro Tag (Ziel)</label>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" />
+          </div>
+          <div>
+            <label>Kalorien mindestens pro Tag</label>
+            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -129,7 +133,7 @@
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
           </div>
         </div>
-        <p class="hint">Gilt für den MCT-Anteil und für die Packungs-Aufteilung (z. B. Compleat). <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien weichen ab und werden angezeigt. <strong>Kalorien halten:</strong> die Kalorien bleiben; bei MCT steigt dafür das Verhältnis (eine Änderung der Verordnung), bei der Packung wird mit Pre Apta aufgefüllt.</p>
+        <p class="hint">Gilt für den MCT-Anteil und für die Packungs-Aufteilung (z. B. Compleat). <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien dürfen zwischen dem Minimum und dem Ziel liegen – fällt eine Packungs-Mahlzeit unter das Minimum, wird nur bis dorthin mit Pre Apta aufgefüllt; bei MCT gibt es eine Warnung. <strong>Kalorien halten:</strong> die Kalorien treffen das Ziel exakt; bei MCT steigt dafür das Verhältnis (eine Änderung der Verordnung), bei der Packung wird bis zum Ziel mit Pre Apta aufgefüllt.</p>
       </div>
 
       <div class="card">
@@ -222,7 +226,7 @@
 
   <script src="foods.js?v=b5dc5f3a"></script>
   <script src="recipes.js?v=ec589635"></script>
-  <script src="app.js?v=dece63e7"></script>
+  <script src="app.js?v=73cc70f5"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

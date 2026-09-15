@@ -12,6 +12,8 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
+    const km = $("set-kcalmin");
+    if (km) { if (document.activeElement !== km) km.value = d.kcalMinManual ? s.kcalMin : ""; km.placeholder = "auto: " + fmt(d.kcalMinAuto, 0); }
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;

@@ -72,9 +72,10 @@
      gelöst – das Fett (KetoCal) fürs Verhältnis und ein KH-reicher Auffüller (Pre Apta) für die
      Kalorien – sodass Verhältnis UND kcal je Mahlzeit exakt stimmen (2×2 lineares System).
      Übrige Zutaten (Wasser) skalieren proportional zur festen Zutat. */
-  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen.
+  // mode "verhaeltnis" (Standard): nur KetoCal als Hebel – Verhältnis exakt, Kalorien dürfen abweichen,
+  //   aber nicht unter minKcal: dann wird mit dem Auffüller nur bis zum Minimum aufgefüllt.
   // mode "kalorien": zusätzlich der Auffüller – Verhältnis UND Kalorien exakt.
-  function computePackSplit(rec, targetKcal, ratio, n, mode) {
+  function computePackSplit(rec, targetKcal, ratio, n, mode, minKcal) {
     const pk = rec.packung; if (!pk || !(n > 0)) return null;
     const fixedMl = pk.ml / n;
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));
@@ -94,13 +95,18 @@
     const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (fill.fett - ratio * (fill.eiweiss + fill.kh)) / 100;
     const c1 = ratio * (P + C) - F;
     const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(fill) / 100, c2 = targetKcal - Kc;
-    let k, p;
+    let k, p, filledToMin = false, kcalFree = null;
+    const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
     if (mode === "kalorien") {
-      const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null;
-      k = (c1 * b2 - c2 * b1) / det; p = (a1 * c2 - a2 * c1) / det;
+      const s2 = solve2(c2); if (!s2) return null; k = s2.k; p = s2.p;
     } else {
       if (Math.abs(a1) < 1e-9) return null;
       k = c1 / a1; p = 0;
+      kcalFree = Kc + k * a2;
+      if (minKcal > 0 && kcalFree < minKcal - 0.5) {
+        const s2 = solve2(minKcal - Kc);
+        if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
+      }
     }
     const ok = k >= 0 && p >= -0.05;
     const items = [];
@@ -112,7 +118,7 @@
     if (p > 0.05) items.splice(items.findIndex(it => it.food === pk.food) + 1, 0, { food: pk.auffuellen, grams: round1(p) });
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
-      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal } };
+      pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal } };
   }
   // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n }); der Modus ist die globale Rechenregel (Vorgaben).
   function packSetting(key) {

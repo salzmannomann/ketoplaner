@@ -200,7 +200,8 @@ test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favori
 });
 
 test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Packungsstand im Tagesplan", () => {
-  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3 } });
+  // kcalMin 400 (80 je Mahlzeit) → das Minimum greift in diesem Teil nicht
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, kcalMin: 400 } });
   assert.ok($(w, "mct-more").hidden && !$(w, "mct-zero-hint").hidden, "MCT-Karte bei 0 % eingeklappt");
   let c = openRecipe(w, "KetoCal & Compleat");
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
@@ -252,6 +253,43 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   fire(w2, $(w2, "tab-heute"));
   const hc = $(w2, "heute-content").textContent;
   assert.match(hc, /250 ml/); assert.match(hc, /bleibt für morgen · reicht für 5 Mahlzeiten/); assert.match(hc, /geht die Packung genau auf/);
+});
+
+test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minimum auf, Tagesplan warnt", () => {
+  // 8,5 kg, 1:1,5, 4 Mahlzeiten, Packung auf 8: ohne Auffüllen 129 kcal < Minimum 150 → Pre Apta bis 150
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, pack: { "fam:KetoCal & Compleat": { n: 8 } } });
+  assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
+  assert.match($(w, "verordnung-summary").textContent, /Richtwert nach Gewicht ≈ 680 kcal\/Tag \(80 kcal\/kg, Korridor 600–770\)/);
+  assert.equal($(w, "set-kcalmin").placeholder, "auto: 600");
+  let c = openRecipe(w, "KetoCal & Compleat");
+  const rows = kitchenRows(c);
+  assert.equal(rows["Compleat Paediatric Nature Mix (Nestlé)"], 62.5);
+  assert.ok(Math.abs(rows["Ketocal 3:1"] - 8.8) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
+  assert.ok(Math.abs(rows["Aptamil Pre (Pulver)"] - 3.0) < 0.2, "Pre Apta " + rows["Aptamil Pre (Pulver)"]);
+  assert.ok(Math.abs(kcalOf(c) - 150) <= 1, "kcal " + kcalOf(c));
+  assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  assert.match(c.querySelector(".meat-swap.pack").textContent, /nur 129 kcal – unter dem Minimum von 150/);
+  fire(w, $(w, "detail-close"));
+  // Manuelles Minimum 500 (125 je Mahlzeit): 129 reicht → kein Pre Apta
+  const km = $(w, "set-kcalmin"); km.value = "500"; fire(w, km, "input");
+  c = openRecipe(w, "KetoCal & Compleat");
+  assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  assert.ok(Math.abs(kcalOf(c) - 129) <= 1);
+  fire(w, $(w, "detail-close"));
+  // Tagesplan: 4 × 129 = 516 < Minimum 600 (manuell zurück auf auto) → Warnung
+  km.value = ""; fire(w, km, "input");
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  st.settings.kcalMin = 500; // Minimum bewusst unter 129×4, damit die Mixe nicht auffüllen …
+  st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:KetoCal & Compleat" }));
+  const w2 = boot(st);
+  fire(w2, $(w2, "tab-heute"));
+  assert.match($(w2, "heute-content").textContent, /Minimum 500 ✓/);
+  // … und mit Minimum 550 (137,5 je Mahlzeit) füllt jede Mahlzeit auf 138 auf → Tag 550, Minimum erreicht
+  st.settings.kcalMin = 550;
+  const w3 = boot(st);
+  fire(w3, $(w3, "tab-heute"));
+  const t3 = $(w3, "heute-content").textContent;
+  assert.match(t3, /Minimum 550 ✓/); assert.ok(!/unterschritten/.test(t3));
 });
 
 test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden auf Gerichte umgezogen", () => {
