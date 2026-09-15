@@ -207,12 +207,13 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
   assert.match(pack().textContent, /Rechenregel: ⚖️ Verhältnis halten/);
   assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
-  assert.equal(pack().querySelector("#pack-n").value, ""); assert.equal(pack().querySelector("#pack-n").placeholder, "auto (7)");
-  assert.ok(!pack().querySelector("button[data-pfill]"), "Auffüll-Schalter nur bei Aufteilung");
+  assert.ok(!pack().querySelector("#pack-perday") && !pack().querySelector("button[data-pfill]"), "Steuerung je Tag und Auffüll-Schalter nur bei Aufteilung");
+  assert.ok(pack().querySelector("button[data-ptage='0']").classList.contains("active"));
   assert.ok(!/verfallen/.test(pack().textContent), "7 ≤ 10: keine Haltbarkeitswarnung");
   // Standard-Modus „Verhältnis halten“: nur KetoCal als Hebel, Kalorien dürfen abweichen, Packung geht auf
-  let n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
+  fire(w, pack().querySelector("button[data-ptage='2']")); // 2 Tage × 5 je Tag = 10
   c = $(w, "detail-content");
+  assert.equal(pack().querySelector("#pack-perday").value, "5"); assert.match(pack().textContent, /10 Mahlzeiten je Packung/);
   let rows = kitchenRows(c);
   assert.equal(rows["Compleat Paediatric Nature Mix (Nestlé)"], 50);
   assert.equal(rows["Aptamil Pre (Pulver)"], undefined);
@@ -220,44 +221,56 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   assert.ok(Math.abs(kcalOf(c) - 103) <= 2, "kcal " + kcalOf(c));
   assert.match(pack().textContent, /103 kcal statt 140/); assert.match(pack().textContent, /2,0 Tage bei 5 Mahlzeiten\/Tag/);
-  // Weniger Mahlzeiten je Packung → mehr Compleat und mehr kcal, Verhältnis bleibt
-  n = pack().querySelector("#pack-n"); n.value = "5"; fire(w, n, "change");
+  // Zu wenige Mahlzeiten je Packung (5 → 100 ml ≈ 206 kcal, > 125 % des Ziels): abgelehnt, Standardrechnung, Auffüll-Schalter weg
+  fire(w, pack().querySelector("button[data-ptage='1']")); // 1 Tag × 5 = 5
   c = $(w, "detail-content");
-  assert.equal(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"], 100);
-  assert.ok(kcalOf(c) > 160); assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
+  assert.match(pack().textContent, /Aufteilung auf 5 Mahlzeiten .*nicht angewendet/);
+  assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
+  assert.ok(!pack().querySelector("button[data-pfill]"));
   // Rechenregel „Kalorien halten“ (global unter Vorgaben): Pre Apta füllt auf, 140 kcal exakt
   fire(w, $(w, "detail-close"));
   fire(w, w.document.querySelector("#mct-mode-ctl button[data-mctmode=kalorien]"));
   c = openRecipe(w, "Compleat");
   assert.match(pack().textContent, /Rechenregel: 🎯 Kalorien halten/);
-  n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
+  fire(w, pack().querySelector("button[data-ptage='2']")); // 2 Tage × 5 = 10
   c = $(w, "detail-content");
   rows = kitchenRows(c);
   assert.ok(Math.abs(rows["Aptamil Pre (Pulver)"] - 5.3) < 0.2, "Pre Apta " + rows["Aptamil Pre (Pulver)"]);
   assert.ok(Math.abs(rows["Ketocal 3:1"] - 8.0) < 0.2, "KetoCal " + rows["Ketocal 3:1"]);
   assert.ok(Math.abs(kcalOf(c) - 140) <= 1, "kcal " + kcalOf(c));
-  // Kalorien-Modus, N ≤ 7: kein Auffüllen nötig → Hinweis statt Warnung, Standardrechnung
-  for (const v of ["5", "7"]) {
-    n = pack().querySelector("#pack-n"); n.value = v; fire(w, n, "change");
-    c = $(w, "detail-content");
-    assert.ok(!pack().querySelector(".note.warn"), "keine Warnung bei N=" + v);
-    assert.match(pack().textContent, /greift erst ab 8 Mahlzeiten/);
-    assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
-  }
-  fire(w, pack().querySelector("#pack-reset"));
-  assert.equal(pack().querySelector("#pack-n").value, "");
+  // Kalorien-Modus, 2 Tage × 3 je Tag = 6 (83 ml ≈ 172 kcal, leicht über Ziel): Aufteilung gilt, Auffüllen wird übersprungen
+  const per = pack().querySelector("#pack-perday"); per.value = "3"; fire(w, per, "change");
+  c = $(w, "detail-content");
+  assert.match(pack().textContent, /6 Mahlzeiten je Packung/);
+  assert.ok(!pack().querySelector(".note.warn"), "keine Warnung bei 6");
+  assert.match(pack().textContent, /Auffüllen mit Pre Apta ist hier nicht nötig/);
+  assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 83.3) <= 0.2);
+  assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  // 1 Tag × 3 im Kalorien-Modus (167 ml je Mahlzeit): ebenso abgelehnt (unabhängig vom Auffüll-Schalter)
+  fire(w, pack().querySelector("button[data-ptage='1']"));
+  assert.match(pack().textContent, /Aufteilung auf 3 Mahlzeiten \(1 Tag × 3 je Tag\) nicht angewendet/);
+  fire(w, pack().querySelector("button[data-ptage='0']"));
+  assert.ok(!pack().querySelector("#pack-perday"));
   fire(w, $(w, "detail-close"));
   // 1,5:1 mit 4 Mahlzeiten: ohne Aufteilung reicht die Packung 14 Mahlzeiten = 3,5 Tage > 2 Tage haltbar → Warnung mit Vorrechnung
   const w15 = boot({ settings: { mctShare: 0, ratio: 1.5, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
   const c15 = openRecipe(w15, "Compleat");
   const p15 = c15.querySelector(".meat-swap.pack").textContent;
   assert.match(p15, /reicht für 14 Mahlzeiten/); assert.match(p15, /22[89] ml verfallen/); assert.match(p15, /346 kcal/);
-  fire(w15, [...c15.querySelectorAll(".pack button[data-pstep]")].find(b => b.dataset.pstep === "1")); // + ab Platzhalter: 15
-  assert.equal($(w15, "detail-content").querySelector("#pack-n").value, "15");
-  // KetoCal-Variante auf 8 aufgeteilt: 346 kcal je Mahlzeit → Sperr-Warnung mit Rapsöl-Alternative
-  const n15 = $(w15, "detail-content").querySelector("#pack-n"); n15.value = "8"; fire(w15, n15, "change");
+  // KetoCal-Variante in 2 Tagen aufbrauchen (4 je Tag = 8): 346 kcal je Mahlzeit → abgelehnt, Rapsöl-Alternative
+  fire(w15, c15.querySelector("button[data-ptage='2']"));
+  assert.equal($(w15, "detail-content").querySelector("#pack-perday").value, "4");
   const p15b = $(w15, "detail-content").querySelector(".meat-swap.pack").textContent;
-  assert.match(p15b, /So geht es nicht auf/); assert.match(p15b, /Rapsöl.*19[34] kcal/);
+  assert.match(p15b, /Aufteilung auf 8 Mahlzeiten \(2 Tage × 4 je Tag\) nicht angewendet/); assert.match(p15b, /346 kcal je Mahlzeit/); assert.match(p15b, /Rapsöl.*19[34] kcal/);
+  assert.ok(Math.abs(kcalOf($(w15, "detail-content")) - 188) <= 1, "abgelehnt → Standardrechnung 188 kcal");
+  // Gleiche Meldung mit „Auffüllen“ und Rechenregel „Kalorien halten“ – der Schalter ändert daran nichts
+  fire(w15, $(w15, "detail-close"));
+  fire(w15, w15.document.querySelector("#mct-mode-ctl button[data-mctmode=kalorien]"));
+  const c15c = openRecipe(w15, "Compleat");
+  assert.match(c15c.querySelector(".meat-swap.pack").textContent, /Aufteilung auf 8 Mahlzeiten .*nicht angewendet/);
+  assert.ok(!c15c.querySelector(".pack button[data-pfill]"), "Auffüll-Schalter bei abgelehnter Aufteilung ausgeblendet");
+  assert.ok(Math.abs(kcalOf(c15c) - 188) <= 1);
+  fire(w15, w15.document.querySelector("#mct-mode-ctl button[data-mctmode=verhaeltnis]"));
   fire(w15, $(w15, "detail-close"));
   // Phase „ohne KetoCal“: Compleat & Rapsöl – 63 ml + 13,4 g Rapsöl ≈ 194 kcal, Verhältnis exakt, keine Warnung
   clickChip(w15, "ohne KetoCal");
@@ -265,11 +278,11 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   const rO = kitchenRows(cO);
   assert.equal(rO["Ketocal 3:1"], undefined); assert.ok(Math.abs(rO["Rapsöl"] - 13.4) < 0.2, "Rapsöl " + rO["Rapsöl"]);
   assert.ok(Math.abs(kcalOf(cO) - 194) <= 1, "kcal " + kcalOf(cO)); assert.equal(cO.querySelector(".ratio-pill").textContent, "1,50:1");
-  assert.ok(!/So geht es nicht auf/.test(cO.querySelector(".meat-swap.pack").textContent));
+  assert.ok(!/nicht angewendet/.test(cO.querySelector(".meat-swap.pack").textContent));
   fire(w15, $(w15, "detail-close"));
   // Tagesplan: 5 × Compleat mit Aufteilung auf 10 → heute 250 ml, 250 ml bleiben, geht an 2 Tagen genau auf
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
-  st.pack = { "fam:Compleat": { n: 10, mode: "verhaeltnis" } };
+  st.pack = { "fam:Compleat": { tage: 2, perDay: 5 } };
   st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:Compleat (mit KetoCal)" }));
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
@@ -279,7 +292,7 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
 
 test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minimum auf, Tagesplan warnt", () => {
   // 8,5 kg, 1:1,5, 4 Mahlzeiten, Packung auf 8: ohne Auffüllen 129 kcal < Minimum 150 → Pre Apta bis 150
-  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, pack: { "fam:Compleat": { n: 8 } } });
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, pack: { "fam:Compleat": { tage: 2, perDay: 4 } } });
   assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
   assert.match($(w, "verordnung-summary").textContent, /Richtwert nach Gewicht ≈ 680 kcal\/Tag \(80 kcal\/kg, Korridor 600–770\)/);
   assert.equal($(w, "set-kcalmin").placeholder, "auto: 600");
@@ -295,7 +308,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Packung füllt nur bis zum Minim
   // Kachel zeigt dieselbe Mahlzeit wie das Detail: 150 kcal, Packung auf 8, + Pre Apta
   const tileC = () => tiles(w).find(x => x.querySelector(".tile-name").textContent.trim() === "Compleat");
   assert.match(tileC().querySelector(".tile-stats").textContent, /150 kcal/);
-  assert.match(badgeOf(tileC()), /🧃 auf 8/); assert.match(badgeOf(tileC()), /\+ Pre Apta/);
+  assert.match(badgeOf(tileC()), /🧃 2 Tage/); assert.match(badgeOf(tileC()), /\+ Pre Apta/);
   // „nicht auffüllen“: nur Compleat + KetoCal, 129 kcal, Warnung statt Auffüllen; Kachel ohne „+ Pre Apta“
   c = openRecipe(w, "Compleat");
   fire(w, c.querySelector("button[data-pfill='0']"));

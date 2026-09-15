@@ -12,7 +12,7 @@
     let packBadges = "";
     if (rec.packung) {
       const ps = packSetting(familyKey(rec));
-      if (ps.n > 0) packBadges += '<span class="badge basis">🧃 auf ' + ps.n + '</span>';
+      if (ps.n > 0) packBadges += '<span class="badge basis">🧃 ' + ps.tage + ' Tag' + (ps.tage > 1 ? 'e' : '') + (ps.perDay < num(state.settings.mahlzeiten) ? ' · ' + ps.perDay + '/Tag' : '') + '</span>';
       if (res.items.some(it => it.food === rec.packung.auffuellen)) packBadges += '<span class="badge basis">+ ' + escapeHtml(rec.packung.kurz || rec.packung.auffuellen) + '</span>';
     }
 

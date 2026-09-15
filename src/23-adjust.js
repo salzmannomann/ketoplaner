@@ -97,20 +97,23 @@
     const a1 = (fat.fett - ratio * (fat.eiweiss + fat.kh)) / 100, b1 = (filler.fett - ratio * (filler.eiweiss + filler.kh)) / 100;
     const c1 = ratio * (P + C) - F;
     const a2 = kcal100Of(fat) / 100, b2 = kcal100Of(filler) / 100, c2 = targetKcal - Kc;
-    let k, p, filledToMin = false, kcalFree = null;
+    // Grundlösung: nur das Fett (Verhältnis exakt). Auffüllen nur, wenn dadurch Kalorien dazukommen –
+    // ein negativer Auffüller (Mahlzeit schon über Ziel) wird übersprungen, nicht „gerechnet“.
+    if (Math.abs(a1) < 1e-9) return null;
+    const k0 = c1 / a1, kcalFree = Kc + k0 * a2;
+    let k = k0, p = 0, filledToMin = false, fillSkipped = false;
     const solve2 = (cK) => { const det = a1 * b2 - a2 * b1; if (Math.abs(det) < 1e-9) return null; return { k: (c1 * b2 - cK * b1) / det, p: (a1 * cK - a2 * c1) / det }; };
     if (mode === "kalorien" && useFill) {
-      const s2 = solve2(c2); if (!s2) return null; k = s2.k; p = s2.p;
-    } else {
-      if (Math.abs(a1) < 1e-9) return null;
-      k = c1 / a1; p = 0;
-      kcalFree = Kc + k * a2;
-      if (useFill && minKcal > 0 && kcalFree < minKcal - 0.5) {
-        const s2 = solve2(minKcal - Kc);
-        if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
-      }
+      const s2 = solve2(c2);
+      if (s2 && s2.k >= 0 && s2.p > 0.05) { k = s2.k; p = s2.p; } else fillSkipped = true;
+    } else if (useFill && minKcal > 0 && kcalFree < minKcal - 0.5) {
+      const s2 = solve2(minKcal - Kc);
+      if (s2 && s2.k >= 0 && s2.p > 0) { k = s2.k; p = s2.p; filledToMin = true; }
     }
-    const ok = k >= 0 && p >= -0.05;
+    // Zu viel je Mahlzeit (> 125 % des Ziels): die Aufteilung wird nicht angewendet, sondern erklärt.
+    const kcalPre = Kc + k * a2 + p * b2;
+    const tooHigh = targetKcal > 0 && kcalPre > targetKcal * 1.25 + 0.5;
+    const ok = k >= 0 && !tooHigh;
     const items = [];
     base.forEach((it, i) => {
       if (i === fi) items.push({ food: it.food, grams: round1(Math.max(0, k)) });
@@ -121,14 +124,23 @@
     const sum = sumMacros(items);
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
       pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal, filledToMin, kcalFree, minKcal,
-        fill: useFill, belowMin: minKcal > 0 && sum.kcal < minKcal - 0.5 } };
+        fill: useFill, belowMin: minKcal > 0 && sum.kcal < minKcal - 0.5, fillSkipped, tooHigh } };
   }
-  // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n, fill }); der Modus ist die globale Rechenregel (Vorgaben).
+  // Gemerkte Packungs-Aufteilung je Gericht: { tage, perDay, fill } – „Packung in T Tagen aufbrauchen,
+  // an P Mahlzeiten je Tag“; die Mahlzeiten je Packung (n = T × P) rechnet die App. Ältere Speicherformen
+  // (nur n) werden umgerechnet. Der Modus ist die globale Rechenregel (Vorgaben).
   function packSetting(key) {
     const v = (state.pack || {})[key];
-    const n = !v ? 0 : (typeof v === "number" ? v : num(v.n));
+    const mahl = Math.max(1, num(state.settings.mahlzeiten) || 1);
     const fill = !(v && typeof v === "object" && v.fill === false);
-    return { n, fill, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
+    let tage = 0, perDay = mahl;
+    if (v && typeof v === "object" && num(v.tage) > 0) {
+      tage = Math.round(num(v.tage)); perDay = Math.max(1, Math.min(mahl, Math.round(num(v.perDay)) || mahl));
+    } else if (v) {
+      const n = typeof v === "number" ? v : num(v.n);
+      if (n > 0) { tage = Math.max(1, Math.min(2, Math.round(n / mahl))); perDay = Math.max(1, Math.min(mahl, Math.round(n / tage))); }
+    }
+    return { n: tage * perDay, tage, perDay, fill, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
   }
   // Packungs-Übersicht ohne Aufteilung: Menge je Mahlzeit laut Standardrechnung → Mahlzeiten je Packung.
   function packInfo(rec, d) {

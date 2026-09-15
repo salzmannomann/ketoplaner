@@ -183,8 +183,10 @@ Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingebe
 
 **Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
 Unter Rechnen zeigt das Rezept, für wie viele Mahlzeiten sie bei der aktuellen
-Rechnung reicht, und lässt sie auf **N Mahlzeiten** aufteilen (z. B. 10 für
-2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit. Was exakt bleibt,
+Rechnung reicht, und lässt sie **„in 1 Tag" oder „in 2 Tagen" aufbrauchen**,
+wahlweise nur an einem Teil der Mahlzeiten je Tag (z. B. 3 von 4). Die
+Mahlzeiten je Packung (Tage × je Tag) rechnet die App; Compleat ist dann fest
+500 ÷ N ml je Mahlzeit. Was exakt bleibt,
 legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
 (Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
 abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
@@ -197,7 +199,7 @@ die Alternative: Fettbasis Rapsöl, dann sind es 63 ml + 13,4 g Öl ≈ 194 kcal
 ist (z. B. bei 1,5:1: 34 ml je Mahlzeit, 14 Mahlzeiten = 3,5 Tage), warnt die
 App, wie viel verfallen würde, und rechnet vor, wie viele Kalorien eine Mahlzeit
 hätte, wenn man die Packung trotzdem in 2 Tagen aufbraucht. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die
-Kachel in der Liste zeigt die aufgeteilte Mahlzeit mit Kennzeichen („🧃 auf 8",
+Kachel in der Liste zeigt die aufgeteilte Mahlzeit mit Kennzeichen („🧃 2 Tage",
 „+ Pre Apta"), also dieselben Zahlen wie Detail und Tagesplan. **🎯 Kalorien
 halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
 Verhältnis und kcal exakt stimmen; geht das bei diesem Verhältnis nicht auf,
