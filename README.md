@@ -95,10 +95,12 @@ die Vorgaben.
 
 Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
 
-1. **Rechnen** – Kennzahlen (kcal, Verhältnis, Eiweiß, Fett, KH), die
-   MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind /
-   🦃 Pute** sowie die Links „Zutaten anpassen / tauschen" (öffnet das Rezept
-   im freien Rechner) und **Drucken** (A4 Hochformat).
+1. **Rechnen** – Kennzahlen der Mahlzeit (kcal, Verhältnis, Eiweiß, Fett,
+   KH), die MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
+   🥩 Rind / 🦃 Pute**, ein fester Block **„Ganzer Tag"** (eine Portion ×
+   Mahlzeiten pro Tag mit Ziel, Minimum und Zutaten je Tag, unabhängig von der
+   gewählten Portionenzahl) sowie die Links „Zutaten anpassen / tauschen"
+   (öffnet das Rezept im freien Rechner) und **Drucken** (A4 Hochformat).
 2. **Kochen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter,
    wenn es das Gericht in beiden Varianten gibt), Zutatentabelle für die
    gewählte Menge (Portionen-Stepper, „1 Portion" / „Ganzer Tag") und die

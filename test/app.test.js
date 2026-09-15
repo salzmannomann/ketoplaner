@@ -334,6 +334,20 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   assert.match($(w, "verordnung-summary").textContent, /mit KetoCal · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
   assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
+  // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl
+  {
+    const c = openRecipe(w, "Hendl & Brokkoli");
+    const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ganzer Tag/.test(h.textContent));
+    assert.ok(day, "Block Ganzer Tag fehlt");
+    const dayKcal = parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent);
+    assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
+    assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
+    const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
+    const c2 = $(w, "detail-content");
+    const day2 = [...c2.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ganzer Tag/.test(h.textContent));
+    assert.ok(Math.abs(parseFloat(day2.nextElementSibling.querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
+    fire(w, $(w, "detail-close"));
+  }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}").settings.ratio, 1.8);
   ri.value = "1:1"; fire(w, ri, "input");
