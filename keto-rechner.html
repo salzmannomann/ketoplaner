@@ -695,6 +695,10 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .reset-line .linkbtn[hidden] { display: none; }
 input:disabled { background: var(--bg); color: var(--muted); }
 #verordnung-summary #ratio-hint { margin: 0 0 8px; }
+/* Rechnen: Gramm je Portion editierbar (kompakt, damit die Tabelle am Handy nicht breiter wird); feste Statuszeile */
+.g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
+.portion-line { font-size: 13px; color: var(--muted); margin: -4px 0 10px; min-height: 20px; line-height: 1.4; }
+.portion-line strong { color: var(--yellow); }
 
 </style>
 </head>
@@ -1607,6 +1611,7 @@ const RECIPES_SONDE = [
       savedRecipes: [],
       scales: {},
       water: {},
+      portion: {}, // Portion angepasst (Rechnen): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
     };
@@ -1665,6 +1670,7 @@ const RECIPES_SONDE = [
         savedRecipes: p.savedRecipes || [],
         scales: remapKeys(p.scales),
         water: remapKeys(p.water),
+        portion: remapKeys(p.portion),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
       };
@@ -2503,6 +2509,17 @@ const RECIPES_SONDE = [
     const baseOilIndex = oilSlotIndex(res.items);
     const kcalZielOil = sumMacros(res.items).kcal;
     if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
+    // Portion angepasst (Rechnen): ein Wert wurde händisch geändert, alle Zutaten skalieren proportional mit
+    // (je Rezept gemerkt). Das Verhältnis bleibt, kcal je Mahlzeit ändern sich – Tagesplan und „Ein Tag“ rechnen damit.
+    const portionKey = familyKey(rec);
+    const portionF = num(state.portion && state.portion[portionKey]);
+    const hasPortion = portionF > 0 && Math.abs(portionF - 1) > 1e-6;
+    const kcalBerechnet = sumMacros(res.items).kcal;
+    if (hasPortion) {
+      const itemsP = res.items.map(it => ({ food: it.food, grams: round1(num(it.grams) * portionF) }));
+      const smP = sumMacros(itemsP);
+      res = Object.assign({}, res, { items: itemsP, ratio: ratioOf(smP), kcal: smP.kcal });
+    }
     // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
     // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
     const waterKey = familyKey(rec);
@@ -2543,7 +2560,8 @@ const RECIPES_SONDE = [
       }
     }
     const fluid = fluidOf(res.items);
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, waterCapped, fluid };
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, waterCapped, fluid,
+      portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
@@ -2695,8 +2713,11 @@ const RECIPES_SONDE = [
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
         (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
-      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + "</td>" +
-        "<td>" + fmt(num(it.grams), 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+      const gP = Math.round(num(it.grams) * 10) / 10;
+      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
+        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
+        '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gP + '"></td>' +
+        "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).
     const prepText = rec.varoma
@@ -2809,8 +2830,11 @@ const RECIPES_SONDE = [
       oilSeg +
       packInfoSeg +
       '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
+      '<div class="portion-line">' + (mv.hasPortion
+        ? '<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> der berechneten Mahlzeit (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>'
+        : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) · Gramm in der Tabelle ändern, die übrigen Zutaten skalieren mit') + '</div>' +
       '<div class="detail-tiles">' +
-        '<div class="dstat"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal</div></div>' +
+        '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
@@ -2841,7 +2865,20 @@ const RECIPES_SONDE = [
     if (pin) pin.addEventListener("change", () => {
       const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = v; persistScale(); renderDetail(); }
     });
-    c.querySelectorAll(".amt-edit").forEach(inp =>
+    // Rechnen: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
+    c.querySelectorAll(".g-edit").forEach(inp =>
+      inp.addEventListener("change", () => {
+        const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
+        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); renderDetail(); } return; }
+        if (oldG > 0 && nv > 0) {
+          const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
+          if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
+          save(); renderDetail();
+        }
+      }));
+    const portionReset = c.querySelector("#portion-reset");
+    if (portionReset) portionReset.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); });
+    c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
         if (inp.dataset.water === "1") {

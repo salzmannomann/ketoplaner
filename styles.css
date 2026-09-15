@@ -678,3 +678,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .reset-line .linkbtn[hidden] { display: none; }
 input:disabled { background: var(--bg); color: var(--muted); }
 #verordnung-summary #ratio-hint { margin: 0 0 8px; }
+/* Rechnen: Gramm je Portion editierbar (kompakt, damit die Tabelle am Handy nicht breiter wird); feste Statuszeile */
+.g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
+.portion-line { font-size: 13px; color: var(--muted); margin: -4px 0 10px; min-height: 20px; line-height: 1.4; }
+.portion-line strong { color: var(--yellow); }

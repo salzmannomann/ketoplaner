@@ -9,6 +9,7 @@
       savedRecipes: [],
       scales: {},
       water: {},
+      portion: {}, // Portion angepasst (Rechnen): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
     };
@@ -67,6 +68,7 @@
         savedRecipes: p.savedRecipes || [],
         scales: remapKeys(p.scales),
         water: remapKeys(p.water),
+        portion: remapKeys(p.portion),
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
       };

@@ -329,6 +329,54 @@ test("Zubereitungsmenge: „Ganzer Tag“ folgt der Mahlzeitenzahl; Rechnen zeig
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], undefined);
 });
 
+test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wirkt im Tagesplan, lässt sich zurücksetzen", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 5, weight: 8.5 } });
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const kochenBefore = kitchenRows(c);
+  const row = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Hüh/.test(r.textContent));
+  const inp = row.querySelector("input.g-edit");
+  assert.ok(inp, "Gramm-Feld in Rechnen fehlt");
+  const g0 = parseFloat(inp.value);
+  inp.value = String(g0 / 2); fire(w, inp, "change");
+  c = $(w, "detail-content");
+  // Portion halbiert: kcal 70 statt 140, Verhältnis bleibt, Statuszeile + Zurücksetzen
+  const kcalTile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 70) <= 1, kcalTile.textContent);
+  assert.match(kcalTile.textContent, /Ziel 140/);
+  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
+  assert.match(c.querySelector(".portion-line").textContent, /Portion angepasst: 50 %/);
+  const brok = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
+  const kochenAfter = kitchenRows(c);
+  assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Kochen skaliert mit");
+  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Rechnen skaliert mit");
+  // „Ein Tag“ rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
+  const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
+  assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
+  assert.ok(Math.abs(parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent) - 350) <= 3);
+  fire(w, $(w, "detail-close"));
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.ok(Math.abs(st.portion["fam:Hendl & Brokkoli"] - 0.5) < 0.01, "Faktor gemerkt: " + st.portion["fam:Hendl & Brokkoli"]);
+  // Tagesplan nutzt dieselbe Mahlzeit
+  st.dayPlan = [0, 1, 2, 3, 4].map(() => ({ key: "std:Hendl & Brokkoli" }));
+  const w2 = boot(st);
+  fire(w2, $(w2, "tab-heute"));
+  const kcalDay = [...$(w2, "heute-content").querySelectorAll(".dstat")][0].querySelector(".v").textContent;
+  assert.ok(Math.abs(parseFloat(kcalDay) - 350) <= 3, "Tagesplan: " + kcalDay);
+  // Zurücksetzen
+  c = openRecipe(w2, "Hendl & Brokkoli");
+  fire(w2, c.querySelector("#portion-reset"));
+  c = $(w2, "detail-content");
+  assert.ok(Math.abs(parseFloat([...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0].querySelector(".v").textContent) - 140) <= 1);
+  assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
+  assert.equal(JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).portion["fam:Hendl & Brokkoli"], undefined);
+  // Wasser in Rechnen ändern → gemerktes Wasser, keine Skalierung
+  const wrow = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
+  wrow.value = "80"; fire(w2, wrow, "change");
+  c = $(w2, "detail-content");
+  assert.equal(kitchenRows(c)["Wasser"], 80);
+  assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
+});
+
 test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {
   const w = boot({ settings: { weight: 8 } });
   const wi = $(w, "set-weight");
@@ -373,7 +421,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     const mealRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][0].querySelectorAll("tbody tr:not(.sum)");
     const dayRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][1].querySelectorAll("tbody tr:not(.sum)");
     assert.equal(dayRows.length, mealRows.length);
-    const gramsOf = (tr) => parseFloat(tr.children[1].textContent.replace(".", "").replace(",", "."));
+    const gramsOf = (tr) => { const inp = tr.children[1].querySelector("input"); return parseFloat(inp ? inp.value : tr.children[1].textContent.replace(".", "").replace(",", ".")); };
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
