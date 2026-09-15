@@ -2786,7 +2786,7 @@ const RECIPES_SONDE = [
       : "";
 
     const daySeg =
-      '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit (nicht die Packung)</span></h4>' +
+      '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit</span></h4>' +
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '<br><small>Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' – unterschritten!' : ' ✓') + (dayHigh ? ' · über Korridor (' + fmt(d.kcalMaxAuto, 0) + ')' : '') + '</small></div></div>' +
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
