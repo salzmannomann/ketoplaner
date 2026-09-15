@@ -21,8 +21,12 @@
     const hs = (w) => w <= 0 ? 0 : w <= 10 ? 100 * w : w <= 20 ? 1000 + 50 * (w - 10) : 1500 + 20 * (w - 20);
     const fluidAuto = weight > 0 ? r10(hs(weight)) : 0;
     const fluidDay = num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto;
-    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : "zwischen";
+    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : s.wasserModus === "zwischen" ? "zwischen" : "ausgewogen";
+    // Höchstmenge je Mahlzeit (Bolus): Richtwert 25 ml/kg, manuell übersteuerbar – im Modus „ausgewogen“ wird
+    // Wasser nur bis zu dieser Größe in die Mahlzeit gerechnet, der Rest zwischen den Mahlzeiten.
+    const maxMahlAuto = weight > 0 ? r10(weight * 25) : 0;
+    const maxMahlMl = num(s.maxMahlMl) > 0 ? num(s.maxMahlMl) : maxMahlAuto;
     return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
-      fluidDay, fluidMahl: fluidDay / mahl, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus };
+      fluidDay, fluidMahl: fluidDay / mahl, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0 };
   }

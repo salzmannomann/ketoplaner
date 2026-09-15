@@ -129,16 +129,21 @@
             <label>Flüssigkeit pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
           </div>
+          <div>
+            <label>Höchstmenge je Mahlzeit (ml)</label>
+            <input id="set-maxmahl" type="number" min="0" step="10" inputmode="numeric" placeholder="auto" />
+          </div>
         </div>
         <div class="preset-row">
           <span class="seg-label">Wasser geben:</span>
           <div class="segmented mini" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten sondieren</button>
-            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
+            <button type="button" data-wmodus="ausgewogen">⚖️ ausgewogen</button>
+            <button type="button" data-wmodus="zwischen">💉 nur zwischen den Mahlzeiten</button>
+            <button type="button" data-wmodus="mahlzeit">🥣 nur in den Mahlzeiten</button>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
-        <p class="hint">Leer = Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind; App und Tagesplan zeigen, wie viel Wasser noch zu sondieren ist. <strong>In den Mahlzeiten:</strong> jedes Rezept bekommt so viel Wasser, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert – die Portionen werden dadurch größer. Bitte mit dem Behandlungsteam abstimmen.</p>
+        <p class="hint">Leer = Richtwerte: Flüssigkeit nach Holliday-Segar (100 ml/kg bis 10 kg), Höchstmenge je Mahlzeit 25 ml/kg. Gezählt wird das Wasser der Zutaten (Gemüse, Compleat …) plus das Rezept-Wasser. <strong>Ausgewogen:</strong> Wasser kommt in die Mahlzeit, bis sie die Höchstmenge erreicht; was am Tag noch fehlt, wird zwischen den Mahlzeiten sondiert. <strong>Nur zwischen den Mahlzeiten:</strong> Rezepte bleiben wie sie sind. <strong>Nur in den Mahlzeiten:</strong> jedes Rezept bekommt seinen ganzen Anteil am Tagesbedarf, ohne Obergrenze. Bitte mit dem Behandlungsteam abstimmen.</p>
       </div>
 
       <div class="card">
@@ -242,7 +247,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=55a5951a"></script>
+  <script src="app.js?v=2af0435b"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

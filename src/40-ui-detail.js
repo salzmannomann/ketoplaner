@@ -63,12 +63,17 @@
     }
     // Flüssigkeit „in den Mahlzeiten“: Wasser so setzen, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert
     // (Zutaten-Wasser + Wasser = Flüssigkeit je Mahlzeit). Nie weniger als das Rezept-Wasser; gemerktes Wasser hat Vorrang.
-    let fluidAdjusted = false;
-    if (d.wasserModus === "mahlzeit" && d.fluidMahl > 0 && !hasWaterOverride) {
+    // Modus „ausgewogen“: dasselbe, aber nur bis zur Höchstmenge je Mahlzeit (Bolus) – der Rest bleibt für die Zwischenzeiten.
+    let fluidAdjusted = false, waterCapped = false;
+    if ((d.wasserModus === "mahlzeit" || d.wasserModus === "ausgewogen") && d.fluidMahl > 0 && !hasWaterOverride) {
       const isW2 = (it) => /wasser/i.test(it.food);
       const foodFluid = fluidOf(res.items.filter(it => !isW2(it)));
       const stdWater = res.items.filter(isW2).reduce((a, it) => a + num(it.grams), 0);
-      const need = d.fluidMahl - foodFluid;
+      let need = d.fluidMahl - foodFluid;
+      if (d.wasserModus === "ausgewogen" && d.maxMahlMl > 0) {
+        const room = d.maxMahlMl - volumeMl(res.items.filter(it => !isW2(it)));
+        if (room < need) { need = room; waterCapped = true; }
+      }
       if (need > stdWater + 0.05) {
         const items3 = stdWater > 0
           ? res.items.map(it => isW2(it) ? { food: it.food, grams: round1(num(it.grams) * need / stdWater) } : it)
@@ -78,7 +83,7 @@
       }
     }
     const fluid = fluidOf(res.items);
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, fluid };
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, waterCapped, fluid };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
@@ -257,14 +262,17 @@
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
       ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
-        (d.wasserModus === "mahlzeit" ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)')) : ' – Rest wird zwischen den Mahlzeiten sondiert') + '</div>'
+        (d.wasserModus === "mahlzeit" ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
+          : d.wasserModus === "ausgewogen" ? (mv.fluidAdjusted ? ' – Wasser ' + (mv.waterCapped ? 'bis zur Höchstmenge je Mahlzeit (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest zwischen den Mahlzeiten' : 'dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – Rest zwischen den Mahlzeiten'))
+          : ' – Rest wird zwischen den Mahlzeiten sondiert') +
+        (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ Mahlzeit ' + fmt(volumeMl(items), 0) + ' ml, über der Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, fluidRest = d.fluidDay - dayFluid;
     const fluidDayTile = d.fluidDay > 0
       ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
-      ? (d.wasserModus === "zwischen"
+      ? (d.wasserModus !== "mahlzeit"
           ? (fluidRest > 0.5
               ? '<div class="note info">💧 Zwischen den Mahlzeiten sondieren: <strong>' + fmt(fluidRest, 0) + ' ml Wasser am Tag</strong> – bei ' + dayN + ' Mahlzeiten sind das ' + gaps(dayN) + ' Zwischenzeiten à ≈ ' + fmt(fluidRest / gaps(dayN), 0) + ' ml.</div>'
               : '<div class="note tip">💧 Die Mahlzeiten decken den Flüssigkeitsbedarf – kein zusätzliches Wasser nötig.</div>')

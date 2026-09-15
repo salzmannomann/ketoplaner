@@ -334,8 +334,9 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
 });
 
 test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs. in den Mahlzeiten; Tagesplan", () => {
-  const w = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5 } });
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, wasserModus: "zwischen" } });
   assert.equal($(w, "set-fluid").placeholder, "auto: 850");
+  assert.equal($(w, "set-maxmahl").placeholder, "auto: 210");
   assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar/);
   // Standard „zwischen“: Rezept unverändert, Rest zum Sondieren wird ausgewiesen
   let c = openRecipe(w, "Hendl & Brokkoli");
@@ -371,4 +372,22 @@ test("Flüssigkeit: Richtwert nach Gewicht; zwischen den Mahlzeiten sondieren vs
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
   assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);
+  // Standard „ausgewogen“: Wasser bis zur Höchstmenge (210 ml) in die Mahlzeit, Rest zwischen den Mahlzeiten
+  const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
+  assert.match($(w3, "fluid-summary").textContent, /ausgewogen: Wasser in die Mahlzeit bis höchstens 210 ml/);
+  let c3 = openRecipe(w3, "Compleat & KetoCal");
+  const kochen = c3.querySelector(".pane[data-pane=kochen]").textContent;
+  assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /bis zur Höchstmenge je Mahlzeit \(210 ml\) erhöht/);
+  const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
+  assert.ok(Math.abs(vol - 210) <= 2, "Mahlzeit ≈ 210 ml: " + vol);
+  const paneA = c3.querySelector(".pane[data-pane=rechnen]").textContent;
+  assert.match(paneA, /Zwischen den Mahlzeiten sondieren: \d+ ml Wasser am Tag – bei 4 Mahlzeiten sind das 3 Zwischenzeiten/);
+  const restA = parseFloat(paneA.match(/sondieren: (\d+) ml/)[1]);
+  assert.ok(restA > 50 && restA < 250, "Rest zwischen den Mahlzeiten moderat: " + restA);
+  assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
+  fire(w3, $(w3, "detail-close"));
+  // Gericht, das von selbst groß ist: kein Wasser über die Höchstmenge hinaus
+  c3 = openRecipe(w3, "Hendl & Brokkoli");
+  const vol2 = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
+  assert.ok(vol2 <= 212, "nicht über Höchstmenge: " + vol2);
 });

@@ -61,11 +61,13 @@ die Vorgaben.
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
 - **Flüssigkeit:** Tagesbedarf in ml (leer = Richtwert nach Holliday-Segar,
-  100 ml/kg bis 10 kg) und der Modus **„zwischen den Mahlzeiten sondieren"**
-  (Rezepte unverändert; Rezept und Tagesplan zeigen, wie viel Wasser noch zu
-  sondieren ist – verteilt auf Mahlzeiten minus eins Zwischenzeiten) oder **„in den Mahlzeiten"** (jedes Rezept bekommt so viel
-  Wasser, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert; gemerktes
-  Wasser hat Vorrang). Gezählt wird das Wasser der Zutaten (Näherung: Rest
+  100 ml/kg bis 10 kg), **Höchstmenge je Mahlzeit** (leer = 25 ml/kg) und der
+  Modus: **„ausgewogen"** (Standard: Wasser kommt in die Mahlzeit, bis sie die
+  Höchstmenge erreicht; was am Tag noch fehlt, wird auf Mahlzeiten minus eins
+  Zwischenzeiten verteilt), **„nur zwischen den Mahlzeiten"** (Rezepte
+  unverändert) oder **„nur in den Mahlzeiten"** (voller Anteil ohne
+  Obergrenze). Gemerktes Wasser hat immer Vorrang; liegt eine Mahlzeit über
+  der Höchstmenge, warnt die App. Gezählt wird das Wasser der Zutaten (Näherung: Rest
   ohne Eiweiß, Fett, KH, Ballaststoffe; Pulver und Fertigprodukte mit
   Etikettwert) plus das Rezept-Wasser.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
