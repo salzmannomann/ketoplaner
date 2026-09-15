@@ -299,7 +299,7 @@
         '<div class="dstat"><div class="v">' + fmt(dayC) + ' g</div><div class="l">KH/Tag</div></div>' +
         fluidDayTile +
       '</div>' +
-      dayTable + fluidDayNote +
+      dayTable +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
 
     const c = document.getElementById("detail-content");
@@ -348,6 +348,7 @@
 
       /* ---------- Rechnen ---------- */
       paneOpen("rechnen") +
+      fluidDayNote +
       meatSeg +
       oilSeg +
       packInfoSeg +
