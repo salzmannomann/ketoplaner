@@ -114,12 +114,11 @@
     return { items, ratio: ratioOf(sum), kcal: sum.kcal, ok, fatIndex: items.findIndex(it => it.food === base[fi].food),
       pack: { n, fixedMl, k, p, mode: mode === "kalorien" ? "kalorien" : "verhaeltnis", dev: sum.kcal - targetKcal } };
   }
-  // Gemerkte Packungs-Aufteilung je Gericht: { n, mode } (ältere Speicherstände: nur die Zahl).
+  // Gemerkte Packungs-Aufteilung je Gericht (Zahl oder { n }); der Modus ist die globale Rechenregel (Vorgaben).
   function packSetting(key) {
     const v = (state.pack || {})[key];
-    if (!v) return { n: 0, mode: "verhaeltnis" };
-    if (typeof v === "number") return { n: v, mode: "verhaeltnis" };
-    return { n: num(v.n), mode: v.mode === "kalorien" ? "kalorien" : "verhaeltnis" };
+    const n = !v ? 0 : (typeof v === "number" ? v : num(v.n));
+    return { n, mode: state.settings.mctMode === "kalorien" ? "kalorien" : "verhaeltnis" };
   }
   // Packungs-Übersicht ohne Aufteilung: Menge je Mahlzeit laut Standardrechnung → Mahlzeiten je Packung.
   function packInfo(rec, d) {

@@ -6,7 +6,7 @@
 const RECIPES_SONDE = [
   {
     name: "KetoCal & Pre Apta",
-    icon: "🥄",
+    icon: "🥤",
     ketocal: true,
     angeruehrt: true,
     zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Trinktemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
@@ -14,7 +14,7 @@ const RECIPES_SONDE = [
   },
   {
     name: "KetoCal & Compleat",
-    icon: "🥄",
+    icon: "🥤",
     ketocal: true,
     angeruehrt: true,
     // Packung: 500 ml, offen 2 Tage haltbar. Wird die Packung auf mehr Mahlzeiten aufgeteilt, als ohne

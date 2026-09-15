@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=84211405" />
+  <link rel="stylesheet" href="styles.css?v=5a156c18" />
 </head>
 <body>
   <header class="topbar">
@@ -67,7 +67,7 @@
       </div>
       <details class="note info collapsible" id="info-note">
         <summary>ⓘ Gerichte, Fettbasis und KetoCal</summary>
-        <p>Jedes Gericht steht einmal in der Liste; hat es eine Variante mit und ohne KetoCal, entscheidet die Vorgabe „KetoCal derzeit“ (auch als Schalter oben), welche gezeigt wird – im Rezept lässt sich die Fettbasis jederzeit umschalten. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
+        <p>Jedes Gericht steht einmal in der Liste; hat es eine Variante mit und ohne KetoCal, entscheidet die Vorgabe „KetoCal: mit / ohne“ (auch als Schalter oben), welche gezeigt wird – im Rezept lässt sich die Fettbasis jederzeit umschalten. Rezepte ohne KetoCal liefern keine vollständigen Vitamine und Mineralstoffe; diese müssen separat ergänzt werden — bitte mit dem Behandlungsteam abstimmen.</p>
       </details>
       <div id="recipe-list"></div>
     </section>
@@ -95,21 +95,24 @@
           </div>
           <div>
             <label>Eiweiß-Bedarf</label>
-            <select id="set-proteinmode">
-              <option value="0">manuell eingeben</option>
-              <option value="1">1,0 g/kg/Tag</option>
-              <option value="1.2">1,2 g/kg/Tag</option>
-              <option value="1.5">1,5 g/kg/Tag</option>
-              <option value="2">2,0 g/kg/Tag</option>
-            </select>
+            <div class="inline-row">
+              <select id="set-proteinmode">
+                <option value="0">manuell eingeben</option>
+                <option value="1">1,0 g/kg/Tag</option>
+                <option value="1.2">1,2 g/kg/Tag</option>
+                <option value="1.5">1,5 g/kg/Tag</option>
+                <option value="2">2,0 g/kg/Tag</option>
+              </select>
+              <span id="eiweiss-auto" class="calc"></span>
+            </div>
           </div>
-          <div>
+          <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
             <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
           </div>
         </div>
         <div class="preset-row">
-          <span class="seg-label">KetoCal derzeit:</span>
+          <span class="seg-label">KetoCal:</span>
           <div class="segmented mini" id="ketocal-ctl">
             <button type="button" data-ketocal="mit">🥄 mit KetoCal</button>
             <button type="button" data-ketocal="ohne">ohne KetoCal</button>
@@ -119,30 +122,37 @@
       </div>
 
       <div class="card">
-        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
+        <h3>🧭 Rechenregel <span class="hint">– wenn Verhältnis und Kalorien nicht beide zu halten sind</span></h3>
         <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
-          <div class="segmented mini" id="mct-share-ctl"></div>
-        </div>
-        <div class="preset-row">
-          <span class="seg-label">Rechenmodus:</span>
           <div class="segmented mini" id="mct-mode-ctl">
             <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
           </div>
         </div>
-        <details class="collapsible">
-          <summary>ⓘ Was bedeutet das?</summary>
-          <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil. <strong>Kalorien halten:</strong> die Kalorien bleiben, das Verhältnis steigt (das ist eine Änderung der Verordnung, nicht der Fettart). MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
-        </details>
-        <div class="settings-grid">
-          <div>
-            <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
-            <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
-          </div>
-          <div>
-            <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
-            <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+        <p class="hint">Gilt für den MCT-Anteil und für die Packungs-Aufteilung (z. B. Compleat). <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien weichen ab und werden angezeigt. <strong>Kalorien halten:</strong> die Kalorien bleiben; bei MCT steigt dafür das Verhältnis (eine Änderung der Verordnung), bei der Packung wird mit Pre Apta aufgefüllt.</p>
+      </div>
+
+      <div class="card">
+        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
+        <div class="preset-row">
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <div class="segmented mini" id="mct-share-ctl"></div>
+        </div>
+        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet. Ab 10 % erscheinen hier Erklärung und Etikettwerte.</p>
+        <div id="mct-more">
+          <details class="collapsible">
+            <summary>ⓘ Was bedeutet der MCT-Anteil?</summary>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon; welche, legt die Rechenregel fest. MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+          </details>
+          <div class="settings-grid">
+            <div>
+              <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+              <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+            </div>
+            <div>
+              <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+              <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+            </div>
           </div>
         </div>
       </div>
@@ -211,8 +221,8 @@
   </div>
 
   <script src="foods.js?v=b5dc5f3a"></script>
-  <script src="recipes.js?v=4b8565ce"></script>
-  <script src="app.js?v=24815622"></script>
+  <script src="recipes.js?v=ec589635"></script>
+  <script src="app.js?v=dece63e7"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

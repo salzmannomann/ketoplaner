@@ -10,7 +10,7 @@
     { id: "ei", label: "🥚 Ei" },
     { id: "gemuese", label: "🥔 Erdäpfel & Gemüse" },
     { id: "obst", label: "🍓 Obst & Brei" },
-    { id: "angeruehrt", label: "🥄 Angerührt" },
+    { id: "angeruehrt", label: "🥤 Angerührt" },
   ];
   // Primäre Gruppe eines Rezepts (aus den Zutaten abgeleitet; Fleisch/Fisch haben Vorrang).
   function recipeGroup(rec) {

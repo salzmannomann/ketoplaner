@@ -85,6 +85,10 @@
       gRaps: oils.filter(it => it.food === "Rapsöl").reduce((a, it) => a + num(it.grams), 0),
     };
   }
+  // Hinweis auf die globale Rechenregel (Vorgaben) – gilt für MCT und Packung gleichermaßen.
+  function regelZeile(d) {
+    return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
+  }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -156,7 +160,7 @@
       if (packNSet > 0 && !active && kcalMode && packNSet <= pi.nAuto) {
         // Kein Fehler: bis nAuto Mahlzeiten reicht die Standardmenge – Auffüllen greift erst darüber.
         txt = '<div class="meat-note">Bis ' + pi.nAuto + ' Mahlzeiten braucht es kein Auffüllen: die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> à ' + fmt(pi.mlStd, 0) + ' ml (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
-          'Das Auffüllen mit ' + escapeHtml(pk.auffuellen) + ' greift erst ab ' + (pi.nAuto + 1) + ' Mahlzeiten. Soll die Packung trotzdem genau aufgehen, „Verhältnis halten“ wählen – dann dürfen die Kalorien abweichen.</div>';
+          'Das Auffüllen mit ' + escapeHtml(pk.auffuellen) + ' greift erst ab ' + (pi.nAuto + 1) + ' Mahlzeiten. Soll die Packung trotzdem genau aufgehen, unter Vorgaben die Rechenregel „Verhältnis halten“ wählen – dann dürfen die Kalorien abweichen.</div>';
       } else if (packNSet > 0 && !active) {
         txt = '<div class="note warn">⚠️ Auf ' + packNSet + ' Mahlzeiten geht die Packung bei ' + fmtTarget(d.ratio) + ' nicht auf (' +
           (ps && ps.pack && ps.pack.p < -0.05 ? escapeHtml(pk.auffuellen) + ' müsste negativ werden' : 'KetoCal müsste negativ werden – ' + escapeHtml(pk.food) + ' allein liegt schon über dem Verhältnis') +
@@ -175,14 +179,12 @@
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
           'Zum Aufteilen die Mahlzeiten je Packung einstellen – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
       }
-      const modeBtn = (k, lab) => '<button type="button" data-pmode="' + k + '"' + (pset.mode === k ? ' class="active"' : "") + ">" + lab + "</button>";
       packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
         '<span class="portion-step">Auf <button type="button" class="stepbtn" data-pstep="-1">−</button>' +
         '<input id="pack-n" type="number" min="1" step="1" inputmode="numeric" value="' + (packNSet > 0 ? packNSet : pi.nAuto) + '">' +
         '<button type="button" class="stepbtn" data-pstep="1">+</button> Mahlzeiten aufteilen' +
         (packNSet > 0 ? ' <button type="button" id="pack-reset" class="linkbtn">↺ ohne Aufteilung</button>' : "") + '</span>' +
-        '<div class="segmented mini" style="margin-top:8px">' + modeBtn("verhaeltnis", "⚖️ Verhältnis halten (kcal frei)") + modeBtn("kalorien", "🎯 Kalorien halten (" + escapeHtml(pk.auffuellen).replace(/ \(.*\)$/, "") + " dazu)") + "</div>" +
-        txt + '</div>';
+        txt + regelZeile(d) + '</div>';
     }
 
     const meatSlot = recipeMeatSlot(rec);
@@ -201,7 +203,6 @@
     if (baseOilIndex >= 0) {
       const sOil = d.mctShare, mm = res.mct || null;
       const shareBtn = (v) => '<button type="button" data-mcts="' + v + '"' + (Math.abs(sOil - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>";
-      const modeBtn = (k, lab) => '<button type="button" data-mctmode="' + k + '"' + (d.mctMode === k ? ' class="active"' : "") + ">" + lab + "</button>";
       let note;
       if (!(sOil > 0)) {
         note = "Nur Rapsöl. Der MCT-Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – der Modus legt fest, welche Größe exakt bleibt.";
@@ -222,8 +223,7 @@
       }
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
         '<div class="segmented mini">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
-        '<div class="segmented mini" style="margin-top:6px">' + modeBtn("verhaeltnis", "⚖️ Verhältnis halten") + modeBtn("kalorien", "🎯 Kalorien halten") + "</div>" +
-        '<div class="meat-note">' + note + "</div>" + warn + "</div>";
+        '<div class="meat-note">' + note + "</div>" + warn + (sOil > 0 ? regelZeile(d) : "") + "</div>";
     }
 
     // Zwei Sichten auf dieselben Zutaten: Küche (abwiegen, editierbar) und Rechnen (Nährwerte, nur lesen).
@@ -345,20 +345,20 @@
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     const waterReset = c.querySelector("#water-reset");
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
-    const setPack = (v, mode) => {
+    const setPack = (v) => {
       if (!state.pack || typeof state.pack !== "object") state.pack = {};
-      if (v > 0) state.pack[fam.key] = { n: Math.round(v), mode: mode === "kalorien" ? "kalorien" : "verhaeltnis" }; else delete state.pack[fam.key];
+      if (v > 0) state.pack[fam.key] = { n: Math.round(v) }; else delete state.pack[fam.key];
       save(); renderDetail();
     };
     const packIn = c.querySelector("#pack-n");
     if (packIn) {
-      packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPack(v, pset.mode); });
+      packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPack(v); });
       c.querySelectorAll(".pack button[data-pstep]").forEach(b =>
-        b.addEventListener("click", () => setPack(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)), pset.mode)));
-      c.querySelectorAll(".pack button[data-pmode]").forEach(b =>
-        b.addEventListener("click", () => setPack(parseInt(packIn.value, 10) || 1, b.dataset.pmode)));
+        b.addEventListener("click", () => setPack(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)))));
       const pr = c.querySelector("#pack-reset"); if (pr) pr.addEventListener("click", () => setPack(0));
     }
+    c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
+      b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
       b.addEventListener("click", () => {
         const v = fam.variants.find(x => recipeKey(x) === b.dataset.basis); if (!v) return;
@@ -375,10 +375,6 @@
     c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
         state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
-      }));
-    c.querySelectorAll(".meat-swap button[data-mctmode]").forEach(b =>
-      b.addEventListener("click", () => {
-        state.settings.mctMode = b.dataset.mctmode; save(); renderDetail();
       }));
     c.querySelectorAll("#detail-tabs button[data-dtab]").forEach(b =>
       b.addEventListener("click", () => { state.settings.detailTab = b.dataset.dtab; save(); renderDetail(); }));

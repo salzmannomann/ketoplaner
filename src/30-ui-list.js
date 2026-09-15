@@ -12,8 +12,10 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
+    // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     $("set-eiweiss").value = d.autoProtein ? d.eiweiss : s.eiweiss;
-    $("set-eiweiss").disabled = d.autoProtein;
+    const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
+    const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

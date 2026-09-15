@@ -41,7 +41,7 @@ Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
 | **Vorgaben** | Verordnung, MCT-Öl, Küche, Daten (Backup) |
 
-Oben rechts zeigt der **Verordnungs-Chip** (z. B. „1,8:1 · 140 kcal/Mahlz. ·
+Oben rechts zeigt der **Verordnungs-Chip** (z. B. „1,8:1 · 140 kcal · 🥄 KetoCal ·
 MCT 10 % ⚖️") jederzeit, womit gerade gerechnet wird; ein Tipp darauf öffnet
 die Vorgaben.
 
@@ -54,9 +54,12 @@ die Vorgaben.
   **Kalorien pro Tag**, **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
+- **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
+  Regel für alle Fälle, in denen nicht beides geht (MCT-Anteil,
+  Packungs-Aufteilung). In den Rezepten wird die Regel nur angezeigt.
 - **MCT-Öl:** Anteil an der Öl-Fettmasse in Stufen (0 / 10 / 20 / 30 / 50 /
-  100 %; Vorbelegung 10 %) und Rechenmodus (siehe unten); Fett- und
-  kcal-Werte des MCT-Öls sind vom Etikett übersteuerbar.
+  100 %; Vorbelegung 10 %); Erklärung und die vom Etikett übersteuerbaren
+  Fett-/kcal-Werte erscheinen erst ab 10 %.
 - **Küche:** Verdunstung beim Dämpfen (ml) – einmal für den eigenen Thermomix
   kalibrieren (Standard 150 ml).
 - **Daten:** **Backup exportieren/importieren** (JSON-Datei oder Text zum
@@ -128,7 +131,8 @@ angezeigt). Der Tausch gilt nur für die geöffnete Ansicht.
 
 **MCT-Anteil (Rapsöl / MCT):** Beim Tausch eines Fettes gegen ein Fett
 anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht
-gleichzeitig halten – nur zwei davon; welche, entscheidet die Anwenderin:
+gleichzeitig halten – nur zwei davon; welche, legt die Rechenregel unter
+Vorgaben fest:
 
 - **⚖️ Verhältnis halten:** Das Verhältnis bleibt für jeden MCT-Anteil exakt
   gleich; die Kalorien sinken mit dem Anteil, weil MCT weniger kcal je Gramm
@@ -171,12 +175,13 @@ Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingebe
 **Packung aufteilen (Compleat):** Die 500-ml-Packung ist offen 2 Tage haltbar.
 Unter Rechnen zeigt das Rezept, für wie viele Mahlzeiten sie bei der aktuellen
 Rechnung reicht, und lässt sie auf **N Mahlzeiten** aufteilen (z. B. 10 für
-2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit. Zwei Modi:
-**⚖️ Verhältnis halten** (Standard) rechnet nur KetoCal fürs Verhältnis; die
-Kalorien je Mahlzeit dürfen abweichen (werden angezeigt), dafür geht die Packung
-sicher auf. **🎯 Kalorien halten** löst zusätzlich **Pre Apta** (Kohlenhydrate)
-als zweiten Hebel, sodass Verhältnis und kcal exakt stimmen; geht das bei diesem
-Verhältnis nicht auf, sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
+2 Tage × 5). Compleat ist dann fest 500 ÷ N ml je Mahlzeit. Was exakt bleibt,
+legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
+(Standard) rechnet nur KetoCal fürs Verhältnis; die Kalorien je Mahlzeit dürfen
+abweichen (werden angezeigt), dafür geht die Packung sicher auf. **🎯 Kalorien
+halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
+Verhältnis und kcal exakt stimmen; geht das bei diesem Verhältnis nicht auf,
+sagt die App das und rechnet ohne Aufteilung. Im Tagesplan erscheint ein
 **Packungsstand**: heute verplant, Rest für morgen und ob die Packung bei
 gleichem Plan über die 2 Tage genau aufgeht. 34 Varianten
 haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.

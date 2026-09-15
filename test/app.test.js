@@ -159,7 +159,7 @@ test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Anger�
   assert.equal(tileNames(w).length, all, "Phase ändert nicht die Anzahl der Gerichte");
   const kcOhne = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
   assert.ok(kcOhne < kcMit, "ohne KetoCal: " + kcOhne + " < mit: " + kcMit);
-  clickChip(w, "🥄 Angerührt");
+  clickChip(w, "🥤 Angerührt");
   assert.deepEqual(tileNames(w).sort(), ["HiPP Hühnchen & Öl", "KetoCal & Compleat", "KetoCal & Pre Apta"]);
   clickChip(w, "🥚 Ei");
   assert.equal(tileNames(w).length, 4); assert.ok(tileNames(w).every(n => /^Ei /.test(n)));
@@ -201,8 +201,10 @@ test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favori
 
 test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Packungsstand im Tagesplan", () => {
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3 } });
+  assert.ok($(w, "mct-more").hidden && !$(w, "mct-zero-hint").hidden, "MCT-Karte bei 0 % eingeklappt");
   let c = openRecipe(w, "KetoCal & Compleat");
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
+  assert.match(pack().textContent, /Rechenregel: ⚖️ Verhältnis halten/);
   assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
   assert.equal(pack().querySelector("#pack-n").value, "7");
   // Standard-Modus „Verhältnis halten“: nur KetoCal als Hebel, Kalorien dürfen abweichen, Packung geht auf
@@ -220,8 +222,11 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   c = $(w, "detail-content");
   assert.equal(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"], 100);
   assert.ok(kcalOf(c) > 160); assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
-  // Modus „Kalorien halten“: Pre Apta füllt auf, 140 kcal exakt
-  fire(w, pack().querySelector("button[data-pmode=kalorien]"));
+  // Rechenregel „Kalorien halten“ (global unter Vorgaben): Pre Apta füllt auf, 140 kcal exakt
+  fire(w, $(w, "detail-close"));
+  fire(w, w.document.querySelector("#mct-mode-ctl button[data-mctmode=kalorien]"));
+  c = openRecipe(w, "KetoCal & Compleat");
+  assert.match(pack().textContent, /Rechenregel: 🎯 Kalorien halten/);
   n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
   c = $(w, "detail-content");
   rows = kitchenRows(c);
@@ -269,6 +274,11 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   const w = boot();
   const ri = $(w, "set-ratio");
   assert.equal(ri.value, "1,8:1");
+  assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
+  assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
+  assert.match($(w, "verordnung-summary").textContent, /mit KetoCal · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
+  assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
+  assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}").settings.ratio, 1.8);
   ri.value = "1:1"; fire(w, ri, "input");

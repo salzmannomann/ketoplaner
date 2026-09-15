@@ -13,18 +13,26 @@
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    chip.textContent = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal/Mahlz." +
+    chip.textContent = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal · " + (ketoPhase() === "mit" ? "🥄 KetoCal" : "ohne KetoCal") +
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
   }
+  function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
     const sum = document.getElementById("verordnung-summary");
     if (sum) sum.innerHTML = "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl +
       ") · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, automatisch nach Gewicht)" : "");
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag nach Gewicht)" : "") +
+      " · " + (ketoPhase() === "mit" ? "mit KetoCal" : "ohne KetoCal") +
+      " · MCT " + Math.round(d.mctShare * 100) + " %" +
+      " · Rechenregel " + regelLabel(d);
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
+    // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
+    const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
+    if (more) more.hidden = !(d.mctShare > 0);
+    if (zh) zh.hidden = d.mctShare > 0;
     const sc = document.getElementById("mct-share-ctl");
     if (sc) {
       sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
