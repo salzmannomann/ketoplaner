@@ -2437,7 +2437,11 @@ const RECIPES_SONDE = [
       const active = packNSet > 0 && ps && ps.ok;
       const tage = (n) => fmt(n / d.mahl, 1) + " Tag" + (Math.abs(n / d.mahl - 1) < 0.05 ? "" : "e") + " bei " + d.mahl + " Mahlzeiten/Tag";
       let txt;
-      if (packNSet > 0 && !active) {
+      if (packNSet > 0 && !active && packNSet <= pi.nAuto) {
+        // Kein Fehler: bis nAuto Mahlzeiten reicht die Standardmenge – Auffüllen greift erst darüber.
+        txt = '<div class="meat-note">Bis ' + pi.nAuto + ' Mahlzeiten braucht es keine Aufteilung: ohne Auffüllen reicht die Packung für <strong>' + pi.nAuto + ' Mahlzeiten</strong> à ' + fmt(pi.mlStd, 0) + ' ml (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
+          'Die Aufteilung mit ' + escapeHtml(pk.auffuellen) + ' greift erst ab ' + (pi.nAuto + 1) + ' Mahlzeiten – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
+      } else if (packNSet > 0 && !active) {
         txt = '<div class="note warn">⚠️ Auf ' + packNSet + ' Mahlzeiten geht die Packung bei ' + fmtTarget(d.ratio) + ' nicht auf (' +
           (ps && ps.pack && ps.pack.p < -0.05 ? escapeHtml(pk.auffuellen) + ' müsste negativ werden – so wenig ' + escapeHtml(pk.food) + ' je Mahlzeit bräuchte mehr Kalorien aus KH, als das Verhältnis erlaubt' : 'KetoCal müsste negativ werden – so viel ' + escapeHtml(pk.food) + ' je Mahlzeit liefert schon mehr als ' + fmt(d.kcalMahl, 0) + ' kcal') +
           '). Gerechnet wird ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit, die Packung reicht für ' + pi.nAuto + ' Mahlzeiten.</div>';

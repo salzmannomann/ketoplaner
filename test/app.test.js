@@ -214,12 +214,15 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   assert.equal(c.querySelector(".ratio-pill").textContent, "1:1,50");
   assert.ok(Math.abs(kcalOf(c) - 140) <= 1, "kcal " + kcalOf(c));
   assert.match(pack().textContent, /2,0 Tage bei 5 Mahlzeiten\/Tag/);
-  // Zu wenige Mahlzeiten je Packung: geht nicht auf → Warnung und Standardrechnung
-  n = pack().querySelector("#pack-n"); n.value = "5"; fire(w, n, "change");
-  c = $(w, "detail-content");
-  assert.match(pack().textContent, /geht die Packung .* nicht auf/);
-  assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
-  assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  // N ≤ 7 (geht ohne Auffüllen auf): keine Warnung, Hinweis, Standardrechnung – auch bei genau 7
+  for (const v of ["5", "7"]) {
+    n = pack().querySelector("#pack-n"); n.value = v; fire(w, n, "change");
+    c = $(w, "detail-content");
+    assert.ok(!pack().querySelector(".note.warn"), "keine Warnung bei N=" + v);
+    assert.match(pack().textContent, /greift erst ab 8 Mahlzeiten/);
+    assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
+    assert.equal(kitchenRows(c)["Aptamil Pre (Pulver)"], undefined);
+  }
   fire(w, pack().querySelector("#pack-reset"));
   assert.equal(pack().querySelector("#pack-n").value, "7");
   fire(w, $(w, "detail-close"));
