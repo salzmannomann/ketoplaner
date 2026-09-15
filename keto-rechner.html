@@ -687,6 +687,12 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
   #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
   #mct-share-ctl button { padding: 8px 4px; }
 }
+/* Vorgaben: Zurücksetzen-Links stehen rechts in der Beschriftungszeile – die Feldhöhe bleibt dadurch immer gleich */
+.settings-grid { align-items: start; }
+.label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.label-row label { margin: 0; }
+.label-row .linkbtn { font-size: 12px; white-space: nowrap; padding: 0; }
+.label-row .linkbtn[hidden] { display: none; }
 
 </style>
 </head>
@@ -753,14 +759,12 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
             <div class="hint" id="ratio-hint"></div>
           </div>
           <div>
-            <label>Kalorien pro Tag (Ziel)</label>
+            <div class="label-row"><label>Kalorien pro Tag (Ziel)</label><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="hint reset-hint" id="reset-kcal" hidden><button type="button" class="linkbtn" data-reset="kcal">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div>
-            <label>Kalorien mindestens pro Tag</label>
+            <div class="label-row"><label>Kalorien mindestens pro Tag</label><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="hint reset-hint" id="reset-kcalmin" hidden><button type="button" class="linkbtn" data-reset="kcalMin">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -771,7 +775,7 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
           <div>
-            <label>Eiweiß-Bedarf</label>
+            <div class="label-row"><label>Eiweiß-Bedarf</label><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
             <div class="inline-row">
               <select id="set-proteinmode">
                 <option value="0">manuell eingeben</option>
@@ -782,7 +786,6 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
-            <div class="hint" id="eiweiss-hint"></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -810,14 +813,12 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
         </div>
         <div class="settings-grid">
           <div>
-            <label>Flüssigkeit gesamt pro Tag (ml)</label>
+            <div class="label-row"><label>Flüssigkeit gesamt pro Tag (ml)</label><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="hint reset-hint" id="reset-fluid" hidden><button type="button" class="linkbtn" data-reset="fluidMl">↺ Vorschlag nach Gewicht übernehmen</button></div>
           </div>
           <div id="zwischen-field">
-            <label>Wasser je Zwischenzeit (ml)</label>
+            <div class="label-row"><label>Wasser je Zwischenzeit (ml)</label><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
-            <div class="hint reset-hint" id="reset-zwischen" hidden><button type="button" class="linkbtn" data-reset="zwischenMl">↺ zurück auf 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -2124,6 +2125,7 @@ const RECIPES_SONDE = [
     show("reset-kcalmin", d.kcalMinManual);
     show("reset-fluid", d.fluidManual);
     show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    show("reset-protein", d.proteinPerKg !== d.proteinStandard);
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
     put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
@@ -2132,10 +2134,6 @@ const RECIPES_SONDE = [
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
-    const eh = $("eiweiss-hint");
-    if (eh) eh.innerHTML = d.proteinPerKg === d.proteinStandard
-      ? "Standard: " + fmt(d.proteinStandard, 1) + " g je kg Körpergewicht und Tag – die Verordnung geht vor."
-      : "Standard wäre " + fmt(d.proteinStandard, 1) + " g/kg/Tag" + (d.weight > 0 ? " (= " + fmt(Math.round(d.weight * d.proteinStandard), 0) + " g/Tag)" : "") + '<br><button type="button" class="linkbtn" data-reset="proteinPerKg">↺ Standard übernehmen</button>';
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

@@ -541,6 +541,7 @@
     show("reset-kcalmin", d.kcalMinManual);
     show("reset-fluid", d.fluidManual);
     show("reset-zwischen", !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
+    show("reset-protein", d.proteinPerKg !== d.proteinStandard);
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
     put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
     put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
@@ -549,10 +550,6 @@
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
-    const eh = $("eiweiss-hint");
-    if (eh) eh.innerHTML = d.proteinPerKg === d.proteinStandard
-      ? "Standard: " + fmt(d.proteinStandard, 1) + " g je kg Körpergewicht und Tag – die Verordnung geht vor."
-      : "Standard wäre " + fmt(d.proteinStandard, 1) + " g/kg/Tag" + (d.weight > 0 ? " (= " + fmt(Math.round(d.weight * d.proteinStandard), 0) + " g/Tag)" : "") + '<br><button type="button" class="linkbtn" data-reset="proteinPerKg">↺ Standard übernehmen</button>';
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

@@ -62,7 +62,8 @@ Vorgaben.
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
   markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Überall,
   wo ein eigener Wert einen Vorschlag ersetzt, erscheint ein Link
-  **„↺ Vorschlag übernehmen"** zum Zurücksetzen.
+  **„↺ Vorschlag"** (bzw. „↺ Standard") rechts in der Beschriftung zum
+  Zurücksetzen – die Felder bleiben dabei an ihrem Platz.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
   Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
   dazu **Flüssigkeit gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,

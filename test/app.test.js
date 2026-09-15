@@ -274,23 +274,23 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 850");
   // Eiweiß: Standard 1,5 g/kg erkennbar
   assert.match(w.document.querySelector("#set-proteinmode option[value='1.5']").textContent, /Standard/);
-  assert.match($(w, "eiweiss-hint").textContent, /Standard: 1,5 g je kg/);
+  assert.ok($(w, "reset-protein").hidden, "kein Standard-Link, solange der Standard gilt");
   // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
   const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
   assert.ok(!$(w, "reset-kcal").hidden);
   assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell/);
-  fire(w, w.document.querySelector("#reset-kcal button"));
+  fire(w, $(w, "reset-kcal"));
   assert.equal($(w, "set-kcal").value, "");
   assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, Vorschlag/);
   const fl = $(w, "set-fluid"); fl.value = "900"; fire(w, fl, "input");
   assert.ok(!$(w, "reset-fluid").hidden);
-  fire(w, w.document.querySelector("#reset-fluid button"));
+  fire(w, $(w, "reset-fluid"));
   assert.equal($(w, "set-fluid").value, ""); assert.ok($(w, "reset-fluid").hidden);
   assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag \(Vorschlag/);
   // Eiweiß abweichend → Standard-Link
   const pm = $(w, "set-proteinmode"); pm.value = "2"; fire(w, pm, "change");
-  assert.match($(w, "eiweiss-hint").textContent, /Standard wäre 1,5 g\/kg\/Tag \(= 13 g\/Tag\)/);
-  fire(w, $(w, "eiweiss-hint").querySelector("button"));
+  assert.ok(!$(w, "reset-protein").hidden);
+  fire(w, $(w, "reset-protein"));
   assert.equal($(w, "set-proteinmode").value, "1.5");
   // Gewicht ändern → Vorschläge ziehen mit
   const wi = $(w, "set-weight"); wi.value = "10"; fire(w, wi, "input");

@@ -670,3 +670,9 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
   #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
   #mct-share-ctl button { padding: 8px 4px; }
 }
+/* Vorgaben: Zurücksetzen-Links stehen rechts in der Beschriftungszeile – die Feldhöhe bleibt dadurch immer gleich */
+.settings-grid { align-items: start; }
+.label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.label-row label { margin: 0; }
+.label-row .linkbtn { font-size: 12px; white-space: nowrap; padding: 0; }
+.label-row .linkbtn[hidden] { display: none; }
