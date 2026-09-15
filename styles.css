@@ -658,3 +658,15 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
   .topbar { min-height: 72px; }
   .tabbar { top: 72px; }
 }
+/* Kein Querscrollen am Handy: Segment-Schalter in den Vorgaben füllen die Breite und brechen um, statt abgeschnitten zu werden */
+@media (max-width: 560px) {
+  html, body { overflow-x: hidden; }
+  .overlay { overflow-x: hidden; }
+  .preset-row .segmented.mini { display: flex; flex-wrap: wrap; width: 100%; }
+  .preset-row .segmented.mini button {
+    flex: 1 1 auto; white-space: normal; line-height: 1.25; padding: 8px 8px;
+    border-bottom: 1px solid var(--line); margin-bottom: -1px; margin-right: -1px;
+  }
+  #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
+  #mct-share-ctl button { padding: 8px 4px; }
+}
