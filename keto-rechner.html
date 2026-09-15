@@ -2528,11 +2528,22 @@ const RECIPES_SONDE = [
       const kurz = pk.kurz || pk.auffuellen;
       const tage = (n) => fmt(n / d.mahl, 1) + " Tag" + (Math.abs(n / d.mahl - 1) < 0.05 ? "" : "e") + " bei " + d.mahl + " Mahlzeiten/Tag";
       const sgn = (v) => (v < -0.05 ? "−" : v > 0.05 ? "+" : "±") + fmt(Math.abs(v), 0);
+      // Haltbarkeit: reicht die Packung ohne Aufteilung länger als sie offen haltbar ist, verfällt der Rest –
+      // aufbrauchen ginge dann nur mit mehr Compleat je Mahlzeit, also mehr Kalorien (wird vorgerechnet).
+      const maxInTage = d.mahl * pk.tage;
+      let haltNote = "";
+      if (pi.nAuto > maxInTage) {
+        const alt = computePackSplit(rec, d.kcalMahl, d.ratio, maxInTage, "verhaeltnis", 0, false);
+        const used = maxInTage * pi.mlStd;
+        haltNote = '<div class="note warn">⚠️ Haltbarkeit: In ' + pk.tage + ' Tagen werden bei ' + d.mahl + ' Mahlzeiten/Tag nur ' + maxInTage + ' × ' + fmt(pi.mlStd, 0) + ' ml = ' + fmt(used, 0) + ' ml verbraucht, <strong>' + fmt(pk.ml - used, 0) + ' ml verfallen</strong>. ' +
+          'Bei ' + fmtTarget(d.ratio) + ' lässt sich die Packung in ' + pk.tage + ' Tagen nur mit deutlich mehr Kalorien aufbrauchen' +
+          (alt && alt.ok ? ' (auf ' + maxInTage + ' aufgeteilt: ' + fmt(alt.pack.fixedMl, 0) + ' ml + ' + fmt(alt.pack.k, 1) + ' g KetoCal = <strong>' + fmt(alt.kcal, 0) + ' kcal</strong> je Mahlzeit statt ' + fmt(d.kcalMahl, 0) + ')' : '') + '.</div>';
+      }
       let txt;
       if (packNSet > 0 && !active && kcalMode && packNSet <= pi.nAuto) {
         // Kein Fehler: bis nAuto Mahlzeiten reicht die Standardmenge – Auffüllen greift erst darüber.
         txt = '<div class="meat-note">Bis ' + pi.nAuto + ' Mahlzeiten braucht es kein Auffüllen: die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> à ' + fmt(pi.mlStd, 0) + ' ml (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
-          'Das Auffüllen mit ' + escapeHtml(pk.auffuellen) + ' greift erst ab ' + (pi.nAuto + 1) + ' Mahlzeiten. Soll die Packung trotzdem genau aufgehen, unter Vorgaben die Rechenregel „Verhältnis halten“ wählen – dann dürfen die Kalorien abweichen.</div>';
+          'Das Auffüllen mit ' + escapeHtml(pk.auffuellen) + ' greift erst ab ' + (pi.nAuto + 1) + ' Mahlzeiten. Soll die Packung trotzdem genau aufgehen, unter Vorgaben die Rechenregel „Verhältnis halten“ wählen – dann dürfen die Kalorien abweichen.</div>' + haltNote;
       } else if (packNSet > 0 && !active) {
         txt = '<div class="note warn">⚠️ Auf ' + packNSet + ' Mahlzeiten geht die Packung bei ' + fmtTarget(d.ratio) + ' nicht auf (' +
           (ps && ps.pack && ps.pack.p < -0.05 ? escapeHtml(pk.auffuellen) + ' müsste negativ werden' : 'KetoCal müsste negativ werden – ' + escapeHtml(pk.food) + ' allein liegt schon über dem Verhältnis') +
@@ -2557,17 +2568,18 @@ const RECIPES_SONDE = [
           packNSet + ' Mahlzeiten = ' + tage(packNSet) + '.</div>';
       } else {
         txt = '<div class="meat-note">Ohne Aufteilung: ' + fmt(pi.mlStd, 0) + ' ml je Mahlzeit → die Packung reicht für <strong>' + pi.nAuto + ' Mahlzeiten</strong> (' + tage(pi.nAuto) + '), Rest ' + fmt(pi.rest, 0) + ' ml. ' +
-          'Zum Aufteilen die Mahlzeiten je Packung einstellen – z. B. ' + (d.mahl * pk.tage) + ' für ' + pk.tage + ' volle Tage.</div>';
+          'Zum Aufteilen die Mahlzeiten je Packung eintragen – z. B. ' + maxInTage + ' für ' + pk.tage + ' volle Tage.</div>' + haltNote;
       }
       packSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
         '<span class="portion-step">Auf <button type="button" class="stepbtn" data-pstep="-1">−</button>' +
-        '<input id="pack-n" type="number" min="1" step="1" inputmode="numeric" value="' + (packNSet > 0 ? packNSet : pi.nAuto) + '">' +
+        // Leer = keine Aufteilung; der Platzhalter nennt nur, wie viele Mahlzeiten ohne Aufteilung aufgehen.
+        '<input id="pack-n" type="number" min="1" step="1" inputmode="numeric" placeholder="auto (' + pi.nAuto + ')" value="' + (packNSet > 0 ? packNSet : "") + '">' +
         '<button type="button" class="stepbtn" data-pstep="1">+</button> Mahlzeiten aufteilen' +
         (packNSet > 0 ? ' <button type="button" id="pack-reset" class="linkbtn">↺ ohne Aufteilung</button>' : "") + '</span>' +
-        '<div class="segmented mini" style="margin-top:8px">' +
+        (packNSet > 0 ? '<div class="segmented mini" style="margin-top:8px">' +
           '<button type="button" data-pfill="1"' + (pset.fill ? ' class="active"' : "") + '>Auffüllen mit ' + escapeHtml(kurz) + '</button>' +
           '<button type="button" data-pfill="0"' + (!pset.fill ? ' class="active"' : "") + '>nicht auffüllen</button>' +
-        '</div>' +
+        '</div>' : "") +
         (pset.mode === "kalorien" && !pset.fill ? '<div class="hint" style="margin-top:6px">„Kalorien halten“ braucht einen Auffüller – ohne ihn wird nur das Verhältnis gehalten.</div>' : "") +
         txt + regelZeile(d) + '</div>';
     }
@@ -2652,7 +2664,7 @@ const RECIPES_SONDE = [
     const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel · je Tag</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
       dayRows + "<tr class='sum'><td class='name'>Summe je Tag</td><td>" + fmt(dayTotalG, 0) + "</td><td>" + fmt(dayP) + "</td><td>" + fmt(dayF) + "</td><td>" + fmt(dayC) + "</td><td>" + fmt(dayKcal, 0) + "</td></tr></tbody></table></div>";
     const daySeg =
-      '<h4 class="ph">📅 Ganzer Tag <span class="hint">wenn alle ' + dayN + ' Mahlzeiten dieses Rezept sind</span></h4>' +
+      '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit (nicht die Packung)</span></h4>' +
       '<div class="detail-tiles">' +
         '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '<br><small>Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' – unterschritten!' : ' ✓') + (dayHigh ? ' · über Korridor (' + fmt(d.kcalMaxAuto, 0) + ')' : '') + '</small></div></div>' +
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
@@ -2765,8 +2777,9 @@ const RECIPES_SONDE = [
     const packIn = c.querySelector("#pack-n");
     if (packIn) {
       packIn.addEventListener("change", () => { const v = parseInt(packIn.value, 10); if (v > 0) setPack(v, pset.fill); });
+      const packCur = () => parseInt(packIn.value, 10) || parseInt(String(packIn.placeholder).replace(/\D/g, ""), 10) || 1;
       c.querySelectorAll(".pack button[data-pstep]").forEach(b =>
-        b.addEventListener("click", () => setPack(Math.max(1, (parseInt(packIn.value, 10) || 1) + parseInt(b.dataset.pstep, 10)), pset.fill)));
+        b.addEventListener("click", () => setPack(Math.max(1, packCur() + parseInt(b.dataset.pstep, 10)), pset.fill)));
       c.querySelectorAll(".pack button[data-pfill]").forEach(b =>
         b.addEventListener("click", () => setPack(parseInt(packIn.value, 10) || 1, b.dataset.pfill === "1")));
       const pr = c.querySelector("#pack-reset"); if (pr) pr.addEventListener("click", () => setPack(0));

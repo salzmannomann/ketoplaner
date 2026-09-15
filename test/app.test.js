@@ -207,7 +207,9 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
   const pack = () => $(w, "detail-content").querySelector(".meat-swap.pack");
   assert.match(pack().textContent, /Rechenregel: ⚖️ Verhältnis halten/);
   assert.match(pack().textContent, /reicht für 7 Mahlzeiten/);
-  assert.equal(pack().querySelector("#pack-n").value, "7");
+  assert.equal(pack().querySelector("#pack-n").value, ""); assert.equal(pack().querySelector("#pack-n").placeholder, "auto (7)");
+  assert.ok(!pack().querySelector("button[data-pfill]"), "Auffüll-Schalter nur bei Aufteilung");
+  assert.ok(!/verfallen/.test(pack().textContent), "7 ≤ 10: keine Haltbarkeitswarnung");
   // Standard-Modus „Verhältnis halten“: nur KetoCal als Hebel, Kalorien dürfen abweichen, Packung geht auf
   let n = pack().querySelector("#pack-n"); n.value = "10"; fire(w, n, "change");
   c = $(w, "detail-content");
@@ -243,8 +245,16 @@ test("Packung: Compleat-Aufteilung mit Pre Apta hält Verhältnis und kcal; Pack
     assert.ok(Math.abs(kitchenRows(c)["Compleat Paediatric Nature Mix (Nestlé)"] - 68) <= 1);
   }
   fire(w, pack().querySelector("#pack-reset"));
-  assert.equal(pack().querySelector("#pack-n").value, "7");
+  assert.equal(pack().querySelector("#pack-n").value, "");
   fire(w, $(w, "detail-close"));
+  // 1,5:1 mit 4 Mahlzeiten: ohne Aufteilung reicht die Packung 14 Mahlzeiten = 3,5 Tage > 2 Tage haltbar → Warnung mit Vorrechnung
+  const w15 = boot({ settings: { mctShare: 0, ratio: 1.5, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
+  const c15 = openRecipe(w15, "KetoCal & Compleat");
+  const p15 = c15.querySelector(".meat-swap.pack").textContent;
+  assert.match(p15, /reicht für 14 Mahlzeiten/); assert.match(p15, /22[89] ml verfallen/); assert.match(p15, /346 kcal/);
+  fire(w15, [...c15.querySelectorAll(".pack button[data-pstep]")].find(b => b.dataset.pstep === "1")); // + ab Platzhalter: 15
+  assert.equal($(w15, "detail-content").querySelector("#pack-n").value, "15");
+  fire(w15, $(w15, "detail-close"));
   // Tagesplan: 5 × Compleat mit Aufteilung auf 10 → heute 250 ml, 250 ml bleiben, geht an 2 Tagen genau auf
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.pack = { "fam:KetoCal & Compleat": { n: 10, mode: "verhaeltnis" } };
@@ -337,8 +347,8 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl
   {
     const c = openRecipe(w, "Hendl & Brokkoli");
-    const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ganzer Tag/.test(h.textContent));
-    assert.ok(day, "Block Ganzer Tag fehlt");
+    const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
+    assert.ok(day, "Block Ein Tag fehlt");
     const dayKcal = parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent);
     assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
     assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
@@ -350,7 +360,7 @@ test("Vorgaben: Verhältnis händisch (1,8 / 1:1 / 1:1,5) wirkt global, Chip zei
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
-    const day2 = [...c2.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ganzer Tag/.test(h.textContent));
+    const day2 = [...c2.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
     assert.ok(Math.abs(parseFloat(day2.nextElementSibling.querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
     fire(w, $(w, "detail-close"));
   }

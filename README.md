@@ -189,7 +189,10 @@ legt die **Rechenregel** unter Vorgaben fest: **⚖️ Verhältnis halten**
 abweichen (werden angezeigt), dafür geht die Packung sicher auf – fällt eine
 Mahlzeit unter das Kalorien-Minimum, füllt die App nur bis zum Minimum mit Pre
 Apta auf. Mit **„nicht auffüllen"** bleibt es bei Compleat + KetoCal, und die
-App warnt nur. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die
+App warnt nur. Reicht die Packung ohne Aufteilung länger, als sie offen haltbar
+ist (z. B. bei 1,5:1: 34 ml je Mahlzeit, 14 Mahlzeiten = 3,5 Tage), warnt die
+App, wie viel verfallen würde, und rechnet vor, wie viele Kalorien eine Mahlzeit
+hätte, wenn man die Packung trotzdem in 2 Tagen aufbraucht. Der Tagesplan warnt, wenn ein Tag unter dem Minimum liegt. Die
 Kachel in der Liste zeigt die aufgeteilte Mahlzeit mit Kennzeichen („🧃 auf 8",
 „+ Pre Apta"), also dieselben Zahlen wie Detail und Tagesplan. **🎯 Kalorien
 halten** löst zusätzlich **Pre Apta** (Kohlenhydrate) als zweiten Hebel, sodass
