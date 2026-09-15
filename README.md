@@ -61,18 +61,17 @@ Vorgaben.
   6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder automatisch g/kg). Daraus ergeben sich kcal und
   Eiweiß-Ziel je Mahlzeit.
-- **Flüssigkeit:** Tagesbedarf in ml (leer = Richtwert nach Holliday-Segar,
-  100 ml/kg bis 10 kg), **Höchstmenge je Mahlzeit** (leer = 25 ml/kg) und der
-  Modus: **„ausgewogen"** (Standard: zwischen den Mahlzeiten je eine feste
-  Wassergabe – **„Wasser je Zwischenzeit"**, Vorgabe 60 ml = eine Spritze, bei
-  N Mahlzeiten N−1 Gaben; der Rest des Tagesbedarfs kommt in die Mahlzeiten,
-  höchstens bis zur Höchstmenge; reicht das nicht, nennt die App die
-  Fehlmenge), **„nur zwischen den Mahlzeiten"** (Rezepte
-  unverändert) oder **„nur in den Mahlzeiten"** (voller Anteil ohne
-  Obergrenze). Gemerktes Wasser hat immer Vorrang; liegt eine Mahlzeit über
-  der Höchstmenge, warnt die App. Gezählt wird das Wasser der Zutaten (Näherung: Rest
-  ohne Eiweiß, Fett, KH, Ballaststoffe; Pulver und Fertigprodukte mit
-  Etikettwert) plus das Rezept-Wasser.
+- **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
+  Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
+  dazu **Flüssigkeit gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
+  100 ml/kg bis 10 kg) und, nur beim Sondieren, **Wasser je Zwischenzeit**
+  (Vorgabe 60 ml = eine Spritze; bei N Mahlzeiten N−1 Gaben). Beim Sondieren
+  kommt der Rest des Tagesbedarfs in die Mahlzeiten, höchstens 25 ml/kg je
+  Mahlzeit; reicht das nicht, nennt die App die Fehlmenge. „In den Mahlzeiten
+  dabei" gibt jeder Mahlzeit ihren vollen Anteil. Gemerktes Wasser hat immer
+  Vorrang; liegt eine Mahlzeit über 25 ml/kg, warnt die App. Gezählt wird das
+  Wasser der Zutaten (Näherung: Rest ohne Eiweiß, Fett, KH, Ballaststoffe;
+  Pulver und Fertigprodukte mit Etikettwert) plus das Rezept-Wasser.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
   Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
   wird die Regel nur angezeigt.

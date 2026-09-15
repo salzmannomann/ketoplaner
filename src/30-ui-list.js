@@ -15,9 +15,9 @@
 
     const d = derived();
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "auto: " + fmt(d.kcalMinAuto, 0);
-    put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "auto: " + fmt(d.fluidAuto, 0) : "ml/Tag";
+    put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
     put("set-zwischen", (s.zwischenMl === "" || s.zwischenMl == null) ? "" : s.zwischenMl);
-    put("set-maxmahl", d.maxMahlManual ? s.maxMahlMl : ""); $("set-maxmahl").placeholder = d.maxMahlAuto > 0 ? "auto: " + fmt(d.maxMahlAuto, 0) : "ml";
+    const zf = $("zwischen-field"); if (zf) zf.hidden = d.wasserModus !== "zwischen"; // Menge je Zwischenzeit nur, wenn sondiert wird
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;

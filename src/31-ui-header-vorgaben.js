@@ -18,20 +18,13 @@
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
     let l2 = "";
     if (d.fluidDay > 0) {
-      l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · " +
-        (d.wasserModus === "mahlzeit" ? "alles in den Mahlzeiten"
-          : d.wasserModus === "zwischen" ? "Rezepte unverändert"
-          : "max. " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit");
-      if (d.wasserModus !== "mahlzeit") {
+      l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · ";
+      if (d.wasserModus === "mahlzeit") l2 += "alles in den Mahlzeiten (je " + fmt(d.fluidMahl, 0) + " ml)";
+      else {
+        l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (d.wasserModus === "ausgewogen") {
-          l2 += " · zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml";
-          if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
-        } else if (n > 0) {
-          const rest = Math.max(0, d.fluidDay * (n / d.mahl) - planFluid);
-          l2 += " · zwischen den Mahlzeiten: " + (rest > 0.5 ? fmt(rest, 0) + " ml (" + gaps(n) + " × " + fmt(rest / gaps(n), 0) + " ml)" : "nichts nötig");
-        } else l2 += " · zwischen den Mahlzeiten: laut Tagesplan";
+        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
     chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
@@ -63,11 +56,10 @@
       b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
     const fs = document.getElementById("fluid-summary");
     if (fs) fs.innerHTML = d.fluidDay > 0
-      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Richtwert nach Holliday-Segar: 100 ml/kg bis 10 kg)") +
-        " · " + fmt(d.fluidMahl, 0) + " ml je Mahlzeit · " +
-        (d.wasserModus === "mahlzeit" ? "in den Mahlzeiten enthalten – Rezepte bekommen entsprechend mehr Wasser"
-          : d.wasserModus === "zwischen" ? "Rezepte bleiben wie sie sind, der Rest wird zwischen den Mahlzeiten sondiert"
-          : "ausgewogen: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten, der Rest in die Mahlzeiten (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit" + (d.maxMahlManual ? ", manuell" : ", 25 ml/kg") + ")")
+      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag nach Holliday-Segar: 100 ml/kg bis 10 kg)") + " · " +
+        (d.wasserModus === "mahlzeit"
+          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml (Zutaten-Wasser + Rezept-Wasser) – die Rezepte bekommen entsprechend mehr Wasser"
+          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), der Rest von " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -123,7 +115,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-maxmahl": "maxMahlMl", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {

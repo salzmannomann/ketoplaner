@@ -21,19 +21,19 @@
     const hs = (w) => w <= 0 ? 0 : w <= 10 ? 100 * w : w <= 20 ? 1000 + 50 * (w - 10) : 1500 + 20 * (w - 20);
     const fluidAuto = weight > 0 ? r10(hs(weight)) : 0;
     const fluidDay = num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto;
-    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : s.wasserModus === "zwischen" ? "zwischen" : "ausgewogen";
-    // Höchstmenge je Mahlzeit (Bolus): Richtwert 25 ml/kg, manuell übersteuerbar – im Modus „ausgewogen“ wird
-    // Wasser nur bis zu dieser Größe in die Mahlzeit gerechnet, der Rest zwischen den Mahlzeiten.
-    const maxMahlAuto = weight > 0 ? r10(weight * 25) : 0;
-    const maxMahlMl = num(s.maxMahlMl) > 0 ? num(s.maxMahlMl) : maxMahlAuto;
+    // Zwei Stellungen: „zwischen“ (Standard; frühere Werte „ausgewogen“/„zwischen“ landen hier) oder „mahlzeit“.
+    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : "zwischen";
+    // Höchstmenge je Mahlzeit (Bolus): 25 ml/kg – im Modus „zwischen“ wird Wasser nur bis zu dieser Größe in die
+    // Mahlzeit gerechnet; was darüber hinaus fehlt, meldet die App als Fehlmenge.
+    const maxMahlMl = weight > 0 ? r10(weight * 25) : 0;
     // Wasser je Zwischenzeit (eine Spritze ≈ 60 ml): feste Vorgabe; die Mahlzeiten bekommen den Rest des Tagesbedarfs.
     const zwischenMl = (s.zwischenMl === "" || s.zwischenMl == null) ? 60 : Math.max(0, num(s.zwischenMl));
     const gapsDay = Math.max(1, mahl - 1);
-    const zwischenTag = zwischenMl * gapsDay;
-    // Flüssigkeitsziel je Mahlzeit: im Modus „ausgewogen“ nach Abzug der Zwischenzeiten, sonst der volle Anteil.
-    const fluidMahlZiel = wasserModus === "ausgewogen" ? Math.max(0, fluidDay - zwischenTag) / mahl : fluidDay / mahl;
+    const zwischenTag = wasserModus === "zwischen" ? zwischenMl * gapsDay : 0;
+    // Flüssigkeitsziel je Mahlzeit: nach Abzug der Zwischenzeiten (im Modus „mahlzeit“ der volle Anteil).
+    const fluidMahlZiel = Math.max(0, fluidDay - zwischenTag) / mahl;
     return { kcal, ratio, mahl, eiweiss, autoProtein, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
-      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxMahlAuto, maxMahlManual: num(s.maxMahlMl) > 0,
+      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl,
       zwischenMl, zwischenTag, gapsDay };
   }
