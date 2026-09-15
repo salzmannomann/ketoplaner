@@ -317,7 +317,7 @@
         '<div class="dstat"><div class="v">' + fmt(dayF, 0) + ' / ' + fmt(dayC, 1) + ' g</div><div class="l">Fett / KH je Tag</div></div>' +
         fluidDayTile +
       '</div>' +
-      '<details class="collapsible"><summary>📋 Zutaten je Tag</summary>' + dayTable + '</details>' +
+      dayTable +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
 
     const c = document.getElementById("detail-content");
