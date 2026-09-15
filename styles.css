@@ -682,3 +682,18 @@ input:disabled { background: var(--bg); color: var(--muted); }
 .g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
 .portion-line { font-size: 13px; color: var(--muted); margin: -4px 0 10px; min-height: 20px; line-height: 1.4; }
 .portion-line strong { color: var(--yellow); }
+/* Detailansicht kompakter: Kopfzeile in einer Reihe, klebende Reiter, dichte Kacheln, kleine Hinweise in Tabellen */
+#detail-content .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+#detail-content .meta .badge { margin-left: 0; }
+#detail-content .detail-tabs { position: sticky; top: 0; z-index: 5; background: var(--panel); box-shadow: 0 0 0 8px var(--panel); }
+.detail-tiles.strip { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.detail-tiles.strip .dstat { padding: 8px 4px; }
+.detail-tiles.strip .dstat .v { font-size: 15px; }
+.detail-tiles.strip .dstat .l { font-size: 11px; line-height: 1.25; }
+.detail-tiles.strip .dstat .l small { font-size: 10px; }
+@media (max-width: 560px) { .detail-tiles.strip { grid-template-columns: repeat(4, 1fr); } .detail-tiles.strip .dstat .v { font-size: 14px; } }
+td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+.collapsible.mini summary { font-size: 12px; color: var(--muted); font-weight: 500; }
+.collapsible.mini p { font-size: 12px; }
+.meat-swap details.collapsible { margin: 8px 0 0; }
+.meat-note.stat-line { color: var(--ink); }

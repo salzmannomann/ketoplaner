@@ -488,7 +488,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const waterZ = kitchenRows(c)["Wasser"];
   const paneZ = c.querySelector(".pane[data-pane=rechnen]").textContent;
   assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\)/);
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Ziel 168 ml je Mahlzeit \(nach Abzug von 3 × 60 ml zwischen den Mahlzeiten\)/);
+  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Ziel 168 ml je Mahlzeit/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml; Feld je Zwischenzeit verschwindet
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
@@ -529,7 +529,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.match($(w3, "fluid-summary").textContent, /3 × 60 ml zwischen den Mahlzeiten sondieren .* \(höchstens 210 ml je Mahlzeit, 25 ml\/kg\)/);
   let c3 = openRecipe(w3, "Compleat & KetoCal");
   const kochen = c3.querySelector(".pane[data-pane=kochen]").textContent;
-  assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /Ziel 168 ml je Mahlzeit \(nach Abzug von 3 × 60 ml zwischen den Mahlzeiten\)/);
+  assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /Ziel 168 ml je Mahlzeit/);
   const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
   assert.ok(vol <= 212 && vol >= 180, "Mahlzeit unter Höchstmenge: " + vol);
   const fluidTile = [...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));

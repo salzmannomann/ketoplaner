@@ -121,7 +121,10 @@ Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
    mit („Portion angepasst: 80 %"); das Verhältnis bleibt, kcal je Mahlzeit
    ändern sich, und Tagesplan wie „Ein Tag" rechnen mit der angepassten Portion.
    Die Anpassung wird je Gericht gemerkt, „↺ wie berechnet" setzt sie zurück;
-   Wasser bleibt davon ausgenommen (gemerkter Wert je Portion). Dazu die MCT-Kacheln und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
+   Wasser bleibt davon ausgenommen (gemerkter Wert je Portion). Erklärtexte zu
+   Fleisch-Tausch und MCT sind hinter „ⓘ" eingeklappt, die MCT-Kennzahlen stehen
+   als eine Zeile beim Öl-Schalter, die Tagestabelle hinter „📋 Zutaten je Tag";
+   die Reiterleiste bleibt beim Scrollen oben sichtbar. Dazu und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
    🥩 Rind / 🦃 Pute**, ein fester Block **„Ein Tag = N × diese Mahlzeit"** (eine
    Portion × Mahlzeiten pro Tag mit Ziel und Minimum sowie einer Zutatentabelle je Tag mit
    Gramm, Eiweiß, Fett, KH und kcal je Zutat, unabhängig von der gewählten

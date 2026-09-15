@@ -27,7 +27,7 @@
   function computeMealView(rec, d, meatChoice) {
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
-    let adjIndex = base.fatIndex, adjLabel = " ⟵ Fett angepasst";
+    let adjIndex = base.fatIndex, adjLabel = '<small class="adj">⟵ Fett angepasst</small>';
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
       // Nur das Fleisch wird getauscht; Gemüse, Wasser UND Öl/Fett bleiben gleich.
@@ -39,7 +39,7 @@
       if (solved) {
         const sm = sumMacros(solved);
         res = { items: solved, ratio: ratioOf(sm), kcal: sm.kcal, ok: true, fatIndex: base.fatIndex };
-        adjIndex = swapSlot.index; adjLabel = " ⟵ Menge angepasst";
+        adjIndex = swapSlot.index; adjLabel = '<small class="adj">⟵ Menge angepasst</small>';
       }
     }
     // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Vorgaben; s = 0 lässt alles unverändert.
@@ -184,8 +184,8 @@
       basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis</div><div class="segmented mini">' +
         fam.variants.map(v => '<button type="button" data-basis="' + escapeHtml(recipeKey(v)) + '"' + (recipeKey(v) === recipeKey(rec) ? ' class="active"' : "") + ">" +
           (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join("") +
-        '</div><div class="meat-note">Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
-        (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</div></div>';
+        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
+        (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</p></details></div>';
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 2 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -211,22 +211,26 @@
           '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
           MEATS[k].icon + " " + MEATS[k].label + "</button>"
         ).join("") +
-        '</div><div class="meat-note">Es ändert sich nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von 30 g / 18 g abweichen; die Kalorien können leicht variieren).</div></div>';
+        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von 30 g / 18 g abweichen; die Kalorien können leicht variieren).</p></details></div>';
     }
 
+    const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
     let oilSeg = "";
     if (baseOilIndex >= 0) {
       const sOil = d.mctShare, mm = res.mct || null;
       const shareBtn = (v) => '<button type="button" data-mcts="' + v + '"' + (Math.abs(sOil - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>";
+      // Sichtbar bleibt eine Zeile (Kennzahlen bzw. „nur Rapsöl“), die Erklärung ist eingeklappt.
       let note;
       if (!(sOil > 0)) {
-        note = "Nur Rapsöl. Der MCT-Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – der Modus legt fest, welche Größe exakt bleibt.";
+        note = '<div class="meat-note">Nur Rapsöl.</div>' +
+          '<details class="collapsible mini"><summary>ⓘ Was bedeutet der MCT-Anteil?</summary><p>Der Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – die Rechenregel (Vorgaben) legt fest, welche Größe exakt bleibt. MCT kann durch Capronsäure (C6) den Rachen reizen: klein beginnen, lieber wenig je Mahlzeit, dafür in jeder Mahlzeit.</p></details>';
       } else {
-        note = (d.mctMode === "kalorien"
-          ? "🎯 <strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil."
-          : "⚖️ <strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm). Ein Tausch bei gleicher Fettmasse lässt das Verhältnis unberührt – die Fettart kommt darin nicht vor.") +
-          "<br>⚠️ MCT kann durch Capronsäure (C6) den Rachen reizen. Klein beginnen und die Verträglichkeit beobachten." +
-          "<br><small>MCT ist je kcal ketogener als langkettiges Fett – ein Tausch senkt die Ketose nicht. Besser verträglich: weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. Die Vorbelegung 8,3 kcal/g für MCT ist ein <strong>Praxiswert</strong>, kein belegter Etikettwert – echte Etikettwerte unter ⚙️ Einstellungen eintragen (auch Emulsionen mit geringerem Fettanteil).</small>";
+        note = (mm ? '<div class="meat-note stat-line">MCT <strong>' + fmt(mm.gMct, 1) + ' g</strong> je Portion · <strong>' + fmt(mm.energiePz, 1) + ' %</strong> der Energie (' + mctEinordnung(mm.energiePz) + ') · ' + sign(mm.dev) + fmt(Math.abs(mm.dev), 1) + ' kcal je Portion, je Tag ' + sign(mm.dev) + fmt(Math.abs(mm.dev * d.mahl), 0) + ' kcal</div>' : "") +
+          '<details class="collapsible mini"><summary>ⓘ Was bedeutet der MCT-Anteil?</summary><p>' +
+          (d.mctMode === "kalorien"
+            ? "🎯 <strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil."
+            : "⚖️ <strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm).") +
+          " ⚠️ MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, Verträglichkeit beobachten. MCT ist je kcal ketogener als langkettiges Fett, ein Tausch senkt die Ketose nicht; besser verträglich ist weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. Die Vorbelegung 8,3 kcal/g ist ein <strong>Praxiswert</strong> – echte Etikettwerte unter Vorgaben eintragen.</p></details>";
       }
       // Warnhinweise aus der ungerundeten Rechnung (§5)
       let warn = "";
@@ -239,7 +243,7 @@
       }
       oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
         '<div class="segmented mini">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
-        '<div class="meat-note">' + note + "</div>" + warn + (sOil > 0 ? regelZeile(d) : "") + "</div>";
+        note + warn + (sOil > 0 ? regelZeile(d) : "") + "</div>";
     }
 
     // Zwei Sichten auf dieselben Zutaten: Küche (abwiegen, editierbar) und Rechnen (Nährwerte, nur lesen).
@@ -250,11 +254,11 @@
       const isWaterRow = /wasser/i.test(it.food);
       const gR = Math.round(g * 10) / 10;
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
+        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ angepasst</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
       const gP = Math.round(num(it.grams) * 10) / 10;
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
-        (isWaterRow && hasWaterOverride ? " <span class='muted'>⟵ angepasst</span>" : (isWaterRow && mv.fluidAdjusted ? " <span class='muted'>⟵ Flüssigkeitsziel</span>" : "")) + "</td>" +
+        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ angepasst</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gP + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
@@ -269,7 +273,6 @@
     const dtab = ["rechnen", "kochen", "abfuellen"].indexOf(state.settings.detailTab) >= 0 ? state.settings.detailTab : "rechnen";
     const tabBtn = (k, lab) => '<button type="button" data-dtab="' + k + '"' + (dtab === k ? ' class="active"' : "") + ">" + lab + "</button>";
     const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k ? " hidden" : "") + ">";
-    const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
 
     // Ganzer Tag: eine Portion × Mahlzeiten pro Tag – unabhängig von der gewählten Portionenzahl.
     // Zeigt, was herauskäme, wenn jede Mahlzeit des Tages dieses Rezept wäre (Ziele und Minimum daneben).
@@ -288,10 +291,10 @@
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ≈ ' + fmt(foodFluidPer, 0) + ' ml + Wasser ' + fmt(waterPer, 0) + ' ml) · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (d.wasserModus === "zwischen" ? ' (nach Abzug von ' + d.gapsDay + ' × ' + fmt(d.zwischenMl, 0) + ' ml zwischen den Mahlzeiten)' : '') +
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ') · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
         (d.wasserModus === "mahlzeit"
-          ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
-          : (mv.fluidAdjusted ? ' – Wasser ' + (mv.waterCapped ? 'bis zur Höchstmenge je Mahlzeit (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest zwischen den Mahlzeiten' : 'dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – Rest zwischen den Mahlzeiten'))) +
+          ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
+          : (mv.fluidAdjusted ? (mv.waterCapped ? ' – Wasser bis zur Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest per Spritze' : ' – Wasser dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – Rest per Spritze'))) +
         (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ Mahlzeit ' + fmt(volumeMl(items), 0) + ' ml, über der Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, fluidRest = d.fluidDay - dayFluid;
@@ -308,22 +311,21 @@
 
     const daySeg =
       '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit (nicht die Packung)</span></h4>' +
-      '<div class="detail-tiles">' +
+      '<div class="detail-tiles strip">' +
         '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '<br><small>Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' – unterschritten!' : ' ✓') + (dayHigh ? ' · über Korridor (' + fmt(d.kcalMaxAuto, 0) + ')' : '') + '</small></div></div>' +
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(dayF) + ' g</div><div class="l">Fett/Tag</div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(dayC) + ' g</div><div class="l">KH/Tag</div></div>' +
+        '<div class="dstat"><div class="v">' + fmt(dayF, 0) + ' / ' + fmt(dayC, 1) + ' g</div><div class="l">Fett / KH je Tag</div></div>' +
         fluidDayTile +
       '</div>' +
-      dayTable +
+      '<details class="collapsible"><summary>📋 Zutaten je Tag</summary>' + dayTable + '</details>' +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
 
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
-        '<div><div class="title">' + escapeHtml(familyOf(rec)) + " " + ketoBadge + "</div>" +
-        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span> · " +
-        fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</div></div></div>" +
+        '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
+        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
+        fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
       '<div class="segmented detail-tabs" id="detail-tabs">' + tabBtn("rechnen", "📊 Rechnen") + tabBtn("kochen", "🍳 Kochen") + tabBtn("abfuellen", "💉 Abfüllen") + "</div>" +
 
       /* ---------- Kochen ---------- */
@@ -353,7 +355,7 @@
       /* ---------- Abfüllen ---------- */
       paneOpen("abfuellen") +
       '<div class="fill-hero"><div class="fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div>' +
-        '<div class="fill-sub">≈ ' + fmt(perMlNoOil, 0) + ' ml je Portion' + (hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
+        '<div class="fill-sub">≈ ' + fmt(perMlNoOil, 0) + ' ml je Portion' + (hasOil ? " · <strong>ohne Öl</strong>" : "") + ' · ≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
       (mult !== 1 ? '<div class="note info">Gesamt' + (hasOil ? " ohne Öl" : "") + ' ≈ <strong>' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g</strong> für ' + portionLabel + ' → <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong> abfüllen.</div>' : "") +
       (hasOil ? '<h4 class="ph">🧈 Erst vor dem Füttern einrühren <span class="hint">je Portion</span></h4><ul class="oil-list">' +
         oilRowsPer.map(it => "<li><span>" + escapeHtml(it.food) + "</span><strong>" + fmt(num(it.grams), 1) + " g</strong></li>").join("") + "</ul>" +
@@ -371,17 +373,12 @@
       '<div class="portion-line">' + (mv.hasPortion
         ? '<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> der berechneten Mahlzeit (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>'
         : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) · Gramm in der Tabelle ändern, die übrigen Zutaten skalieren mit') + '</div>' +
-      '<div class="detail-tiles">' +
+      '<div class="detail-tiles strip">' +
         '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
       "</div>" +
-      (res.mct ? '<div class="detail-tiles">' +
-        '<div class="dstat"><div class="v">' + fmt(res.mct.energiePz, 1) + ' %</div><div class="l">MCT-Anteil der Energie<br><small>' + mctEinordnung(res.mct.energiePz) + '</small></div></div>' +
-        '<div class="dstat"><div class="v">' + sign(res.mct.dev) + fmt(Math.abs(res.mct.dev), 1) + ' kcal</div><div class="l">Abweichung je Portion<br><small>je Tag ' + sign(res.mct.dev) + fmt(Math.abs(res.mct.dev * d.mahl), 0) + ' kcal (×' + d.mahl + ')</small></div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(res.mct.gMct, 1) + ' g</div><div class="l">MCT je Portion<br><small>maßgeblich für die Verträglichkeit</small></div></div>' +
-      "</div>" : "") +
       (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         nRows +
