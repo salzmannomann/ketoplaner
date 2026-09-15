@@ -195,11 +195,11 @@
       if (mlMeal > 0) {
         const nMeals = Math.floor(pk.ml / mlMeal + 1e-9), maxMeals = d.mahl * pk.tage;
         const usedInTage = Math.min(nMeals, maxMeals) * mlMeal;
+        // Kurz und kompakt: Menge je Mahlzeit, Reichweite, Verfall.
         packInfoSeg = '<div class="meat-swap pack"><div class="seg-label">🧃 Packung ' + pk.ml + ' ml · offen ' + pk.tage + ' Tage haltbar</div>' +
-          '<div class="meat-note">' + fmt(mlMeal, 0) + ' ml je Mahlzeit → eine Packung reicht für <strong>' + nMeals + ' Mahlzeiten</strong> (' + fmt(nMeals / d.mahl, 1) + ' Tage bei ' + d.mahl + ' Mahlzeiten/Tag).' +
-          (nMeals > maxMeals ? ' In ' + pk.tage + ' Tagen werden davon höchstens ' + maxMeals + ' verbraucht (' + fmt(usedInTage, 0) + ' ml), <strong>' + fmt(pk.ml - usedInTage, 0) + ' ml verfallen</strong> – oder an weniger Mahlzeiten je Tag verwenden.' : '') +
-          (nMeals < maxMeals ? ' Für ' + pk.tage + ' volle Tage (' + maxMeals + ' Mahlzeiten) braucht es mehr als eine Packung.' : '') +
-          ' Der Tagesplan zeigt, wie viel heute verplant ist.</div></div>';
+          '<div class="meat-note">' + fmt(mlMeal, 0) + ' ml je Mahlzeit · reicht für <strong>' + nMeals + ' Mahlzeiten</strong>' +
+          (nMeals > maxMeals ? ' · in ' + pk.tage + ' Tagen ' + maxMeals + ' verbraucht, <strong>' + fmt(pk.ml - usedInTage, 0) + ' ml verfallen</strong>'
+            : nMeals < maxMeals ? ' · für ' + pk.tage + ' Tage (' + maxMeals + ' Mahlzeiten) reicht eine Packung nicht' : '') + '</div></div>';
       }
     }
     const meatSlot = recipeMeatSlot(rec);
