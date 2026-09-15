@@ -1234,7 +1234,6 @@
       fluidDayNote +
       meatSeg +
       oilSeg +
-      packInfoSeg +
       '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
       '<div class="portion-line">' + (mv.hasPortion
         ? '<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> der berechneten Mahlzeit (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>'
@@ -1257,6 +1256,7 @@
         fmt(sumPer.fett) + "</td><td>" + fmt(sumPer.kh) + "</td><td>" + fmt(sumPer.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
       daySeg +
+      packInfoSeg +
       '<div class="btn-row"><button type="button" class="btn" id="edit-btn">✏️ ' + (rec.custom ? "Rezept bearbeiten" : "Zutaten ändern / tauschen (Editor)") + "</button></div>" +
       "</div>";
 
