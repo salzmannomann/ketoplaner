@@ -1002,7 +1002,7 @@
     const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan;
     if (diff > 0.5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml, 25 ml/kg) liegen – Wasser je Zwischenzeit auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen oder eine Wassergabe mehr einplanen.</div>';
     if (diff < -0.5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
-    return '<div class="note tip">💧 Zwischen den Mahlzeiten sondieren: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – damit ist der Tagesbedarf von ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
+    return '<div class="note tip">💧 Zwischen den Mahlzeiten: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – Tagesbedarf ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
   }
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
@@ -1206,7 +1206,9 @@
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
         fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
-      '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div></div>" +
+      '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
+      '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
+      '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -1261,7 +1263,7 @@
       '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
       '<div class="tbl-wrap"><table class="kitchen"><tbody>' + kRows + "</tbody></table></div>" +
       fluidLine +
-      '<details class="collapsible mini"><summary>ⓘ Menge direkt eingeben</summary><p>Eine Menge in der Liste ändern (z. B. „827 g Zucchini, weil so viel da ist") – die <strong>anderen Zutaten werden proportional mitskaliert</strong>, das Verhältnis bleibt. <strong>Ausnahme Wasser:</strong> wird nur für sich geändert. Beides wird je Rezept gemerkt.</p></details>' +
+      '<div class="hint" style="margin-top:6px">Eine Menge ändern – die anderen Zutaten skalieren mit (Wasser ausgenommen). Wird je Rezept gemerkt.</div>' +
       "</div>" +
 
       /* ---------- 5 Zubereitung ---------- */
@@ -1345,29 +1347,38 @@
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     const pages = c.querySelector("#detail-pages");
+    const panes = pages ? [...pages.querySelectorAll(":scope > .pane")] : [];
     const pageIdx = (k) => Math.max(0, DETAIL_PAGES.findIndex(pg => pg[0] === k));
+    const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
     const markTab = (k) => {
-      c.querySelectorAll("#detail-tabs button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
+      c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
+      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
       const ab = c.querySelector("#detail-tabs button.active");
       if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
     };
+    const goTo = (k, smooth) => {
+      const left = leftOf(pageIdx(k));
+      if (smooth) { try { pages.scrollTo({ left: left, behavior: "smooth" }); return; } catch (e) {} }
+      pages.scrollLeft = left;
+    };
     if (mobile && pages) {
-      pages.scrollLeft = pageIdx(dtab) * pages.clientWidth;
+      goTo(dtab, false);
       markTab(dtab);
       let st = null;
       pages.addEventListener("scroll", () => {
         clearTimeout(st);
         st = setTimeout(() => {
-          const i = Math.round(pages.scrollLeft / Math.max(1, pages.clientWidth));
-          const k = (DETAIL_PAGES[i] || DETAIL_PAGES[0])[0];
+          let best = 0, bd = Infinity;
+          panes.forEach((p, i) => { const dd = Math.abs(leftOf(i) - pages.scrollLeft); if (dd < bd) { bd = dd; best = i; } });
+          const k = DETAIL_PAGES[best][0];
           if (k !== state.settings.detailTab) { state.settings.detailTab = k; save(); markTab(k); }
         }, 80);
       });
     }
-    c.querySelectorAll("#detail-tabs button[data-dtab]").forEach(b =>
+    c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b =>
       b.addEventListener("click", () => {
         state.settings.detailTab = b.dataset.dtab; save();
-        if (mobile && pages) { markTab(b.dataset.dtab); try { pages.scrollTo({ left: pageIdx(b.dataset.dtab) * pages.clientWidth, behavior: "smooth" }); } catch (e) { pages.scrollLeft = pageIdx(b.dataset.dtab) * pages.clientWidth; } }
+        if (mobile && pages) { markTab(b.dataset.dtab); goTo(b.dataset.dtab, true); }
         else renderDetail();
       }));
 

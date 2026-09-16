@@ -490,7 +490,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
   const paneZ = rechnenText(c);
-  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\)/);
+  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\)/);
   assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Ziel 168 ml je Mahlzeit/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml; Feld je Zwischenzeit verschwindet
@@ -521,7 +521,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const t2 = $(w2, "heute-content").textContent;
-  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\) – damit ist der Tagesbedarf von 850 ml erreicht/);
+  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\) – Tagesbedarf 850 ml erreicht/);
   assert.match($(w2, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml · Rest in den Mahlzeiten/);
   assert.doesNotMatch($(w2, "rx-chip").textContent, /fehlen/);
   // Manuelle Vorgabe
@@ -538,7 +538,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const fluidTile = [...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(parseFloat(fluidTile.querySelector(".v").textContent) - 670) <= 3, "Mahlzeiten liefern 850 − 180: " + fluidTile.textContent);
   const paneA = rechnenText(c3);
-  assert.match(paneA, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\) – damit ist der Tagesbedarf von 850 ml erreicht/);
+  assert.match(paneA, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\) – Tagesbedarf 850 ml erreicht/);
   assert.match($(w3, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml/);
   // Zwischenzeit auf 0 ml: Mahlzeiten müssten 213 ml Flüssigkeit liefern – über der Höchstmenge → Hinweis auf Fehlmenge
   fire(w3, $(w3, "detail-close"));
