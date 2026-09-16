@@ -338,13 +338,8 @@
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
         fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
       '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
-      // Seitenleiste (Handy): ‹ vorige Seite · Punkte · nächste Seite › – zeigt, dass es weitere Seiten gibt.
-      '<div class="page-dots" id="page-dots">' +
-        '<button type="button" class="pg-nav pg-prev" id="pg-prev"></button>' +
-        '<span class="pg-center">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-        '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></span>" +
-        '<button type="button" class="pg-nav pg-next" id="pg-next"></button>' +
-      "</div></div>" +
+      '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
+      '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -490,9 +485,6 @@
     const markTab = (k) => {
       c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
       const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
-      const i = pageIdx(k), prev = c.querySelector("#pg-prev"), next = c.querySelector("#pg-next");
-      if (prev) { const p = DETAIL_PAGES[i - 1]; prev.textContent = p ? "‹ " + p[1].replace(/^\S+\s/, "") : ""; prev.dataset.dtab = p ? p[0] : ""; prev.style.visibility = p ? "visible" : "hidden"; }
-      if (next) { const n = DETAIL_PAGES[i + 1]; next.textContent = n ? n[1].replace(/^\S+\s/, "") + " ›" : ""; next.dataset.dtab = n ? n[0] : ""; next.style.visibility = n ? "visible" : "hidden"; }
       const ab = c.querySelector("#detail-tabs button.active");
       if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
     };
@@ -515,9 +507,8 @@
         }, 80);
       });
     }
-    c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab], #page-dots .pg-nav").forEach(b =>
+    c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b =>
       b.addEventListener("click", () => {
-        if (!b.dataset.dtab) return;
         state.settings.detailTab = b.dataset.dtab; save();
         if (mobile && pages) { markTab(b.dataset.dtab); goTo(b.dataset.dtab, true); }
         else renderDetail();
