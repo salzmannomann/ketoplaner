@@ -75,8 +75,8 @@ Vorgaben.
   Vorrang; liegt eine Mahlzeit über 25 ml/kg, warnt die App. Gezählt wird das
   Wasser der Zutaten (Näherung: Rest ohne Eiweiß, Fett, KH, Ballaststoffe;
   Pulver und Fertigprodukte mit Etikettwert) plus das Rezept-Wasser.
-- **Küche – Rundung beim Abwiegen:** 0,1 g · **0,5 g** (Standard) · 1 g für
-  Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet.
+- **Rundung beim Abwiegen (fest):** Gemüse, Fleisch, Obst, Brei und Pulver
+  werden auf 0,5 g gerundet, Wasser auf 1 ml.
   Fettträger (Öl, Butter, Obers, KetoCal) folgen dieser Rundung **nicht**: sie
   werden nach dem Runden der anderen Zutaten so nachgestellt, dass das
   Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). Gerundet wird die

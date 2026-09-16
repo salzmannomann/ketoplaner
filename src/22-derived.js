@@ -16,8 +16,8 @@
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
-    // Rundung beim Abwiegen (alle Zutaten außer Fettträgern; Wasser auf 1 ml; Fettträger immer 0,1 g)
-    const rundung = [0.1, 0.5, 1].indexOf(num(s.rundung)) >= 0 ? num(s.rundung) : 0.5;
+    // Rundung beim Abwiegen: alle Zutaten außer Fettträgern fest auf 0,5 g, Wasser auf 1 ml, Fettträger immer 0,1 g.
+    const rundung = 0.5;
     // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;

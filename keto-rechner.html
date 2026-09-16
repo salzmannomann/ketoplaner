@@ -1040,14 +1040,6 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 
       <div class="card">
         <h3>🍳 Küche</h3>
-        <div class="preset-row">
-          <span class="seg-label">Rundung beim Abwiegen:</span>
-          <div class="segmented mini" id="rundung-ctl">
-            <button type="button" data-rund="0.1">0,1 g</button>
-            <button type="button" data-rund="0.5">0,5 g</button>
-            <button type="button" data-rund="1">1 g</button>
-          </div>
-        </div>
         <div class="settings-grid">
           <div>
             <label>Verdunstung beim Dämpfen (ml)</label>
@@ -1056,7 +1048,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Rundung und Verdunstung</summary>
-          <p><strong>Rundung:</strong> gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. Fettträger (Öl, Butter, Obers, KetoCal) folgen dieser Rundung <strong>nicht</strong>: sie werden nach dem Runden der anderen Zutaten so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
+          <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
       </div>
 
@@ -2020,8 +2012,8 @@ const RECIPES_SONDE = [
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
-    // Rundung beim Abwiegen (alle Zutaten außer Fettträgern; Wasser auf 1 ml; Fettträger immer 0,1 g)
-    const rundung = [0.1, 0.5, 1].indexOf(num(s.rundung)) >= 0 ? num(s.rundung) : 0.5;
+    // Rundung beim Abwiegen: alle Zutaten außer Fettträgern fest auf 0,5 g, Wasser auf 1 ml, Fettträger immer 0,1 g.
+    const rundung = 0.5;
     // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
@@ -2505,8 +2497,6 @@ const RECIPES_SONDE = [
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
-    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
-      b.classList.toggle("active", Math.abs(num(b.dataset.rund) - d.rundung) < 1e-9));
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
   function renderWerte() {
@@ -2607,8 +2597,6 @@ const RECIPES_SONDE = [
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
-    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
     if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>

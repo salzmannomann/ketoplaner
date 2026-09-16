@@ -391,8 +391,9 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
 });
 
-test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf 0,1 g und Verhältnis nachgestellt; 0,1 g umschaltbar", () => {
+test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf 0,1 g mit nachgestelltem Verhältnis (keine Einstellung)", () => {
   const w = boot({ settings: { mctShare: 0 } });
+  assert.equal($(w, "rundung-ctl"), null, "kein Rundungs-Schalter mehr");
   let c = openRecipe(w, "Hendl & Brokkoli");
   const rows = kitchenRows(c);
   const on = (v, st) => Math.abs(v / st - Math.round(v / st)) < 1e-6;
@@ -401,21 +402,11 @@ test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf
   assert.ok(on(rows["Rapsöl"], 0.1), "Fett auf 0,1 g");
   assert.match([...c.querySelectorAll("table.kitchen tbody tr")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+\.\d$/, "Fett immer mit einer Nachkommastelle");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.015, "Verhältnis nach Rundung: " + ratioOf(c));
-  fire(w, $(w, "detail-close"));
-  // Auf 0,1 g umstellen → feinere Werte
-  fire(w, w.document.querySelector("#rundung-ctl button[data-rund='0.1']"));
-  assert.ok(w.document.querySelector("#rundung-ctl button[data-rund='0.1']").classList.contains("active"));
-  c = openRecipe(w, "Hendl & Brokkoli");
-  const rows2 = kitchenRows(c);
-  assert.ok(on(rows2["Broccoli, gekocht"], 0.1));
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.rundung, 0.1);
-  // Ganzer Tag ×5: Vielfache bleiben im Raster (0,5 g bzw. 0,1 g)
-  fire(w, w.document.querySelector("#rundung-ctl button[data-rund='1']"));
-  c = openRecipe(w, "Hendl & Brokkoli");
+  // Ganzer Tag ×5: Vielfache bleiben im Raster
   fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
   c = $(w, "detail-content");
   const rows3 = kitchenRows(c);
-  assert.ok(on(rows3["Broccoli, gekocht"], 1) && on(rows3["Rapsöl"], 0.1), "Tagesmenge im Raster: " + JSON.stringify(rows3));
+  assert.ok(on(rows3["Broccoli, gekocht"], 0.5) && on(rows3["Rapsöl"], 0.1), "Tagesmenge im Raster: " + JSON.stringify(rows3));
 });
 
 test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {

@@ -251,8 +251,8 @@
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
-    // Rundung beim Abwiegen (alle Zutaten außer Fettträgern; Wasser auf 1 ml; Fettträger immer 0,1 g)
-    const rundung = [0.1, 0.5, 1].indexOf(num(s.rundung)) >= 0 ? num(s.rundung) : 0.5;
+    // Rundung beim Abwiegen: alle Zutaten außer Fettträgern fest auf 0,5 g, Wasser auf 1 ml, Fettträger immer 0,1 g.
+    const rundung = 0.5;
     // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
@@ -736,8 +736,6 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
-    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
-      b.classList.toggle("active", Math.abs(num(b.dataset.rund) - d.rundung) < 1e-9));
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
   function renderWerte() {
@@ -838,8 +836,6 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
-    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
     if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
