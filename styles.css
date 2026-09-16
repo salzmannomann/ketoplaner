@@ -845,3 +845,11 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   #view-vorgaben .btn-row { gap: 6px; }
 }
 @media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } }
+/* Rezeptleiste am Desktop: alle Gruppen in einer Zeile (schmalere Chips), Knöpfe oben ausgerichtet */
+@media (min-width: 821px) {
+  .listbar { align-items: flex-start; gap: 10px; }
+  #filter-bar { gap: 5px; padding: 0; }
+  #filter-bar .chip { padding: 6px 9px; font-size: 13px; }
+  .listbar-actions { gap: 4px; }
+  .iconbtn.round { width: 34px; height: 34px; font-size: 15px; }
+}
