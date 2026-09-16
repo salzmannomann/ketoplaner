@@ -4,6 +4,8 @@
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
   function round1(v) { return Math.round(v * 10) / 10; }
+  // Auf einen Schritt runden (0,1 / 0,5 / 1 g) – Fließkomma-sauber auf 3 Nachkommastellen.
+  function roundTo(v, step) { const st = step > 0 ? step : 0.1; return Math.round(Math.round(v / st) * st * 1000) / 1000; }
   function fmt(v, dec) {
     if (v === "" || v === null || v === undefined || !isFinite(v)) return "—";
     const d = dec === undefined ? 1 : dec;

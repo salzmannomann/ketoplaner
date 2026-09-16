@@ -24,7 +24,7 @@
         l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 3) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
     chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
@@ -73,6 +73,8 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
+    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
+      b.classList.toggle("active", Math.abs(num(b.dataset.rund) - d.rundung) < 1e-9));
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
   function renderWerte() {
@@ -168,6 +170,8 @@
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
     if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>

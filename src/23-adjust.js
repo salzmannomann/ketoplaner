@@ -11,6 +11,28 @@
     });
     return idx;
   }
+  // Fettträger einer Zutatenliste: die Stell-Zutat (fettdominanteste) plus alle Öle.
+  function isFatCarrier(items, i) { return i === fatItemIndex(items) || isOilName(items[i].food); }
+  // Rundung fürs Abwiegen: alle Zutaten außer den Fettträgern auf `step` (Wasser auf 1 ml). Danach werden die
+  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht, und auf 0,1 g gerundet.
+  // Damit bleibt das Verhältnis praktisch exakt; die Abweichung liegt nur noch in der 0,1-g-Rundung des Fetts.
+  function roundForScale(items, step) {
+    const target = ratioOf(sumMacros(items));
+    const fi = fatItemIndex(items);
+    const fatG = (i) => i === fi || isOilName(items[i].food);
+    const out = items.map((it, i) => {
+      if (fatG(i)) return { food: it.food, grams: num(it.grams) };
+      return { food: it.food, grams: roundTo(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
+    });
+    if (target > 0 && fi >= 0) {
+      let fO = 0, pcO = 0, fF = 0, pcF = 0;
+      out.forEach((it, i) => { const m = lineMacros(it); if (fatG(i)) { fF += m.fett; pcF += m.eiweiss + m.kh; } else { fO += m.fett; pcO += m.eiweiss + m.kh; } });
+      const denom = fF - target * pcF;
+      if (denom > 1e-9) { const k = (target * pcO - fO) / denom; if (k > 0 && isFinite(k)) out.forEach((it, i) => { if (fatG(i)) it.grams = num(it.grams) * k; }); }
+    }
+    out.forEach((it, i) => { if (fatG(i)) it.grams = roundTo(num(it.grams), 0.1); });
+    return out;
+  }
   // Rechnet Rezept auf Ziel-Verhältnis + Ziel-Kalorien um.
   function computeAdjustedRecipe(rec, targetKcal, ratio) {
     const base = rec.items.map(it => ({ food: it.food, grams: num(it.grams) }));

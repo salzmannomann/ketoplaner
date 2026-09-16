@@ -1017,6 +1017,15 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 
       <div class="card">
         <h3>🍳 Küche</h3>
+        <div class="preset-row">
+          <span class="seg-label">Rundung beim Abwiegen:</span>
+          <div class="segmented mini" id="rundung-ctl">
+            <button type="button" data-rund="0.1">0,1 g</button>
+            <button type="button" data-rund="0.5">0,5 g</button>
+            <button type="button" data-rund="1">1 g</button>
+          </div>
+        </div>
+        <p class="hint">Gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. <strong>Fettträger</strong> (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt.</p>
         <div class="settings-grid">
           <div>
             <label>Verdunstung beim Dämpfen (ml)</label>
@@ -1828,6 +1837,8 @@ const RECIPES_SONDE = [
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
   function round1(v) { return Math.round(v * 10) / 10; }
+  // Auf einen Schritt runden (0,1 / 0,5 / 1 g) – Fließkomma-sauber auf 3 Nachkommastellen.
+  function roundTo(v, step) { const st = step > 0 ? step : 0.1; return Math.round(Math.round(v / st) * st * 1000) / 1000; }
   function fmt(v, dec) {
     if (v === "" || v === null || v === undefined || !isFinite(v)) return "—";
     const d = dec === undefined ? 1 : dec;
@@ -1985,6 +1996,8 @@ const RECIPES_SONDE = [
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
     const dampfVerdunstung = num(s.dampfVerdunstung);
+    // Rundung beim Abwiegen (alle Zutaten außer Fettträgern; Wasser auf 1 ml; Fettträger immer 0,1 g)
+    const rundung = [0.1, 0.5, 1].indexOf(num(s.rundung)) >= 0 ? num(s.rundung) : 0.5;
     // Kalorien-Korridor: Richtwert ≈ 80 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate), Untergrenze 70 kcal/kg,
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
@@ -2007,7 +2020,7 @@ const RECIPES_SONDE = [
     const zwischenTag = wasserModus === "zwischen" ? zwischenMl * gapsDay : 0;
     // Flüssigkeitsziel je Mahlzeit: nach Abzug der Zwischenzeiten (im Modus „mahlzeit“ der volle Anteil).
     const fluidMahlZiel = Math.max(0, fluidDay - zwischenTag) / mahl;
-    return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung,
+    return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung, rundung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
       fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl,
       zwischenMl, zwischenTag, gapsDay };
@@ -2025,6 +2038,28 @@ const RECIPES_SONDE = [
       if (rr > best) { best = rr; idx = i; }
     });
     return idx;
+  }
+  // Fettträger einer Zutatenliste: die Stell-Zutat (fettdominanteste) plus alle Öle.
+  function isFatCarrier(items, i) { return i === fatItemIndex(items) || isOilName(items[i].food); }
+  // Rundung fürs Abwiegen: alle Zutaten außer den Fettträgern auf `step` (Wasser auf 1 ml). Danach werden die
+  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht, und auf 0,1 g gerundet.
+  // Damit bleibt das Verhältnis praktisch exakt; die Abweichung liegt nur noch in der 0,1-g-Rundung des Fetts.
+  function roundForScale(items, step) {
+    const target = ratioOf(sumMacros(items));
+    const fi = fatItemIndex(items);
+    const fatG = (i) => i === fi || isOilName(items[i].food);
+    const out = items.map((it, i) => {
+      if (fatG(i)) return { food: it.food, grams: num(it.grams) };
+      return { food: it.food, grams: roundTo(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
+    });
+    if (target > 0 && fi >= 0) {
+      let fO = 0, pcO = 0, fF = 0, pcF = 0;
+      out.forEach((it, i) => { const m = lineMacros(it); if (fatG(i)) { fF += m.fett; pcF += m.eiweiss + m.kh; } else { fO += m.fett; pcO += m.eiweiss + m.kh; } });
+      const denom = fF - target * pcF;
+      if (denom > 1e-9) { const k = (target * pcO - fO) / denom; if (k > 0 && isFinite(k)) out.forEach((it, i) => { if (fatG(i)) it.grams = num(it.grams) * k; }); }
+    }
+    out.forEach((it, i) => { if (fatG(i)) it.grams = roundTo(num(it.grams), 0.1); });
+    return out;
   }
   // Rechnet Rezept auf Ziel-Verhältnis + Ziel-Kalorien um.
   function computeAdjustedRecipe(rec, targetKcal, ratio) {
@@ -2407,7 +2442,7 @@ const RECIPES_SONDE = [
         l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 0.5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 3) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
     chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
@@ -2456,6 +2491,8 @@ const RECIPES_SONDE = [
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
+    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
+      b.classList.toggle("active", Math.abs(num(b.dataset.rund) - d.rundung) < 1e-9));
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
   function renderWerte() {
@@ -2551,6 +2588,8 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
+    document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
     if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
@@ -2712,6 +2751,12 @@ const RECIPES_SONDE = [
         fluidAdjusted = true;
       }
     }
+    // Zum Schluss: Rundung fürs Abwiegen (Vorgabe „Rundung“), Verhältnis über die Fettträger nachgestellt.
+    {
+      const itemsR = roundForScale(res.items, d.rundung);
+      const smR = sumMacros(itemsR);
+      res = Object.assign({}, res, { items: itemsR, ratio: ratioOf(smR), kcal: smR.kcal });
+    }
     const fluid = fluidOf(res.items);
     return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, waterCapped, fluid,
       portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
@@ -2737,9 +2782,9 @@ const RECIPES_SONDE = [
   function gaps(n) { return Math.max(1, Math.round(n) - 1); }
   // Modus „zwischen“: feste Wassergabe je Zwischenzeit; fehlt danach noch etwas (Höchstmenge je Mahlzeit erreicht), wird es genannt.
   function zwischenText(d, rest, n) {
-    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan;
-    if (diff > 0.5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml, 25 ml/kg) liegen – Wasser je Zwischenzeit auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen oder eine Wassergabe mehr einplanen.</div>';
-    if (diff < -0.5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
+    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan; // Toleranz 3 ml (Wasser wird je Mahlzeit auf 1 ml gerundet)
+    if (diff > 3) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml, 25 ml/kg) liegen – Wasser je Zwischenzeit auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen oder eine Wassergabe mehr einplanen.</div>';
+    if (diff < -3) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
     return '<div class="note tip">💧 Zwischen den Mahlzeiten: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – Tagesbedarf ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
   }
   function regelZeile(d) {
@@ -2867,7 +2912,7 @@ const RECIPES_SONDE = [
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: num(it.grams) }); // Rechnen: je Portion
       const isWaterRow = /wasser/i.test(it.food);
-      const gR = Math.round(g * 10) / 10;
+      const gR = isFatCarrier(items, i) ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
         (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ angepasst</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"></td></tr>';
@@ -2918,12 +2963,12 @@ const RECIPES_SONDE = [
       : "";
     const dayFluid = fluidPer * dayN, fluidRest = d.fluidDay - dayFluid;
     const fluidDayTile = d.fluidDay > 0
-      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
+      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
           ? zwischenText(d, fluidRest, dayN)
-          : (dayFluid < d.fluidDay - 0.5
+          : (dayFluid < d.fluidDay - 3
               ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel – das gemerkte Wasser im Rezept ist kleiner als der rechnerische Anteil.</div>'
               : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
@@ -3235,10 +3280,10 @@ const RECIPES_SONDE = [
         '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
         '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
-        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
+        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
         "</div>" +
         (d.fluidDay > 0 && d.wasserModus === "zwischen" ? zwischenText(d, fluidZiel - tot.fluid, tot.filled) : "") +
-        (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 0.5 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
+        (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 3 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
         (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'

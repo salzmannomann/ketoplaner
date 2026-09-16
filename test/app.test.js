@@ -348,16 +348,16 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const kcalTile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 70) <= 1, kcalTile.textContent);
   assert.match(kcalTile.textContent, /Ziel 140/);
-  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
+  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.03, "halbe Portion: Fett auf 0,1 g gerundet → " + ratioOf(c));
   assert.match(c.querySelector(".portion-line").textContent, /Portion angepasst: 50 %/);
   const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=tag] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
   const kochenAfter = kitchenRows(c);
-  assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Kochen skaliert mit");
-  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Rechnen skaliert mit");
+  assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) <= 0.3, "Kochen skaliert mit (0,5-g-Rundung)");
+  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) <= 0.3, "Rechnen skaliert mit (0,5-g-Rundung)");
   // „Ein Tag“ rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
   const day = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
   assert.match(dayTiles(day).textContent, /kcal\/Tag · Ziel 700/);
-  assert.ok(Math.abs(parseFloat(dayTiles(day).querySelector(".dstat .v").textContent) - 350) <= 3);
+  assert.ok(Math.abs(parseFloat(dayTiles(day).querySelector(".dstat .v").textContent) - 350) <= 8, "halbe Portion × 5 (Rundung)");
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.ok(Math.abs(st.portion["fam:Hendl & Brokkoli"] - 0.5) < 0.01, "Faktor gemerkt: " + st.portion["fam:Hendl & Brokkoli"]);
@@ -366,7 +366,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const kcalDay = [...$(w2, "heute-content").querySelectorAll(".dstat")][0].querySelector(".v").textContent;
-  assert.ok(Math.abs(parseFloat(kcalDay) - 350) <= 3, "Tagesplan: " + kcalDay);
+  assert.ok(Math.abs(parseFloat(kcalDay) - 350) <= 8, "Tagesplan: " + kcalDay);
   // Zurücksetzen
   c = openRecipe(w2, "Hendl & Brokkoli");
   fire(w2, c.querySelector("#portion-reset"));
@@ -380,6 +380,32 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   c = $(w2, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 80);
   assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
+});
+
+test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf 0,1 g und Verhältnis nachgestellt; 0,1 g umschaltbar", () => {
+  const w = boot({ settings: { mctShare: 0 } });
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const rows = kitchenRows(c);
+  const on = (v, st) => Math.abs(v / st - Math.round(v / st)) < 1e-6;
+  assert.ok(on(rows["Hühnerbrust ohne Haut"], 0.5) && on(rows["Broccoli, gekocht"], 0.5), "0,5-g-Raster: " + JSON.stringify(rows));
+  assert.ok(on(rows["Wasser"], 1), "Wasser auf 1 ml: " + rows["Wasser"]);
+  assert.ok(on(rows["Rapsöl"], 0.1), "Fett auf 0,1 g");
+  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.015, "Verhältnis nach Rundung: " + ratioOf(c));
+  fire(w, $(w, "detail-close"));
+  // Auf 0,1 g umstellen → feinere Werte
+  fire(w, w.document.querySelector("#rundung-ctl button[data-rund='0.1']"));
+  assert.ok(w.document.querySelector("#rundung-ctl button[data-rund='0.1']").classList.contains("active"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  const rows2 = kitchenRows(c);
+  assert.ok(on(rows2["Broccoli, gekocht"], 0.1));
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.rundung, 0.1);
+  // Ganzer Tag ×5: Vielfache bleiben im Raster (0,5 g bzw. 0,1 g)
+  fire(w, w.document.querySelector("#rundung-ctl button[data-rund='1']"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
+  c = $(w, "detail-content");
+  const rows3 = kitchenRows(c);
+  assert.ok(on(rows3["Broccoli, gekocht"], 1) && on(rows3["Rapsöl"], 0.1), "Tagesmenge im Raster: " + JSON.stringify(rows3));
 });
 
 test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird beim Tippen nicht überschrieben", () => {
