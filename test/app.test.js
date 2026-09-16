@@ -59,6 +59,8 @@ function clickChip(w, label) {
 const setPhase = (w, k) => fire(w, w.document.querySelector("#ketocal-ctl button[data-ketocal=" + k + "]"));
 // Blätter der Detailansicht: „rechnen“ (alt) = Mahlzeit + Ein Tag + Anpassen zusammen
 const rechnenText = (c) => [...c.querySelectorAll(".pane[data-pane=mahlzeit], .pane[data-pane=tag], .pane[data-pane=anpassen]")].map(p => p.textContent).join("\n");
+// „Ein Tag“: nach der Überschrift folgt die Statuszeile, dann die Kacheln
+const dayTiles = (h) => h.nextElementSibling.nextElementSibling;
 function switchDetailTab(w, k) { fire(w, $(w, "detail-content").querySelector("#detail-tabs button[data-dtab=" + k + "]")); return $(w, "detail-content"); }
 
 test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
@@ -354,8 +356,8 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Rechnen skaliert mit");
   // „Ein Tag“ rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
   const day = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
-  assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
-  assert.ok(Math.abs(parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent) - 350) <= 3);
+  assert.match(dayTiles(day).textContent, /kcal\/Tag · Ziel 700/);
+  assert.ok(Math.abs(parseFloat(dayTiles(day).querySelector(".dstat .v").textContent) - 350) <= 3);
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.ok(Math.abs(st.portion["fam:Hendl & Brokkoli"] - 0.5) < 0.01, "Faktor gemerkt: " + st.portion["fam:Hendl & Brokkoli"]);
@@ -417,9 +419,9 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     const c = openRecipe(w, "Hendl & Brokkoli");
     const day = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
     assert.ok(day, "Block Ein Tag fehlt");
-    const dayKcal = parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent);
+    const dayKcal = parseFloat(dayTiles(day).querySelector(".dstat .v").textContent);
     assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
-    assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
+    assert.match(dayTiles(day).textContent, /kcal\/Tag · Ziel 700/);
     // Zutatentabelle je Tag: jede Zeile = 5 × Mahlzeit
     const mealRows = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table, .pane[data-pane=tag] table, .pane[data-pane=anpassen] table")][0].querySelectorAll("tbody tr:not(.sum)");
     const dayRows = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table, .pane[data-pane=tag] table, .pane[data-pane=anpassen] table")][1].querySelectorAll("tbody tr:not(.sum)");
@@ -429,7 +431,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
     const day2 = [...c2.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
-    assert.ok(Math.abs(parseFloat(day2.nextElementSibling.querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
+    assert.ok(Math.abs(parseFloat(dayTiles(day2).querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
     fire(w, $(w, "detail-close"));
   }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts

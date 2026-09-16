@@ -319,10 +319,13 @@
 
     const daySeg =
       '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit</span></h4>' +
+      '<div class="portion-line">' + dayN + ' × diese Mahlzeit · Minimum ' + fmt(d.kcalMin, 0) + ' kcal' + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
+        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) + ' kcal' : '')) +
+        ' · Fett ' + fmt(dayF, 0) + ' g · KH ' + fmt(dayC, 1) + ' g</div>' +
       '<div class="detail-tiles strip">' +
-        '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '<br><small>Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' – unterschritten!' : ' ✓') + (dayHigh ? ' · über Korridor (' + fmt(d.kcalMaxAuto, 0) + ')' : '') + '</small></div></div>' +
+        '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '</div></div>' +
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(dayF, 0) + ' / ' + fmt(dayC, 1) + ' g</div><div class="l">Fett / KH je Tag</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(dayTotalG, 0) + ' g</div><div class="l">Menge/Tag</div></div>' +
         fluidDayTile +
       '</div>' +
       dayTable +
@@ -344,12 +347,12 @@
       '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
       '<div class="portion-line">' + (mv.hasPortion
         ? '<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> der berechneten Mahlzeit (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>'
-        : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) · Gramm ändern, die übrigen Zutaten skalieren mit') + '</div>' +
+        : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit)') + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g / ' + fmt(ml / mult, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit</div>' +
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g</small>' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl<br><small>mit Öl ≈ ' + fmt(ml / mult, 0) + ' ml</small>' : "") + '</div></div>' +
-        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
+        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl' : "") + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl' : "") + '</div></div>' +
       "</div>" +
       (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
