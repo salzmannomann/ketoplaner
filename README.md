@@ -116,33 +116,38 @@ Vorgaben.
 
 ### Detailansicht eines Rezepts
 
-Die Detailansicht ist in drei Reiter geteilt und öffnet mit **Rechnen**:
+Die Detailansicht besteht aus **sechs Blättern** und öffnet mit **Mahlzeit**. Am
+Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Reiterleiste
+tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
+sehr vielen Zutaten scrollt das einzelne Blatt). Oben stehen fest Name,
+Verhältnis-Pille, kcal je Portion und Badges, unten fest die Aktionsleiste
+**☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen Rezepten auch 🗑️). Am Desktop
+sind die sechs Blätter Reiter nebeneinander.
 
-1. **Rechnen** – Kennzahlen **einer Portion** (kcal, Verhältnis, Eiweiß, Fett,
-   KH; unabhängig von der Zubereitungsmenge). Die **Gramm-Werte in der Tabelle
-   sind editierbar**: ändert man eine Zutat, skalieren alle anderen proportional
-   mit („Portion angepasst: 80 %"); das Verhältnis bleibt, kcal je Mahlzeit
-   ändern sich, und Tagesplan wie „Ein Tag" rechnen mit der angepassten Portion.
-   Die Anpassung wird je Gericht gemerkt, „↺ wie berechnet" setzt sie zurück;
-   Wasser bleibt davon ausgenommen (gemerkter Wert je Portion). Erklärtexte zu
-   Fleisch-Tausch und MCT sind hinter „ⓘ" eingeklappt, die MCT-Kennzahlen stehen
-   als eine Zeile beim Öl-Schalter; die Reiterleiste bleibt beim Scrollen oben sichtbar. Dazu und Warnungen, der **Fleisch-Umschalter 🍗 Huhn /
-   🥩 Rind / 🦃 Pute**, ein fester Block **„Ein Tag = N × diese Mahlzeit"** (eine
-   Portion × Mahlzeiten pro Tag mit Ziel und Minimum sowie einer Zutatentabelle je Tag mit
-   Gramm, Eiweiß, Fett, KH und kcal je Zutat, unabhängig von der gewählten
-   Portionenzahl) sowie die Links „Zutaten anpassen / tauschen"
-   (öffnet das Rezept im freien Rechner) und **Drucken** (A4 Hochformat).
-2. **Kochen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter,
-   wenn es das Gericht in beiden Varianten gibt), Zutatentabelle für die
-   gewählte Menge (Portionen-Stepper, „1 Portion" / „Ganzer Tag") und die
-   **Varoma-Anleitung** als nummerierte Schritte. Ändert man
+1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Menge, Volumen,
+   Eiweiß) und die Zutatentabelle je Portion. Die **Gramm-Werte sind
+   editierbar**: ändert man eine Zutat, skalieren alle anderen proportional mit
+   („Portion angepasst: 80 %"); das Verhältnis bleibt, kcal je Mahlzeit ändern
+   sich, Tagesplan und „Ein Tag" rechnen mit der angepassten Portion. Die
+   Anpassung wird je Gericht gemerkt, „↺ wie berechnet" setzt sie zurück;
+   Wasser bleibt ausgenommen (gemerkter Wert je Portion).
+2. **Ein Tag** – **= N × diese Mahlzeit**: Tageskacheln (kcal mit Ziel und
+   Minimum, Eiweiß, Fett/KH, Flüssigkeit), Zutatentabelle je Tag, der
+   Wasser-Hinweis (Sondieren zwischen den Mahlzeiten bzw. Fehlmenge) und bei
+   Compleat die Packungsinfo.
+3. **Anpassen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter),
+   **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
+   MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".
+4. **Abwiegen** – Menge zubereiten (1 Portion / Ganzer Tag / Stepper), die
+   Waage-Tabelle mit Gramm-Feldern und der kurze Wasser-Hinweis. Ändert man
    eine Zutatenmenge direkt (z. B. „827 g Zucchini"), skalieren alle anderen
-   Zutaten proportional mit; **Wasser** ist davon ausgenommen und kann
-   unabhängig angepasst werden. Menge und Wasser werden **je Rezept gemerkt**;
-   „Ganzer Tag" wird als Wahl gemerkt und folgt der Mahlzeitenzahl aus den Vorgaben.
-3. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
-   vor dem Verabreichen dazu), darunter die Öl-Menge je Portion (Rapsöl / MCT
-   getrennt) und die Gesamtmenge.
+   Zutaten proportional mit; **Wasser** ist davon ausgenommen. Menge und Wasser
+   werden **je Rezept gemerkt**; „Ganzer Tag" folgt der Mahlzeitenzahl.
+5. **Zubereitung** – die nummerierten Schritte (Varoma bevorzugt, Dämpfwasser
+   eingerechnet), groß und lesbar.
+6. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
+   vor dem Füttern dazu), die Spritzenzahl, die Öl-Zeilen je Portion und der
+   Sieb-Hinweis.
 
 ### Heute (Tagesplan)
 

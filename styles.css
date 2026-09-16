@@ -683,7 +683,7 @@ input:disabled { background: var(--bg); color: var(--muted); }
 /* Detailansicht kompakter: Kopfzeile in einer Reihe, klebende Reiter, dichte Kacheln, kleine Hinweise in Tabellen */
 #detail-content .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 #detail-content .meta .badge { margin-left: 0; }
-#detail-content .detail-tabs { position: sticky; top: 0; z-index: 5; background: var(--panel); box-shadow: 0 0 0 8px var(--panel); }
+#detail-content .detail-tabs { background: var(--panel); }
 .detail-tiles.strip { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
 .detail-tiles.strip .dstat { padding: 8px 4px; }
 .detail-tiles.strip .dstat .v { font-size: 15px; }
@@ -711,3 +711,28 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .favbtn { font-size: 20px; flex: 0 0 auto; }
 .tile-chev { color: var(--muted); font-size: 22px; line-height: 1; flex: 0 0 auto; margin-left: -4px; }
 @media (max-width: 560px) { .tiles { grid-template-columns: 1fr; gap: 6px; } }
+/* Detailansicht als sechs Blätter: Desktop = Reiter; Handy = Blätter nebeneinander, seitlich wischen, feste Kopf- und Fußzeile */
+.detail-tabs-wrap { margin: 0 0 12px; }
+.detail-tabs button { padding: 9px 6px; font-size: 13px; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.detail-actions .btn { padding: 9px 14px; font-size: 14px; }
+@media (max-width: 820px) {
+  #detail-overlay { overflow: hidden; }
+  #detail-overlay .overlay-card { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; padding: 12px 0 0; overflow: hidden; }
+  #detail-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #detail-content .detail-head { padding: 0 54px 0 14px; margin-bottom: 8px; }
+  #detail-content .detail-icon { font-size: 30px; }
+  .detail-tabs-wrap { padding: 0 14px; margin: 0 0 6px; }
+  .detail-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; width: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .detail-tabs::-webkit-scrollbar { display: none; }
+  .detail-tabs button { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; }
+  .pages { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .pages::-webkit-scrollbar { display: none; }
+  .pages .pane { flex: 0 0 100%; width: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto; padding: 4px 14px 14px; }
+  .pages .pane[hidden] { display: block; }
+  .pages .pane > .ph:first-child { margin-top: 4px; }
+  .detail-actions { margin: 0; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); background: var(--panel); flex-wrap: nowrap; }
+  .detail-actions .btn { flex: 1; padding: 9px 6px; font-size: 13px; white-space: nowrap; }
+  .detail-actions .btn.ghost { flex: 0 0 auto; }
+  #detail-content .steps li { font-size: 15px; }
+}

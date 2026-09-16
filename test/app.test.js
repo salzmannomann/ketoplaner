@@ -43,7 +43,7 @@ const ratioOf = (c) => {
   const t = c.querySelector(".ratio-pill").textContent.replace(",", ".");
   return t.startsWith("1:") ? 1 / parseFloat(t.slice(2)) : parseFloat(t.replace(":1", ""));
 };
-const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=rechnen] .dstat .v")][0].textContent.replace(".", ""));
+const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat .v, .pane[data-pane=tag] .dstat .v, .pane[data-pane=anpassen] .dstat .v")][0].textContent.replace(".", ""));
 function kitchenRows(c) {
   const out = {};
   [...c.querySelectorAll("table.kitchen tr")].forEach(r => {
@@ -57,6 +57,8 @@ function clickChip(w, label) {
   fire(w, b);
 }
 const setPhase = (w, k) => fire(w, w.document.querySelector("#ketocal-ctl button[data-ketocal=" + k + "]"));
+// Blätter der Detailansicht: „rechnen“ (alt) = Mahlzeit + Ein Tag + Anpassen zusammen
+const rechnenText = (c) => [...c.querySelectorAll(".pane[data-pane=mahlzeit], .pane[data-pane=tag], .pane[data-pane=anpassen]")].map(p => p.textContent).join("\n");
 function switchDetailTab(w, k) { fire(w, $(w, "detail-content").querySelector("#detail-tabs button[data-dtab=" + k + "]")); return $(w, "detail-content"); }
 
 test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
@@ -98,7 +100,7 @@ test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus 
     const c = openRecipe(w, "Hendl & Brokkoli");
     assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02, "Verhältnis-Modus s=" + s + ": " + ratioOf(c));
     assert.equal(w.__asserts.length, 0, "Zusicherung verletzt: " + w.__asserts.join("; "));
-    const kc = kcalOf(switchDetailTab(w, "rechnen"));
+    const kc = kcalOf(switchDetailTab(w, "mahlzeit"));
     assert.ok(kc <= lastKcal + 1, "kcal müssen mit s sinken");
     lastKcal = kc;
   }
@@ -106,7 +108,7 @@ test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus 
   for (const s of [0.1, 0.5, 1]) {
     const w = boot({ settings: { mctShare: s, mctMode: "kalorien", kcal: 700 } });
     const c = openRecipe(w, "Hendl & Brokkoli");
-    const kc = kcalOf(switchDetailTab(w, "rechnen"));
+    const kc = kcalOf(switchDetailTab(w, "mahlzeit"));
     assert.ok(Math.abs(kc - 140) <= 1, "Kalorien-Modus s=" + s + ": " + kc + " kcal");
     assert.ok(ratioOf(c) >= lastR - 0.005, "Verhältnis muss mit s steigen");
     assert.equal(w.__asserts.length, 0);
@@ -306,13 +308,13 @@ test("Zubereitungsmenge: „Ganzer Tag“ folgt der Mahlzeitenzahl; Rechnen zeig
   assert.match(tagBtn.textContent, /Ganzer Tag \(×5\)/); fire(w, tagBtn);
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Abwiegen für 5 Portionen/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 5 Portionen/);
   assert.match(c.querySelector(".detail-head").textContent, /Zubereitung: 5 Portionen \(ganzer Tag\)/);
   // Rechnen: Mahlzeit-Kacheln und Tabelle je Portion, obwohl 5 Portionen zubereitet werden
-  const kcalTile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  const kcalTile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 140) <= 1, kcalTile.textContent);
-  assert.match(c.querySelector(".pane[data-pane=rechnen]").textContent, /Mahlzeit eine Portion/);
-  assert.match(c.querySelector(".pane[data-pane=rechnen]").textContent, /Summe je Portion/);
+  assert.match(rechnenText(c), /Mahlzeit eine Portion/);
+  assert.match(rechnenText(c), /Summe je Portion/);
   fire(w, $(w, "detail-close"));
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], "tag");
   // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
@@ -320,8 +322,8 @@ test("Zubereitungsmenge: „Ganzer Tag“ folgt der Mahlzeitenzahl; Rechnen zeig
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
   assert.match(c.querySelector('.seg-portion button[data-scale="tag"]').textContent, /×4/);
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Abwiegen für 4 Portionen/);
-  const kcal4 = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 4 Portionen/);
+  const kcal4 = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
   // Zurück auf 1 Portion
   fire(w, c.querySelector('.seg-portion button[data-scale="1"]'));
@@ -334,24 +336,24 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const w = boot({ settings: { mctShare: 0, mahlzeiten: 5, weight: 8.5 } });
   let c = openRecipe(w, "Hendl & Brokkoli");
   const kochenBefore = kitchenRows(c);
-  const row = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Hüh/.test(r.textContent));
+  const row = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=tag] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Hüh/.test(r.textContent));
   const inp = row.querySelector("input.g-edit");
   assert.ok(inp, "Gramm-Feld in Rechnen fehlt");
   const g0 = parseFloat(inp.value);
   inp.value = String(g0 / 2); fire(w, inp, "change");
   c = $(w, "detail-content");
   // Portion halbiert: kcal 70 statt 140, Verhältnis bleibt, Statuszeile + Zurücksetzen
-  const kcalTile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0];
+  const kcalTile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 70) <= 1, kcalTile.textContent);
   assert.match(kcalTile.textContent, /Ziel 140/);
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
   assert.match(c.querySelector(".portion-line").textContent, /Portion angepasst: 50 %/);
-  const brok = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
+  const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=tag] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
   const kochenAfter = kitchenRows(c);
   assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Kochen skaliert mit");
   assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) < 0.2, "Rechnen skaliert mit");
   // „Ein Tag“ rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
-  const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
+  const day = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
   assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
   assert.ok(Math.abs(parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent) - 350) <= 3);
   fire(w, $(w, "detail-close"));
@@ -367,11 +369,11 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   c = openRecipe(w2, "Hendl & Brokkoli");
   fire(w2, c.querySelector("#portion-reset"));
   c = $(w2, "detail-content");
-  assert.ok(Math.abs(parseFloat([...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")][0].querySelector(".v").textContent) - 140) <= 1);
+  assert.ok(Math.abs(parseFloat([...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")][0].querySelector(".v").textContent) - 140) <= 1);
   assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
   assert.equal(JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).portion["fam:Hendl & Brokkoli"], undefined);
   // Wasser in Rechnen ändern → gemerktes Wasser, keine Skalierung
-  const wrow = [...c.querySelectorAll(".pane[data-pane=rechnen] table tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
+  const wrow = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=tag] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
   wrow.value = "80"; fire(w2, wrow, "change");
   c = $(w2, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 80);
@@ -413,20 +415,20 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl
   {
     const c = openRecipe(w, "Hendl & Brokkoli");
-    const day = [...c.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
+    const day = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
     assert.ok(day, "Block Ein Tag fehlt");
     const dayKcal = parseFloat(day.nextElementSibling.querySelector(".dstat .v").textContent);
     assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
     assert.match(day.nextElementSibling.textContent, /kcal\/Tag · Ziel 700/);
     // Zutatentabelle je Tag: jede Zeile = 5 × Mahlzeit
-    const mealRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][0].querySelectorAll("tbody tr:not(.sum)");
-    const dayRows = [...c.querySelectorAll(".pane[data-pane=rechnen] table")][1].querySelectorAll("tbody tr:not(.sum)");
+    const mealRows = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table, .pane[data-pane=tag] table, .pane[data-pane=anpassen] table")][0].querySelectorAll("tbody tr:not(.sum)");
+    const dayRows = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table, .pane[data-pane=tag] table, .pane[data-pane=anpassen] table")][1].querySelectorAll("tbody tr:not(.sum)");
     assert.equal(dayRows.length, mealRows.length);
     const gramsOf = (tr) => { const inp = tr.children[1].querySelector("input"); return parseFloat(inp ? inp.value : tr.children[1].textContent.replace(".", "").replace(",", ".")); };
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
-    const day2 = [...c2.querySelectorAll(".pane[data-pane=rechnen] .ph")].find(h => /Ein Tag/.test(h.textContent));
+    const day2 = [...c2.querySelectorAll(".pane[data-pane=mahlzeit] .ph, .pane[data-pane=tag] .ph, .pane[data-pane=anpassen] .ph")].find(h => /Ein Tag/.test(h.textContent));
     assert.ok(Math.abs(parseFloat(day2.nextElementSibling.querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
     fire(w, $(w, "detail-close"));
   }
@@ -487,9 +489,9 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   // „zwischen“: Mahlzeit wird auf 168 ml aufgefüllt, Rest per Spritze
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
-  const paneZ = c.querySelector(".pane[data-pane=rechnen]").textContent;
+  const paneZ = rechnenText(c);
   assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\)/);
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Ziel 168 ml je Mahlzeit/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Ziel 168 ml je Mahlzeit/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml; Feld je Zwischenzeit verschwindet
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
@@ -500,17 +502,17 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
   assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /Flüssigkeit je Portion ≈ 21[23] ml/);
-  const tile = [...c.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
+  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Flüssigkeit je Portion ≈ 21[23] ml/);
+  const tile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(parseFloat(tile.querySelector(".v").textContent) - 850) <= 3, tile.textContent);
-  assert.match(c.querySelector(".pane[data-pane=rechnen]").textContent, /in den Mahlzeiten dabei/);
+  assert.match(rechnenText(c), /in den Mahlzeiten dabei/);
   assert.equal(ratioOf(c), 1.8);
   // Gemerktes Wasser hat Vorrang
   const win = [...c.querySelectorAll("table.kitchen tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
   win.value = "50"; fire(w, win, "change");
   c = $(w, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 50);
-  assert.match(c.querySelector(".pane[data-pane=kochen]").textContent, /nicht erreicht/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /nicht erreicht/);
   fire(w, $(w, "detail-close"));
   // Tagesplan im Modus „zwischen“: Flüssigkeits-Kachel und Sondier-Hinweis
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
@@ -529,25 +531,25 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
   assert.match($(w3, "fluid-summary").textContent, /3 × 60 ml zwischen den Mahlzeiten sondieren .* \(höchstens 210 ml je Mahlzeit, 25 ml\/kg\)/);
   let c3 = openRecipe(w3, "Compleat & KetoCal");
-  const kochen = c3.querySelector(".pane[data-pane=kochen]").textContent;
+  const kochen = c3.querySelector(".pane[data-pane=abwiegen]").textContent;
   assert.match(kochen, /Flüssigkeitsziel/); assert.match(kochen, /Ziel 168 ml je Mahlzeit/);
-  const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
+  const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
   assert.ok(vol <= 212 && vol >= 180, "Mahlzeit unter Höchstmenge: " + vol);
-  const fluidTile = [...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
+  const fluidTile = [...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(parseFloat(fluidTile.querySelector(".v").textContent) - 670) <= 3, "Mahlzeiten liefern 850 − 180: " + fluidTile.textContent);
-  const paneA = c3.querySelector(".pane[data-pane=rechnen]").textContent;
+  const paneA = rechnenText(c3);
   assert.match(paneA, /Zwischen den Mahlzeiten sondieren: 3 × 60 ml \(je eine Spritze\) – damit ist der Tagesbedarf von 850 ml erreicht/);
   assert.match($(w3, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml/);
   // Zwischenzeit auf 0 ml: Mahlzeiten müssten 213 ml Flüssigkeit liefern – über der Höchstmenge → Hinweis auf Fehlmenge
   fire(w3, $(w3, "detail-close"));
   const zw = $(w3, "set-zwischen"); zw.value = "0"; fire(w3, zw, "input");
   c3 = openRecipe(w3, "Compleat & KetoCal");
-  assert.match(c3.querySelector(".pane[data-pane=rechnen]").textContent, /fehlen am Tag noch \d+ ml/);
+  assert.match(rechnenText(c3), /fehlen am Tag noch \d+ ml/);
   zw.value = ""; fire(w3, zw, "input");
   assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
   fire(w3, $(w3, "detail-close"));
   // Gericht, das von selbst groß ist: kein Wasser über die Höchstmenge hinaus
   c3 = openRecipe(w3, "Hendl & Brokkoli");
-  const vol2 = parseFloat([...c3.querySelectorAll(".pane[data-pane=rechnen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
+  const vol2 = parseFloat([...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=tag] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
   assert.ok(vol2 <= 212, "nicht über Höchstmenge: " + vol2);
 });
