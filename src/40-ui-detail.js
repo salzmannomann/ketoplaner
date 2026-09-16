@@ -335,7 +335,7 @@
         fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
       '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
       '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">' + DETAIL_PAGES[DETAIL_PAGES.findIndex(pg => pg[0] === dtab)][1] + " · " + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
+      '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -402,6 +402,7 @@
 
       /* ---------- 6 Abfüllen ---------- */
       paneOpen("abfuellen") +
+      '<h4 class="ph">💉 Abfüllen <span class="hint">je Portion</span></h4>' +
       '<div class="fill-hero"><div class="fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div>' +
         '<div class="fill-sub">≈ ' + fmt(perMlNoOil, 0) + ' ml je Portion' + (hasOil ? " · <strong>ohne Öl</strong>" : "") + ' · ≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
       (mult !== 1 ? '<div class="note info">Gesamt' + (hasOil ? " ohne Öl" : "") + ' ≈ <strong>' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g</strong> für ' + portionLabel + ' → <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong> abfüllen.</div>' : "") +
@@ -479,7 +480,7 @@
     const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
     const markTab = (k) => {
       c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = DETAIL_PAGES[pageIdx(k)][1] + " · " + (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
+      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
       const ab = c.querySelector("#detail-tabs button.active");
       if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
     };
