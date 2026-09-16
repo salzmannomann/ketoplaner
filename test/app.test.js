@@ -212,7 +212,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   assert.equal(rK["Aptamil Pre (Pulver)"], undefined); assert.ok(rK["Ketocal 3:1"] > 0);
   assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
   const mlK = rK["Compleat Paediatric Nature Mix (Nestlé)"];
-  const info = c.querySelector(".meat-swap.pack").textContent;
+  const info = c.querySelector(".note.pack").textContent;
   assert.match(info, /reicht für \d+ Mahlzeiten/); assert.ok(!/aufteilen|aufbrauchen in/i.test(info), "keine Aufteilungs-Steuerung mehr");
   assert.ok(!c.querySelector("#pack-perday") && !c.querySelector("button[data-ptage]") && !c.querySelector("button[data-pfill]"));
   fire(w, $(w, "detail-close"));
