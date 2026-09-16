@@ -1212,7 +1212,7 @@
         fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
       '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
       '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
+      '<span class="page-no">Seite ' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + " von " + DETAIL_PAGES.length + "</span></div></div>" +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -1357,7 +1357,7 @@
     const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
     const markTab = (k) => {
       c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
+      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + DETAIL_PAGES.length;
       const ab = c.querySelector("#detail-tabs button.active");
       if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
     };
