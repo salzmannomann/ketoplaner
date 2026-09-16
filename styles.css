@@ -752,9 +752,9 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; transition: width .15s, background .15s; }
   .page-dots .dot.active { width: 18px; border-radius: 4px; background: var(--brand); }
   .page-dots .page-no { font-size: 11px; color: var(--muted); margin-left: 6px; }
-  .pages { background: var(--bg); padding: 6px 0 8px 10px; gap: 8px; scroll-padding-left: 10px; }
-  .pages::after { content: ""; flex: 0 0 24px; }
-  .pages .pane { flex: 0 0 calc(100% - 38px); width: calc(100% - 38px); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 12px; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  /* Seiten: volle Breite, kein Hereinschauen der nächsten Seite – Orientierung geben Punkte und Seitenzahl */
+  .pages { background: var(--bg); padding: 6px 10px 8px; gap: 10px; scroll-padding-left: 10px; }
+  .pages .pane { flex: 0 0 100%; width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 12px; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
   .pages .pane > .ph:first-child { margin-top: 2px; }
   .detail-actions { border-top: 1px solid var(--line); }
 }
@@ -775,7 +775,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .pages .pane .steps li { font-size: 14px; margin-bottom: 6px; }
 }
 @media (max-width: 820px) {
-  .pages { padding: 4px 0 6px 10px; }
+  .pages { padding: 4px 10px 6px; }
   .pages .pane { padding: 6px 10px 10px; }
   .pages .pane table th, .pages .pane table td { padding: 4px 4px; }
   .pages .pane table.kitchen td { padding: 4px 4px; }
