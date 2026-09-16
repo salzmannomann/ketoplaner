@@ -13,21 +13,27 @@
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    put("set-kcal", d.kcalManual ? s.kcal : "");
-    $("set-kcal").placeholder = d.weight > 0 ? "Vorschlag: " + fmt(d.kcalAuto, 0) + " (80 kcal/kg)" : "Vorschlag: 700 (Gewicht eintragen)";
-    // Zurücksetzen-Links nur, wenn ein eigener Wert den Vorschlag ersetzt
-    const show = (id, on) => { const el = $(id); if (el) el.hidden = !on; };
-    show("reset-kcal", d.kcalManual);
-    show("reset-kcalmin", d.kcalMinManual);
-    show("reset-fluid", d.fluidManual);
-    show("reset-zwischen", d.wasserModus === "zwischen" && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
-    show("reset-protein", d.proteinPerKg !== d.proteinStandard);
-    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
-    put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
+    // Vorschläge stehen als echte Werte im Feld (nicht als grauer Platzhalter). Die Zeile darunter sagt, woher der
+    // Wert kommt: „✓ Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
+    const src = (id, manual, autoText, resetLabel) => {
+      const sp = $("src-" + id), bt = $("reset-" + id);
+      if (sp) { sp.textContent = manual ? "eigener Wert" : "✓ " + autoText; sp.classList.toggle("auto", !manual); }
+      if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
+    };
+    put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
+    src("kcal", d.kcalManual, d.weight > 0 ? "Vorschlag nach Gewicht (80 kcal/kg)" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
+    src("kcalmin", d.kcalMinManual, d.weight > 0 ? "Vorschlag nach Gewicht (70 kcal/kg)" : "Vorschlag (85 % des Ziels)", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
+    $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
+    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag nach Holliday-Segar (100 ml/kg)" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
+    src("protein", d.proteinPerKg !== d.proteinStandard, "Standard " + fmt(d.proteinStandard, 1) + " g/kg/Tag", "↺ Standard");
     // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
     const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
-    put("set-zwischen", zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) ? s.zwischenMl : "");
-    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "60 (eine Spritze)" : "– (alles in den Mahlzeiten)"; }
+    const zwManual = zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60;
+    put("set-zwischen", zwOn ? d.zwischenMl : "");
+    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "" : "– (alles in den Mahlzeiten)"; }
+    src("zwischen", zwManual, zwOn ? "Vorgabe: eine Spritze (60 ml)" : "nicht nötig (alles in den Mahlzeiten)", "↺ 60 ml");
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;

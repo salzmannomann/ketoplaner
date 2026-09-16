@@ -820,3 +820,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
   .pages .pane:last-child { box-shadow: 0 1px 3px rgba(16,24,40,.06); }
 }
+/* Quelle des Werts unter Vorschlags-Feldern: grün mit Haken = Vorschlag aktiv, grau = eigener Wert */
+.reset-line { display: flex; align-items: center; gap: 8px; }
+.reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reset-line .src.auto { color: var(--green); font-weight: 600; }

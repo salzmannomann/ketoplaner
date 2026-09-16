@@ -837,6 +837,10 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
   .pages .pane:last-child { box-shadow: 0 1px 3px rgba(16,24,40,.06); }
 }
+/* Quelle des Werts unter Vorschlags-Feldern: grün mit Haken = Vorschlag aktiv, grau = eigener Wert */
+.reset-line { display: flex; align-items: center; gap: 8px; }
+.reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reset-line .src.auto { color: var(--green); font-weight: 600; }
 
 </style>
 </head>
@@ -910,12 +914,12 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
           <div>
             <label>Kalorien pro Tag (Ziel)</label>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Kalorien mindestens pro Tag</label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -937,7 +941,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+            <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -967,12 +971,12 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
           <div>
             <label>Flüssigkeit gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
             <label>Wasser je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
+            <div class="reset-line"><span class="src" id="src-zwischen"></span><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -2308,21 +2312,27 @@ const RECIPES_SONDE = [
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    put("set-kcal", d.kcalManual ? s.kcal : "");
-    $("set-kcal").placeholder = d.weight > 0 ? "Vorschlag: " + fmt(d.kcalAuto, 0) + " (80 kcal/kg)" : "Vorschlag: 700 (Gewicht eintragen)";
-    // Zurücksetzen-Links nur, wenn ein eigener Wert den Vorschlag ersetzt
-    const show = (id, on) => { const el = $(id); if (el) el.hidden = !on; };
-    show("reset-kcal", d.kcalManual);
-    show("reset-kcalmin", d.kcalMinManual);
-    show("reset-fluid", d.fluidManual);
-    show("reset-zwischen", d.wasserModus === "zwischen" && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60);
-    show("reset-protein", d.proteinPerKg !== d.proteinStandard);
-    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); $("set-kcalmin").placeholder = "Vorschlag: " + fmt(d.kcalMinAuto, 0) + (d.weight > 0 ? " (70 kcal/kg)" : "");
-    put("set-fluid", d.fluidManual ? s.fluidMl : ""); $("set-fluid").placeholder = d.fluidAuto > 0 ? "Vorschlag: " + fmt(d.fluidAuto, 0) : "ml/Tag (Gewicht eintragen)";
+    // Vorschläge stehen als echte Werte im Feld (nicht als grauer Platzhalter). Die Zeile darunter sagt, woher der
+    // Wert kommt: „✓ Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
+    const src = (id, manual, autoText, resetLabel) => {
+      const sp = $("src-" + id), bt = $("reset-" + id);
+      if (sp) { sp.textContent = manual ? "eigener Wert" : "✓ " + autoText; sp.classList.toggle("auto", !manual); }
+      if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
+    };
+    put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
+    src("kcal", d.kcalManual, d.weight > 0 ? "Vorschlag nach Gewicht (80 kcal/kg)" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
+    src("kcalmin", d.kcalMinManual, d.weight > 0 ? "Vorschlag nach Gewicht (70 kcal/kg)" : "Vorschlag (85 % des Ziels)", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
+    $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
+    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag nach Holliday-Segar (100 ml/kg)" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
+    src("protein", d.proteinPerKg !== d.proteinStandard, "Standard " + fmt(d.proteinStandard, 1) + " g/kg/Tag", "↺ Standard");
     // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
     const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
-    put("set-zwischen", zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) ? s.zwischenMl : "");
-    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "60 (eine Spritze)" : "– (alles in den Mahlzeiten)"; }
+    const zwManual = zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60;
+    put("set-zwischen", zwOn ? d.zwischenMl : "");
+    if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "" : "– (alles in den Mahlzeiten)"; }
+    src("zwischen", zwManual, zwOn ? "Vorgabe: eine Spritze (60 ml)" : "nicht nötig (alles in den Mahlzeiten)", "↺ 60 ml");
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
@@ -2538,7 +2548,12 @@ const RECIPES_SONDE = [
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
-        state.settings[map[id]] = num(e.target.value); save();
+        let v = num(e.target.value);
+        // Vorschlags-Felder: leer oder genau der Vorschlag = wieder automatisch
+        const d0 = derived();
+        const autoOf = { "set-kcal": d0.kcalAuto, "set-kcalmin": d0.kcalMinAuto, "set-fluid": d0.fluidAuto }[id];
+        if (autoOf !== undefined && (e.target.value === "" || Math.abs(v - autoOf) < 1e-9)) v = "";
+        state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
       });
@@ -2591,7 +2606,7 @@ const RECIPES_SONDE = [
     document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
       b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
-    if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
+    if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");

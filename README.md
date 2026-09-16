@@ -60,10 +60,12 @@ Vorgaben.
   ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
   6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
-  markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Überall,
-  wo ein eigener Wert einen Vorschlag ersetzt, erscheint ein Link
-  **„↺ Vorschlag"** (bzw. „↺ Standard") in einer fest reservierten Zeile
-  unter dem Feld zum Zurücksetzen – nichts verschiebt sich dabei.
+  markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Ein
+  Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
+  kommt: grün **„✓ Vorschlag nach Gewicht (80 kcal/kg)"** oder **„eigener
+  Wert · ↺ Vorschlag 680"** zum Zurücksetzen. Tippt man genau den Vorschlag
+  ein oder leert das Feld, gilt wieder der Vorschlag. Nichts verschiebt sich
+  dabei.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
   Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
   dazu **Flüssigkeit gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,

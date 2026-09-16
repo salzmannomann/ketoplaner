@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=90ad30a6" />
+  <link rel="stylesheet" href="styles.css?v=19d85da3" />
 </head>
 <body>
   <header class="topbar">
@@ -86,12 +86,12 @@
           <div>
             <label>Kalorien pro Tag (Ziel)</label>
             <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Kalorien mindestens pro Tag</label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
             <label>Mahlzeiten pro Tag</label>
@@ -113,7 +113,7 @@
               </select>
               <span id="eiweiss-auto" class="calc"></span>
             </div>
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+            <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
@@ -143,12 +143,12 @@
           <div>
             <label>Flüssigkeit gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+            <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
             <label>Wasser je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
-            <div class="reset-line"><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
+            <div class="reset-line"><span class="src" id="src-zwischen"></span><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
@@ -265,7 +265,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=2779266c"></script>
+  <script src="app.js?v=1f538ca4"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -239,7 +239,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung,
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
   assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
   assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell ÷ 4.*Korridor nach Gewicht 600–770 kcal\/Tag \(70–90 kcal\/kg\)/);
-  assert.equal($(w, "set-kcalmin").placeholder, "Vorschlag: 600 (70 kcal/kg)");
+  assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /✓ Vorschlag nach Gewicht \(70 kcal\/kg\)/);
   // Manuelles Minimum über dem Ziel → Tagesplan mit 4 × 188 kcal = 750 liegt darunter → Warnung
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 800;
@@ -270,27 +270,31 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
 test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener Wert lässt sich zurücksetzen; Eiweiß-Standard sichtbar", () => {
   const w = boot({ settings: { weight: 8.5, mahlzeiten: 4, kcal: "" } });
   // Vorschlag: 80 kcal/kg → 680 kcal/Tag, Feld leer, kein Zurücksetzen-Link
-  assert.equal($(w, "set-kcal").value, "");
-  assert.equal($(w, "set-kcal").placeholder, "Vorschlag: 680 (80 kcal/kg)");
+  assert.equal($(w, "set-kcal").value, "680", "Vorschlag steht als Wert im Feld");
+  assert.match($(w, "src-kcal").textContent, /✓ Vorschlag nach Gewicht \(80 kcal\/kg\)/);
+  assert.ok($(w, "src-kcal").classList.contains("auto"));
   assert.ok($(w, "reset-kcal").hidden);
   assert.match($(w, "verordnung-summary").textContent, /170 kcal pro Mahlzeit \(680 kcal\/Tag, Vorschlag 80 kcal\/kg ÷ 4\)/);
   assert.match($(w, "rx-chip").textContent, /170 kcal × 4/);
-  assert.equal($(w, "set-kcalmin").placeholder, "Vorschlag: 600 (70 kcal/kg)");
-  assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 850");
+  assert.equal($(w, "set-kcalmin").value, "600");
+  assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag nach Holliday-Segar/);
   // Eiweiß: Standard 1,5 g/kg erkennbar
   assert.match(w.document.querySelector("#set-proteinmode option[value='1.5']").textContent, /Standard/);
   assert.ok($(w, "reset-protein").hidden, "kein Standard-Link, solange der Standard gilt");
   // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
   const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
-  assert.ok(!$(w, "reset-kcal").hidden);
+  assert.ok(!$(w, "reset-kcal").hidden); assert.match($(w, "src-kcal").textContent, /eigener Wert/); assert.match($(w, "reset-kcal").textContent, /↺ Vorschlag 680/);
   assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell/);
   fire(w, $(w, "reset-kcal"));
-  assert.equal($(w, "set-kcal").value, "");
+  assert.equal($(w, "set-kcal").value, "680");
+  // Genau den Vorschlag eintippen = wieder automatisch
+  k.value = "690"; fire(w, k, "input"); assert.ok(!$(w, "reset-kcal").hidden);
+  k.value = "680"; fire(w, k, "input"); assert.ok($(w, "reset-kcal").hidden, "Vorschlag getippt → automatisch");
   assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, Vorschlag/);
   const fl = $(w, "set-fluid"); fl.value = "900"; fire(w, fl, "input");
   assert.ok(!$(w, "reset-fluid").hidden);
   fire(w, $(w, "reset-fluid"));
-  assert.equal($(w, "set-fluid").value, ""); assert.ok($(w, "reset-fluid").hidden);
+  assert.equal($(w, "set-fluid").value, "850"); assert.ok($(w, "reset-fluid").hidden);
   assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag \(Vorschlag/);
   // Eiweiß abweichend → Standard-Link
   const pm = $(w, "set-proteinmode"); pm.value = "2"; fire(w, pm, "change");
@@ -299,8 +303,8 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.equal($(w, "set-proteinmode").value, "1.5");
   // Gewicht ändern → Vorschläge ziehen mit
   const wi = $(w, "set-weight"); wi.value = "10"; fire(w, wi, "input");
-  assert.equal($(w, "set-kcal").placeholder, "Vorschlag: 800 (80 kcal/kg)");
-  assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 1.000");
+  assert.equal($(w, "set-kcal").value, "800");
+  assert.equal($(w, "set-fluid").value, "1000");
 });
 
 test("Zubereitungsmenge: „Ganzer Tag“ folgt der Mahlzeitenzahl; Rechnen zeigt immer eine Portion", () => {
@@ -508,7 +512,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
 
 test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mahlzeiten sondieren oder in den Mahlzeiten dabei; Tagesplan", () => {
   const w = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, wasserModus: "ausgewogen" } }); // alter Wert → „zwischen“
-  assert.equal($(w, "set-fluid").placeholder, "Vorschlag: 850");
+  assert.equal($(w, "set-fluid").value, "850");
   assert.equal(w.document.querySelectorAll("#wasser-modus-ctl button").length, 2, "nur zwei Stellungen");
   assert.ok(w.document.querySelector("#wasser-modus-ctl button[data-wmodus=zwischen]").classList.contains("active"));
   assert.ok(!$(w, "set-zwischen").disabled, "Menge je Zwischenzeit aktiv");

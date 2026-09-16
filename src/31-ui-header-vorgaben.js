@@ -120,7 +120,12 @@
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
-        state.settings[map[id]] = num(e.target.value); save();
+        let v = num(e.target.value);
+        // Vorschlags-Felder: leer oder genau der Vorschlag = wieder automatisch
+        const d0 = derived();
+        const autoOf = { "set-kcal": d0.kcalAuto, "set-kcalmin": d0.kcalMinAuto, "set-fluid": d0.fluidAuto }[id];
+        if (autoOf !== undefined && (e.target.value === "" || Math.abs(v - autoOf) < 1e-9)) v = "";
+        state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
       });
@@ -173,7 +178,7 @@
     document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
       b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
-    if (zw) zw.addEventListener("input", () => { state.settings.zwischenMl = zw.value === "" ? "" : Math.max(0, num(zw.value)); save(); renderRezepte(); });
+    if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
