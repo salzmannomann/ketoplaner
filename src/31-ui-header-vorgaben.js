@@ -14,7 +14,7 @@
   function renderHeader(d) {
     const chip = document.getElementById("rx-chip"); if (!chip) return;
     // Zeile 1: Verordnung. Zeile 2: Flüssigkeit – Ziel, Modus und (laut Tagesplan) die Menge zwischen den Mahlzeiten.
-    const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl + " · " + (ketoPhase() === "mit" ? "🥄 KetoCal" : "ohne KetoCal") +
+    const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl +
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
     let l2 = "";
     if (d.fluidDay > 0) {
@@ -44,8 +44,6 @@
       (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)");
-    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
-      b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // Flüssigkeit: Modus-Buttons und Zusammenfassung
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
@@ -155,6 +153,8 @@
     if (mTog) mTog.addEventListener("click", () => { mRow.hidden = !mRow.hidden; renderRezepte(); });
     const oq = document.getElementById("only-quelle");
     if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
+    const hk = document.getElementById("hide-keto");
+    if (hk) hk.addEventListener("change", () => { state.settings.hideKeto = hk.checked; save(); renderRezepte(); });
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => showView("vorgaben"));
@@ -169,8 +169,6 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
-    document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
-      b.addEventListener("click", () => setKetoPhase(b.dataset.ketocal)));
     document.querySelectorAll("#rundung-ctl button[data-rund]").forEach(b =>
       b.addEventListener("click", () => { state.settings.rundung = num(b.dataset.rund); save(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");

@@ -52,9 +52,7 @@ Vorgaben.
 - **Verordnung:** Beim Verhältnis wird nur die **vordere Zahl** eingegeben,
   „:1" steht fix daneben („1,8", „1,5", „1"); die App zeigt Verhältnisse
   überall als „x:1", auch unter 1 (z. B. „0,67:1") und warnt dann unter dem
-  Feld, **KetoCal bevorzugt /
-  ohne KetoCal bevorzugt** (wählt bei Gerichten mit beiden Varianten die Fettbasis,
-  blendet nichts aus),
+  Feld,
   **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg) und
   **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
   ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
@@ -101,13 +99,11 @@ Vorgaben.
 ### Rezepte
 
 - **Ein Eintrag je Gericht.** Hat ein Gericht eine Variante mit und ohne
-  KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter),
-  steht es nur einmal in der Liste. Welche **Fettbasis** gezeigt wird,
-  entscheidet die Vorgabe **„KetoCal bevorzugt / ohne KetoCal bevorzugt"**
-  (unter Vorgaben und als Schalter über der Liste); im Rezept lässt sich die
-  Fettbasis jederzeit umschalten, die Wahl wird je Gericht gemerkt. Der Schalter
-  blendet nichts aus: Gerichte, die es nur in einer Ausführung gibt, tragen das
-  Kennzeichen „nur mit KetoCal" bzw. „nur ohne KetoCal".
+  KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter) –
+  **jedes Rezept ist ein eigener Eintrag** mit gleichem Namen und einem
+  Fettbasis-Schild („Rapsöl" bzw. „🥄 KetoCal + Butter"); der Eintrag ohne
+  KetoCal steht zuerst. Rezepte, die nur mit KetoCal existieren, tragen
+  „🥄 KetoCal". Im ⋯-Menü lassen sich **Rezepte mit KetoCal ausblenden**.
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
   HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
@@ -115,7 +111,7 @@ Vorgaben.
   daneben: **🔍 Suche** (klappt ein Suchfeld auf), **🧪 Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
   Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die
-  KetoCal-Phase wird in den Vorgaben gewählt und steht in der Kopfzeile.
+  Eine KetoCal-Vorgabe gibt es nicht mehr.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
   Stern markiert Favoriten (immer ganz oben).
 - **🧪 Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
@@ -144,7 +140,7 @@ sind die sechs Blätter Reiter nebeneinander.
    Minimum, Eiweiß, Fett/KH, Flüssigkeit), Zutatentabelle je Tag, der
    Wasser-Hinweis (Sondieren zwischen den Mahlzeiten bzw. Fehlmenge) und bei
    Compleat die Packungsinfo.
-3. **Anpassen** – **Fettbasis-Umschalter** (z. B. Rapsöl ↔ KetoCal + Butter),
+3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
    **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
    MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".
 4. **Abwiegen** – Menge zubereiten (1 Portion / Ganzer Tag / Stepper), die

@@ -61,6 +61,7 @@
       </div>
       <div id="more-row" class="more-row" hidden>
         <label class="check"><input type="checkbox" id="only-quelle" /> 👩‍⚕️ nur Rezepte der Diätologie</label>
+        <label class="check"><input type="checkbox" id="hide-keto" /> 🥄 Rezepte mit KetoCal ausblenden</label>
         <span class="sort-wrap">
           <label for="sort-select" class="sort-label">Sortieren:</label>
           <select id="sort-select">
@@ -118,13 +119,6 @@
           <div id="eiweiss-manual">
             <label>Eiweiß pro Tag (g)</label>
             <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
-          </div>
-        </div>
-        <div class="preset-row">
-          <span class="seg-label">KetoCal:</span>
-          <div class="segmented mini" id="ketocal-ctl">
-            <button type="button" data-ketocal="mit">🥄 KetoCal bevorzugt</button>
-            <button type="button" data-ketocal="ohne">ohne KetoCal bevorzugt</button>
           </div>
         </div>
         <div id="verordnung-summary" class="note tip"></div>
@@ -260,7 +254,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=0ca6fecf"></script>
+  <script src="app.js?v=2b5e05a1"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -101,18 +101,19 @@
     const list = document.getElementById("picker-list"); if (!list) return;
     const q = ((document.getElementById("picker-search") || {}).value || "").trim().toLowerCase();
     const d = derived();
-    // Ein Eintrag je Gericht (Variante laut Wahl/Phase); gespeichert wird die konkrete Variante.
+    // Jedes Rezept ein Eintrag (mit oder ohne KetoCal); gespeichert wird das konkrete Rezept.
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
-    const recs = allFamilies()
-      .map(fam => ({ fam, rec: chosenVariant(fam) }))
-      .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || x.fam.variants.some(hitItems))
+    const recs = allRecipes()
+      .map(rec => ({ fam: { name: familyOf(rec) }, rec }))
+      .filter(x => !state.settings.hideKeto || !x.rec.ketocal)
+      .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
       .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
-      .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de"); });
+      .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0)); });
     list.innerHTML = recs.map(x => {
       const s = sumMacros(x.res.items);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '"><span class="pick-icon">' + (x.rec.icon || "🥑") + '</span>' +
         '<span class="pick-name">' + escapeHtml(x.fam.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + (x.rec.ketocal ? " · " + escapeHtml(basisLabel(x.rec)) : "") + "</span></button>";
+        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + (x.rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(x.rec)) : "") + "</span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
       if (pickerSlot >= 0) { ensureDayPlan(derived()); state.dayPlan[pickerSlot] = { key: b.dataset.key }; save(); }

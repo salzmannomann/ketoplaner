@@ -56,7 +56,6 @@ function clickChip(w, label) {
   assert.ok(b, "Filter-Chip fehlt: " + label);
   fire(w, b);
 }
-const setPhase = (w, k) => fire(w, w.document.querySelector("#ketocal-ctl button[data-ketocal=" + k + "]"));
 // Blätter der Detailansicht: „rechnen“ (alt) = Mahlzeit + Ein Tag + Anpassen zusammen
 const rechnenText = (c) => [...c.querySelectorAll(".pane[data-pane=mahlzeit], .pane[data-pane=tag], .pane[data-pane=anpassen]")].map(p => p.textContent).join("\n");
 // „Ein Tag“: nach der Überschrift folgt die Statuszeile, dann die Kacheln
@@ -73,10 +72,10 @@ test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
   R.forEach(r => r.items.forEach(it => assert.ok(idx.has(it.food), r.name + ": Zutat fehlt: " + it.food)));
 });
 
-test("Alle Rezepte (beide KetoCal-Phasen) treffen das Zielverhältnis bei 1,8:1 und 1:1 (ohne MCT)", () => {
-  for (const ratio of [1.8, 1.0]) for (const phase of ["mit", "ohne"]) {
-    const w = boot({ settings: { ratio: ratio, mctShare: 0, ketocal: phase } });
-    assert.ok(tiles(w).length >= 30, "zu wenige Gerichte: " + tiles(w).length);
+test("Alle Rezepte (mit und ohne KetoCal) treffen das Zielverhältnis bei 1,8:1 und 1:1 (ohne MCT)", () => {
+  for (const ratio of [1.8, 1.0]) {
+    const w = boot({ settings: { ratio: ratio, mctShare: 0 } });
+    assert.ok(tiles(w).length >= 40, "zu wenige Rezepte: " + tiles(w).length);
     for (const t of tiles(w)) {
       fire(w, t);
       const c = $(w, "detail-content");
@@ -155,22 +154,29 @@ test("Abfüllen: Menge je Portion ohne Öl × Portionen = ölfreie Gesamtmenge",
 });
 
 const badgeOf = (t) => t.querySelector(".tile-badge").textContent;
-test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Angerührt, Suche", () => {
+test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild, KetoCal ausblendbar, Gruppen, Suche", () => {
   const w = boot();
   const all = tileNames(w).length;
-  assert.ok(all >= 30 && all <= 40, "Gerichte: " + all);
-  assert.equal(new Set(tileNames(w)).size, all, "doppelte Gerichte");
+  assert.ok(all >= 45 && all <= 56, "Rezepte: " + all);
   assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
-  const kcMit = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
-  setPhase(w, "ohne");
-  assert.equal(tileNames(w).length, all, "Phase ändert nicht die Anzahl der Gerichte");
-  const kcOhne = tiles(w).filter(t => /🥄 KetoCal|KetoCal \+/.test(badgeOf(t))).length;
-  assert.ok(tiles(w).some(t => /nur mit KetoCal/.test(badgeOf(t))), "Kennzeichen „nur mit KetoCal“ in der ohne-Phase");
-  assert.ok(kcOhne < kcMit, "ohne KetoCal: " + kcOhne + " < mit: " + kcMit);
+  assert.ok(new Set(tileNames(w)).size < all, "Gerichte in beiden Fettbasen erscheinen zweimal (gleicher Name)");
+  const kc = tiles(w).filter(t => /🥄/.test(badgeOf(t))).length;
+  assert.ok(kc >= 20, "KetoCal-Rezepte mit 🥄-Schild: " + kc);
+  assert.ok(!tiles(w).some(t => /nur mit|nur ohne/.test(badgeOf(t))), "keine „nur mit/ohne“-Schilder mehr");
+  // Doppel-Gericht: beide Einträge nebeneinander, ohne KetoCal zuerst, beide mit Fettbasis-Schild
+  const hz = tiles(w).filter(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
+  assert.equal(hz.length, 2);
+  assert.match(badgeOf(hz[0]), /Rapsöl/); assert.match(badgeOf(hz[1]), /🥄 KetoCal/);
+  // Häkchen „Rezepte mit KetoCal ausblenden“
+  const hk = $(w, "hide-keto"); hk.checked = true; fire(w, hk, "change");
+  assert.equal(tileNames(w).length, all - kc);
+  assert.ok(!tiles(w).some(t => /🥄/.test(badgeOf(t))));
+  hk.checked = false; fire(w, hk, "change");
+  assert.equal(tileNames(w).length, all);
   clickChip(w, "🥤 Angerührt");
   assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Öl", "KetoCal & Pre Apta"]);
   clickChip(w, "🥚 Ei");
-  assert.equal(tileNames(w).length, 4); assert.ok(tileNames(w).every(n => /^Ei /.test(n)));
+  assert.ok(tileNames(w).length >= 4 && tileNames(w).every(n => /^Ei /.test(n)));
   clickChip(w, "🍗 Geflügel");
   assert.ok(tileNames(w).length >= 8 && tileNames(w).every(n => /^(Hendl|Pute)/.test(n)));
   clickChip(w, "🍓 Obst & Brei");
@@ -180,31 +186,30 @@ test("Gruppen: ein Eintrag je Gericht, KetoCal-Phase wählt die Variante, Anger�
   assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n)));
 });
 
-test("Fettbasis: Umschalter im Rezept, Wahl je Gericht gemerkt, Menge und Favorit gelten fürs Gericht", () => {
+test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt je Gericht, Favorit je Rezept", () => {
   const w = boot({ settings: { mctShare: 0 } });
-  let c = openRecipe(w, "Hendl & Zucchini");
-  assert.ok(kitchenRows(c)["Ketocal 3:1"] > 0, "Phase „mit“ zeigt die KetoCal-Variante");
+  let c = openRecipe(w, "Hendl & Zucchini"); // erster Eintrag = ohne KetoCal
+  assert.ok(kitchenRows(c)["Rapsöl"] > 0 && kitchenRows(c)["Ketocal 3:1"] === undefined);
   const pin = c.querySelector("#portion-input"); pin.value = "4"; fire(w, pin, "change");
   c = $(w, "detail-content");
-  const btn = [...c.querySelectorAll("button[data-basis]")].find(b => /Rapsöl/.test(b.textContent) && !/KetoCal/.test(b.textContent));
-  assert.ok(btn, "Fettbasis-Schalter fehlt"); fire(w, btn);
+  const link = c.querySelector("button[data-open-rec]");
+  assert.ok(link && /KetoCal/.test(link.textContent), "Auch-als-Link zur KetoCal-Variante fehlt"); fire(w, link);
   c = $(w, "detail-content");
   const rows = kitchenRows(c);
-  assert.equal(rows["Ketocal 3:1"], undefined); assert.ok(rows["Rapsöl"] > 0);
-  assert.equal(c.querySelector("#portion-input").value, "4", "Portionen bleiben beim Umschalten");
+  assert.ok(rows["Ketocal 3:1"] > 0 && rows["Rapsöl"] === undefined, "Geschwister-Rezept geöffnet");
+  assert.equal(c.querySelector("#portion-input").value, "4", "Zubereitungsmenge gilt fürs Gericht");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
   [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent)).click();
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
-  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini"]);
+  assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)"]);
   assert.equal(st.scales["fam:Hendl & Zucchini"], 4);
-  // Neustart: Kachel zeigt die gemerkte Basis; Phase umschalten setzt die Einzelwahl zurück
+  // Neustart: nur der KetoCal-Eintrag ist Favorit
   const w2 = boot(st);
-  const tile = () => tiles(w2).find(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
-  assert.match(badgeOf(tile()), /Rapsöl/); assert.ok(!/KetoCal/.test(badgeOf(tile())));
-  assert.ok(tile().querySelector(".favbtn").classList.contains("on"));
-  setPhase(w2, "ohne"); setPhase(w2, "mit");
-  assert.match(badgeOf(tile()), /KetoCal/);
+  const hz = tiles(w2).filter(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
+  assert.equal(hz.length, 2);
+  assert.ok(hz.find(t => /🥄/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
+  assert.ok(!hz.find(t => /Rapsöl/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
 });
 
 test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht weniger Compleat, Packungs-Hinweis und Packungsstand", () => {
@@ -260,7 +265,7 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
   });
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.equal(st.settings.ketocal, "ohne"); assert.equal(st.settings.filter, "alle");
-  assert.deepEqual(st.favorites, ["fam:Hendl & Zucchini", "fam:Compleat & KetoCal"]);
+  assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)", "std:Compleat & KetoCal"]);
   assert.equal(st.scales["fam:Erdäpfel & Zucchini"], 3);
   assert.equal(st.dayPlan[0].key, "std:KetoCal & Pre Apta");
   fire(w, $(w, "tab-heute"));
@@ -440,7 +445,6 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
-  assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
   assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · zwischen den Mahlzeiten: 4 × 60 ml · Rest in den Mahlzeiten/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Rechnen: Block „Ganzer Tag“ = Portion × Mahlzeiten, unabhängig von der Portionenzahl

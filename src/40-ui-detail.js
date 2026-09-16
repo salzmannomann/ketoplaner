@@ -187,14 +187,12 @@
       (rec.quelle ? ' <span class="badge quelle">👩‍⚕️ Diätologie</span>' : "");
 
     // Fettbasis-Umschalter: gleiches Gericht, andere Variante (z. B. Rapsöl ↔ KetoCal + Butter).
-    const fam = familyOfRecipe(rec);
+    // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept.
+    const sibs = siblingVariants(rec);
     let basisSeg = "";
-    if (fam.variants.length > 1) {
-      basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis</div><div class="segmented mini">' +
-        fam.variants.map(v => '<button type="button" data-basis="' + escapeHtml(recipeKey(v)) + '"' + (recipeKey(v) === recipeKey(rec) ? ' class="active"' : "") + ">" +
-          (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join("") +
-        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Gleiches Gericht, andere Fettbasis – Mengen werden neu gerechnet. Die Wahl wird für dieses Gericht gemerkt; für alle anderen gilt die Vorgabe „' +
-        (ketoPhase() === "mit" ? "mit" : "ohne") + ' KetoCal“.</p></details></div>';
+    if (sibs.length) {
+      basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis: ' + (rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(rec)) + '</div>' +
+        '<div class="hint">Dieses Gericht gibt es auch als ' + sibs.map(v => '<button type="button" class="linkbtn" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' + (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join(", ") + " – eigenes Rezept mit eigenen Mengen.</div></div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 2 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -466,13 +464,10 @@
     if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
-    c.querySelectorAll(".meat-swap button[data-basis]").forEach(b =>
+    c.querySelectorAll("button[data-open-rec]").forEach(b =>
       b.addEventListener("click", () => {
-        const v = fam.variants.find(x => recipeKey(x) === b.dataset.basis); if (!v) return;
-        if (!state.basis || typeof state.basis !== "object") state.basis = {};
-        state.basis[fam.key] = recipeKey(v); save();
-        detailRec = v; detailMeat = null;
-        renderDetail(); renderRezepte();
+        const v = allRecipes().find(x => recipeKey(x) === b.dataset.openRec); if (!v) return;
+        openRecipeDetail(v);
       }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {

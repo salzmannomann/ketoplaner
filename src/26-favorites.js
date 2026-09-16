@@ -8,10 +8,12 @@
   const FAMILY_STRIP_RE = / \(mit KetoCal\)|, mit KetoCal/g;
   function familyOf(rec) { return rec.custom ? rec.name : (rec.familie || rec.name.replace(FAMILY_STRIP_RE, "")); }
   function familyKey(rec) { return rec.custom ? rec.key : ("fam:" + familyOf(rec)); }
-  function isFav(rec) { return state.favorites.indexOf(familyKey(rec)) !== -1; }
+  // Favoriten gelten je Rezept (Variante); ältere Favoriten je Gericht („fam:…“) zählen weiter.
+  function isFav(rec) { return state.favorites.indexOf(recipeKey(rec)) !== -1 || state.favorites.indexOf(familyKey(rec)) !== -1; }
   function toggleFav(rec) {
-    const k = familyKey(rec), i = state.favorites.indexOf(k);
-    if (i === -1) state.favorites.push(k); else state.favorites.splice(i, 1);
+    const k = recipeKey(rec), fk = familyKey(rec);
+    if (isFav(rec)) state.favorites = state.favorites.filter(x => x !== k && x !== fk);
+    else state.favorites.push(k);
     save();
   }
   // Alle Rezepte: zuerst eigene, dann Standard; ketocal/Tags abgeleitet
@@ -45,17 +47,7 @@
     const k = familyKey(rec);
     return allFamilies().find(f => f.key === k) || { key: k, name: familyOf(rec), icon: rec.icon, variants: [rec] };
   }
-  // KetoCal-Phase (Vorgabe): entscheidet, welche Variante ein Gericht standardmäßig zeigt.
-  function ketoPhase() { return state.settings.ketocal === "ohne" ? "ohne" : "mit"; }
-  function setKetoPhase(k) {
-    state.settings.ketocal = k === "ohne" ? "ohne" : "mit";
-    state.basis = {}; // Einzelwahl je Gericht zurücksetzen – die Phase gilt wieder überall
-    save(); renderRezepte();
-  }
-  // Gezeigte Variante eines Gerichts: gemerkte Wahl, sonst Phase, sonst erste.
-  function chosenVariant(fam) {
-    const pick = state.basis && state.basis[fam.key];
-    if (pick) { const v = fam.variants.find(r => recipeKey(r) === pick); if (v) return v; }
-    const wantKc = ketoPhase() === "mit";
-    return fam.variants.find(r => !!r.ketocal === wantKc) || fam.variants[0];
-  }
+  // Jedes Rezept steht für sich (mit oder ohne KetoCal). Gibt es ein Gericht in beiden Fettbasen, sind das
+  // zwei Einträge; „Geschwister“ ist die jeweils andere Variante (für den „Auch als“-Link im Rezept).
+  function siblingVariants(rec) { return familyOfRecipe(rec).variants.filter(v => recipeKey(v) !== recipeKey(rec)); }
+  function isMulti(rec) { return familyOfRecipe(rec).variants.length > 1; }

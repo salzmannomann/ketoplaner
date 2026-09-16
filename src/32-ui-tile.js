@@ -6,7 +6,7 @@
     const ml = volumeMl(res.items);
     const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
     const name = fam ? fam.name : familyOf(rec);
-    const multi = !!fam && fam.variants.length > 1;
+    const multi = isMulti(rec);
 
     const fav = isFav(rec);
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
@@ -16,11 +16,9 @@
       '<div class="tile-body">' +
       '<div class="tile-line1"><span class="tile-name">' + escapeHtml(name) + "</span>" +
       '<span class="tile-badge">' +
-        // Fettbasis: bei mehreren Varianten die aktive (⇄ = umschaltbar), sonst nur ein KetoCal-Kennzeichen.
-        (multi ? '<span class="badge basis">⇄ ' + escapeHtml(basisLabel(rec)) + "</span>"
-               : (rec.ketocal
-                    ? (ketoPhase() === "mit" ? '<span class="badge keto-mini">🥄 KetoCal</span>' : '<span class="badge only">nur mit KetoCal</span>')
-                    : (ketoPhase() === "ohne" || rec.custom ? "" : '<span class="badge only">nur ohne KetoCal</span>'))) +
+        // Fettbasis: bei Gerichten in beiden Varianten steht sie an beiden Einträgen, sonst nur ein KetoCal-Schild.
+        (multi ? '<span class="badge ' + (rec.ketocal ? "keto-mini" : "basis") + '">' + (rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(rec)) + "</span>"
+               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
         (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
         (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
         (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +

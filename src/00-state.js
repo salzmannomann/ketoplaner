@@ -59,8 +59,10 @@
       if (ps.ketocal !== "mit" && ps.ketocal !== "ohne") settings.ketocal = ps.ketoFilter === "ohne" ? "ohne" : "mit";
       delete settings.ketoFilter;
       if (["fleisch", "vegetarisch", "unterwegs", "flasche"].indexOf(settings.filter) !== -1) settings.filter = "alle";
+      // Favoriten gelten je Rezept: Schlüssel nur umbenennen (alte Namen), nicht mehr auf das Gericht zusammenfassen.
+      // Ältere Familien-Favoriten („fam:…“) bleiben erhalten und zählen für beide Varianten.
       const favorites = [];
-      (p.favorites || []).forEach(k => { const nk = toFamilyKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
+      (p.favorites || []).forEach(k => { const nk = (typeof k === "string" && k.indexOf("fam:") === 0) ? toFamilyKey(k) : renameKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
       return {
         settings: settings,
         compose: Object.assign(d.compose, p.compose || {}),
