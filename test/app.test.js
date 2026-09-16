@@ -46,7 +46,7 @@ const ratioOf = (c) => {
 const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat .v, .pane[data-pane=tag] .dstat .v, .pane[data-pane=anpassen] .dstat .v")][0].textContent.replace(".", ""));
 function kitchenRows(c) {
   const out = {};
-  [...c.querySelectorAll("table.kitchen tr")].forEach(r => {
+  [...c.querySelectorAll("table.kitchen tbody tr")].forEach(r => {
     out[r.querySelector(".name").textContent.replace(/⟵.*/, "").trim()] = parseFloat(r.querySelector("input").value);
   });
   return out;

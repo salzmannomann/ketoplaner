@@ -810,6 +810,22 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .page-dots { height: 24px; margin: 2px 0 4px; gap: 7px; }
   .page-dots .page-no { font-size: 11px; color: var(--muted); margin-left: 8px; }
 }
+/* Detailseiten einheitlich: gleiche Tabellen (Kopfzeile, Schrift, Fettzeile), gleiche Eingabefelder, Öl-Liste wie Tabelle */
+#detail-content table.kitchen td { padding: 6px 6px; font-size: 14px; }
+#detail-content table.kitchen th { text-align: left; }
+#detail-content table.kitchen th:last-child { text-align: right; }
+#detail-content table.kitchen tr.fatrow td { background: #fdf6e3; }
+#detail-content table td { font-size: 14px; }
+#detail-content table td.name { font-size: 14px; }
+#detail-content .amt-edit, #detail-content .g-edit { width: 66px; font-size: 15px; padding: 4px 6px; }
+#detail-content .oil-list li { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 6px; margin: 0; background: transparent; font-size: 14px; }
+#detail-content .oil-list strong { font-size: 14px; }
+@media (max-width: 820px) {
+  .pages .pane table th, .pages .pane table td, .pages .pane table.kitchen td { padding: 5px 4px; font-size: 14px; }
+  .pages .pane table th { font-size: 11px; }
+  .pages .pane .amt-edit, .pages .pane .g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
+  .pages .pane .oil-list li { padding: 5px 4px; }
+}
 
 </style>
 </head>
@@ -2842,7 +2858,7 @@ const RECIPES_SONDE = [
       const gR = Math.round(g * 10) / 10;
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
         (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ angepasst</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"> <span class="unit">g</span></td></tr>';
+        '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"></td></tr>';
       const gP = Math.round(num(it.grams) * 10) / 10;
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
         (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ angepasst</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
@@ -2876,7 +2892,7 @@ const RECIPES_SONDE = [
       return "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + "</td><td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     }).join("");
     const dayTotalG = items.reduce((a, it) => a + num(it.grams), 0) * dayN;
-    const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel · je Tag</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+    const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
       dayRows + "<tr class='sum'><td class='name'>Summe je Tag</td><td>" + fmt(dayTotalG, 0) + "</td><td>" + fmt(dayP) + "</td><td>" + fmt(dayF) + "</td><td>" + fmt(dayC) + "</td><td>" + fmt(dayKcal, 0) + "</td></tr></tbody></table></div>";
     // Flüssigkeit je Portion: Zutaten-Wasser + Rezept-Wasser, gegen den Anteil am Tagesbedarf.
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
@@ -2958,6 +2974,7 @@ const RECIPES_SONDE = [
 
       /* ---------- 4 Abwiegen ---------- */
       paneOpen("abwiegen") +
+      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
       '<div class="seg-portion batch">' +
         '<span class="seg-label">Menge zubereiten:</span>' +
         '<div class="segmented mini">' +
@@ -2971,8 +2988,7 @@ const RECIPES_SONDE = [
           (mult !== 1 ? '<button type="button" id="scale-reset" class="linkbtn">↺ 1 Portion</button>' : "") +
           (hasWaterOverride ? '<button type="button" id="water-reset" class="linkbtn">↺ Wasser</button>' : "") + "</span>" : "") +
       "</div>" +
-      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
-      '<div class="tbl-wrap"><table class="kitchen"><tbody>' + kRows + "</tbody></table></div>" +
+      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th></tr></thead><tbody>' + kRows + "</tbody></table></div>" +
       fluidLine +
       '<div class="hint" style="margin-top:6px">Eine Menge ändern – die anderen Zutaten skalieren mit (Wasser ausgenommen). Wird je Rezept gemerkt.</div>' +
       "</div>" +
