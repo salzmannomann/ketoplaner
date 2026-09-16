@@ -77,11 +77,10 @@ Vorgaben.
   Pulver und Fertigprodukte mit Etikettwert) plus das Rezept-Wasser.
 - **Küche – Rundung beim Abwiegen:** 0,1 g · **0,5 g** (Standard) · 1 g für
   Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet.
-  Fettträger (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und
-  nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt –
-  die verbleibende Abweichung liegt in der 0,1-g-Rundung des Fetts (bei einer
-  170-kcal-Mahlzeit unter ±0,01). Gerundet wird die Menge, die auf der Waage
-  liegt; Vielfache („Ganzer Tag") bleiben im Raster.
+  Fettträger (Öl, Butter, Obers, KetoCal) folgen dieser Rundung **nicht**: sie
+  werden nach dem Runden der anderen Zutaten so nachgestellt, dass das
+  Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). Gerundet wird die
+  Menge, die auf der Waage liegt; Vielfache („Ganzer Tag") bleiben im Raster.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
   Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
   wird die Regel nur angezeigt.

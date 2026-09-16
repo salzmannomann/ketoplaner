@@ -399,6 +399,7 @@ test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf
   assert.ok(on(rows["Hühnerbrust ohne Haut"], 0.5) && on(rows["Broccoli, gekocht"], 0.5), "0,5-g-Raster: " + JSON.stringify(rows));
   assert.ok(on(rows["Wasser"], 1), "Wasser auf 1 ml: " + rows["Wasser"]);
   assert.ok(on(rows["Rapsöl"], 0.1), "Fett auf 0,1 g");
+  assert.match([...c.querySelectorAll("table.kitchen tbody tr")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+\.\d$/, "Fett immer mit einer Nachkommastelle");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.015, "Verhältnis nach Rundung: " + ratioOf(c));
   fire(w, $(w, "detail-close"));
   // Auf 0,1 g umstellen → feinere Werte

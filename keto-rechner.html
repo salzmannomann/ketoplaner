@@ -1056,7 +1056,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Rundung und Verdunstung</summary>
-          <p><strong>Rundung:</strong> gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. Fettträger (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt. <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
+          <p><strong>Rundung:</strong> gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. Fettträger (Öl, Butter, Obers, KetoCal) folgen dieser Rundung <strong>nicht</strong>: sie werden nach dem Runden der anderen Zutaten so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
       </div>
 
@@ -2066,8 +2066,8 @@ const RECIPES_SONDE = [
   // Fettträger einer Zutatenliste: die Stell-Zutat (fettdominanteste) plus alle Öle.
   function isFatCarrier(items, i) { return i === fatItemIndex(items) || isOilName(items[i].food); }
   // Rundung fürs Abwiegen: alle Zutaten außer den Fettträgern auf `step` (Wasser auf 1 ml). Danach werden die
-  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht, und auf 0,1 g gerundet.
-  // Damit bleibt das Verhältnis praktisch exakt; die Abweichung liegt nur noch in der 0,1-g-Rundung des Fetts.
+  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht. Sie folgen NICHT der
+  // gewählten Rundung, sondern bleiben immer auf 0,1 g genau (Anzeige stets mit einer Nachkommastelle).
   function roundForScale(items, step) {
     const target = ratioOf(sumMacros(items));
     const fi = fatItemIndex(items);
@@ -2927,14 +2927,17 @@ const RECIPES_SONDE = [
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: num(it.grams) }); // Rechnen: je Portion
       const isWaterRow = /wasser/i.test(it.food);
-      const gR = isFatCarrier(items, i) ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
+      const fatRow = isFatCarrier(items, i);
+      const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
+      const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
         (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gR + '"></td></tr>';
+        '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td></tr>';
       const gP = Math.round(num(it.grams) * 10) / 10;
+      const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
         (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
-        '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="1" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gP + '"></td>' +
+        '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).

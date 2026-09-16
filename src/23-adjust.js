@@ -14,8 +14,8 @@
   // Fettträger einer Zutatenliste: die Stell-Zutat (fettdominanteste) plus alle Öle.
   function isFatCarrier(items, i) { return i === fatItemIndex(items) || isOilName(items[i].food); }
   // Rundung fürs Abwiegen: alle Zutaten außer den Fettträgern auf `step` (Wasser auf 1 ml). Danach werden die
-  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht, und auf 0,1 g gerundet.
-  // Damit bleibt das Verhältnis praktisch exakt; die Abweichung liegt nur noch in der 0,1-g-Rundung des Fetts.
+  // Fettträger gemeinsam so nachjustiert, dass das Verhältnis wieder dem Ausgangswert entspricht. Sie folgen NICHT der
+  // gewählten Rundung, sondern bleiben immer auf 0,1 g genau (Anzeige stets mit einer Nachkommastelle).
   function roundForScale(items, step) {
     const target = ratioOf(sumMacros(items));
     const fi = fatItemIndex(items);
