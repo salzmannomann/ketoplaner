@@ -749,7 +749,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   #detail-overlay .overlay-close { top: 10px; right: 12px; width: 30px; height: 30px; font-size: 14px; }
   .detail-tabs-wrap { margin: 0; }
   .page-dots { display: flex; align-items: center; justify-content: center; gap: 6px; height: 18px; margin: 2px 0 2px; }
-  .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; transition: width .15s, background .15s; }
+  .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; }
   .page-dots .dot.active { width: 18px; border-radius: 4px; background: var(--brand); }
   .page-dots .page-no { font-size: 11px; color: var(--muted); margin-left: 6px; }
   /* Seiten: volle Breite, kein Hereinschauen der nächsten Seite – Orientierung geben Punkte und Seitenzahl */
@@ -786,4 +786,10 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .pages .pane .seg-portion { margin-bottom: 8px; }
   .pages .pane .fill-hero { padding: 8px 8px 4px; }
   .pages .pane .fill-big { font-size: 38px; }
+}
+/* Handy: keine Reiterleiste – Punkte + Seitenname reichen (am Desktop bleiben die Reiter) */
+@media (max-width: 820px) {
+  #detail-content .detail-tabs { display: none; }
+  .page-dots { height: 24px; margin: 2px 0 4px; gap: 7px; }
+  .page-dots .page-no { font-size: 12px; font-weight: 600; color: var(--ink); margin-left: 8px; }
 }

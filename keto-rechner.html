@@ -766,7 +766,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   #detail-overlay .overlay-close { top: 10px; right: 12px; width: 30px; height: 30px; font-size: 14px; }
   .detail-tabs-wrap { margin: 0; }
   .page-dots { display: flex; align-items: center; justify-content: center; gap: 6px; height: 18px; margin: 2px 0 2px; }
-  .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; transition: width .15s, background .15s; }
+  .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; }
   .page-dots .dot.active { width: 18px; border-radius: 4px; background: var(--brand); }
   .page-dots .page-no { font-size: 11px; color: var(--muted); margin-left: 6px; }
   /* Seiten: volle Breite, kein Hereinschauen der nächsten Seite – Orientierung geben Punkte und Seitenzahl */
@@ -803,6 +803,12 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .pages .pane .seg-portion { margin-bottom: 8px; }
   .pages .pane .fill-hero { padding: 8px 8px 4px; }
   .pages .pane .fill-big { font-size: 38px; }
+}
+/* Handy: keine Reiterleiste – Punkte + Seitenname reichen (am Desktop bleiben die Reiter) */
+@media (max-width: 820px) {
+  #detail-content .detail-tabs { display: none; }
+  .page-dots { height: 24px; margin: 2px 0 4px; gap: 7px; }
+  .page-dots .page-no { font-size: 12px; font-weight: 600; color: var(--ink); margin-left: 8px; }
 }
 
 </style>
@@ -2913,7 +2919,7 @@ const RECIPES_SONDE = [
         fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
       '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
       '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
+      '<span class="page-no">' + DETAIL_PAGES[DETAIL_PAGES.findIndex(pg => pg[0] === dtab)][1] + " · " + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + "/" + DETAIL_PAGES.length + "</span></div></div>" +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -3057,7 +3063,7 @@ const RECIPES_SONDE = [
     const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
     const markTab = (k) => {
       c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
+      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = DETAIL_PAGES[pageIdx(k)][1] + " · " + (pageIdx(k) + 1) + "/" + DETAIL_PAGES.length;
       const ab = c.querySelector("#detail-tabs button.active");
       if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
     };
