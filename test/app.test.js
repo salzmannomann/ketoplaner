@@ -239,7 +239,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung,
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
   assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
   assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell ÷ 4.*Korridor nach Gewicht 600–770 kcal\/Tag \(70–90 kcal\/kg\)/);
-  assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /✓ Vorschlag nach Gewicht \(70 kcal\/kg\)/);
+  assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /✓ Vorschlag · 70 kcal\/kg/);
   // Manuelles Minimum über dem Ziel → Tagesplan mit 4 × 188 kcal = 750 liegt darunter → Warnung
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 800;
@@ -271,13 +271,13 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   const w = boot({ settings: { weight: 8.5, mahlzeiten: 4, kcal: "" } });
   // Vorschlag: 80 kcal/kg → 680 kcal/Tag, Feld leer, kein Zurücksetzen-Link
   assert.equal($(w, "set-kcal").value, "680", "Vorschlag steht als Wert im Feld");
-  assert.match($(w, "src-kcal").textContent, /✓ Vorschlag nach Gewicht \(80 kcal\/kg\)/);
+  assert.match($(w, "src-kcal").textContent, /✓ Vorschlag · 80 kcal\/kg/);
   assert.ok($(w, "src-kcal").classList.contains("auto"));
   assert.ok($(w, "reset-kcal").hidden);
   assert.match($(w, "verordnung-summary").textContent, /170 kcal pro Mahlzeit \(680 kcal\/Tag, Vorschlag 80 kcal\/kg ÷ 4\)/);
   assert.match($(w, "rx-chip").textContent, /170 kcal × 4/);
   assert.equal($(w, "set-kcalmin").value, "600");
-  assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag nach Holliday-Segar/);
+  assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag · 100 ml\/kg/);
   // Eiweiß: Standard 1,5 g/kg erkennbar
   assert.match(w.document.querySelector("#set-proteinmode option[value='1.5']").textContent, /Standard/);
   assert.ok($(w, "reset-protein").hidden, "kein Standard-Link, solange der Standard gilt");
@@ -440,7 +440,6 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
-  assert.match($(w, "verordnung-summary").textContent, /KetoCal bevorzugt · MCT 10 % · Rechenregel ⚖️ Verhältnis halten/);
   assert.match($(w, "rx-chip").textContent, /🥄 KetoCal/);
   assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · zwischen den Mahlzeiten: 4 × 60 ml · Rest in den Mahlzeiten/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
@@ -517,7 +516,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.ok(w.document.querySelector("#wasser-modus-ctl button[data-wmodus=zwischen]").classList.contains("active"));
   assert.ok(!$(w, "set-zwischen").disabled, "Menge je Zwischenzeit aktiv");
   assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge mehr");
-  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*3 × 60 ml zwischen den Mahlzeiten sondieren \(180 ml\), der Rest von 670 ml in den Mahlzeiten: je 168 ml/);
+  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*3 × 60 ml zwischen den Mahlzeiten sondieren \(180 ml\), Rest 670 ml in den Mahlzeiten: je 168 ml/);
   // „zwischen“: Mahlzeit wird auf 168 ml aufgefüllt, Rest per Spritze
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];

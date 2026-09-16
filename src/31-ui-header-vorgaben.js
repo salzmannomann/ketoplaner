@@ -42,12 +42,8 @@
     if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
       ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
       (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
-      " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)") +
-      " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
-      " · MCT " + Math.round(d.mctShare * 100) + " %" +
-      " · Rechenregel " + regelLabel(d);
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)");
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // Flüssigkeit: Modus-Buttons und Zusammenfassung
@@ -55,10 +51,10 @@
       b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
     const fs = document.getElementById("fluid-summary");
     if (fs) fs.innerHTML = d.fluidDay > 0
-      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag nach Holliday-Segar: 100 ml/kg bis 10 kg)") + " · " +
+      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
         (d.wasserModus === "mahlzeit"
-          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml (Zutaten-Wasser + Rezept-Wasser) – die Rezepte bekommen entsprechend mehr Wasser"
-          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), der Rest von " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
+          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
+          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), Rest " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");

@@ -841,6 +841,27 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .reset-line { display: flex; align-items: center; gap: 8px; }
 .reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .reset-line .src.auto { color: var(--green); font-weight: 600; }
+/* Vorgaben kompakt: am Handy zwei Felder je Reihe, dichtere Karten, kürzere Statuszeilen */
+@media (max-width: 560px) {
+  #view-vorgaben .card { padding: 12px 12px 10px; margin-bottom: 10px; }
+  #view-vorgaben .card h3 { font-size: 16px; margin: 0 0 8px; }
+  #view-vorgaben .card h3 .hint { font-size: 12px; }
+  #view-vorgaben .settings-grid { grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-bottom: 4px; }
+  #view-vorgaben .settings-grid > div { padding-bottom: 18px; }
+  #view-vorgaben .settings-grid > div.wide, #view-vorgaben #eiweiss-manual { grid-column: span 2; }
+  #view-vorgaben label { font-size: 13px; margin-bottom: 3px; }
+  #view-vorgaben input, #view-vorgaben select { padding: 8px 10px; font-size: 16px; }
+  #view-vorgaben .reset-line { height: 16px; line-height: 16px; }
+  #view-vorgaben .reset-line .src { font-size: 11px; }
+  #view-vorgaben .reset-line .linkbtn { font-size: 11px; }
+  #view-vorgaben .preset-row { margin: 0 0 8px; gap: 6px 10px; }
+  #view-vorgaben .preset-row .segmented.mini button { padding: 7px 6px; font-size: 12.5px; }
+  #view-vorgaben .note { padding: 8px 10px; font-size: 12.5px; margin: 6px 0; line-height: 1.4; }
+  #view-vorgaben details.collapsible { margin: 4px 0 0; }
+  #view-vorgaben .collapsible.mini summary { font-size: 12px; }
+  #view-vorgaben .btn-row { gap: 6px; }
+}
+@media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } }
 
 </style>
 </head>
@@ -905,7 +926,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
       <div class="card">
-        <h3>🩺 Verordnung <span class="hint">– kommt vom Behandlungsteam, ändert sich selten</span></h3>
+        <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="settings-grid">
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
@@ -929,7 +950,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div>
+          <div class="wide">
             <label>Eiweiß-Bedarf</label>
             <div class="inline-row">
               <select id="set-proteinmode">
@@ -959,7 +980,7 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
       </div>
 
       <div class="card">
-        <h3>💧 Flüssigkeit <span class="hint">– wie viel am Tag und wie das Wasser gegeben wird</span></h3>
+        <h3>💧 Flüssigkeit</h3>
         <div class="preset-row">
           <span class="seg-label">Wasser:</span>
           <div class="segmented mini" id="wasser-modus-ctl">
@@ -980,39 +1001,35 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
-        <p class="hint">Leer = Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> je Zwischenzeit die eingestellte Menge (bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens 25 ml/kg je Mahlzeit; reicht das nicht, sagt es die App. <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p>
+        <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> je Zwischenzeit die eingestellte Menge (bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens 25 ml/kg je Mahlzeit; reicht das nicht, sagt es die App. <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
       </div>
 
       <div class="card">
-        <h3>🧭 Rechenregel <span class="hint">– wenn Verhältnis und Kalorien nicht beide zu halten sind</span></h3>
+        <h3>⚡ Öl <span class="hint">– MCT-Anteil und Rechenregel, gilt für alle Rezepte mit Öl</span></h3>
         <div class="preset-row">
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <div class="segmented mini" id="mct-share-ctl"></div>
+        </div>
+        <div class="preset-row">
+          <span class="seg-label">Rechenregel:</span>
           <div class="segmented mini" id="mct-mode-ctl">
             <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
           </div>
         </div>
-        <p class="hint">Gilt für den MCT-Anteil. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil – fällt der Tag unter das Minimum, gibt es eine Warnung. <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis (das ist eine Änderung der Verordnung).</p>
-      </div>
-
-      <div class="card">
-        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
-        <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
-          <div class="segmented mini" id="mct-share-ctl"></div>
-        </div>
-        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet. Ab 10 % erscheinen hier Erklärung und Etikettwerte.</p>
+        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
         <div id="mct-more">
-          <details class="collapsible">
-            <summary>ⓘ Was bedeutet der MCT-Anteil?</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon; welche, legt die Rechenregel fest. MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+          <details class="collapsible mini">
+            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
           </details>
           <div class="settings-grid">
             <div>
-              <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+              <label>MCT-Öl: Fett je 100 g (Etikett)</label>
               <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
             </div>
             <div>
-              <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+              <label>MCT-Öl: kcal je 100 g (830 = Praxiswert)</label>
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
@@ -1029,16 +1046,15 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
             <button type="button" data-rund="1">1 g</button>
           </div>
         </div>
-        <p class="hint">Gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. <strong>Fettträger</strong> (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt.</p>
         <div class="settings-grid">
           <div>
             <label>Verdunstung beim Dämpfen (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
         </div>
-        <details class="collapsible">
-          <summary>ⓘ Wie kalibrieren?</summary>
-          <p>Einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts. Die Varoma-Anleitung rechnet damit das Topf-Wasser so, dass nach dem Dämpfen ungefähr die Rezeptmenge übrig bleibt (Dämpfwasser wird mitverwendet).</p>
+        <details class="collapsible mini">
+          <summary>ⓘ Rundung und Verdunstung</summary>
+          <p><strong>Rundung:</strong> gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. Fettträger (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt. <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
       </div>
 
@@ -2320,19 +2336,19 @@ const RECIPES_SONDE = [
       if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
     };
     put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
-    src("kcal", d.kcalManual, d.weight > 0 ? "Vorschlag nach Gewicht (80 kcal/kg)" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    src("kcal", d.kcalManual, d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
-    src("kcalmin", d.kcalMinManual, d.weight > 0 ? "Vorschlag nach Gewicht (70 kcal/kg)" : "Vorschlag (85 % des Ziels)", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    src("kcalmin", d.kcalMinManual, d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
-    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag nach Holliday-Segar (100 ml/kg)" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
+    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
     src("protein", d.proteinPerKg !== d.proteinStandard, "Standard " + fmt(d.proteinStandard, 1) + " g/kg/Tag", "↺ Standard");
     // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
     const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
     const zwManual = zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60;
     put("set-zwischen", zwOn ? d.zwischenMl : "");
     if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "" : "– (alles in den Mahlzeiten)"; }
-    src("zwischen", zwManual, zwOn ? "Vorgabe: eine Spritze (60 ml)" : "nicht nötig (alles in den Mahlzeiten)", "↺ 60 ml");
+    src("zwischen", zwManual, zwOn ? "Vorgabe · eine Spritze" : "nicht nötig", "↺ 60 ml");
     // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
@@ -2470,12 +2486,8 @@ const RECIPES_SONDE = [
     if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
       ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
       (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
-      " · Verhältnis " + fmtTarget(d.ratio) + (d.ratio < 1 ? " (" + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)") +
-      " · " + (ketoPhase() === "mit" ? "KetoCal bevorzugt" : "ohne KetoCal bevorzugt") +
-      " · MCT " + Math.round(d.mctShare * 100) + " %" +
-      " · Rechenregel " + regelLabel(d);
+      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)");
     document.querySelectorAll("#ketocal-ctl button[data-ketocal]").forEach(b =>
       b.classList.toggle("active", b.dataset.ketocal === ketoPhase()));
     // Flüssigkeit: Modus-Buttons und Zusammenfassung
@@ -2483,10 +2495,10 @@ const RECIPES_SONDE = [
       b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
     const fs = document.getElementById("fluid-summary");
     if (fs) fs.innerHTML = d.fluidDay > 0
-      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag nach Holliday-Segar: 100 ml/kg bis 10 kg)") + " · " +
+      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
         (d.wasserModus === "mahlzeit"
-          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml (Zutaten-Wasser + Rezept-Wasser) – die Rezepte bekommen entsprechend mehr Wasser"
-          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), der Rest von " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
+          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
+          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), Rest " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");

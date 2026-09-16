@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=19d85da3" />
+  <link rel="stylesheet" href="styles.css?v=9bacb27d" />
 </head>
 <body>
   <header class="topbar">
@@ -77,7 +77,7 @@
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
       <div class="card">
-        <h3>🩺 Verordnung <span class="hint">– kommt vom Behandlungsteam, ändert sich selten</span></h3>
+        <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="settings-grid">
           <div>
             <label>Verhältnis (Fett : Eiweiß+KH)</label>
@@ -101,7 +101,7 @@
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div>
+          <div class="wide">
             <label>Eiweiß-Bedarf</label>
             <div class="inline-row">
               <select id="set-proteinmode">
@@ -131,7 +131,7 @@
       </div>
 
       <div class="card">
-        <h3>💧 Flüssigkeit <span class="hint">– wie viel am Tag und wie das Wasser gegeben wird</span></h3>
+        <h3>💧 Flüssigkeit</h3>
         <div class="preset-row">
           <span class="seg-label">Wasser:</span>
           <div class="segmented mini" id="wasser-modus-ctl">
@@ -152,39 +152,35 @@
           </div>
         </div>
         <div id="fluid-summary" class="note tip"></div>
-        <p class="hint">Leer = Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> je Zwischenzeit die eingestellte Menge (bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens 25 ml/kg je Mahlzeit; reicht das nicht, sagt es die App. <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p>
+        <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> je Zwischenzeit die eingestellte Menge (bei 4 Mahlzeiten 3 Gaben), der Rest des Tagesbedarfs kommt in die Mahlzeiten – höchstens 25 ml/kg je Mahlzeit; reicht das nicht, sagt es die App. <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
       </div>
 
       <div class="card">
-        <h3>🧭 Rechenregel <span class="hint">– wenn Verhältnis und Kalorien nicht beide zu halten sind</span></h3>
+        <h3>⚡ Öl <span class="hint">– MCT-Anteil und Rechenregel, gilt für alle Rezepte mit Öl</span></h3>
         <div class="preset-row">
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <div class="segmented mini" id="mct-share-ctl"></div>
+        </div>
+        <div class="preset-row">
+          <span class="seg-label">Rechenregel:</span>
           <div class="segmented mini" id="mct-mode-ctl">
             <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
           </div>
         </div>
-        <p class="hint">Gilt für den MCT-Anteil. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil – fällt der Tag unter das Minimum, gibt es eine Warnung. <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis (das ist eine Änderung der Verordnung).</p>
-      </div>
-
-      <div class="card">
-        <h3>⚡ MCT-Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
-        <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
-          <div class="segmented mini" id="mct-share-ctl"></div>
-        </div>
-        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet. Ab 10 % erscheinen hier Erklärung und Etikettwerte.</p>
+        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
         <div id="mct-more">
-          <details class="collapsible">
-            <summary>ⓘ Was bedeutet der MCT-Anteil?</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon; welche, legt die Rechenregel fest. MCT ist je kcal ketogener als langkettiges Fett; es kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+          <details class="collapsible mini">
+            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
           </details>
           <div class="settings-grid">
             <div>
-              <label>MCT-Öl: Fett pro 100 g (Etikett)</label>
+              <label>MCT-Öl: Fett je 100 g (Etikett)</label>
               <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
             </div>
             <div>
-              <label>MCT-Öl: kcal pro 100 g (Etikett; 830 = Praxiswert)</label>
+              <label>MCT-Öl: kcal je 100 g (830 = Praxiswert)</label>
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
@@ -201,16 +197,15 @@
             <button type="button" data-rund="1">1 g</button>
           </div>
         </div>
-        <p class="hint">Gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. <strong>Fettträger</strong> (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt.</p>
         <div class="settings-grid">
           <div>
             <label>Verdunstung beim Dämpfen (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
         </div>
-        <details class="collapsible">
-          <summary>ⓘ Wie kalibrieren?</summary>
-          <p>Einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts. Die Varoma-Anleitung rechnet damit das Topf-Wasser so, dass nach dem Dämpfen ungefähr die Rezeptmenge übrig bleibt (Dämpfwasser wird mitverwendet).</p>
+        <details class="collapsible mini">
+          <summary>ⓘ Rundung und Verdunstung</summary>
+          <p><strong>Rundung:</strong> gilt für Gemüse, Fleisch, Obst, Brei und Pulver; Wasser wird auf 1 ml gerundet. Fettträger (Öl, Butter, Obers, KetoCal) werden immer auf 0,1 g gerundet und nach dem Runden so nachgestellt, dass das Verhältnis wieder exakt stimmt. <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
       </div>
 
@@ -265,7 +260,7 @@
 
   <script src="foods.js?v=50f8fa64"></script>
   <script src="recipes.js?v=f479f98a"></script>
-  <script src="app.js?v=1f538ca4"></script>
+  <script src="app.js?v=0ca6fecf"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

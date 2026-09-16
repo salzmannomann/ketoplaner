@@ -824,3 +824,24 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .reset-line { display: flex; align-items: center; gap: 8px; }
 .reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .reset-line .src.auto { color: var(--green); font-weight: 600; }
+/* Vorgaben kompakt: am Handy zwei Felder je Reihe, dichtere Karten, kürzere Statuszeilen */
+@media (max-width: 560px) {
+  #view-vorgaben .card { padding: 12px 12px 10px; margin-bottom: 10px; }
+  #view-vorgaben .card h3 { font-size: 16px; margin: 0 0 8px; }
+  #view-vorgaben .card h3 .hint { font-size: 12px; }
+  #view-vorgaben .settings-grid { grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-bottom: 4px; }
+  #view-vorgaben .settings-grid > div { padding-bottom: 18px; }
+  #view-vorgaben .settings-grid > div.wide, #view-vorgaben #eiweiss-manual { grid-column: span 2; }
+  #view-vorgaben label { font-size: 13px; margin-bottom: 3px; }
+  #view-vorgaben input, #view-vorgaben select { padding: 8px 10px; font-size: 16px; }
+  #view-vorgaben .reset-line { height: 16px; line-height: 16px; }
+  #view-vorgaben .reset-line .src { font-size: 11px; }
+  #view-vorgaben .reset-line .linkbtn { font-size: 11px; }
+  #view-vorgaben .preset-row { margin: 0 0 8px; gap: 6px 10px; }
+  #view-vorgaben .preset-row .segmented.mini button { padding: 7px 6px; font-size: 12.5px; }
+  #view-vorgaben .note { padding: 8px 10px; font-size: 12.5px; margin: 6px 0; line-height: 1.4; }
+  #view-vorgaben details.collapsible { margin: 4px 0 0; }
+  #view-vorgaben .collapsible.mini summary { font-size: 12px; }
+  #view-vorgaben .btn-row { gap: 6px; }
+}
+@media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } }
