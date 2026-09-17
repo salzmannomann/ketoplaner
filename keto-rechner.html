@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#2f855a" />
+  <meta name="theme-color" content="#276749" />
   <title>HamHam Keto</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-180.png" />
@@ -665,9 +665,8 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .pick-meta { color: var(--muted); font-size: 12px; }
 /* Verordnungs-Chip (zweizeilig): am Handy als eigene Zeile unter dem Logo, mit Umbruch; am Desktop feste Kopfhöhe */
 @media (max-width: 820px) {
-  .topbar { flex-wrap: wrap; row-gap: 6px; }
-  .rx-chip { width: 100%; max-width: 100%; align-items: flex-start; text-align: left; border-radius: 10px; }
-  .rx-chip .rx-line { white-space: normal; overflow: visible; text-overflow: clip; }
+  .topbar { flex-wrap: nowrap; }
+  .rx-chip { width: auto; max-width: 56%; flex: 0 1 auto; }
 }
 @media (min-width: 821px) {
   .topbar { min-height: 72px; }
@@ -929,6 +928,25 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #compose-content .title-input { font-size: 17px; padding: 2px 6px; margin-left: -6px; }
   #compose-content .compose-row .compose-grams { width: 70px; }
   #compose-content .compose-row .btn.ghost { padding: 6px 8px; }
+}
+
+/* Kopfleiste: grüner Verlauf, Schriftzug in Weiß, Verordnung als helle Pille rechts – eine Zeile, auch am Handy.
+   Am Handy zeigt die Pille eine Kurzfassung (rx-short), am Desktop den vollen Text (rx-long). */
+.topbar { background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 60%, #3f9a66 100%); border-bottom: 0; box-shadow: 0 2px 8px rgba(16,24,40,.18); }
+.topbar .brand { min-width: 0; }
+.topbar .brand .brand-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.18); white-space: nowrap; }
+.topbar .brand .logo-img { box-shadow: 0 1px 4px rgba(0,0,0,.28); }
+.rx-chip { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.4); color: #fff; }
+.rx-chip .rx-sub { opacity: .92; }
+.rx-chip:hover { background: rgba(255,255,255,.26); }
+.rx-chip .rx-short { display: none; }
+@media (max-width: 820px) {
+  .topbar { padding: 8px 12px; }
+  .rx-chip { border-radius: 12px; padding: 4px 9px; max-width: calc(100% - 200px); }
+  .topbar .brand { flex: 0 0 auto; gap: 8px; }
+  .rx-chip .rx-long { display: none; }
+  .rx-chip .rx-short { display: block; }
+  .rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
 </style>
@@ -2539,7 +2557,15 @@ const RECIPES_SONDE = [
         if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
-    chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
+    // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
+    const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl + (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " %" : "");
+    let s2 = "";
+    if (d.fluidDay > 0) {
+      s2 = "💧 " + fmt(d.fluidDay, 0) + " ml · " + (d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " ml dabei" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml dazw.");
+      if (/fehlen/.test(l2)) s2 += " · ⚠️ " + l2.replace(/.*fehlen /, "fehlen ");
+    }
+    chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
+      '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + (s2 ? '<span class="rx-line rx-sub rx-short">' + escapeHtml(s2) + "</span>" : "");
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
