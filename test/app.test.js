@@ -333,7 +333,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   // Mehrere Tage vorkochen: 2 Tage = 10 Portionen, Waage-Tabelle ×10, Tages-Check bleibt je Tag
   const g1 = kitchenRows(c)["Broccoli, gekocht"] / 5, kcal1 = numDe(dayTiles(c).querySelector(".dstat .v").textContent);
   assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
-  assert.match(tagStatus(c).textContent, /^Wie berechnet \(700 kcal je Tag\)/);
+  assert.match(tagStatus(c).textContent, /^Wie berechnet · 700 kcal je Tag/);
   fire(w, c.querySelector('.seg-portion button[data-scale="tag:2"]'));
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"));
@@ -342,7 +342,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.ok(Math.abs(kitchenRows(c)["Broccoli, gekocht"] - g1 * 10) <= 0.6, "Waage ×10");
   assert.ok(Math.abs(numDe(dayTiles(c).querySelector(".dstat .v").textContent) - 2 * kcal1) <= 2, "Kacheln für 2 Tage");
   assert.match(dayTiles(c).textContent, /kcal · Ziel 1\.?400/);
-  assert.match(tagStatus(c).textContent, /^Wie berechnet \(1\.?400 kcal für 2 Tage\)/);
+  assert.match(tagStatus(c).textContent, /^Wie berechnet · 1\.?400 kcal für 2 Tage/);
   fire(w, $(w, "detail-close"));
   // Stepper: 10 → 11 (freie Portionenzahl, kein Knopf aktiv) → zurück auf 10 = wieder „2 Tage“; 5 = wieder „1 Tag“
   fire(w, c.querySelector('.seg-portion .stepbtn[data-step="1"]')); c = $(w, "detail-content");
@@ -501,7 +501,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
-    assert.match(tagStatus(c2).textContent, /^Wie berechnet \(420 kcal für 3 Portionen\)/);
+    assert.match(tagStatus(c2).textContent, /^Wie berechnet · 420 kcal für 3 Portionen/);
     assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag 3 Portionen$/);
     fire(w, $(w, "detail-close"));
   }
@@ -617,7 +617,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   fire(w3, $(w3, "detail-close"));
   const zw = $(w3, "set-zwischen"); zw.value = "0"; fire(w3, zw, "input");
   c3 = openRecipe(w3, "Compleat & KetoCal");
-  assert.match(rechnenText(c3), /fehlen am Tag noch \d+ ml/);
+  assert.match(rechnenText(c3), /am Tag fehlen noch \d+ ml/);
   zw.value = ""; fire(w3, zw, "input");
   assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
   fire(w3, $(w3, "detail-close"));

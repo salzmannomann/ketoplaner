@@ -693,7 +693,7 @@
         l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 3) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
     chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
@@ -1028,9 +1028,9 @@
   function gaps(n) { return Math.max(1, Math.round(n) - 1); }
   // Modus „zwischen“: feste Wassergabe je Zwischenzeit; fehlt danach noch etwas (Höchstmenge je Mahlzeit erreicht), wird es genannt.
   function zwischenText(d, rest, n) {
-    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan; // Toleranz 3 ml (Wasser wird je Mahlzeit auf 1 ml gerundet)
-    if (diff > 3) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe). Damit fehlen am Tag noch <strong>' + fmt(diff, 0) + ' ml</strong>, weil die Mahlzeiten an der Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml, 25 ml/kg) liegen – Wasser je Zwischenzeit auf ≈ ' + fmt(rest / g, 0) + ' ml erhöhen oder eine Wassergabe mehr einplanen.</div>';
-    if (diff < -3) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
+    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan; // Toleranz 5 ml (Wasser wird je Mahlzeit auf 1 ml gerundet)
+    if (diff > 5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe) – am Tag fehlen noch <strong>' + fmt(diff, 0) + ' ml</strong> (Mahlzeiten an der Höchstmenge ' + fmt(d.maxMahlMl, 0) + ' ml): je Zwischenzeit ≈ ' + fmt(rest / g, 0) + ' ml geben oder eine Wassergabe mehr.</div>';
+    if (diff < -5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
     return '<div class="note tip">💧 Zwischen den Mahlzeiten: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – Tagesbedarf ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
   }
   function regelZeile(d) {
@@ -1254,7 +1254,7 @@
       if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) · <button type="button" class="linkbtn portion-reset">↺ wie berechnet</button>');
       if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
       return parts.length ? parts.join(" · ")
-        : 'Wie berechnet (' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ')' + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult * m, 0) + ' g / ' + fmt(ml / mult * m, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit';
+        : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ' · Gramm ändern skaliert alles mit'; // eine Zeile am Handy
     };
     const mealStatus = statusLine(1, "je Mahlzeit");
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.

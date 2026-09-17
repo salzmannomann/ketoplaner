@@ -24,7 +24,7 @@
         l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
         let planFluid = 0, n = 0;
         (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 3) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
       }
     }
     chip.innerHTML = '<span class="rx-line">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub">' + escapeHtml(l2) + "</span>" : "");
