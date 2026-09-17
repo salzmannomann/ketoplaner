@@ -94,7 +94,7 @@
     const ov = document.getElementById("picker-overlay"), q = document.getElementById("picker-search");
     if (!ov) return;
     q.value = ""; renderPicker();
-    ov.hidden = false; document.body.classList.add("modal-open");
+    ov.hidden = false; modalOpen("picker");
     try { q.focus(); } catch (e) {}
   }
   function renderPicker() {
@@ -122,7 +122,7 @@
   }
   function closePicker() {
     const ov = document.getElementById("picker-overlay"); if (!ov) return;
-    ov.hidden = true; document.body.classList.remove("modal-open");
+    ov.hidden = true; modalClose("picker");
   }
   function bindHeute() {
     const th = document.getElementById("tab-heute"); if (th) th.hidden = false;

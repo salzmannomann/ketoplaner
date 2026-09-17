@@ -380,7 +380,9 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   border: 0; border-radius: 8px; background: var(--bg); cursor: pointer; font-size: 16px; color: var(--ink);
 }
 .overlay-close:hover { background: var(--line); }
-body.modal-open { overflow: hidden; }
+/* Overlay offen: Seite dahinter einfrieren (position: fixed wirkt auch auf iOS; top setzt das Skript auf −scrollY) */
+body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
+.overlay { overscroll-behavior: contain; }
 .detail-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 14px; }
 .detail-icon { font-size: 40px; line-height: 1; }
 #detail-content .title { font-weight: 700; font-size: 20px; }
@@ -1946,6 +1948,28 @@ const RECIPES_SONDE = [
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
+  /* ---------- Hintergrund einfrieren, solange ein Overlay offen ist ----------
+     „overflow: hidden“ am body reicht auf iOS Safari nicht – die Seite dahinter scrollt beim Wischen mit.
+     Deshalb wird der body fixiert (position: fixed) und die Scrollposition gemerkt und beim Schließen
+     wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
+  const openModals = new Set();
+  let lockedScrollY = 0;
+  function modalOpen(id) {
+    if (openModals.size === 0) {
+      lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.body.classList.add("modal-open");
+      document.body.style.top = -lockedScrollY + "px";
+    }
+    openModals.add(id);
+  }
+  function modalClose(id) {
+    openModals.delete(id);
+    if (openModals.size === 0) {
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      try { window.scrollTo(0, lockedScrollY); } catch (e) {}
+    }
+  }
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
   let foodIndex = {};
@@ -2723,7 +2747,7 @@ const RECIPES_SONDE = [
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("detail");
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -3291,7 +3315,7 @@ const RECIPES_SONDE = [
   }
   function closeDetail() {
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("detail");
   }
   function bindDetail() {
     const overlay = document.getElementById("detail-overlay");
@@ -3396,7 +3420,7 @@ const RECIPES_SONDE = [
     const ov = document.getElementById("picker-overlay"), q = document.getElementById("picker-search");
     if (!ov) return;
     q.value = ""; renderPicker();
-    ov.hidden = false; document.body.classList.add("modal-open");
+    ov.hidden = false; modalOpen("picker");
     try { q.focus(); } catch (e) {}
   }
   function renderPicker() {
@@ -3424,7 +3448,7 @@ const RECIPES_SONDE = [
   }
   function closePicker() {
     const ov = document.getElementById("picker-overlay"); if (!ov) return;
-    ov.hidden = true; document.body.classList.remove("modal-open");
+    ov.hidden = true; modalClose("picker");
   }
   function bindHeute() {
     const th = document.getElementById("tab-heute"); if (th) th.hidden = false;
@@ -3724,11 +3748,11 @@ const RECIPES_SONDE = [
 
     renderRows(); renderFats(); recompute();
     document.getElementById("compose-overlay").hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("compose");
   }
   function closeCompose() {
     document.getElementById("compose-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("compose");
     renderRezepte();
   }
   function bindCompose() {

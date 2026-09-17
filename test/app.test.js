@@ -653,3 +653,22 @@ test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MC
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.match(st(), /^Wie im Rezept/);
 });
+
+test("Overlays frieren den Hintergrund ein (body.modal-open) und geben ihn beim Schließen wieder frei", () => {
+  const w = boot({ settings: { mctShare: 0 } });
+  const body = w.document.body;
+  let c = openRecipe(w, "Hendl & Zucchini");
+  assert.ok(body.classList.contains("modal-open"));
+  fire(w, c.querySelector("button[data-open-rec]")); // Geschwister-Rezept öffnet die Ansicht erneut – bleibt gesperrt
+  assert.ok(body.classList.contains("modal-open"));
+  fire(w, $(w, "detail-close"));
+  assert.ok(!body.classList.contains("modal-open"), "nach dem Schließen frei");
+  assert.equal(body.style.top, "");
+  // Detail → Editor: Detail schließt, Editor hält die Sperre; Editor schließen gibt frei
+  c = openRecipe(w, "Hendl & Zucchini");
+  fire(w, c.querySelector("#edit-btn"));
+  assert.ok($(w, "detail-overlay").hidden && !$(w, "compose-overlay").hidden);
+  assert.ok(body.classList.contains("modal-open"), "Editor hält die Sperre");
+  fire(w, $(w, "compose-close"));
+  assert.ok(!body.classList.contains("modal-open"));
+});

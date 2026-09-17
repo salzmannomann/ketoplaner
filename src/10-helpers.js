@@ -53,3 +53,25 @@
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
+  /* ---------- Hintergrund einfrieren, solange ein Overlay offen ist ----------
+     „overflow: hidden“ am body reicht auf iOS Safari nicht – die Seite dahinter scrollt beim Wischen mit.
+     Deshalb wird der body fixiert (position: fixed) und die Scrollposition gemerkt und beim Schließen
+     wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
+  const openModals = new Set();
+  let lockedScrollY = 0;
+  function modalOpen(id) {
+    if (openModals.size === 0) {
+      lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.body.classList.add("modal-open");
+      document.body.style.top = -lockedScrollY + "px";
+    }
+    openModals.add(id);
+  }
+  function modalClose(id) {
+    openModals.delete(id);
+    if (openModals.size === 0) {
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      try { window.scrollTo(0, lockedScrollY); } catch (e) {}
+    }
+  }

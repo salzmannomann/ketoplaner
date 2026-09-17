@@ -141,6 +141,28 @@
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
+  /* ---------- Hintergrund einfrieren, solange ein Overlay offen ist ----------
+     „overflow: hidden“ am body reicht auf iOS Safari nicht – die Seite dahinter scrollt beim Wischen mit.
+     Deshalb wird der body fixiert (position: fixed) und die Scrollposition gemerkt und beim Schließen
+     wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
+  const openModals = new Set();
+  let lockedScrollY = 0;
+  function modalOpen(id) {
+    if (openModals.size === 0) {
+      lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.body.classList.add("modal-open");
+      document.body.style.top = -lockedScrollY + "px";
+    }
+    openModals.add(id);
+  }
+  function modalClose(id) {
+    openModals.delete(id);
+    if (openModals.size === 0) {
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      try { window.scrollTo(0, lockedScrollY); } catch (e) {}
+    }
+  }
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
   let foodIndex = {};
@@ -918,7 +940,7 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("detail");
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -1486,7 +1508,7 @@
   }
   function closeDetail() {
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("detail");
   }
   function bindDetail() {
     const overlay = document.getElementById("detail-overlay");
@@ -1591,7 +1613,7 @@
     const ov = document.getElementById("picker-overlay"), q = document.getElementById("picker-search");
     if (!ov) return;
     q.value = ""; renderPicker();
-    ov.hidden = false; document.body.classList.add("modal-open");
+    ov.hidden = false; modalOpen("picker");
     try { q.focus(); } catch (e) {}
   }
   function renderPicker() {
@@ -1619,7 +1641,7 @@
   }
   function closePicker() {
     const ov = document.getElementById("picker-overlay"); if (!ov) return;
-    ov.hidden = true; document.body.classList.remove("modal-open");
+    ov.hidden = true; modalClose("picker");
   }
   function bindHeute() {
     const th = document.getElementById("tab-heute"); if (th) th.hidden = false;
@@ -1919,11 +1941,11 @@
 
     renderRows(); renderFats(); recompute();
     document.getElementById("compose-overlay").hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("compose");
   }
   function closeCompose() {
     document.getElementById("compose-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("compose");
     renderRezepte();
   }
   function bindCompose() {

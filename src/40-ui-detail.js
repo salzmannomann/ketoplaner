@@ -24,7 +24,7 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("detail");
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -592,7 +592,7 @@
   }
   function closeDetail() {
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("detail");
   }
   function bindDetail() {
     const overlay = document.getElementById("detail-overlay");

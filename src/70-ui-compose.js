@@ -202,11 +202,11 @@
 
     renderRows(); renderFats(); recompute();
     document.getElementById("compose-overlay").hidden = false;
-    document.body.classList.add("modal-open");
+    modalOpen("compose");
   }
   function closeCompose() {
     document.getElementById("compose-overlay").hidden = true;
-    document.body.classList.remove("modal-open");
+    modalClose("compose");
     renderRezepte();
   }
   function bindCompose() {

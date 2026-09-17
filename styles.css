@@ -363,7 +363,9 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   border: 0; border-radius: 8px; background: var(--bg); cursor: pointer; font-size: 16px; color: var(--ink);
 }
 .overlay-close:hover { background: var(--line); }
-body.modal-open { overflow: hidden; }
+/* Overlay offen: Seite dahinter einfrieren (position: fixed wirkt auch auf iOS; top setzt das Skript auf −scrollY) */
+body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
+.overlay { overscroll-behavior: contain; }
 .detail-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 14px; }
 .detail-icon { font-size: 40px; line-height: 1; }
 #detail-content .title { font-weight: 700; font-size: 20px; }
