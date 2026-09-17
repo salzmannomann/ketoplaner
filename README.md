@@ -116,7 +116,12 @@ Vorgaben.
 - **➕ Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
   mehrere Fette zum Ausgleich; die App berechnet die Fettmenge fürs
   Verhältnis, wahlweise für eine fixe Zutatenmenge oder hochgerechnet auf eine
-  Mahlzeit. Eigene Rezepte können gespeichert, bearbeitet und gelöscht werden.
+  Mahlzeit. Der Editor sieht aus wie die Detailansicht: oben Name (als
+  Eingabefeld), Verhältnis-Pille und kcal, darunter zwei Blätter **✏️ Zutaten**
+  (Zutatenzeilen, Fett(e) zum Ausgleich, Skalieren-Haken) und **🍽️ Mahlzeit**
+  (Statuszeile, Kacheln und Tabelle genau wie bei einem Rezept), unten die feste
+  Leiste **💾 Speichern · 🖨️ Drucken · 🗑️**. Eigene Rezepte können gespeichert,
+  bearbeitet und gelöscht werden.
 
 ### Detailansicht eines Rezepts
 

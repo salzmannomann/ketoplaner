@@ -269,8 +269,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .compose-fat { margin: 14px 0 4px; }
 .compose-fat > label { display: block; margin-bottom: 6px; }
 .compose-fat .btn.secondary { margin-top: 4px; }
-#compose-content .title { font-weight: 700; font-size: 20px; padding-right: 40px; }
-#compose-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 14px; }
 
 /* Schnellfilter-Chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
@@ -385,8 +383,8 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 .overlay { overscroll-behavior: contain; }
 .detail-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 14px; }
 .detail-icon { font-size: 40px; line-height: 1; }
-#detail-content .title { font-weight: 700; font-size: 20px; }
-#detail-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+#detail-content .title, #compose-content .title { font-weight: 700; font-size: 20px; }
+#detail-content .meta, #compose-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
 .detail-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
 .dstat { background: var(--bg); border-radius: 10px; padding: 12px; text-align: center; }
 .dstat .v { font-size: 18px; font-weight: 700; color: var(--brand-dark); }
@@ -404,8 +402,8 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
   .overlay-card th, .overlay-card td { padding: 8px 5px; }
   .amt-edit { width: 60px; }
   /* Aktions-Buttons als volle Breite, leichter zu tippen */
-  #detail-content .btn-row { flex-direction: column; }
-  #detail-content .btn-row .btn { width: 100%; }
+  #detail-content .btn-row, #compose-content .btn-row { flex-direction: column; }
+  #detail-content .btn-row .btn, #compose-content .btn-row .btn { width: 100%; }
 }
 
 .badge.keto { background: var(--yellow-bg); color: var(--yellow); }
@@ -700,9 +698,9 @@ input:disabled { background: var(--bg); color: var(--muted); }
 .portion-line { font-size: 13px; color: var(--muted); margin: -4px 0 10px; min-height: 20px; line-height: 1.4; }
 .portion-line strong { color: var(--yellow); }
 /* Detailansicht kompakter: Kopfzeile in einer Reihe, klebende Reiter, dichte Kacheln, kleine Hinweise in Tabellen */
-#detail-content .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-#detail-content .meta .badge { margin-left: 0; }
-#detail-content .detail-tabs { background: var(--panel); }
+#detail-content .meta, #compose-content .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+#detail-content .meta .badge, #compose-content .meta .badge { margin-left: 0; }
+#detail-content .detail-tabs, #compose-content .detail-tabs { background: var(--panel); }
 .detail-tiles.strip { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
 .detail-tiles.strip .dstat { padding: 8px 4px; }
 .detail-tiles.strip .dstat .v { font-size: 15px; }
@@ -737,11 +735,11 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .detail-actions .btn { padding: 9px 14px; font-size: 14px; }
 @media (max-width: 820px) {
   /* Karte füllt das (fixe) Overlay komplett – Höhe = sichtbarer Bereich, auch mit Browserleisten (kein 100vh) */
-  #detail-overlay { overflow: hidden; padding: 0; align-items: stretch; }
-  #detail-overlay .overlay-card { display: flex; flex-direction: column; height: 100%; max-height: 100%; min-height: 0; padding: 10px 0 0; border-radius: 0; overflow: hidden; }
-  #detail-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-  #detail-content .detail-head { padding: 0 54px 0 14px; margin-bottom: 8px; }
-  #detail-content .detail-icon { font-size: 30px; }
+  #detail-overlay, #compose-overlay { overflow: hidden; padding: 0; align-items: stretch; }
+  #detail-overlay .overlay-card, #compose-overlay .overlay-card { display: flex; flex-direction: column; height: 100%; max-height: 100%; min-height: 0; padding: 10px 0 0; border-radius: 0; overflow: hidden; }
+  #detail-content, #compose-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #detail-content .detail-head, #compose-content .detail-head { padding: 0 54px 0 14px; margin-bottom: 8px; }
+  #detail-content .detail-icon, #compose-content .detail-icon { font-size: 30px; }
   .detail-tabs-wrap { padding: 0 14px; margin: 0 0 6px; }
   .detail-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; width: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .detail-tabs::-webkit-scrollbar { display: none; }
@@ -754,18 +752,18 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   .detail-actions { margin: 0; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); background: var(--panel); flex-wrap: nowrap; }
   .detail-actions .btn { flex: 1; padding: 9px 6px; font-size: 13px; white-space: nowrap; }
   .detail-actions .btn.ghost { flex: 0 0 auto; }
-  #detail-content .steps li { font-size: 15px; }
+  #detail-content .steps li, #compose-content .steps li { font-size: 15px; }
 }
 /* Kopf der Detailansicht kompakt (zwei Zeilen); Seiten wie im Rezeptbuch: Punkte + Seitenzahl, nächste Seite schaut rechts herein */
 .page-dots { display: none; }
 @media (max-width: 820px) {
-  #detail-content .detail-head { gap: 10px; margin-bottom: 6px; padding-right: 50px; align-items: center; }
-  #detail-content .detail-icon { font-size: 26px; }
-  #detail-content .detail-head .title { font-size: 17px; line-height: 1.2; }
-  #detail-content .meta { font-size: 12px; gap: 3px 6px; margin-top: 2px; }
-  #detail-content .meta .badge { font-size: 9.5px; padding: 1px 6px; }
-  #detail-content .meta .ratio-pill { font-size: 12px; padding: 1px 7px; }
-  #detail-overlay .overlay-close { top: 10px; right: 12px; width: 30px; height: 30px; font-size: 14px; }
+  #detail-content .detail-head, #compose-content .detail-head { gap: 10px; margin-bottom: 6px; padding-right: 50px; align-items: center; }
+  #detail-content .detail-icon, #compose-content .detail-icon { font-size: 26px; }
+  #detail-content .detail-head .title, #compose-content .detail-head .title { font-size: 17px; line-height: 1.2; }
+  #detail-content .meta, #compose-content .meta { font-size: 12px; gap: 3px 6px; margin-top: 2px; }
+  #detail-content .meta .badge, #compose-content .meta .badge { font-size: 9.5px; padding: 1px 6px; }
+  #detail-content .meta .ratio-pill, #compose-content .meta .ratio-pill { font-size: 12px; padding: 1px 7px; }
+  #detail-overlay .overlay-close, #compose-overlay .overlay-close { top: 10px; right: 12px; width: 30px; height: 30px; font-size: 14px; }
   .detail-tabs-wrap { margin: 0; }
   .page-dots { display: flex; align-items: center; justify-content: center; gap: 6px; height: 18px; margin: 2px 0 2px; }
   .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; }
@@ -808,20 +806,20 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 }
 /* Handy: keine Reiterleiste – Punkte + Seitenname reichen (am Desktop bleiben die Reiter) */
 @media (max-width: 820px) {
-  #detail-content .detail-tabs { display: none; }
+  #detail-content .detail-tabs, #compose-content .detail-tabs { display: none; }
   .page-dots { height: 24px; margin: 2px 0 4px; gap: 7px; }
   .page-dots .page-no { font-size: 11px; color: var(--muted); margin-left: 8px; }
 }
 /* Detailseiten einheitlich: gleiche Tabellen (Kopfzeile, Schrift, Fettzeile), gleiche Eingabefelder, Öl-Liste wie Tabelle */
-#detail-content table.kitchen td { padding: 6px 6px; font-size: 14px; }
-#detail-content table.kitchen th { text-align: left; }
-#detail-content table.kitchen th:last-child { text-align: right; }
-#detail-content table.kitchen tr.fatrow td { background: #fdf6e3; }
-#detail-content table td { font-size: 14px; }
-#detail-content table td.name { font-size: 14px; }
-#detail-content .amt-edit, #detail-content .g-edit { width: 66px; font-size: 15px; padding: 4px 6px; }
-#detail-content .oil-list li { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 6px; margin: 0; background: transparent; font-size: 14px; }
-#detail-content .oil-list strong { font-size: 14px; }
+#detail-content table.kitchen td, #compose-content table.kitchen td { padding: 6px 6px; font-size: 14px; }
+#detail-content table.kitchen th, #compose-content table.kitchen th { text-align: left; }
+#detail-content table.kitchen th:last-child, #compose-content table.kitchen th:last-child { text-align: right; }
+#detail-content table.kitchen tr.fatrow td, #compose-content table.kitchen tr.fatrow td { background: #fdf6e3; }
+#detail-content table td, #compose-content table td { font-size: 14px; }
+#detail-content table td.name, #compose-content table td.name { font-size: 14px; }
+#detail-content .amt-edit, #compose-content .amt-edit, #detail-content .g-edit, #compose-content .g-edit { width: 66px; font-size: 15px; padding: 4px 6px; }
+#detail-content .oil-list li, #compose-content .oil-list li { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 6px; margin: 0; background: transparent; font-size: 14px; }
+#detail-content .oil-list strong, #compose-content .oil-list strong { font-size: 14px; }
 @media (max-width: 820px) {
   .pages .pane table th, .pages .pane table td, .pages .pane table.kitchen td { padding: 3px 4px; font-size: 14px; }
   .pages .pane table th { font-size: 11px; }
@@ -915,6 +913,22 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .pages .pane table td.name small.adj { display: block; }
   .pages .pane .note { padding: 6px 9px; font-size: 12px; margin: 5px 0; }
   .pages .pane .portion-line { line-height: 1.3; }
+}
+
+/* Editor im Detail-Layout: Name als Titel-Eingabe im Kopf, Zutatenzeilen dichter, Blätter wie im Detail */
+.detail-head-body { flex: 1; min-width: 0; }
+#compose-content .title-input { width: 100%; font-weight: 700; font-size: 20px; padding: 4px 8px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); margin-left: -8px; }
+#compose-content .title-input:focus { border-color: var(--line); background: #fff; outline: none; }
+#compose-content .title-input::placeholder { color: var(--muted); font-weight: 500; }
+#compose-content .compose-rows { gap: 6px; margin: 6px 0; }
+#compose-content .compose-fat { margin: 12px 0 4px; }
+#compose-content .compose-fat > label { font-weight: 600; font-size: 14px; }
+#compose-content .compose-fat > label .hint { font-weight: 400; }
+#compose-content .checkrow { margin-top: 10px; }
+@media (max-width: 820px) {
+  #compose-content .title-input { font-size: 17px; padding: 2px 6px; margin-left: -6px; }
+  #compose-content .compose-row .compose-grams { width: 70px; }
+  #compose-content .compose-row .btn.ghost { padding: 6px 8px; }
 }
 
 </style>
@@ -2865,6 +2879,53 @@ const RECIPES_SONDE = [
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
   }
+  /* ---------- Blätter (Reiter am Desktop, Wisch-Seiten mit Punkten am Handy) – für Detail und Editor ---------- */
+  function pagerHead(PAGES, cur, tabsId, dotsId) {
+    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (cur === pg[0] ? ' class="active"' : "") + ">" + pg[1] + "</button>";
+    return '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="' + tabsId + '">' + PAGES.map(tabBtn).join("") + "</div>" +
+      '<div class="page-dots" id="' + dotsId + '">' + PAGES.map(pg => '<button type="button" class="dot' + (cur === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
+      '<span class="page-no">Seite ' + (Math.max(0, PAGES.findIndex(pg => pg[0] === cur)) + 1) + " von " + PAGES.length + "</span></div></div>";
+  }
+  // onChange(k): gewähltes Blatt merken; rerender(): am Desktop wird nach einem Reiterklick neu gezeichnet.
+  function setupPager(c, PAGES, cur, onChange, rerender) {
+    const mobile = isMobileLayout();
+    const pages = c.querySelector(".pages");
+    const panes = pages ? [...pages.querySelectorAll(":scope > .pane")] : [];
+    const pageIdx = (k) => Math.max(0, PAGES.findIndex(pg => pg[0] === k));
+    const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
+    const markTab = (k) => {
+      c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
+      const pn = c.querySelector(".page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + PAGES.length;
+      const ab = c.querySelector(".detail-tabs button.active");
+      if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
+    };
+    const goTo = (k, smooth) => {
+      const left = leftOf(pageIdx(k));
+      if (smooth) { try { pages.scrollTo({ left: left, behavior: "smooth" }); return; } catch (e) {} }
+      pages.scrollLeft = left;
+    };
+    let current = cur;
+    if (mobile && pages) {
+      goTo(cur, false);
+      markTab(cur);
+      let st = null;
+      pages.addEventListener("scroll", () => {
+        clearTimeout(st);
+        st = setTimeout(() => {
+          let best = 0, bd = Infinity;
+          panes.forEach((p, i) => { const dd = Math.abs(leftOf(i) - pages.scrollLeft); if (dd < bd) { bd = dd; best = i; } });
+          const k = PAGES[best][0];
+          if (k !== current) { current = k; onChange(k); markTab(k); }
+        }, 80);
+      });
+    }
+    c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b =>
+      b.addEventListener("click", () => {
+        current = b.dataset.dtab; onChange(current);
+        if (mobile && pages) { markTab(current); goTo(current, true); }
+        else rerender();
+      }));
+  }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -3015,7 +3076,6 @@ const RECIPES_SONDE = [
     const wanted = TABMAP[state.settings.detailTab] || state.settings.detailTab;
     const dtab = DETAIL_PAGES.some(pg => pg[0] === wanted) ? wanted : "mahlzeit";
     const mobile = isMobileLayout();
-    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (dtab === pg[0] ? ' class="active"' : "") + ">" + pg[1] + "</button>";
     const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k && !mobile ? " hidden" : "") + ">";
 
     // Ganzer Tag: eine Portion × Mahlzeiten pro Tag – unabhängig von der gewählten Portionenzahl.
@@ -3101,9 +3161,7 @@ const RECIPES_SONDE = [
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
         fmt(sumPer.kcal, 0) + " kcal je Portion</span>" + ketoBadge + "</div></div></div>" +
-      '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
-      '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">Seite ' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + " von " + DETAIL_PAGES.length + "</span></div></div>" +
+      pagerHead(DETAIL_PAGES, dtab, "detail-tabs", "page-dots") +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -3231,41 +3289,7 @@ const RECIPES_SONDE = [
         state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
-    const pages = c.querySelector("#detail-pages");
-    const panes = pages ? [...pages.querySelectorAll(":scope > .pane")] : [];
-    const pageIdx = (k) => Math.max(0, DETAIL_PAGES.findIndex(pg => pg[0] === k));
-    const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
-    const markTab = (k) => {
-      c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + DETAIL_PAGES.length;
-      const ab = c.querySelector("#detail-tabs button.active");
-      if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
-    };
-    const goTo = (k, smooth) => {
-      const left = leftOf(pageIdx(k));
-      if (smooth) { try { pages.scrollTo({ left: left, behavior: "smooth" }); return; } catch (e) {} }
-      pages.scrollLeft = left;
-    };
-    if (mobile && pages) {
-      goTo(dtab, false);
-      markTab(dtab);
-      let st = null;
-      pages.addEventListener("scroll", () => {
-        clearTimeout(st);
-        st = setTimeout(() => {
-          let best = 0, bd = Infinity;
-          panes.forEach((p, i) => { const dd = Math.abs(leftOf(i) - pages.scrollLeft); if (dd < bd) { bd = dd; best = i; } });
-          const k = DETAIL_PAGES[best][0];
-          if (k !== state.settings.detailTab) { state.settings.detailTab = k; save(); markTab(k); }
-        }, 80);
-      });
-    }
-    c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b =>
-      b.addEventListener("click", () => {
-        state.settings.detailTab = b.dataset.dtab; save();
-        if (mobile && pages) { markTab(b.dataset.dtab); goTo(b.dataset.dtab, true); }
-        else renderDetail();
-      }));
+    setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
 
     // Feste Aktionsleiste unten: Favorit · Drucken · Editor (· Löschen bei eigenen Rezepten)
     const actions = c.querySelector("#detail-actions");
@@ -3547,6 +3571,9 @@ const RECIPES_SONDE = [
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
   const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers NÖM", "Creme Fraîche NÖM", "Mascarpone Kärntnermilch", "Rapsöl", "Olivenöl", "MCT Nutricia (100%)", "Liquigen"];
+  // Der Editor sieht aus wie die Detailansicht: fester Kopf, zwei Blätter (Zutaten · Mahlzeit), feste Aktionsleiste.
+  const COMPOSE_PAGES = [["zutaten", "✏️ Zutaten"], ["mahlzeit", "🍽️ Mahlzeit"]];
+  let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
@@ -3600,34 +3627,50 @@ const RECIPES_SONDE = [
 
   function openCompose() {
     const compose = state.compose;
+    if (!compose.name && compose.fromRecipe) compose.name = compose.fromRecipe;
     const c = document.getElementById("compose-content");
     const d = derived();
-    c.innerHTML =
-      '<div class="title">➕ Eigenes Rezept' + (compose.fromRecipe ? " (angepasst)" : " zusammenstellen") + "</div>" +
-      '<div class="meta">' + (compose.fromRecipe ? "Basierend auf „" + escapeHtml(compose.fromRecipe) + "“. " : "") +
-      "Zutaten und Fett(e) frei wählen – die App berechnet die Mengen für eine Mahlzeit (Verhältnis " +
-      fmtTarget(d.ratio) + ", Ziel " + fmt(d.kcalMahl, 0) + " kcal).</div>";
-    const clearBtn = el("button", { class: "btn ghost" }, "🗑️ Leeren / neu beginnen");
-    clearBtn.addEventListener("click", () => {
-      state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true };
-      save(); closeCompose(); openCompose();
-    });
-    c.appendChild(clearBtn);
-    const rowsWrap = el("div", { class: "compose-rows" });
-    c.appendChild(rowsWrap);
-    const addBtn = el("button", { class: "btn secondary", html: "+ Zutat hinzufügen" });
-    addBtn.style.marginTop = "4px";
-    addBtn.addEventListener("click", () => { compose.items.push({ food: "", grams: 30 }); renderRows(); recompute(); });
-    c.appendChild(addBtn);
+    const mobile = isMobileLayout();
+    const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (composeTab !== k && !mobile ? " hidden" : "") + ">";
+    const badge = compose.editKey
+      ? '<span class="badge quelle">📝 eigenes Rezept</span>'
+      : (compose.fromRecipe ? '<span class="badge noketo">nach „' + escapeHtml(compose.fromRecipe) + '“</span>' : '<span class="badge noketo">neu</span>');
 
-    const fatField = el("div", { class: "compose-fat" });
-    fatField.innerHTML = "<label>Fett(e) zum Ausgleich</label>";
-    const fatsWrap = el("div", { class: "compose-rows" });
-    fatField.appendChild(fatsWrap);
-    const addFatBtn = el("button", { class: "btn secondary", html: "+ weiteres Fett" });
-    addFatBtn.addEventListener("click", () => { compose.fats.push({ food: "Butter", share: 50 }); renderFats(); recompute(); });
-    fatField.appendChild(addFatBtn);
-    c.appendChild(fatField);
+    c.innerHTML =
+      '<div class="detail-head"><span class="detail-icon">📝</span>' +
+        '<div class="detail-head-body"><input id="compose-name" class="title title-input" type="text" placeholder="Name für dein Rezept" value="' + escapeHtml(compose.name || "") + '">' +
+        '<div class="meta" id="compose-meta"></div></div></div>' +
+      pagerHead(COMPOSE_PAGES, composeTab, "compose-tabs", "compose-dots") +
+      '<div class="pages" id="compose-pages">' +
+
+      /* ---------- 1 Zutaten ---------- */
+      paneOpen("zutaten") +
+      '<h4 class="ph">✏️ Zutaten <span class="hint">für eine Mahlzeit</span></h4>' +
+      '<div class="portion-line">Lebensmittel und Mengen frei wählen – das Fett wird für ' + fmtTarget(d.ratio) + ' berechnet' +
+        (compose.scale ? ', alles auf ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit skaliert' : '') + '</div>' +
+      '<div class="compose-rows" id="compose-rows"></div>' +
+      '<button type="button" class="btn secondary" id="compose-add">+ Zutat hinzufügen</button>' +
+      '<div class="compose-fat"><label>🧈 Fett(e) zum Ausgleich <span class="hint">stellt das Verhältnis ein</span></label>' +
+        '<div class="compose-rows" id="compose-fats"></div>' +
+        '<button type="button" class="btn secondary" id="compose-addfat">+ weiteres Fett</button></div>' +
+      '<div class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '><label for="compose-scale" class="inline">Mengen automatisch auf eine Mahlzeit (≈ ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label></div>' +
+      "</div>" +
+
+      /* ---------- 2 Mahlzeit (Ergebnis, Layout wie in der Detailansicht) ---------- */
+      paneOpen("mahlzeit") +
+      '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
+      '<div id="compose-result"></div>' +
+      "</div>" +
+
+      "</div>" + /* pages */
+      '<div class="detail-actions" id="compose-actions"></div>';
+
+    const rowsWrap = c.querySelector("#compose-rows"), fatsWrap = c.querySelector("#compose-fats");
+    c.querySelector("#compose-add").addEventListener("click", () => { compose.items.push({ food: "", grams: 30 }); renderRows(); recompute(); });
+    c.querySelector("#compose-addfat").addEventListener("click", () => { compose.fats.push({ food: "Butter", share: 50 }); renderFats(); recompute(); });
+    c.querySelector("#compose-scale").addEventListener("change", e => { compose.scale = e.target.checked; recompute(); });
+    const nameInp = c.querySelector("#compose-name");
+    nameInp.addEventListener("input", () => { compose.name = nameInp.value; save(); });
 
     function renderFats() {
       fatsWrap.innerHTML = "";
@@ -3651,47 +3694,12 @@ const RECIPES_SONDE = [
         fatsWrap.appendChild(row);
       });
     }
-
-    const scaleRow = el("div", { class: "checkrow" });
-    const cb = el("input", { type: "checkbox", id: "compose-scale" }); cb.checked = compose.scale;
-    cb.addEventListener("change", () => { compose.scale = cb.checked; recompute(); });
-    const lbl = el("label", { for: "compose-scale", class: "inline" }, "Mengen automatisch für eine Mahlzeit (≈" + fmt(d.kcalMahl, 0) + " kcal) berechnen");
-    scaleRow.appendChild(cb); scaleRow.appendChild(lbl);
-    c.appendChild(scaleRow);
-
-    const result = el("div", { id: "compose-result" });
-    c.appendChild(result);
-
-    // Speichern als eigenes Rezept
-    let lastItems = [], lastOk = false;
-    const saveBox = el("div", { class: "compose-save" });
-    const nameInp = el("input", { type: "text", placeholder: "Name für dein Rezept", value: compose.fromRecipe || "" });
-    const saveBtn = el("button", { class: "btn" }, compose.editKey ? "Änderungen speichern" : "💾 Als eigenes Rezept speichern");
-    saveBtn.addEventListener("click", () => {
-      const nm = nameInp.value.trim();
-      if (!nm) { alert("Bitte einen Namen für das Rezept eingeben."); return; }
-      if (!lastOk || !lastItems.length) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
-      const items = lastItems.map(it => ({ food: it.food, grams: it.grams }));
-      if (compose.editKey) {
-        const sr = state.savedRecipes.find(s => s.key === compose.editKey);
-        if (sr) { sr.name = nm; sr.items = items; }
-      } else {
-        const key = "custom:" + Date.now();
-        state.savedRecipes.unshift({ key, name: nm, icon: "📝", items });
-        compose.editKey = key; compose.fromRecipe = nm;
-      }
-      save();
-      saveBtn.textContent = "✓ Gespeichert"; setTimeout(() => { saveBtn.textContent = "Änderungen speichern"; }, 1500);
-    });
-    saveBox.appendChild(nameInp); saveBox.appendChild(saveBtn);
-    c.appendChild(saveBox);
-
     function renderRows() {
       rowsWrap.innerHTML = "";
       compose.items.forEach((it, i) => {
         const row = el("div", { class: "compose-row" });
         row.appendChild(buildFoodSelect(it.food, v => { it.food = v; recompute(); }));
-        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams" });
+        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal" });
         g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
         row.appendChild(g);
         row.appendChild(el("span", { class: "unit" }, "g"));
@@ -3701,12 +3709,20 @@ const RECIPES_SONDE = [
         rowsWrap.appendChild(row);
       });
     }
+
+    // Ergebnis: Kopfzeile (Pille, kcal, Badge) und Blatt „Mahlzeit“ wie in der Detailansicht.
+    let lastItems = [], lastOk = false;
     function recompute() {
       save();
       const d = derived();
       const res = computeFreeMeal(compose.items, compose.fats, d.ratio);
-      const box = document.getElementById("compose-result");
-      if (!res.ok) { lastOk = false; lastItems = []; box.innerHTML = '<div class="adjust-note">⚠️ ' + res.note + "</div>"; return; }
+      const box = c.querySelector("#compose-result"), meta = c.querySelector("#compose-meta");
+      if (!res.ok) {
+        lastOk = false; lastItems = [];
+        meta.innerHTML = '<span>noch unvollständig</span>' + badge;
+        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div><div class="note warn">⚠️ ' + res.note + "</div>";
+        return;
+      }
       let items = res.items;
       let sum = sumMacros(items);
       if (compose.scale && sum.kcal > 0) {
@@ -3719,35 +3735,68 @@ const RECIPES_SONDE = [
       const totalG = items.reduce((a, it) => a + num(it.grams), 0);
       const ml = volumeMl(items);
       const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+      meta.innerHTML = '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span><span>' + fmt(sum.kcal, 0) + ' kcal je Portion</span>' + badge;
       let rows = "";
       items.forEach(it => {
         const m = lineMacros(it);
         rows += "<tr" + (it.isFat ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-          (it.isFat ? " ⟵ Fett (berechnet)" : "") + "</td><td>" + fmt(it.grams, 1) +
+          (it.isFat ? '<small class="adj">⟵ stellt das Verhältnis ein</small>' : "") + "</td><td>" + fmt(it.grams, 1) +
           "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
       });
       box.innerHTML =
-        '<div class="detail-tiles">' +
-          '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal</div></div>' +
-          '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span></div><div class="l">Verhältnis</div></div>' +
-          '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge (' + fmt(ml, 0) + ' ml)</div></div>' +
-          '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß (Ziel ' + fmt(d.eiweissMahl) + ' g)</div></div>' +
+        '<div class="portion-line">' + (compose.scale ? 'Wie berechnet · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit' : 'Feste Zutatenmengen · ' + fmt(sum.kcal, 0) + ' kcal') + ' · Fett für ' + fmtTarget(d.ratio) + ' berechnet</div>' +
+        '<div class="detail-tiles strip">' +
+          '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
+          '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
+          '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
+          '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
         "</div>" +
+        (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         rows +
-        "<tr class='sum'><td class='name'>Summe</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
+        "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
         "</tbody></table></div>";
-      const pr = el("div", { class: "btn-row" });
-      const pb = el("button", { class: "btn secondary" }, "🖨️ Drucken");
-      const recForPrint = { name: "Eigenes Rezept", icon: "🧪", ketocal: false,
-        thermomix: "Zutaten garen bzw. vorbereiten, gemeinsam fein pürieren und das Fett glatt unterrühren.",
-        zubereitung: "Zutaten vorbereiten, fein pürieren und das berechnete Fett untermischen." };
-      pb.addEventListener("click", () => printRecipe(recForPrint, { items }, d, 1));
-      pr.appendChild(pb); box.appendChild(pr);
     }
 
+    // Feste Aktionsleiste unten: Speichern · Drucken · Leeren
+    const actions = c.querySelector("#compose-actions");
+    const saveBtn = el("button", { class: "btn", id: "compose-save" }, compose.editKey ? "💾 Speichern" : "💾 Als Rezept speichern");
+    saveBtn.addEventListener("click", () => {
+      const nm = (nameInp.value || "").trim();
+      if (!nm) { alert("Bitte oben einen Namen für das Rezept eingeben."); nameInp.focus(); return; }
+      if (!lastOk || !lastItems.length) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
+      const items = lastItems.map(it => ({ food: it.food, grams: it.grams }));
+      if (compose.editKey) {
+        const sr = state.savedRecipes.find(s => s.key === compose.editKey);
+        if (sr) { sr.name = nm; sr.items = items; }
+      } else {
+        const key = "custom:" + Date.now();
+        state.savedRecipes.unshift({ key, name: nm, icon: "📝", items });
+        compose.editKey = key; compose.fromRecipe = nm;
+      }
+      compose.name = nm;
+      save();
+      saveBtn.textContent = "✓ Gespeichert"; setTimeout(() => { saveBtn.textContent = "💾 Speichern"; }, 1500);
+    });
+    actions.appendChild(saveBtn);
+    const printBtn = el("button", { class: "btn secondary" }, "🖨️ Drucken");
+    printBtn.addEventListener("click", () => {
+      if (!lastOk) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
+      const recForPrint = { name: (nameInp.value || "").trim() || "Eigenes Rezept", icon: "📝", ketocal: false,
+        zubereitung: "Zutaten vorbereiten, fein pürieren und das berechnete Fett untermischen." };
+      printRecipe(recForPrint, { items: lastItems }, derived(), 1);
+    });
+    actions.appendChild(printBtn);
+    const clearBtn = el("button", { class: "btn ghost", title: "Leeren / neu beginnen" }, "🗑️");
+    clearBtn.addEventListener("click", () => {
+      state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true };
+      save(); composeTab = "zutaten"; openCompose();
+    });
+    actions.appendChild(clearBtn);
+
     renderRows(); renderFats(); recompute();
+    setupPager(c, COMPOSE_PAGES, composeTab, (k) => { composeTab = k; }, openCompose);
     document.getElementById("compose-overlay").hidden = false;
     modalOpen("compose");
   }
@@ -3757,7 +3806,7 @@ const RECIPES_SONDE = [
     renderRezepte();
   }
   function bindCompose() {
-    document.getElementById("compose-btn").addEventListener("click", openCompose);
+    document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });

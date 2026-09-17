@@ -142,6 +142,53 @@
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
   }
+  /* ---------- Blätter (Reiter am Desktop, Wisch-Seiten mit Punkten am Handy) – für Detail und Editor ---------- */
+  function pagerHead(PAGES, cur, tabsId, dotsId) {
+    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (cur === pg[0] ? ' class="active"' : "") + ">" + pg[1] + "</button>";
+    return '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="' + tabsId + '">' + PAGES.map(tabBtn).join("") + "</div>" +
+      '<div class="page-dots" id="' + dotsId + '">' + PAGES.map(pg => '<button type="button" class="dot' + (cur === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
+      '<span class="page-no">Seite ' + (Math.max(0, PAGES.findIndex(pg => pg[0] === cur)) + 1) + " von " + PAGES.length + "</span></div></div>";
+  }
+  // onChange(k): gewähltes Blatt merken; rerender(): am Desktop wird nach einem Reiterklick neu gezeichnet.
+  function setupPager(c, PAGES, cur, onChange, rerender) {
+    const mobile = isMobileLayout();
+    const pages = c.querySelector(".pages");
+    const panes = pages ? [...pages.querySelectorAll(":scope > .pane")] : [];
+    const pageIdx = (k) => Math.max(0, PAGES.findIndex(pg => pg[0] === k));
+    const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
+    const markTab = (k) => {
+      c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
+      const pn = c.querySelector(".page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + PAGES.length;
+      const ab = c.querySelector(".detail-tabs button.active");
+      if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
+    };
+    const goTo = (k, smooth) => {
+      const left = leftOf(pageIdx(k));
+      if (smooth) { try { pages.scrollTo({ left: left, behavior: "smooth" }); return; } catch (e) {} }
+      pages.scrollLeft = left;
+    };
+    let current = cur;
+    if (mobile && pages) {
+      goTo(cur, false);
+      markTab(cur);
+      let st = null;
+      pages.addEventListener("scroll", () => {
+        clearTimeout(st);
+        st = setTimeout(() => {
+          let best = 0, bd = Infinity;
+          panes.forEach((p, i) => { const dd = Math.abs(leftOf(i) - pages.scrollLeft); if (dd < bd) { bd = dd; best = i; } });
+          const k = PAGES[best][0];
+          if (k !== current) { current = k; onChange(k); markTab(k); }
+        }, 80);
+      });
+    }
+    c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b =>
+      b.addEventListener("click", () => {
+        current = b.dataset.dtab; onChange(current);
+        if (mobile && pages) { markTab(current); goTo(current, true); }
+        else rerender();
+      }));
+  }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -292,7 +339,6 @@
     const wanted = TABMAP[state.settings.detailTab] || state.settings.detailTab;
     const dtab = DETAIL_PAGES.some(pg => pg[0] === wanted) ? wanted : "mahlzeit";
     const mobile = isMobileLayout();
-    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (dtab === pg[0] ? ' class="active"' : "") + ">" + pg[1] + "</button>";
     const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k && !mobile ? " hidden" : "") + ">";
 
     // Ganzer Tag: eine Portion × Mahlzeiten pro Tag – unabhängig von der gewählten Portionenzahl.
@@ -378,9 +424,7 @@
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
         fmt(sumPer.kcal, 0) + " kcal je Portion</span>" + ketoBadge + "</div></div></div>" +
-      '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
-      '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">Seite ' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + " von " + DETAIL_PAGES.length + "</span></div></div>" +
+      pagerHead(DETAIL_PAGES, dtab, "detail-tabs", "page-dots") +
       '<div class="pages" id="detail-pages">' +
 
       /* ---------- 1 Mahlzeit ---------- */
@@ -508,41 +552,7 @@
         state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
-    const pages = c.querySelector("#detail-pages");
-    const panes = pages ? [...pages.querySelectorAll(":scope > .pane")] : [];
-    const pageIdx = (k) => Math.max(0, DETAIL_PAGES.findIndex(pg => pg[0] === k));
-    const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
-    const markTab = (k) => {
-      c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector("#page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + DETAIL_PAGES.length;
-      const ab = c.querySelector("#detail-tabs button.active");
-      if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
-    };
-    const goTo = (k, smooth) => {
-      const left = leftOf(pageIdx(k));
-      if (smooth) { try { pages.scrollTo({ left: left, behavior: "smooth" }); return; } catch (e) {} }
-      pages.scrollLeft = left;
-    };
-    if (mobile && pages) {
-      goTo(dtab, false);
-      markTab(dtab);
-      let st = null;
-      pages.addEventListener("scroll", () => {
-        clearTimeout(st);
-        st = setTimeout(() => {
-          let best = 0, bd = Infinity;
-          panes.forEach((p, i) => { const dd = Math.abs(leftOf(i) - pages.scrollLeft); if (dd < bd) { bd = dd; best = i; } });
-          const k = DETAIL_PAGES[best][0];
-          if (k !== state.settings.detailTab) { state.settings.detailTab = k; save(); markTab(k); }
-        }, 80);
-      });
-    }
-    c.querySelectorAll("#detail-tabs button[data-dtab], #page-dots button[data-dtab]").forEach(b =>
-      b.addEventListener("click", () => {
-        state.settings.detailTab = b.dataset.dtab; save();
-        if (mobile && pages) { markTab(b.dataset.dtab); goTo(b.dataset.dtab, true); }
-        else renderDetail();
-      }));
+    setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
 
     // Feste Aktionsleiste unten: Favorit · Drucken · Editor (· Löschen bei eigenen Rezepten)
     const actions = c.querySelector("#detail-actions");

@@ -681,3 +681,29 @@ test("Kochen: Garzeiten-Hinweis nur bei gekochten Gerichten, nicht bei Angerühr
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Garzeiten gelten für eine Portion/);
 });
+
+test("Editor (eigenes Rezept) im Detail-Layout: Kopf mit Name, zwei Blätter, Kacheln/Tabelle wie Mahlzeit, Speichern aus der Aktionsleiste", () => {
+  const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5 } });
+  fire(w, $(w, "compose-btn"));
+  const c = $(w, "compose-content");
+  assert.ok(!$(w, "compose-overlay").hidden);
+  assert.equal(c.querySelectorAll("#compose-pages > .pane").length, 2);
+  assert.ok(c.querySelector(".detail-head #compose-name"), "Name im Kopf");
+  assert.ok(c.querySelector("#compose-actions #compose-save"), "Speichern in der Aktionsleiste");
+  // Zutat wählen → Ergebnisblatt wie Mahlzeit: Statuszeile, vier Kacheln, Tabelle mit Fettzeile
+  const sel = c.querySelector("#compose-rows .food-select"); sel.value = "Hühnerbrust ohne Haut"; fire(w, sel, "change");
+  const res = c.querySelector(".pane[data-pane=mahlzeit]");
+  assert.match(res.querySelector(".portion-line").textContent, /^Wie berechnet · 140 kcal je Mahlzeit · Fett für 1,8:1 berechnet$/);
+  assert.equal(res.querySelectorAll(".detail-tiles .dstat").length, 4);
+  assert.match(res.querySelectorAll(".detail-tiles .dstat")[0].textContent, /140.*kcal · Ziel 140/);
+  assert.match(res.querySelector("table tr.fatrow").textContent, /Schlagobers.*stellt das Verhältnis ein/);
+  assert.match(c.querySelector("#compose-meta").textContent, /1,80:1.*140 kcal je Portion/);
+  // Speichern braucht einen Namen (Kopf)
+  const nm = c.querySelector("#compose-name"); nm.value = "Mein Hendl"; fire(w, nm, "input");
+  fire(w, c.querySelector("#compose-save"));
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.equal(st.savedRecipes.length, 1); assert.equal(st.savedRecipes[0].name, "Mein Hendl");
+  assert.ok(st.savedRecipes[0].items.some(it => /Schlagobers/.test(it.food)));
+  fire(w, $(w, "compose-close"));
+  assert.ok(tileNames(w).includes("Mein Hendl"), "eigenes Rezept in der Liste");
+});
