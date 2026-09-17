@@ -2697,6 +2697,7 @@ const RECIPES_SONDE = [
   // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
   // detailMeat: temporäre Fleischwahl.
   let detailRec = null, detailScale = "tag", detailMeat = null;
+  let detailMctOpen = null; // MCT-Anteil beim Öffnen – Bezug für „↺“ auf dem Blatt Anpassen
   const scaleDays = () => typeof detailScale === "string" && /^tag(:\d+)?$/.test(detailScale) ? Math.max(1, parseInt(detailScale.split(":")[1] || "1", 10)) : 0;
   const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) > 0 ? num(sv) : "tag");
   // Die Zubereitungsmenge gilt nur für die offene Ansicht: jedes Rezept öffnet mit „1 Tag“ (nichts wird gemerkt).
@@ -2710,6 +2711,7 @@ const RECIPES_SONDE = [
   function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec, keepScale) {
     detailRec = rec; if (!keepScale) detailScale = "tag"; detailMeat = null;
+    detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
     state.settings.detailTab = "mahlzeit"; // jedes Rezept öffnet mit „Mahlzeit“; innerhalb der Ansicht bleibt das gewählte Blatt
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
@@ -3053,6 +3055,13 @@ const RECIPES_SONDE = [
         : 'Wie berechnet (' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ')' + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult * m, 0) + ' g / ' + fmt(ml / mult * m, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit';
     };
     const mealStatus = statusLine(1, "je Mahlzeit");
+    // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
+    const mctOpen = detailMctOpen == null ? d.mctShare : detailMctOpen;
+    const anpParts = [];
+    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>Fleisch getauscht: ' + MEATS[detailMeat].icon + ' ' + MEATS[detailMeat].label + '</strong> (nur in dieser Ansicht) · <button type="button" class="linkbtn meat-reset">↺ wie im Rezept</button>');
+    if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="linkbtn mct-reset" data-mct="' + mctOpen + '">↺ ' + fmt(mctOpen * 100, 0) + ' %</button>');
+    const anpassenStatus = anpParts.length ? anpParts.join(" · ")
+      : 'Wie im Rezept' + (meatSlot ? ' · Fleisch gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
     const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
 
     const c = document.getElementById("detail-content");
@@ -3103,7 +3112,8 @@ const RECIPES_SONDE = [
 
       /* ---------- 3 Anpassen ---------- */
       paneOpen("anpassen") +
-      '<h4 class="ph">🎛️ Anpassen <span class="hint">gilt für dieses Gericht</span></h4>' +
+      '<h4 class="ph">🎛️ Anpassen <span class="hint">' + (meatSeg && oilSeg ? "Fleisch nur hier · Öl für alle Rezepte" : (oilSeg ? "Öl gilt für alle Rezepte" : (meatSeg ? "nur in dieser Ansicht" : ""))) + '</span></h4>' +
+      ((basisSeg || meatSeg || oilSeg) ? '<div class="portion-line">' + anpassenStatus + '</div>' : "") +
       basisSeg + meatSeg + oilSeg +
       (!(basisSeg || meatSeg || oilSeg) ? '<div class="note info">Für dieses Gericht gibt es nichts umzuschalten.</div>' : "") +
       "</div>" +
@@ -3168,6 +3178,8 @@ const RECIPES_SONDE = [
           save(); renderDetail();
         }
       }));
+    c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => { detailMeat = null; renderDetail(); }));
+    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); renderDetail(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
       b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>

@@ -154,8 +154,13 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
    Compleat die Packungsinfo und eine Warnung, falls ein Tag nur mit diesem
    Rezept unter dem Kalorien-Minimum oder über dem Korridor läge.
 3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
-   **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
-   MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".
+   **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** (gilt nur in der offenen
+   Ansicht) und der **Öl-Schalter mit MCT-Anteil** samt Kennzahlen – das ist
+   dieselbe Vorgabe wie unter Vorgaben → Öl und gilt für **alle** Rezepte.
+   Wie auf Mahlzeit und Tag steht eine Statuszeile darüber: „Fleisch
+   getauscht: 🥩 Rind · ↺ wie im Rezept" bzw. „MCT-Anteil 30 % statt 10 % –
+   gilt für alle Rezepte · ↺ 10 %" (Bezug ist der Wert beim Öffnen).
+   Erklärungen hinter „ⓘ".
 4. **Kochen** – oben der Abfüll-Block je Portion (**Menge ohne Öl**, weil das
    Öl erst kurz vor dem Füttern dazukommt, ml und Spritzenzahl, Öl-Kacheln),
    bei mehreren Portionen die Gesamtmenge, eine kurze Notiz (Sieb, MCT,

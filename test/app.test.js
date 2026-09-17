@@ -626,3 +626,30 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const vol2 = parseFloat([...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
   assert.ok(vol2 <= 212, "nicht über Höchstmenge: " + vol2);
 });
+
+test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MCT-Anteil gilt für alle Rezepte", () => {
+  const w = boot({ settings: { mctShare: 0.1, mahlzeiten: 5 } });
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const st = () => c.querySelector(".pane[data-pane=anpassen] .portion-line").textContent;
+  assert.match(st(), /^Wie im Rezept · Fleisch gilt nur in dieser Ansicht · der MCT-Anteil ist die Vorgabe für alle Rezepte$/);
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .ph").textContent, /Fleisch nur hier · Öl für alle Rezepte/);
+  // Fleisch tauschen → Statuszeile + ↺ wie im Rezept
+  fire(w, c.querySelector('.meat-swap button[data-meat="rind"]')); c = $(w, "detail-content");
+  assert.match(st(), /^Fleisch getauscht: 🥩 Rind \(nur in dieser Ansicht\) · ↺ wie im Rezept$/);
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr")].some(r => /Rind/.test(r.textContent)), "Rind in der Tabelle");
+  fire(w, c.querySelector(".meat-reset")); c = $(w, "detail-content");
+  assert.match(st(), /^Wie im Rezept/);
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr")].some(r => /Hüh/.test(r.textContent)), "wieder Huhn");
+  // MCT-Anteil ändern → gilt global (Vorgaben), Statuszeile nennt den Wert beim Öffnen, ↺ stellt ihn wieder her
+  fire(w, c.querySelector('.meat-swap button[data-mcts="30"]')); c = $(w, "detail-content");
+  assert.match(st(), /^MCT-Anteil 30 % statt 10 % – gilt für alle Rezepte \(Vorgaben\) · ↺ 10 %$/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.mctShare, 0.3);
+  fire(w, c.querySelector(".mct-reset")); c = $(w, "detail-content");
+  assert.match(st(), /^Wie im Rezept/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.mctShare, 0.1);
+  // Neu öffnen mit 30 %: dann ist 30 % der Bezug (nichts zum Zurücksetzen)
+  fire(w, c.querySelector('.meat-swap button[data-mcts="30"]'));
+  fire(w, $(w, "detail-close"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  assert.match(st(), /^Wie im Rezept/);
+});
