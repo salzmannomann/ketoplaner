@@ -2701,6 +2701,12 @@ const RECIPES_SONDE = [
   const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) > 0 ? num(sv) : "tag");
   // Die Zubereitungsmenge gilt nur für die offene Ansicht: jedes Rezept öffnet mit „1 Tag“ (nichts wird gemerkt).
   function persistScale() {}
+  // Portionenzahl → Zubereitungsmenge: ein Vielfaches der Mahlzeitenzahl ist wieder „N Tag(e)“ (Knopf leuchtet).
+  function scaleFromPortions(v, mahl) {
+    const days = mahl > 0 ? v / mahl : 0;
+    if (days >= 1 && Math.abs(days - Math.round(days)) < 1e-6) return Math.round(days) === 1 ? "tag" : "tag:" + Math.round(days);
+    return v;
+  }
   function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec, keepScale) {
     detailRec = rec; if (!keepScale) detailScale = "tag"; detailMeat = null;
@@ -3128,12 +3134,12 @@ const RECIPES_SONDE = [
       b.addEventListener("click", () => { detailScale = parseScale(b.dataset.scale); persistScale(); renderDetail(); }));
     c.querySelectorAll(".seg-portion button[data-step]").forEach(b =>
       b.addEventListener("click", () => {
-        detailScale = Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2);
+        detailScale = scaleFromPortions(Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2), d.mahl);
         persistScale(); renderDetail();
       }));
     const pin = c.querySelector("#portion-input");
     if (pin) pin.addEventListener("change", () => {
-      const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = v; persistScale(); renderDetail(); }
+      const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = scaleFromPortions(v, d.mahl); persistScale(); renderDetail(); }
     });
     // Rechnen: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
     c.querySelectorAll(".g-edit").forEach(inp =>

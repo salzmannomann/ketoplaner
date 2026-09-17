@@ -344,6 +344,15 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(dayTiles(c).textContent, /kcal · Ziel 1\.?400/);
   assert.match(tagStatus(c).textContent, /^Wie berechnet \(1\.?400 kcal für 2 Tage\)/);
   fire(w, $(w, "detail-close"));
+  // Stepper: 10 → 11 (freie Portionenzahl, kein Knopf aktiv) → zurück auf 10 = wieder „2 Tage“; 5 = wieder „1 Tag“
+  fire(w, c.querySelector('.seg-portion .stepbtn[data-step="1"]')); c = $(w, "detail-content");
+  assert.equal(c.querySelector("#portion-input").value, "11");
+  assert.equal(c.querySelector(".seg-portion button.active"), null, "11 Portionen: kein Tage-Knopf aktiv");
+  fire(w, c.querySelector('.seg-portion .stepbtn[data-step="-1"]')); c = $(w, "detail-content");
+  assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"), "10 Portionen = 2 Tage");
+  { const pin5 = c.querySelector("#portion-input"); pin5.value = "5"; fire(w, pin5, "change"); } c = $(w, "detail-content");
+  assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"), "5 Portionen = 1 Tag");
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
   // Neu öffnen: immer wieder „1 Tag“ (die Menge wird nicht gemerkt)
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"), "öffnet mit 1 Tag");
