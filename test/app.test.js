@@ -58,9 +58,10 @@ function clickChip(w, label) {
 }
 // Blätter der Detailansicht: „rechnen“ (alt) = Mahlzeit + Anpassen + Abwiegen (mit Tages-Check) zusammen
 const rechnenText = (c) => [...c.querySelectorAll(".pane[data-pane=mahlzeit], .pane[data-pane=abwiegen], .pane[data-pane=anpassen]")].map(p => p.textContent).join("\n");
-// Tages-Check auf dem Blatt „Abwiegen“: Statuszeile „📅 Ein Tag = N × diese Mahlzeit“, darunter die Kacheln je Tag
-const dayLine = (c) => [...c.querySelectorAll(".pane[data-pane=abwiegen] .portion-line")].find(p => /Ein Tag/.test(p.textContent));
+// Abwiegen: Kacheln für die Zubereitungsmenge (Standard ein Tag); Tages-Zeile „📅 Je Tag (N ×)“ nur bei anderer Menge oder Warnung
+const dayLine = (c) => [...c.querySelectorAll(".pane[data-pane=abwiegen] .portion-line")].find(p => /Je Tag/.test(p.textContent));
 const dayTiles = (c) => c.querySelector(".pane[data-pane=abwiegen] .detail-tiles");
+const numDe = (t) => parseFloat(String(t).replace(/\./g, "").replace(",", "."));
 function switchDetailTab(w, k) { fire(w, $(w, "detail-content").querySelector("#detail-tabs button[data-dtab=" + k + "]")); return $(w, "detail-content"); }
 
 test("Daten: keine doppelten Namen, alle Rezept-Zutaten vorhanden", () => {
@@ -89,7 +90,7 @@ test("Alle Rezepte (mit und ohne KetoCal) treffen das Zielverhältnis bei 1,8:1 
 });
 
 test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus Kalorien hält kcal", () => {
-  const base = boot({ settings: { mctShare: 0 } });
+  const base = boot({ settings: { mctShare: 0 }, scales: { "fam:Hendl & Brokkoli": 1 } }); // Abwiegen für eine Portion
   const c0 = openRecipe(base, "Hendl & Brokkoli");
   const rows0 = kitchenRows(c0);
   assert.equal(rows0["Rapsöl"], 12.3);
@@ -215,7 +216,7 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
 });
 
 test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht weniger Compleat, Packungs-Hinweis und Packungsstand", () => {
-  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, scales: { "fam:Compleat & KetoCal": 1, "fam:Compleat & KetoCal & Pre Apta": 1 } });
   let c = openRecipe(w, "Compleat & KetoCal");
   const rK = kitchenRows(c);
   assert.equal(rK["Aptamil Pre (Pulver)"], undefined); assert.ok(rK["Ketocal 3:1"] > 0);
@@ -326,14 +327,18 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 1 Tag = 5 Portionen/);
   assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /Abwiegen für 1 Tag = 5 Portionen/);
   // Mehrere Tage vorkochen: 2 Tage = 10 Portionen, Waage-Tabelle ×10, Tages-Check bleibt je Tag
-  const g1 = kitchenRows(c)["Broccoli, gekocht"] / 5, dayKcal1 = parseFloat(dayTiles(c).querySelector(".dstat .v").textContent);
+  const g1 = kitchenRows(c)["Broccoli, gekocht"] / 5, kcal1 = numDe(dayTiles(c).querySelector(".dstat .v").textContent);
+  assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
+  assert.equal(dayLine(c), undefined, "bei „1 Tag“ sagen schon die Kacheln alles – keine extra Tages-Zeile");
   fire(w, c.querySelector('.seg-portion button[data-scale="tag:2"]'));
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"));
   assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 2 Tage = 10 Portionen/);
   assert.equal(c.querySelector("#portion-input").value, "10");
   assert.ok(Math.abs(kitchenRows(c)["Broccoli, gekocht"] - g1 * 10) <= 0.6, "Waage ×10");
-  assert.equal(parseFloat(dayTiles(c).querySelector(".dstat .v").textContent), dayKcal1, "Tages-Check unabhängig von der Menge");
+  assert.ok(Math.abs(numDe(dayTiles(c).querySelector(".dstat .v").textContent) - 2 * kcal1) <= 2, "Kacheln für 2 Tage");
+  assert.match(dayTiles(c).textContent, /kcal · Ziel 1\.?400/);
+  assert.match(dayLine(c).textContent, /Je Tag \(5 ×\): 6\d\d kcal/, "Tages-Check je Tag, unabhängig von der Menge");
   fire(w, $(w, "detail-close"));
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], "tag:2");
   c = openRecipe(w, "Hendl & Brokkoli");
@@ -346,20 +351,19 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(rechnenText(c), /Mahlzeit eine Portion/);
   assert.match(rechnenText(c), /Summe je Portion/);
   fire(w, $(w, "detail-close"));
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], "tag");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], undefined, "ein Tag ist der Standard");
   // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
   const mi = $(w, "set-mahlzeiten"); mi.value = "4"; fire(w, mi, "input");
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
   assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 1 Tag = 4 Portionen/);
-  assert.match(dayLine(c).textContent, /Ein Tag = 4 × diese Mahlzeit/);
   const kcal4 = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
   // Zurück auf 1 Portion
   fire(w, c.querySelector('.seg-portion button[data-scale="1"]'));
   c = $(w, "detail-content");
   assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /für 1 Portion/);
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], undefined);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], 1);
 });
 
 test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wirkt im Tagesplan, lässt sich zurücksetzen", () => {
@@ -380,13 +384,13 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   assert.match(c.querySelector(".portion-line").textContent, /Portion angepasst: 50 %/);
   const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
   const kochenAfter = kitchenRows(c);
-  assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) <= 0.3, "Kochen skaliert mit (0,5-g-Rundung)");
-  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 2) <= 0.3, "Rechnen skaliert mit (0,5-g-Rundung)");
+  assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) <= 1.5, "Abwiegen (5 ×) skaliert mit (0,5-g-Rundung)");
+  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 5 / 2) <= 0.3, "Rechnen (je Portion) skaliert mit (0,5-g-Rundung)");
   // Tages-Check (Abwiegen) rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
   assert.ok(dayLine(c), "Tages-Check fehlt");
   assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
   assert.ok(Math.abs(parseFloat(dayTiles(c).querySelector(".dstat .v").textContent) - 350) <= 8, "halbe Portion × 5 (Rundung)");
-  assert.match(dayLine(c).textContent, /Minimum \d+ kcal unterschritten/);
+  assert.match(dayLine(c).textContent, /Minimum \d+ unterschritten/);
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.ok(Math.abs(st.portion["fam:Hendl & Brokkoli"] - 0.5) < 0.01, "Faktor gemerkt: " + st.portion["fam:Hendl & Brokkoli"]);
@@ -407,7 +411,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const wrow = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
   wrow.value = "80"; fire(w2, wrow, "change");
   c = $(w2, "detail-content");
-  assert.equal(kitchenRows(c)["Wasser"], 80);
+  assert.equal(kitchenRows(c)["Wasser"], 80 * 5, "Abwiegen zeigt den Tag (5 ×)");
   // Statuszeile wie bei der Portion: „Wasser angepasst (80 statt … ml) · ↺ wie berechnet“; in der Zeile nur „⟵ eigener Wert“
   const line = c.querySelector(".pane[data-pane=mahlzeit] .portion-line");
   assert.match(line.textContent, /Wasser angepasst \(80 statt \d+ ml\) · ↺ wie berechnet/);
@@ -418,7 +422,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const wr = line.querySelector(".water-reset");
   assert.ok(wr, "↺ wie berechnet in der Statuszeile"); fire(w2, wr);
   c = $(w2, "detail-content");
-  assert.ok(kitchenRows(c)["Wasser"] !== 80 && !c.querySelector(".water-reset"), "Wasser wieder berechnet");
+  assert.ok(kitchenRows(c)["Wasser"] !== 400 && !c.querySelector(".water-reset"), "Wasser wieder berechnet");
   assert.match(c.querySelector(".pane[data-pane=mahlzeit] .portion-line").textContent, /Wie berechnet/);
 });
 
@@ -473,8 +477,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
   {
     let c = openRecipe(w, "Hendl & Brokkoli");
-    assert.ok(dayLine(c), "Tages-Check fehlt");
-    const dayKcal = parseFloat(dayTiles(c).querySelector(".dstat .v").textContent);
+    const dayKcal = numDe(dayTiles(c).querySelector(".dstat .v").textContent);
     assert.ok(Math.abs(dayKcal - 5 * kcalOf(c)) <= 3, "Tag = 5 × Portion: " + dayKcal);
     assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
     // „1 Tag“: jede Zeile der Waage-Tabelle = 5 × Mahlzeit
@@ -487,7 +490,8 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
-    assert.ok(Math.abs(parseFloat(dayTiles(c2).querySelector(".dstat .v").textContent) - dayKcal) <= 1, "Tag bleibt bei 3 Portionen gleich");
+    assert.match(dayLine(c2).textContent, /Je Tag \(5 ×\): \d{3} kcal/, "Tages-Zeile bei anderer Menge");
+    assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /für 3 Portionen/);
     fire(w, $(w, "detail-close"));
   }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
@@ -567,9 +571,9 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal(ratioOf(c), 1.8);
   // Gemerktes Wasser hat Vorrang
   const win = [...c.querySelectorAll("table.kitchen tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
-  win.value = "50"; fire(w, win, "change");
+  win.value = "40"; fire(w, win, "change"); // 4 Mahlzeiten → 10 ml je Portion
   c = $(w, "detail-content");
-  assert.equal(kitchenRows(c)["Wasser"], 50);
+  assert.equal(kitchenRows(c)["Wasser"], 40);
   assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /nicht erreicht/);
   fire(w, $(w, "detail-close"));
   // Tagesplan im Modus „zwischen“: Flüssigkeits-Kachel und Sondier-Hinweis

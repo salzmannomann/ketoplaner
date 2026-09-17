@@ -1,19 +1,19 @@
   /* ---------- Detailansicht (Overlay) ---------- */
   // Blätter der Detailansicht in Reihenfolge. „Abwiegen“ enthält auch den Tages-Check (früher eigenes Blatt „Ein Tag“).
-  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["anpassen", "🎛️ Anpassen"], ["abwiegen", "⚖️ Abwiegen"], ["zubereitung", "🍳 Kochen"]];
+  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["abwiegen", "⚖️ Abwiegen"], ["anpassen", "🎛️ Anpassen"], ["zubereitung", "🍳 Kochen"]];
   function isMobileLayout() { try { return !!(window.matchMedia && window.matchMedia("(max-width: 820px)").matches); } catch (e) { return false; } }
   // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
   // detailMeat: temporäre Fleischwahl.
-  let detailRec = null, detailScale = 1, detailMeat = null;
+  let detailRec = null, detailScale = "tag", detailMeat = null;
   const scaleDays = () => typeof detailScale === "string" && /^tag(:\d+)?$/.test(detailScale) ? Math.max(1, parseInt(detailScale.split(":")[1] || "1", 10)) : 0;
-  const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) || 1);
+  const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) > 0 ? num(sv) : "tag");
   // Merkt sich die Zubereitungsmenge je Rezept – bleibt auch nach dem Schließen erhalten. „Tag(e)“ wird als
   // Wahl gemerkt, nicht als Zahl: ändert sich die Mahlzeitenzahl in den Vorgaben, zieht die Menge mit.
   function persistScale() {
     if (!detailRec) return;
     const k = familyKey(detailRec);
-    if (scaleDays()) state.scales[k] = detailScale;
-    else if (Math.abs(num(detailScale) - 1) < 1e-6) delete state.scales[k];
+    if (detailScale === "tag") delete state.scales[k]; // Standard: ein Tag
+    else if (scaleDays()) state.scales[k] = detailScale;
     else state.scales[k] = num(detailScale);
     save();
   }
@@ -269,8 +269,10 @@
       // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
       // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
       const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) : "";
-      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td></tr>';
+      const mK = lineMacros({ food: it.food, grams: gR }); // Abwiegen: für die Zubereitungsmenge
+      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
+        '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
+        "<td>" + fmt(mK.eiweiss) + "</td><td>" + fmt(mK.fett) + "</td><td>" + fmt(mK.kh) + "</td><td>" + fmt(mK.kcal, 0) + "</td></tr>";
       const gP = Math.round(num(it.grams) * 10) / 10;
       const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
@@ -296,9 +298,8 @@
     // Ganzer Tag: eine Portion × Mahlzeiten pro Tag – unabhängig von der gewählten Portionenzahl.
     // Zeigt, was herauskäme, wenn jede Mahlzeit des Tages dieses Rezept wäre (Ziele und Minimum daneben).
     const dayN = d.mahl;
-    const dayKcal = sumPer.kcal * dayN, dayP = sumPer.eiweiss * dayN, dayF = sumPer.fett * dayN, dayC = sumPer.kh * dayN;
+    const dayKcal = sumPer.kcal * dayN;
     const dayLow = dayKcal < d.kcalMin - 0.5, dayHigh = d.kcalMaxAuto && dayKcal > d.kcalMaxAuto + 0.5;
-    const dayTotalG = items.reduce((a, it) => a + num(it.grams), 0) * dayN;
     // Flüssigkeit je Portion: Zutaten-Wasser + Rezept-Wasser, gegen den Anteil am Tagesbedarf.
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
@@ -321,16 +322,21 @@
               : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
 
-    // Tages-Check (auf dem Blatt „Abwiegen“): Statuszeile + Kacheln je Tag, unabhängig von der Zubereitungsmenge.
-    const daySeg =
-      '<div class="portion-line">📅 <strong>Ein Tag</strong> = ' + dayN + ' × diese Mahlzeit · Minimum ' + fmt(d.kcalMin, 0) + ' kcal' + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
-        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) : '')) + '</div>' +
+    // Abwiegen: Kacheln für die Zubereitungsmenge – gleiches Layout wie „Mahlzeit“, nur mit den Mengen der Zubereitung
+    // (Standard: ein Tag). Ziele skalieren mit; bei ganzen Tagen zählt das Flüssigkeitsziel je Tag.
+    const qTag = days === 1 ? "/Tag" : "";
+    const qFluid = fluidPer * mult, qFluidZiel = days ? d.fluidDay * days : d.fluidMahl * mult;
+    const qTiles =
       '<div class="detail-tiles strip">' +
-        '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '</div></div>' +
-        '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(dayTotalG, 0) + ' g</div><div class="l">Menge/Tag · Fett ' + fmt(dayF, 0) + ' · KH ' + fmt(dayC, 1) + '</div></div>' +
-        fluidDayTile +
-      '</div>' +
+        '<div class="dstat' + ((days && dayLow) ? " warn" : "") + '"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal' + qTag + ' · Ziel ' + fmt(d.kcalMahl * mult, 0) + '</div></div>' +
+        '<div class="dstat' + (proteinOk ? "" : " warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß' + qTag + ' · Ziel ' + fmt(proteinTarget, 0) + ' g</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + qTag + '</div></div>' +
+        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml</div></div>' : '') +
+      '</div>';
+    // Tages-Check: eine Zeile unter der Tabelle – unabhängig von der Zubereitungsmenge.
+    const dayCheck = !(days !== 1 || dayLow || dayHigh) ? "" :
+      '<div class="portion-line day-line">📅 <strong>Je Tag</strong> (' + dayN + ' ×): ' + fmt(dayKcal, 0) + ' kcal · Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
+        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) : '')) + '</div>' +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
     // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
     // Gilt nur hier (Abwiegen, Zubereitung, Abfüllen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
@@ -387,21 +393,26 @@
       fluidLine +
       "</div>" +
 
-      /* ---------- 2 Anpassen ---------- */
+      /* ---------- 2 Abwiegen (Zubereitungsmenge, Standard ein Tag) ---------- */
+      paneOpen("abwiegen") +
+      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
+      scaleSeg +
+      qTiles +
+      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' + kRows +
+        "<tr class='sum'><td class='name'>Summe</td><td class='amt'>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
+        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
+      "</tbody></table></div>" +
+      dayCheck +
+      ((fluidDayNote && packInfoSeg && /class="note tip"/.test(fluidDayNote))
+        ? fluidDayNote.replace(/^<div class="note tip">/, '<div class="note tip pack">').replace(/<\/div>$/, "") + "<br>" + packInfoSeg.replace(/^<div class="note tip pack">/, "").replace(/<\/div>$/, "") + "</div>"
+        : fluidDayNote + packInfoSeg) +
+      "</div>" +
+
+      /* ---------- 3 Anpassen ---------- */
       paneOpen("anpassen") +
       '<h4 class="ph">🎛️ Anpassen <span class="hint">gilt für dieses Gericht</span></h4>' +
       basisSeg + meatSeg + oilSeg +
       (!(basisSeg || meatSeg || oilSeg) ? '<div class="note info">Für dieses Gericht gibt es nichts umzuschalten.</div>' : "") +
-      "</div>" +
-
-      /* ---------- 3 Abwiegen (mit Tages-Check) ---------- */
-      paneOpen("abwiegen") +
-      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + ' · gesamt ≈ ' + fmt(totalG, 0) + ' g</span></h4>' +
-      daySeg +
-      scaleSeg +
-      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th></tr></thead><tbody>' + kRows + "</tbody></table></div>" +
-      fluidDayNote +
-      packInfoSeg +
       "</div>" +
 
       /* ---------- 4 Kochen: Abfüll-Kacheln oben (immer sichtbar), darunter die Schritte ---------- */

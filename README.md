@@ -123,39 +123,42 @@ Vorgaben.
 Die Detailansicht besteht aus **vier Blättern** und öffnet mit **Mahlzeit**. Am
 Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Punkte
 tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
-sehr vielen Zutaten scrollt das einzelne Blatt). Oben stehen fest Name,
-Verhältnis-Pille, kcal je Portion und Badges, unten fest die Aktionsleiste
-**☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen Rezepten auch 🗑️). Am Desktop
-sind die vier Blätter Reiter nebeneinander.
+sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). Oben
+stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
+Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen Rezepten auch
+🗑️). Am Desktop sind die vier Blätter Reiter nebeneinander.
 
 1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Menge,
    Volumen), die Zutatentabelle je Portion und die Flüssigkeitszeile (Zutaten +
    Wasser gegen das Ziel je Mahlzeit). Die **Gramm-Werte sind editierbar**:
    ändert man eine Zutat, skalieren alle anderen proportional mit; das
-   Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Tages-Check
+   Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Abwiegen
    rechnen mit der angepassten Portion. **Wasser** ist davon ausgenommen und
    wird für sich gemerkt. Beide Anpassungen stehen gleich in der
    **Statuszeile** über den Kacheln („Portion angepasst: 80 % … ↺ wie
    berechnet" bzw. „Wasser angepasst (85 statt 100 ml) · ↺ wie berechnet");
    in der Wasserzeile steht nur „⟵ eigener Wert".
-2. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
+2. **Abwiegen** – **gleiches Layout wie Mahlzeit, nur mit den Mengen der
+   Zubereitung** (Standard: **ein Tag** = N × diese Mahlzeit), direkt daneben,
+   damit man zwischen Portion und Tag hin- und herwischen kann. Unter der
+   Überschrift die Zubereitungsmenge: **1 Portion · 1 Tag · 2 Tage · 3 Tage**
+   oder eine freie Portionenzahl (Stepper) – so lässt sich gleich für mehrere
+   Tage vorkochen, ohne die Vorgaben anzurühren. Kacheln (kcal, Eiweiß, Menge,
+   Flüssigkeit mit skalierten Zielen) und die Waage-Tabelle mit editierbaren
+   Gramm-Feldern gelten für diese Menge; ändert man eine Zutat direkt (z. B.
+   „827 g Zucchini"), skalieren alle anderen mit, Wasser ausgenommen. Menge und
+   Wasser werden **je Rezept gemerkt**; „Tag(e)" folgen der Mahlzeitenzahl.
+   Darunter bei Bedarf die Tages-Zeile („📅 Je Tag (5 ×): 636 kcal · Minimum
+   600 ✓ · Korridor 600–770"), der Wasser-Hinweis (Sondieren zwischen den
+   Mahlzeiten bzw. Fehlmenge) und bei Compleat die Packungsinfo.
+3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
    **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
    MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".
-3. **Abwiegen** – oben der **Tages-Check** („📅 Ein Tag = N × diese Mahlzeit":
-   Minimum/Korridor, Kacheln kcal, Eiweiß, Menge und Flüssigkeit je Tag),
-   darunter die **Zubereitungsmenge**: **1 Portion · 1 Tag · 2 Tage · 3 Tage**
-   oder eine freie Portionenzahl (Stepper) – so lässt sich gleich für mehrere
-   Tage vorkochen, ohne die Vorgaben anzurühren. Die Waage-Tabelle zeigt die
-   Gramm für diese Menge (mit Summe); ändert man eine Zutatenmenge direkt
-   (z. B. „827 g Zucchini"), skalieren alle anderen Zutaten mit, Wasser
-   ausgenommen. Menge und Wasser werden **je Rezept gemerkt**; „Tag(e)" folgen
-   der Mahlzeitenzahl. Darunter der Wasser-Hinweis (Sondieren zwischen den
-   Mahlzeiten bzw. Fehlmenge) und bei Compleat die Packungsinfo.
-4. **Kochen** – die nummerierten Schritte (Varoma bevorzugt,
-   Dämpfwasser eingerechnet) und darunter der Abfüll-Block: **Menge je Portion
-   ohne Öl** (das Öl kommt erst kurz vor dem Füttern dazu), Spritzenzahl,
-   Öl-Zeilen je Portion, bei mehreren Portionen die Gesamtmenge und der
-   Sieb-Hinweis.
+4. **Kochen** – oben der Abfüll-Block je Portion (**Menge ohne Öl**, weil das
+   Öl erst kurz vor dem Füttern dazukommt, ml und Spritzenzahl, Öl-Kacheln),
+   bei mehreren Portionen die Gesamtmenge, eine kurze Notiz (Sieb, MCT,
+   Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
+   bevorzugt, Dämpfwasser eingerechnet).
 
 ### Heute (Tagesplan)
 
