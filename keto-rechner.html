@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#276749" />
+  <meta name="theme-color" content="#3f9a66" />
   <title>HamHam Keto</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-180.png" />
@@ -951,6 +951,32 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .rx-chip .rx-short { display: block; }
   .rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+/* ===== App-Hintergrund in Grün: Kopfleiste, Seite und Leiste unten in derselben Farbe (--app-green). ===== */
+:root { --app-green: #3f9a66; --on-green: #ffffff; --on-green-soft: rgba(255,255,255,.82); --glass: rgba(255,255,255,.18); --glass-line: rgba(255,255,255,.4); }
+body { background: var(--app-green); }
+.topbar { background: var(--app-green); box-shadow: none; border-bottom: 0; }
+.rx-chip { background: var(--glass); border-color: var(--glass-line); }
+.tabbar { background: var(--app-green); border-top: 1px solid rgba(255,255,255,.25); }
+.tabbar button { color: var(--on-green-soft); }
+.tabbar button.active { color: var(--on-green); background: rgba(255,255,255,.2); }
+/* Rezeptliste: Gruppen und Chips in Weiß auf Grün, Karten bleiben weiß */
+.group-head { color: var(--on-green); border-bottom-color: rgba(255,255,255,.35); }
+.group-count { color: var(--on-green-soft); background: transparent; }
+.chip { background: var(--glass); border-color: var(--glass-line); color: var(--on-green); }
+.chip:hover { background: rgba(255,255,255,.28); }
+.chip.active { background: #fff; color: var(--brand-dark); border-color: #fff; }
+.iconbtn.round { background: var(--glass); border-color: var(--glass-line); color: var(--on-green); }
+.iconbtn.round:hover { background: rgba(255,255,255,.28); }
+.iconbtn.round.primary { background: #fff; color: var(--brand-dark); border-color: #fff; }
+.iconbtn.round.open { background: #fff; color: var(--brand-dark); border-color: #fff; }
+.tile, .card { border-color: transparent; box-shadow: 0 2px 8px rgba(0,0,0,.16); }
+/* Text, der direkt auf dem Grün steht */
+.subtitle, .footnote, .empty, .main > .hint, .main > section > .hint, .main > section > p.hint { color: var(--on-green-soft); }
+.main h2, .main > section > h2 { color: var(--on-green); }
+.card.empty { color: var(--muted); }
+#recipe-search, .toolbar.top input[type=search] { background: #fff; }
+.more-row, .search-row { color: var(--on-green); }
+.more-row label, .search-row label { color: var(--on-green); }
 
 </style>
 </head>
