@@ -146,12 +146,13 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
    ohne die Vorgaben anzurühren. Beim Öffnen steht die Menge **immer auf
    1 Tag** (sie wird nicht gemerkt). Kacheln (kcal, Eiweiß, Menge, Flüssigkeit
    mit skalierten Zielen) und die Waage-Tabelle mit editierbaren Gramm-Feldern
-   gelten für diese Menge; ändert man eine Zutat direkt (z. B. „827 g
-   Zucchini"), skalieren alle anderen mit, Wasser ausgenommen (das Wasser wird
-   je Rezept gemerkt). „Tag(e)" folgen der Mahlzeitenzahl.
-   Darunter bei Bedarf die Tages-Zeile („📅 Je Tag (5 ×): 636 kcal · Minimum
-   600 ✓ · Korridor 600–770"), der Wasser-Hinweis (Sondieren zwischen den
-   Mahlzeiten bzw. Fehlmenge) und bei Compleat die Packungsinfo.
+   gelten für diese Menge; Gramm-Änderungen wirken genau wie auf „Mahlzeit"
+   (Portion angepasst, alle anderen Zutaten skalieren mit; Wasser für sich,
+   je Rezept gemerkt) und stehen mit „↺ wie berechnet" in derselben
+   Statuszeile. „Tag(e)" folgen der Mahlzeitenzahl. Darunter der
+   Wasser-Hinweis (Sondieren zwischen den Mahlzeiten bzw. Fehlmenge), bei
+   Compleat die Packungsinfo und eine Warnung, falls ein Tag nur mit diesem
+   Rezept unter dem Kalorien-Minimum oder über dem Korridor läge.
 3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
    **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
    MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".

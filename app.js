@@ -1219,11 +1219,10 @@
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + qTag + '</div></div>' +
         (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml</div></div>' : '') +
       '</div>';
-    // Tages-Check: eine Zeile unter der Tabelle – unabhängig von der Zubereitungsmenge.
-    const dayCheck = !(days !== 1 || dayLow || dayHigh) ? "" :
-      '<div class="portion-line day-line">📅 <strong>Je Tag</strong> (' + dayN + ' ×): ' + fmt(dayKcal, 0) + ' kcal · Minimum ' + fmt(d.kcalMin, 0) + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
-        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) : '')) + '</div>' +
-      (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
+    // Tages-Check nur als Warnung (wie die Eiweiß-Warnung auf „Mahlzeit“): Minimum unterschritten oder über dem Korridor.
+    const dayCheck = dayLow
+      ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
+      : (dayHigh ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
     // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
     // Gilt nur hier (Abwiegen, Zubereitung, Abfüllen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
     const scaleBtn = (v, label) => '<button type="button" data-scale="' + v + '"' + ((v === "1" ? (!days && mult === 1) : detailScale === v) ? ' class="active"' : "") + ">" + label + "</button>";
@@ -1234,7 +1233,6 @@
         '<span class="portion-step" title="Portionen"><button type="button" class="stepbtn" data-step="-1" aria-label="eine Portion weniger">−</button>' +
         '<input id="portion-input" type="number" min="0.5" step="0.5" aria-label="Portionen" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1" aria-label="eine Portion mehr">+</button></span>' +
-        (hasWaterOverride ? '<span class="reset-links"><button type="button" id="water-reset" class="linkbtn">↺ Wasser wie berechnet</button></span>' : "") +
       "</div>";
     // Statuszeile der Mahlzeit: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
     let waterRef = null;
@@ -1243,11 +1241,15 @@
       try { waterRef = computeMealView(rec, d, detailMeat).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
       finally { state.water[waterKey] = keep; }
     }
-    const statusParts = [];
-    if (mv.hasPortion) statusParts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>');
-    if (hasWaterOverride) statusParts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer, 0) + ' statt ' + fmt(waterRef, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
-    const mealStatus = statusParts.length ? statusParts.join(" · ")
-      : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit)' + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g / ' + fmt(ml / mult, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit';
+    const statusLine = (m, bezug) => {
+      const parts = [];
+      if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) · <button type="button" class="linkbtn portion-reset">↺ wie berechnet</button>');
+      if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
+      return parts.length ? parts.join(" · ")
+        : 'Wie berechnet (' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ')' + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult * m, 0) + ' g / ' + fmt(ml / mult * m, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit';
+    };
+    const mealStatus = statusLine(1, "je Mahlzeit");
+    const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
 
     const c = document.getElementById("detail-content");
     c.innerHTML =
@@ -1283,6 +1285,7 @@
       paneOpen("abwiegen") +
       '<h4 class="ph">📅 Tag <span class="hint">' + (mult === 1 ? "eine Portion" : (days === 1 ? "= " : (days ? days + " Tage = " : "")) + portionsTxt + " Portionen") + '</span></h4>' +
       scaleSeg +
+      '<div class="portion-line">' + tagStatus + '</div>' +
       qTiles +
       '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' + kRows +
         "<tr class='sum'><td class='name'>Summe</td><td class='amt'>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
@@ -1345,8 +1348,8 @@
           save(); renderDetail();
         }
       }));
-    const portionReset = c.querySelector("#portion-reset");
-    if (portionReset) portionReset.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); });
+    c.querySelectorAll(".portion-reset").forEach(b =>
+      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); }));
     c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
@@ -1355,9 +1358,13 @@
           if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); renderDetail(); }
           return;
         }
-        if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); persistScale(); renderDetail(); }
+        if (oldG > 0 && nv > 0) {
+          const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
+          if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
+          save(); renderDetail();
+        }
       }));
-    c.querySelectorAll("#water-reset, .water-reset").forEach(b =>
+    c.querySelectorAll(".water-reset").forEach(b =>
       b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));

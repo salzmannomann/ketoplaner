@@ -878,7 +878,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .seg-portion.batch .portion-step input { width: 44px; padding: 5px 4px; }
 .seg-portion.batch .stepbtn { width: 28px; height: 30px; font-size: 16px; }
 .seg-portion.batch .reset-links { flex: 1 0 100%; }
-.pages .pane .seg-portion.batch { margin: -2px 0 8px; }
+.pages .pane .seg-portion.batch { margin: -2px 0 5px; }
 /* Kochen: Abfüll-Kacheln oben, Schritte darunter (bei langen Anleitungen scrollt das Blatt) */
 .fill-tiles .dstat.oil .v { color: var(--brand-dark); }
 .steps-ph { margin-top: 10px; }
