@@ -90,8 +90,9 @@ test("Alle Rezepte (mit und ohne KetoCal) treffen das Zielverhältnis bei 1,8:1 
 });
 
 test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus Kalorien hält kcal", () => {
-  const base = boot({ settings: { mctShare: 0 }, scales: { "fam:Hendl & Brokkoli": 1 } }); // Abwiegen für eine Portion
-  const c0 = openRecipe(base, "Hendl & Brokkoli");
+  const base = boot({ settings: { mctShare: 0 } });
+  let c0 = openRecipe(base, "Hendl & Brokkoli");
+  fire(base, c0.querySelector('.seg-portion button[data-scale="1"]')); c0 = $(base, "detail-content"); // Tag-Tabelle für eine Portion
   const rows0 = kitchenRows(c0);
   assert.equal(rows0["Rapsöl"], 12.3);
   assert.equal(rows0["MCT-Öl C8+C10"], undefined);
@@ -200,13 +201,13 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   c = $(w, "detail-content");
   const rows = kitchenRows(c);
   assert.ok(rows["Ketocal 3:1"] > 0 && rows["Rapsöl"] === undefined, "Geschwister-Rezept geöffnet");
-  assert.equal(c.querySelector("#portion-input").value, "4", "Zubereitungsmenge gilt fürs Gericht");
+  assert.equal(c.querySelector("#portion-input").value, "4", "Zubereitungsmenge bleibt beim Wechsel zum Geschwister-Rezept");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
   [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent)).click();
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)"]);
-  assert.equal(st.scales["fam:Hendl & Zucchini"], 4);
+  assert.equal(st.scales["fam:Hendl & Zucchini"], undefined, "Menge wird nicht gemerkt");
   // Neustart: nur der KetoCal-Eintrag ist Favorit
   const w2 = boot(st);
   const hz = tiles(w2).filter(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
@@ -216,9 +217,9 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
 });
 
 test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht weniger Compleat, Packungs-Hinweis und Packungsstand", () => {
-  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 }, scales: { "fam:Compleat & KetoCal": 1, "fam:Compleat & KetoCal & Pre Apta": 1 } });
+  const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
   let c = openRecipe(w, "Compleat & KetoCal");
-  const rK = kitchenRows(c);
+  const rK = kitchenRows(c); // Tag = 4 Portionen (alle Vergleiche relativ)
   assert.equal(rK["Aptamil Pre (Pulver)"], undefined); assert.ok(rK["Ketocal 3:1"] > 0);
   assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
   const mlK = rK["Compleat Paediatric Nature Mix (Nestlé)"];
@@ -238,7 +239,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const hc = $(w2, "heute-content").textContent;
-  assert.match(hc, /🧃 Compleat Paediatric/); assert.match(hc, new RegExp(fmtDe(mlK * 4) + " ml"));
+  assert.match(hc, /🧃 Compleat Paediatric/); assert.match(hc, new RegExp(fmtDe(mlK) + " ml") /* Tag = 4 Portionen */);
   assert.match(hc, /Minimum 600 ✓/);
 });
 function fmtDe(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
@@ -324,8 +325,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(tagBtn.textContent, /^1 Tag$/); fire(w, tagBtn);
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 1 Tag = 5 Portionen/);
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /Abwiegen für 1 Tag = 5 Portionen/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
   // Mehrere Tage vorkochen: 2 Tage = 10 Portionen, Waage-Tabelle ×10, Tages-Check bleibt je Tag
   const g1 = kitchenRows(c)["Broccoli, gekocht"] / 5, kcal1 = numDe(dayTiles(c).querySelector(".dstat .v").textContent);
   assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
@@ -333,37 +333,34 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   fire(w, c.querySelector('.seg-portion button[data-scale="tag:2"]'));
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 2 Tage = 10 Portionen/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag 2 Tage = 10 Portionen$/);
   assert.equal(c.querySelector("#portion-input").value, "10");
   assert.ok(Math.abs(kitchenRows(c)["Broccoli, gekocht"] - g1 * 10) <= 0.6, "Waage ×10");
   assert.ok(Math.abs(numDe(dayTiles(c).querySelector(".dstat .v").textContent) - 2 * kcal1) <= 2, "Kacheln für 2 Tage");
   assert.match(dayTiles(c).textContent, /kcal · Ziel 1\.?400/);
   assert.match(dayLine(c).textContent, /Je Tag \(5 ×\): 6\d\d kcal/, "Tages-Check je Tag, unabhängig von der Menge");
   fire(w, $(w, "detail-close"));
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], "tag:2");
+  // Neu öffnen: immer wieder „1 Tag“ (die Menge wird nicht gemerkt)
   c = openRecipe(w, "Hendl & Brokkoli");
-  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 2 Tage = 10 Portionen/);
-  fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
-  c = $(w, "detail-content");
+  assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"), "öffnet mit 1 Tag");
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
   // Rechnen: Mahlzeit-Kacheln und Tabelle je Portion, obwohl 5 Portionen zubereitet werden
   const kcalTile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 140) <= 1, kcalTile.textContent);
   assert.match(rechnenText(c), /Mahlzeit eine Portion/);
   assert.match(rechnenText(c), /Summe je Portion/);
   fire(w, $(w, "detail-close"));
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], undefined, "ein Tag ist der Standard");
   // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
   const mi = $(w, "set-mahlzeiten"); mi.value = "4"; fire(w, mi, "input");
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen]").textContent, /Abwiegen für 1 Tag = 4 Portionen/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 4 Portionen$/);
   const kcal4 = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
   // Zurück auf 1 Portion
   fire(w, c.querySelector('.seg-portion button[data-scale="1"]'));
   c = $(w, "detail-content");
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /für 1 Portion/);
-  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).scales["fam:Hendl & Brokkoli"], 1);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag eine Portion$/);
 });
 
 test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wirkt im Tagesplan, lässt sich zurücksetzen", () => {
@@ -491,7 +488,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
     assert.match(dayLine(c2).textContent, /Je Tag \(5 ×\): \d{3} kcal/, "Tages-Zeile bei anderer Menge");
-    assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /für 3 Portionen/);
+    assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag 3 Portionen$/);
     fire(w, $(w, "detail-close"));
   }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts

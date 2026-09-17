@@ -13,7 +13,7 @@ Pages ist sie als **PWA offline-fähig** (Service Worker `sw.js`): Nach dem
 ersten Laden funktioniert sie auch ohne Netz und aktualisiert sich zuverlässig
 (die Service-Worker-Version wird beim Build automatisch erhöht). Alle Eingaben
 werden **lokal im Browser gespeichert** (localStorage): Vorgaben, Favoriten,
-eigene Rezepte, die zuletzt gewählte Menge je Rezept, angepasstes Wasser und
+eigene Rezepte, angepasste Portionen und angepasstes Wasser je Rezept und
 der Tagesplan.
 
 Standardmäßig sind **700 kcal/Tag, 5 Mahlzeiten, 1,8:1 und 8 kg
@@ -132,22 +132,23 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
    Volumen), die Zutatentabelle je Portion und die Flüssigkeitszeile (Zutaten +
    Wasser gegen das Ziel je Mahlzeit). Die **Gramm-Werte sind editierbar**:
    ändert man eine Zutat, skalieren alle anderen proportional mit; das
-   Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Abwiegen
+   Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Tag
    rechnen mit der angepassten Portion. **Wasser** ist davon ausgenommen und
    wird für sich gemerkt. Beide Anpassungen stehen gleich in der
    **Statuszeile** über den Kacheln („Portion angepasst: 80 % … ↺ wie
    berechnet" bzw. „Wasser angepasst (85 statt 100 ml) · ↺ wie berechnet");
    in der Wasserzeile steht nur „⟵ eigener Wert".
-2. **Abwiegen** – **gleiches Layout wie Mahlzeit, nur mit den Mengen der
-   Zubereitung** (Standard: **ein Tag** = N × diese Mahlzeit), direkt daneben,
-   damit man zwischen Portion und Tag hin- und herwischen kann. Unter der
-   Überschrift die Zubereitungsmenge: **1 Portion · 1 Tag · 2 Tage · 3 Tage**
-   oder eine freie Portionenzahl (Stepper) – so lässt sich gleich für mehrere
-   Tage vorkochen, ohne die Vorgaben anzurühren. Kacheln (kcal, Eiweiß, Menge,
-   Flüssigkeit mit skalierten Zielen) und die Waage-Tabelle mit editierbaren
-   Gramm-Feldern gelten für diese Menge; ändert man eine Zutat direkt (z. B.
-   „827 g Zucchini"), skalieren alle anderen mit, Wasser ausgenommen. Menge und
-   Wasser werden **je Rezept gemerkt**; „Tag(e)" folgen der Mahlzeitenzahl.
+2. **Tag** – **gleiches Layout wie Mahlzeit, nur mit den Mengen für einen
+   ganzen Tag** (= N × diese Mahlzeit), direkt daneben, damit man zwischen
+   Portion und Tag hin- und herwischen kann. Unter der Überschrift lässt sich
+   die Menge umstellen: **1 Portion · 1 Tag · 2 Tage · 3 Tage** oder eine freie
+   Portionenzahl (Stepper) – so lässt sich gleich für mehrere Tage vorkochen,
+   ohne die Vorgaben anzurühren. Beim Öffnen steht die Menge **immer auf
+   1 Tag** (sie wird nicht gemerkt). Kacheln (kcal, Eiweiß, Menge, Flüssigkeit
+   mit skalierten Zielen) und die Waage-Tabelle mit editierbaren Gramm-Feldern
+   gelten für diese Menge; ändert man eine Zutat direkt (z. B. „827 g
+   Zucchini"), skalieren alle anderen mit, Wasser ausgenommen (das Wasser wird
+   je Rezept gemerkt). „Tag(e)" folgen der Mahlzeitenzahl.
    Darunter bei Bedarf die Tages-Zeile („📅 Je Tag (5 ×): 636 kcal · Minimum
    600 ✓ · Korridor 600–770"), der Wasser-Hinweis (Sondieren zwischen den
    Mahlzeiten bzw. Fehlmenge) und bei Compleat die Packungsinfo.

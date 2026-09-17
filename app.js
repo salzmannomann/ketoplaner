@@ -894,26 +894,18 @@
 
   /* ---------- Detailansicht (Overlay) ---------- */
   // Blätter der Detailansicht in Reihenfolge. „Abwiegen“ enthält auch den Tages-Check (früher eigenes Blatt „Ein Tag“).
-  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["abwiegen", "⚖️ Abwiegen"], ["anpassen", "🎛️ Anpassen"], ["zubereitung", "🍳 Kochen"]];
+  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["abwiegen", "📅 Tag"], ["anpassen", "🎛️ Anpassen"], ["zubereitung", "🍳 Kochen"]];
   function isMobileLayout() { try { return !!(window.matchMedia && window.matchMedia("(max-width: 820px)").matches); } catch (e) { return false; } }
   // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
   // detailMeat: temporäre Fleischwahl.
   let detailRec = null, detailScale = "tag", detailMeat = null;
   const scaleDays = () => typeof detailScale === "string" && /^tag(:\d+)?$/.test(detailScale) ? Math.max(1, parseInt(detailScale.split(":")[1] || "1", 10)) : 0;
   const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) > 0 ? num(sv) : "tag");
-  // Merkt sich die Zubereitungsmenge je Rezept – bleibt auch nach dem Schließen erhalten. „Tag(e)“ wird als
-  // Wahl gemerkt, nicht als Zahl: ändert sich die Mahlzeitenzahl in den Vorgaben, zieht die Menge mit.
-  function persistScale() {
-    if (!detailRec) return;
-    const k = familyKey(detailRec);
-    if (detailScale === "tag") delete state.scales[k]; // Standard: ein Tag
-    else if (scaleDays()) state.scales[k] = detailScale;
-    else state.scales[k] = num(detailScale);
-    save();
-  }
+  // Die Zubereitungsmenge gilt nur für die offene Ansicht: jedes Rezept öffnet mit „1 Tag“ (nichts wird gemerkt).
+  function persistScale() {}
   function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
-  function openRecipeDetail(rec) {
-    detailRec = rec; detailScale = parseScale(state.scales[familyKey(rec)]); detailMeat = null;
+  function openRecipeDetail(rec, keepScale) {
+    detailRec = rec; if (!keepScale) detailScale = "tag"; detailMeat = null;
     state.settings.detailTab = "mahlzeit"; // jedes Rezept öffnet mit „Mahlzeit“; innerhalb der Ansicht bleibt das gewählte Blatt
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
@@ -1289,7 +1281,7 @@
 
       /* ---------- 2 Abwiegen (Zubereitungsmenge, Standard ein Tag) ---------- */
       paneOpen("abwiegen") +
-      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
+      '<h4 class="ph">📅 Tag <span class="hint">' + (mult === 1 ? "eine Portion" : (days === 1 ? "= " : (days ? days + " Tage = " : "")) + portionsTxt + " Portionen") + '</span></h4>' +
       scaleSeg +
       qTiles +
       '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' + kRows +
@@ -1372,7 +1364,7 @@
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
       b.addEventListener("click", () => {
         const v = allRecipes().find(x => recipeKey(x) === b.dataset.openRec); if (!v) return;
-        openRecipeDetail(v);
+        openRecipeDetail(v, true); // Geschwister-Rezept: gewählte Menge bleibt
       }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
