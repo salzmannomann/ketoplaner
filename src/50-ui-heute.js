@@ -58,7 +58,7 @@
         (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
         '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
       : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';
-    // Packungsstand (z. B. Compleat 500 ml, 2 Tage): heute verplant, Rest für morgen.
+    // Packungsstand (z. B. Compleat 500 ml, 3 Tage): heute verplant, Rest für morgen.
     const packs = {};
     facts.forEach(f => {
       if (!f || !f.rec.packung) return;

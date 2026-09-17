@@ -227,9 +227,9 @@ Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„Keto
 Pre Apta"**, **„Compleat & KetoCal"** und **„Compleat & KetoCal & Pre Apta"**
 (Nestlé Compleat **Paediatric** Nature Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
 
-**Compleat-Packung (500 ml, offen 2 Tage haltbar):** Die Compleat-Rezepte zeigen
+**Compleat-Packung (500 ml, offen 3 Tage haltbar):** Die Compleat-Rezepte zeigen
 unter Rechnen, für wie viele Mahlzeiten eine Packung bei der aktuellen Rechnung
-reicht und ob nach 2 Tagen etwas verfällt; der Tagesplan zeigt den
+reicht und ob nach 3 Tagen etwas verfällt; der Tagesplan zeigt den
 **Packungsstand** (heute verplant, Rest für morgen). Soll eine Packung auf mehr
 Mahlzeiten reichen, hilft das Rezept **„Compleat & KetoCal & Pre Apta"**: Pre
 Apta liefert Kohlenhydrate, damit braucht die Mahlzeit weniger Compleat für
