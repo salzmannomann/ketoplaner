@@ -92,7 +92,7 @@ test("Alle Rezepte (mit und ohne KetoCal) treffen das Zielverhältnis bei 1,8:1 
 test("MCT: s = 0 reproduziert den Ist-Zustand; Modus Verhältnis hält R, Modus Kalorien hält kcal", () => {
   const base = boot({ settings: { mctShare: 0 } });
   let c0 = openRecipe(base, "Hendl & Brokkoli");
-  fire(base, c0.querySelector('.seg-portion button[data-scale="1"]')); c0 = $(base, "detail-content"); // Tag-Tabelle für eine Portion
+  { const pin0 = c0.querySelector("#portion-input"); pin0.value = "1"; fire(base, pin0, "change"); } c0 = $(base, "detail-content"); // Tag-Tabelle für eine Portion
   const rows0 = kitchenRows(c0);
   assert.equal(rows0["Rapsöl"], 12.3);
   assert.equal(rows0["MCT-Öl C8+C10"], undefined);
@@ -358,7 +358,8 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   const kcal4 = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
   // Zurück auf 1 Portion
-  fire(w, c.querySelector('.seg-portion button[data-scale="1"]'));
+  assert.equal(c.querySelector('.seg-portion button[data-scale="1"]'), null, "kein Knopf „1 Portion“ – dafür gibt es das Blatt Mahlzeit");
+  { const pin1 = c.querySelector("#portion-input"); pin1.value = "1"; fire(w, pin1, "change"); }
   c = $(w, "detail-content");
   assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag eine Portion$/);
 });

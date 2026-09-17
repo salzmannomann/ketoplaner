@@ -141,8 +141,8 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
 2. **Tag** – **gleiches Layout wie Mahlzeit, nur mit den Mengen für einen
    ganzen Tag** (= N × diese Mahlzeit), direkt daneben, damit man zwischen
    Portion und Tag hin- und herwischen kann. Unter der Überschrift lässt sich
-   die Menge umstellen: **1 Portion · 1 Tag · 2 Tage · 3 Tage** oder eine freie
-   Portionenzahl (Stepper) – so lässt sich gleich für mehrere Tage vorkochen,
+   die Menge umstellen: **1 Tag · 2 Tage · 3 Tage** oder eine freie
+   Portionenzahl (Stepper; eine Portion zeigt ohnehin das Blatt Mahlzeit) – so lässt sich gleich für mehrere Tage vorkochen,
    ohne die Vorgaben anzurühren. Beim Öffnen steht die Menge **immer auf
    1 Tag** (sie wird nicht gemerkt). Kacheln (kcal, Eiweiß, Menge, Flüssigkeit
    mit skalierten Zielen) und die Waage-Tabelle mit editierbaren Gramm-Feldern
