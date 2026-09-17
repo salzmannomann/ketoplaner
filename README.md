@@ -80,7 +80,7 @@ Vorgaben.
   Fettträger (Öl, Butter, Obers, KetoCal) folgen dieser Rundung **nicht**: sie
   werden nach dem Runden der anderen Zutaten so nachgestellt, dass das
   Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). Gerundet wird die
-  Menge, die auf der Waage liegt; Vielfache („Ganzer Tag") bleiben im Raster.
+  Menge, die auf der Waage liegt; Vielfache („1 Tag", „2 Tage") bleiben im Raster.
 - **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
   Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
   wird die Regel nur angezeigt.
@@ -107,50 +107,54 @@ Vorgaben.
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
   HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
   in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Rechts
-  daneben: **🔍 Suche** (klappt ein Suchfeld auf), **🧪 Eigenes Rezept** und **⋯**
+  daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
   Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die
   Eine KetoCal-Vorgabe gibt es nicht mehr.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
   Stern markiert Favoriten (immer ganz oben).
-- **🧪 Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
+- **➕ Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
   mehrere Fette zum Ausgleich; die App berechnet die Fettmenge fürs
   Verhältnis, wahlweise für eine fixe Zutatenmenge oder hochgerechnet auf eine
   Mahlzeit. Eigene Rezepte können gespeichert, bearbeitet und gelöscht werden.
 
 ### Detailansicht eines Rezepts
 
-Die Detailansicht besteht aus **sechs Blättern** und öffnet mit **Mahlzeit**. Am
-Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Reiterleiste
+Die Detailansicht besteht aus **vier Blättern** und öffnet mit **Mahlzeit**. Am
+Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Punkte
 tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
 sehr vielen Zutaten scrollt das einzelne Blatt). Oben stehen fest Name,
 Verhältnis-Pille, kcal je Portion und Badges, unten fest die Aktionsleiste
 **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen Rezepten auch 🗑️). Am Desktop
-sind die sechs Blätter Reiter nebeneinander.
+sind die vier Blätter Reiter nebeneinander.
 
-1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Menge, Volumen,
-   Eiweiß) und die Zutatentabelle je Portion. Die **Gramm-Werte sind
-   editierbar**: ändert man eine Zutat, skalieren alle anderen proportional mit
-   („Portion angepasst: 80 %"); das Verhältnis bleibt, kcal je Mahlzeit ändern
-   sich, Tagesplan und „Ein Tag" rechnen mit der angepassten Portion. Die
-   Anpassung wird je Gericht gemerkt, „↺ wie berechnet" setzt sie zurück;
-   Wasser bleibt ausgenommen (gemerkter Wert je Portion).
-2. **Ein Tag** – **= N × diese Mahlzeit**: Tageskacheln (kcal mit Ziel und
-   Minimum, Eiweiß, Fett/KH, Flüssigkeit), Zutatentabelle je Tag, der
-   Wasser-Hinweis (Sondieren zwischen den Mahlzeiten bzw. Fehlmenge) und bei
-   Compleat die Packungsinfo.
-3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
+1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Menge,
+   Volumen), die Zutatentabelle je Portion und die Flüssigkeitszeile (Zutaten +
+   Wasser gegen das Ziel je Mahlzeit). Die **Gramm-Werte sind editierbar**:
+   ändert man eine Zutat, skalieren alle anderen proportional mit; das
+   Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Tages-Check
+   rechnen mit der angepassten Portion. **Wasser** ist davon ausgenommen und
+   wird für sich gemerkt. Beide Anpassungen stehen gleich in der
+   **Statuszeile** über den Kacheln („Portion angepasst: 80 % … ↺ wie
+   berechnet" bzw. „Wasser angepasst (85 statt 100 ml) · ↺ wie berechnet");
+   in der Wasserzeile steht nur „⟵ eigener Wert".
+2. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
    **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** und der **Öl-Schalter mit
    MCT-Anteil** samt Kennzahlen; Erklärungen hinter „ⓘ".
-4. **Abwiegen** – Menge zubereiten (1 Portion / Ganzer Tag / Stepper), die
-   Waage-Tabelle mit Gramm-Feldern und der kurze Wasser-Hinweis. Ändert man
-   eine Zutatenmenge direkt (z. B. „827 g Zucchini"), skalieren alle anderen
-   Zutaten proportional mit; **Wasser** ist davon ausgenommen. Menge und Wasser
-   werden **je Rezept gemerkt**; „Ganzer Tag" folgt der Mahlzeitenzahl.
-5. **Zubereitung** – die nummerierten Schritte (Varoma bevorzugt, Dämpfwasser
-   eingerechnet), groß und lesbar.
-6. **Abfüllen** – groß: **Menge je Portion ohne Öl** (das Öl kommt erst kurz
-   vor dem Füttern dazu), die Spritzenzahl, die Öl-Zeilen je Portion und der
+3. **Abwiegen** – oben der **Tages-Check** („📅 Ein Tag = N × diese Mahlzeit":
+   Minimum/Korridor, Kacheln kcal, Eiweiß, Menge und Flüssigkeit je Tag),
+   darunter die **Zubereitungsmenge**: **1 Portion · 1 Tag · 2 Tage · 3 Tage**
+   oder eine freie Portionenzahl (Stepper) – so lässt sich gleich für mehrere
+   Tage vorkochen, ohne die Vorgaben anzurühren. Die Waage-Tabelle zeigt die
+   Gramm für diese Menge (mit Summe); ändert man eine Zutatenmenge direkt
+   (z. B. „827 g Zucchini"), skalieren alle anderen Zutaten mit, Wasser
+   ausgenommen. Menge und Wasser werden **je Rezept gemerkt**; „Tag(e)" folgen
+   der Mahlzeitenzahl. Darunter der Wasser-Hinweis (Sondieren zwischen den
+   Mahlzeiten bzw. Fehlmenge) und bei Compleat die Packungsinfo.
+4. **Kochen** – die nummerierten Schritte (Varoma bevorzugt,
+   Dämpfwasser eingerechnet) und darunter der Abfüll-Block: **Menge je Portion
+   ohne Öl** (das Öl kommt erst kurz vor dem Füttern dazu), Spritzenzahl,
+   Öl-Zeilen je Portion, bei mehreren Portionen die Gesamtmenge und der
    Sieb-Hinweis.
 
 ### Heute (Tagesplan)

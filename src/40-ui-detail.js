@@ -1,23 +1,25 @@
   /* ---------- Detailansicht (Overlay) ---------- */
-  // Blätter der Detailansicht in Reihenfolge; „Mahlzeit“ und „Ein Tag“ liegen nebeneinander.
-  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["tag", "📅 Ein Tag"], ["anpassen", "🎛️ Anpassen"], ["abwiegen", "⚖️ Abwiegen"], ["zubereitung", "🍳 Zubereitung"], ["abfuellen", "💉 Abfüllen"]];
+  // Blätter der Detailansicht in Reihenfolge. „Abwiegen“ enthält auch den Tages-Check (früher eigenes Blatt „Ein Tag“).
+  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["anpassen", "🎛️ Anpassen"], ["abwiegen", "⚖️ Abwiegen"], ["zubereitung", "🍳 Kochen"]];
   function isMobileLayout() { try { return !!(window.matchMedia && window.matchMedia("(max-width: 820px)").matches); } catch (e) { return false; } }
-  // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" (= ganzer Tag, folgt der Mahlzeitenzahl). detailMeat: temporäre Fleischwahl.
+  // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
+  // detailMeat: temporäre Fleischwahl.
   let detailRec = null, detailScale = 1, detailMeat = null;
-  // Merkt sich die Zubereitungsmenge je Rezept – bleibt auch nach dem Schließen erhalten. „Ganzer Tag“ wird als
+  const scaleDays = () => typeof detailScale === "string" && /^tag(:\d+)?$/.test(detailScale) ? Math.max(1, parseInt(detailScale.split(":")[1] || "1", 10)) : 0;
+  const parseScale = (sv) => (typeof sv === "string" && /^tag(:\d+)?$/.test(sv)) ? sv : (num(sv) || 1);
+  // Merkt sich die Zubereitungsmenge je Rezept – bleibt auch nach dem Schließen erhalten. „Tag(e)“ wird als
   // Wahl gemerkt, nicht als Zahl: ändert sich die Mahlzeitenzahl in den Vorgaben, zieht die Menge mit.
   function persistScale() {
     if (!detailRec) return;
     const k = familyKey(detailRec);
-    if (detailScale === "tag") state.scales[k] = "tag";
+    if (scaleDays()) state.scales[k] = detailScale;
     else if (Math.abs(num(detailScale) - 1) < 1e-6) delete state.scales[k];
     else state.scales[k] = num(detailScale);
     save();
   }
-  function scaleMult(d) { return detailScale === "tag" ? d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
+  function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec) {
-    const sv = state.scales[familyKey(rec)];
-    detailRec = rec; detailScale = sv === "tag" ? "tag" : (num(sv) || 1); detailMeat = null;
+    detailRec = rec; detailScale = parseScale(state.scales[familyKey(rec)]); detailMeat = null;
     state.settings.detailTab = "mahlzeit"; // jedes Rezept öffnet mit „Mahlzeit“; innerhalb der Ansicht bleibt das gewählte Blatt
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
@@ -156,7 +158,8 @@
     const proteinTarget = d.eiweissMahl * mult;
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
     const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
-    const portionLabel = mult === 1 ? "1 Portion" : portionsTxt + " Portionen";
+    const days = scaleDays();
+    const portionLabel = mult === 1 ? "1 Portion" : (days ? (days === 1 ? "1 Tag" : days + " Tage") + " = " : "") + portionsTxt + " Portionen";
     // Abfüllmenge je Portion OHNE Öl (das Öl wird erst kurz vor dem Verabreichen zugegeben).
     // Nur tatsächliche Öle abziehen (Name enthält "Öl") – Butter/Sahne/KetoCal bleiben in der Masse.
     const isOil = (name) => /öl|oil/i.test(name || "");
@@ -263,13 +266,14 @@
       const fatRow = isFatCarrier(items, i);
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
-      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert · <button type="button" class="linkbtn water-reset">↺ zurück</button></small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
+      // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
+      // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
+      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) : "";
+      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + waterTag + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td></tr>';
       const gP = Math.round(num(it.grams) * 10) / 10;
       const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
-      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
-        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert · <button type="button" class="linkbtn water-reset">↺ zurück</button></small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
+      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
         '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
@@ -281,8 +285,8 @@
     const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (kommen erst vor dem Füttern dazu)
     const oilRowsPer = items.filter(it => isOil(it.food));
-    // Sechs Blätter: am Handy nebeneinander (seitlich wischen, jedes passt auf einen Bildschirm), am Desktop als Reiter.
-    const TABMAP = { rechnen: "mahlzeit", kochen: "abwiegen" }; // alte gespeicherte Werte
+    // Vier Blätter: am Handy nebeneinander (seitlich wischen, jedes passt auf einen Bildschirm), am Desktop als Reiter.
+    const TABMAP = { rechnen: "mahlzeit", kochen: "abwiegen", tag: "abwiegen", abfuellen: "zubereitung" }; // alte gespeicherte Werte
     const wanted = TABMAP[state.settings.detailTab] || state.settings.detailTab;
     const dtab = DETAIL_PAGES.some(pg => pg[0] === wanted) ? wanted : "mahlzeit";
     const mobile = isMobileLayout();
@@ -294,14 +298,7 @@
     const dayN = d.mahl;
     const dayKcal = sumPer.kcal * dayN, dayP = sumPer.eiweiss * dayN, dayF = sumPer.fett * dayN, dayC = sumPer.kh * dayN;
     const dayLow = dayKcal < d.kcalMin - 0.5, dayHigh = d.kcalMaxAuto && dayKcal > d.kcalMaxAuto + 0.5;
-    // Zutatentabelle je Tag: jede Zeile × Mahlzeiten (gleiche Spalten wie die Mahlzeit-Tabelle).
-    const dayRows = items.map((it, i) => {
-      const g = num(it.grams) * dayN, m = lineMacros({ food: it.food, grams: g });
-      return "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + "</td><td>" + fmt(g, 1) + "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
-    }).join("");
     const dayTotalG = items.reduce((a, it) => a + num(it.grams), 0) * dayN;
-    const dayTable = '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
-      dayRows + "<tr class='sum'><td class='name'>Summe je Tag</td><td>" + fmt(dayTotalG, 0) + "</td><td>" + fmt(dayP) + "</td><td>" + fmt(dayF) + "</td><td>" + fmt(dayC) + "</td><td>" + fmt(dayKcal, 0) + "</td></tr></tbody></table></div>";
     // Flüssigkeit je Portion: Zutaten-Wasser + Rezept-Wasser, gegen den Anteil am Tagesbedarf.
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
@@ -324,26 +321,48 @@
               : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
 
+    // Tages-Check (auf dem Blatt „Abwiegen“): Statuszeile + Kacheln je Tag, unabhängig von der Zubereitungsmenge.
     const daySeg =
-      '<h4 class="ph">📅 Ein Tag <span class="hint">= ' + dayN + ' × diese Mahlzeit</span></h4>' +
-      '<div class="portion-line">' + dayN + ' × diese Mahlzeit · Minimum ' + fmt(d.kcalMin, 0) + ' kcal' + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
-        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) + ' kcal' : '')) +
-        ' · Fett ' + fmt(dayF, 0) + ' g · KH ' + fmt(dayC, 1) + ' g</div>' +
+      '<div class="portion-line">📅 <strong>Ein Tag</strong> = ' + dayN + ' × diese Mahlzeit · Minimum ' + fmt(d.kcalMin, 0) + ' kcal' + (dayLow ? ' <strong>unterschritten</strong>' : ' ✓') +
+        (dayHigh ? ' · <strong>über dem Korridor</strong> (' + fmt(d.kcalMaxAuto, 0) + ' kcal)' : (d.kcalMaxAuto ? ' · Korridor ' + fmt(d.kcalMin, 0) + '–' + fmt(d.kcalMaxAuto, 0) : '')) + '</div>' +
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + (dayLow ? " warn" : "") + '"><div class="v">' + fmt(dayKcal, 0) + '</div><div class="l">kcal/Tag · Ziel ' + fmt(d.kcal, 0) + '</div></div>' +
         '<div class="dstat' + (dayP < d.eiweiss * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(dayP) + ' g</div><div class="l">Eiweiß/Tag · Ziel ' + fmt(d.eiweiss, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(dayTotalG, 0) + ' g</div><div class="l">Menge/Tag</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(dayTotalG, 0) + ' g</div><div class="l">Menge/Tag · Fett ' + fmt(dayF, 0) + ' · KH ' + fmt(dayC, 1) + '</div></div>' +
         fluidDayTile +
       '</div>' +
-      dayTable +
       (dayLow ? '<div class="note warn">⚠️ Nur mit diesem Rezept läge der Tag unter dem Kalorien-Minimum – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>' : "");
+    // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
+    // Gilt nur hier (Abwiegen, Zubereitung, Abfüllen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
+    const scaleBtn = (v, label) => '<button type="button" data-scale="' + v + '"' + ((v === "1" ? (!days && mult === 1) : detailScale === v) ? ' class="active"' : "") + ">" + label + "</button>";
+    // Eine Zeile: vier Schnellwahlen + Stepper für eine freie Portionenzahl (Überschrift nennt die gewählte Menge).
+    const scaleSeg =
+      '<div class="seg-portion batch">' +
+        '<div class="segmented mini">' + scaleBtn("1", "1 Portion") + scaleBtn("tag", "1 Tag") + scaleBtn("tag:2", "2 Tage") + scaleBtn("tag:3", "3 Tage") + "</div>" +
+        '<span class="portion-step" title="Portionen"><button type="button" class="stepbtn" data-step="-1" aria-label="eine Portion weniger">−</button>' +
+        '<input id="portion-input" type="number" min="0.5" step="0.5" aria-label="Portionen" value="' + (Math.round(mult * 10) / 10) + '">' +
+        '<button type="button" class="stepbtn" data-step="1" aria-label="eine Portion mehr">+</button></span>' +
+        (hasWaterOverride ? '<span class="reset-links"><button type="button" id="water-reset" class="linkbtn">↺ Wasser wie berechnet</button></span>' : "") +
+      "</div>";
+    // Statuszeile der Mahlzeit: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
+    let waterRef = null;
+    if (hasWaterOverride) {
+      const keep = state.water[waterKey]; delete state.water[waterKey];
+      try { waterRef = computeMealView(rec, d, detailMeat).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
+      finally { state.water[waterKey] = keep; }
+    }
+    const statusParts = [];
+    if (mv.hasPortion) statusParts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>');
+    if (hasWaterOverride) statusParts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer, 0) + ' statt ' + fmt(waterRef, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
+    const mealStatus = statusParts.length ? statusParts.join(" · ")
+      : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit)' + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g / ' + fmt(ml / mult, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit';
 
     const c = document.getElementById("detail-content");
     c.innerHTML =
       '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
         '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
         '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
-        fmt(sumPer.kcal, 0) + " kcal je Portion" + (mult !== 1 ? " · Zubereitung: " + portionLabel + (detailScale === "tag" ? " (ganzer Tag)" : "") : "") + "</span>" + ketoBadge + "</div></div></div>" +
+        fmt(sumPer.kcal, 0) + " kcal je Portion</span>" + ketoBadge + "</div></div></div>" +
       '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="detail-tabs">' + DETAIL_PAGES.map(tabBtn).join("") + "</div>" +
       '<div class="page-dots" id="page-dots">' + DETAIL_PAGES.map(pg => '<button type="button" class="dot' + (dtab === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
       '<span class="page-no">Seite ' + (DETAIL_PAGES.findIndex(pg => pg[0] === dtab) + 1) + " von " + DETAIL_PAGES.length + "</span></div></div>" +
@@ -352,9 +371,7 @@
       /* ---------- 1 Mahlzeit ---------- */
       paneOpen("mahlzeit") +
       '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
-      '<div class="portion-line">' + (mv.hasPortion
-        ? '<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> der berechneten Mahlzeit (' + fmt(sumPer.kcal, 0) + ' statt ' + fmt(mv.kcalBerechnet, 0) + ' kcal) · <button type="button" id="portion-reset" class="linkbtn">↺ wie berechnet</button>'
-        : 'Wie berechnet (' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit)') + (hasOil ? ' · mit Öl ≈ ' + fmt(totalG / mult, 0) + ' g / ' + fmt(ml / mult, 0) + ' ml' : '') + ' · Gramm ändern, die übrigen Zutaten skalieren mit</div>' +
+      '<div class="portion-line">' + mealStatus + '</div>' +
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
         '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
@@ -367,68 +384,50 @@
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG / mult, 0) + "</td><td>" + fmt(sumPer.eiweiss) + "</td><td>" +
         fmt(sumPer.fett) + "</td><td>" + fmt(sumPer.kh) + "</td><td>" + fmt(sumPer.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
+      fluidLine +
       "</div>" +
 
-      /* ---------- 2 Ein Tag ---------- */
-      paneOpen("tag") +
-      daySeg +
-      fluidDayNote +
-      packInfoSeg +
-      "</div>" +
-
-      /* ---------- 3 Anpassen ---------- */
+      /* ---------- 2 Anpassen ---------- */
       paneOpen("anpassen") +
       '<h4 class="ph">🎛️ Anpassen <span class="hint">gilt für dieses Gericht</span></h4>' +
       basisSeg + meatSeg + oilSeg +
       (!(basisSeg || meatSeg || oilSeg) ? '<div class="note info">Für dieses Gericht gibt es nichts umzuschalten.</div>' : "") +
       "</div>" +
 
-      /* ---------- 4 Abwiegen ---------- */
+      /* ---------- 3 Abwiegen (mit Tages-Check) ---------- */
       paneOpen("abwiegen") +
-      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + '</span></h4>' +
-      '<div class="seg-portion batch">' +
-        '<span class="seg-label">Menge zubereiten:</span>' +
-        '<div class="segmented mini">' +
-          '<button type="button" data-scale="1"' + (detailScale !== "tag" && mult === 1 ? ' class="active"' : "") + ">1 Portion</button>" +
-          '<button type="button" data-scale="tag"' + (detailScale === "tag" ? ' class="active"' : "") + ">Ganzer Tag (×" + d.mahl + ")</button>" +
-        "</div>" +
-        '<span class="portion-step">Portionen <button type="button" class="stepbtn" data-step="-1">−</button>' +
-        '<input id="portion-input" type="number" min="0.5" step="0.5" value="' + (Math.round(mult * 10) / 10) + '">' +
-        '<button type="button" class="stepbtn" data-step="1">+</button></span>' +
-        ((mult !== 1 || hasWaterOverride) ? '<span class="reset-links">' +
-          (mult !== 1 ? '<button type="button" id="scale-reset" class="linkbtn">↺ 1 Portion</button>' : "") +
-          (hasWaterOverride ? '<button type="button" id="water-reset" class="linkbtn">↺ Wasser</button>' : "") + "</span>" : "") +
-      "</div>" +
+      '<h4 class="ph">⚖️ Abwiegen <span class="hint">für ' + portionLabel + ' · gesamt ≈ ' + fmt(totalG, 0) + ' g</span></h4>' +
+      daySeg +
+      scaleSeg +
       '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th></tr></thead><tbody>' + kRows + "</tbody></table></div>" +
-      fluidLine +
-      '<div class="hint" style="margin-top:6px">Eine Menge ändern – die anderen Zutaten skalieren mit (Wasser ausgenommen). Wird je Rezept gemerkt.</div>' +
+      fluidDayNote +
+      packInfoSeg +
       "</div>" +
 
-      /* ---------- 5 Zubereitung ---------- */
+      /* ---------- 4 Kochen: Abfüll-Kacheln oben (immer sichtbar), darunter die Schritte ---------- */
       paneOpen("zubereitung") +
-      '<h4 class="ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + ' <span class="hint">für ' + portionLabel + '</span></h4>' +
-      (stepsHtml || '<div class="note info">Keine Zubereitungsschritte hinterlegt.</div>') +
-      (mult !== 1 ? '<div class="note info">Garzeiten gelten für <strong>eine</strong> Portion – bei größerer Menge länger garen, bis alles weich ist, ggf. portionsweise pürieren. Im Kühlschrank lagern.</div>' : "") +
+      '<h4 class="ph">🍳 Kochen <span class="hint">für ' + portionLabel + '</span></h4>' +
+      '<div class="portion-line">💉 <strong>Abfüllen je Portion</strong>' + (hasOil ? ' – ohne Öl, das kommt erst vor dem Füttern dazu' : '') +
+        (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
+          (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
+      '<div class="detail-tiles strip fill-tiles">' +
+        '<div class="dstat"><div class="v fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div><div class="l">je Portion' + (hasOil ? ' ohne Öl' : '') + '</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
+        (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · vor dem Füttern</div></div>').join("") : "") +
       "</div>" +
-
-      /* ---------- 6 Abfüllen ---------- */
-      paneOpen("abfuellen") +
-      '<h4 class="ph">💉 Abfüllen <span class="hint">je Portion</span></h4>' +
-      '<div class="fill-hero"><div class="fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div>' +
-        '<div class="fill-sub">≈ ' + fmt(perMlNoOil, 0) + ' ml je Portion' + (hasOil ? " · <strong>ohne Öl</strong>" : "") + ' · ≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
-      (mult !== 1 ? '<div class="note info">Gesamt' + (hasOil ? " ohne Öl" : "") + ' ≈ <strong>' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g</strong> für ' + portionLabel + ' → <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong> abfüllen.</div>' : "") +
-      (hasOil ? '<h4 class="ph">🧈 Erst vor dem Füttern einrühren <span class="hint">je Portion</span></h4><ul class="oil-list">' +
-        oilRowsPer.map(it => "<li><span>" + escapeHtml(it.food) + "</span><strong>" + fmt(num(it.grams), 1) + " g</strong></li>").join("") + "</ul>" +
-        (mult !== 1 ? '<div class="hint">Für alle ' + portionsTxt + ' Portionen zusammen: ' + oilRowsPer.map(it => escapeHtml(it.food) + " " + fmt(num(it.grams) * mult, 0) + " g").join(" · ") + "</div>" : "") : "") +
-      (res.mct ? '<div class="note ' + (res.mct.energiePz > 50 ? "warn" : "tip") + '">MCT je Portion: <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.</div>' : "") +
-      (rec.varoma ? '<div class="note tip">🫗 Vor dem Abfüllen durch ein feines Sieb streichen, damit die Spritze nicht verstopft.</div>' : "") +
+      ((res.mct || rec.varoma || mult !== 1) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
+        [rec.varoma ? '🫗 Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
+         res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
+         mult !== 1 ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
+      '<h4 class="ph steps-ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + '</h4>' +
+      (stepsHtml || '<div class="note info">Keine Zubereitungsschritte hinterlegt.</div>') +
       "</div>" +
 
       "</div>" + /* pages */
       '<div class="detail-actions" id="detail-actions"></div>';
 
     c.querySelectorAll(".seg-portion button[data-scale]").forEach(b =>
-      b.addEventListener("click", () => { detailScale = b.dataset.scale === "tag" ? "tag" : (parseFloat(b.dataset.scale) || 1); persistScale(); renderDetail(); }));
+      b.addEventListener("click", () => { detailScale = parseScale(b.dataset.scale); persistScale(); renderDetail(); }));
     c.querySelectorAll(".seg-portion button[data-step]").forEach(b =>
       b.addEventListener("click", () => {
         detailScale = Math.max(0.5, Math.round((mult + parseFloat(b.dataset.step)) * 2) / 2);
@@ -461,8 +460,6 @@
         }
         if (oldG > 0 && nv > 0) { detailScale = mult * (nv / oldG); persistScale(); renderDetail(); }
       }));
-    const scaleReset = c.querySelector("#scale-reset");
-    if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
     c.querySelectorAll("#water-reset, .water-reset").forEach(b =>
       b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
