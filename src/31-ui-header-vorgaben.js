@@ -28,14 +28,16 @@
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
+    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = Fehlmenge laut Tagesplan).
     const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
-    let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "";
+    let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
     if (d.fluidDay > 0) {
-      s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml · " + (d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " dabei" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " dazw.");
-      if (/fehlen/.test(l2)) s2 += " ⚠️";
+      s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
+      s3 = d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml dazwischen";
+      if (/fehlen/.test(l2)) s3 += " ⚠️";
     }
     chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
-      '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + (s2 ? '<span class="rx-line rx-sub rx-short">' + escapeHtml(s2) + "</span>" : "");
+      '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + [s2, s3].filter(Boolean).map(t => '<span class="rx-line rx-sub rx-short">' + escapeHtml(t) + "</span>").join("");
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
