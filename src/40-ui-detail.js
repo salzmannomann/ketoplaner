@@ -264,12 +264,12 @@
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
+        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert · <button type="button" class="linkbtn water-reset">↺ zurück</button></small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td></tr>';
       const gP = Math.round(num(it.grams) * 10) / 10;
       const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") +
-        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
+        (isWaterRow && hasWaterOverride ? '<small class="adj">⟵ eigener Wert · <button type="button" class="linkbtn water-reset">↺ zurück</button></small>' : (isWaterRow && mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) + "</td>" +
         '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
@@ -463,8 +463,8 @@
       }));
     const scaleReset = c.querySelector("#scale-reset");
     if (scaleReset) scaleReset.addEventListener("click", () => { detailScale = 1; persistScale(); renderDetail(); });
-    const waterReset = c.querySelector("#water-reset");
-    if (waterReset) waterReset.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); });
+    c.querySelectorAll("#water-reset, .water-reset").forEach(b =>
+      b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>

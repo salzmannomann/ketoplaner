@@ -389,6 +389,11 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   c = $(w2, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 80);
   assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
+  // Zurücksetzen direkt in der Wasserzeile (Seite Mahlzeit)
+  const wr = c.querySelector(".pane[data-pane=mahlzeit] .water-reset");
+  assert.ok(wr, "↺ zurück in der Wasserzeile"); fire(w2, wr);
+  c = $(w2, "detail-content");
+  assert.ok(kitchenRows(c)["Wasser"] !== 80 && !c.querySelector(".water-reset"), "Wasser wieder berechnet");
 });
 
 test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf 0,1 g mit nachgestelltem Verhältnis (keine Einstellung)", () => {
