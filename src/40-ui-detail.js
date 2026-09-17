@@ -437,10 +437,11 @@
         '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
         (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · vor dem Füttern</div></div>').join("") : "") +
       "</div>" +
-      ((res.mct || rec.varoma || mult !== 1) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
+      // Hinweis zu Garzeiten nur bei gekochten Gerichten; Angerührtes (KetoCal, Compleat, HiPP) wird nur gemischt.
+      ((res.mct || rec.varoma || (mult !== 1 && !rec.angeruehrt)) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
         [rec.varoma ? '🫗 Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
          res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
-         mult !== 1 ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
+         (mult !== 1 && !rec.angeruehrt) ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
       '<h4 class="ph steps-ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + '</h4>' +
       (stepsHtml || '<div class="note info">Keine Zubereitungsschritte hinterlegt.</div>') +
       "</div>" +

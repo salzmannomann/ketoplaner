@@ -1353,10 +1353,11 @@
         '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
         (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · vor dem Füttern</div></div>').join("") : "") +
       "</div>" +
-      ((res.mct || rec.varoma || mult !== 1) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
+      // Hinweis zu Garzeiten nur bei gekochten Gerichten; Angerührtes (KetoCal, Compleat, HiPP) wird nur gemischt.
+      ((res.mct || rec.varoma || (mult !== 1 && !rec.angeruehrt)) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
         [rec.varoma ? '🫗 Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
          res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
-         mult !== 1 ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
+         (mult !== 1 && !rec.angeruehrt) ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
       '<h4 class="ph steps-ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + '</h4>' +
       (stepsHtml || '<div class="note info">Keine Zubereitungsschritte hinterlegt.</div>') +
       "</div>" +
@@ -1723,7 +1724,7 @@
       fmtRatio(r, 2) + "<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
       "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
-      (mult > 1 ? "<p class='sub'>Hinweis: Mengen für " + portionLabel + ". Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.</p>" : "") +
+      (mult > 1 ? "<p class='sub'>Hinweis: Mengen für " + portionLabel + "." + (rec.angeruehrt ? "" : " Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.") + "</p>" : "") +
       (rec.varoma
         ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
         : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : "")) +

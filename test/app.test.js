@@ -672,3 +672,12 @@ test("Overlays frieren den Hintergrund ein (body.modal-open) und geben ihn beim 
   fire(w, $(w, "compose-close"));
   assert.ok(!body.classList.contains("modal-open"));
 });
+
+test("Kochen: Garzeiten-Hinweis nur bei gekochten Gerichten, nicht bei Angerührtem", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 4 } });
+  let c = openRecipe(w, "Compleat & KetoCal"); // öffnet mit 1 Tag = 4 Portionen
+  assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Garzeiten/);
+  fire(w, $(w, "detail-close"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Garzeiten gelten für eine Portion/);
+});
