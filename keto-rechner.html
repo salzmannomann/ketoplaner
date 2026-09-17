@@ -942,10 +942,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .rx-chip .rx-short { display: none; }
 @media (max-width: 820px) {
   .topbar { padding: 8px 12px; }
-  .rx-chip { border-radius: 12px; padding: 3px 8px; max-width: calc(100% - 172px); font-size: 11.5px; line-height: 1.25; gap: 0; }
+  .rx-chip { border-radius: 12px; padding: 4px 8px; max-width: calc(100% - 160px); font-size: 11px; line-height: 1.3; gap: 0; }
   .rx-chip .rx-sub { font-size: 10.5px; }
   .topbar .brand { flex: 0 0 auto; gap: 8px; }
-  .topbar .brand .brand-name { font-size: 24px; }
+  .topbar .brand .brand-name { font-size: 23px; }
   .topbar .brand .logo-img { width: 30px; height: 30px; }
   .rx-chip .rx-long { display: none; }
   .rx-chip .rx-short { display: block; }
@@ -2561,14 +2561,14 @@ const RECIPES_SONDE = [
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
-    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = Fehlmenge laut Tagesplan).
-    const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
-    let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
+    // Zwei kurze Zeilen: Verordnung (+ MCT) · Wasser (Tagesziel, dazwischen/in der Mahlzeit; ⚠️ = Fehlmenge laut Tagesplan).
+    const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl + (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " %" : "");
+    let s2 = "";
     if (d.fluidDay > 0) {
-      s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
-      s3 = d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml dazwischen";
-      if (/fehlen/.test(l2)) s3 += " ⚠️";
+      s2 = "💧 " + fmt(d.fluidDay, 0) + " ml · " + (d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " ml dabei" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml dazw.");
+      if (/fehlen/.test(l2)) s2 += " ⚠️";
     }
+    const s3 = "";
     chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
       '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + [s2, s3].filter(Boolean).map(t => '<span class="rx-line rx-sub rx-short">' + escapeHtml(t) + "</span>").join("");
   }
