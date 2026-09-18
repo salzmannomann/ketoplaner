@@ -605,9 +605,37 @@
     document.getElementById("detail-overlay").hidden = true;
     modalClose("detail");
   }
+  // Am Handy: Kopf (Name, Pille, Punkte) antippen und nach unten wischen schließt das Overlay.
+  // Die Karte folgt dem Finger; ab 90 px (oder schnellem Wisch) wird geschlossen, sonst springt sie zurück.
+  function bindSwipeDown(overlay, headSelector, onClose) {
+    const card = overlay.querySelector(".overlay-card"); if (!card) return;
+    let y0 = null, x0 = 0, t0 = 0, dragging = false;
+    const pt = (e) => (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    overlay.addEventListener("touchstart", (e) => {
+      if (!(e.target && e.target.closest && e.target.closest(headSelector))) return;
+      const p = pt(e); y0 = p.clientY; x0 = p.clientX; t0 = Date.now(); dragging = true;
+      card.style.transition = "none";
+    }, { passive: true });
+    overlay.addEventListener("touchmove", (e) => {
+      if (!dragging) return;
+      const p = pt(e), dy = p.clientY - y0, dx = Math.abs(p.clientX - x0);
+      if (dy < 0 || dx > Math.abs(dy)) { card.style.transform = ""; return; }
+      card.style.transform = "translateY(" + dy + "px)";
+    }, { passive: true });
+    const end = (e) => {
+      if (!dragging) return; dragging = false;
+      const p = pt(e), dy = p.clientY - y0, fast = (Date.now() - t0) < 300 && dy > 40;
+      card.style.transition = "transform .18s ease-out";
+      if (dy > 90 || fast) { card.style.transform = "translateY(100%)"; setTimeout(() => { card.style.transform = ""; card.style.transition = ""; onClose(); }, 160); }
+      else { card.style.transform = ""; setTimeout(() => { card.style.transition = ""; }, 200); }
+    };
+    overlay.addEventListener("touchend", end, { passive: true });
+    overlay.addEventListener("touchcancel", end, { passive: true });
+  }
   function bindDetail() {
     const overlay = document.getElementById("detail-overlay");
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
+    bindSwipeDown(overlay, ".detail-head, .detail-tabs-wrap", closeDetail);
   }

@@ -240,4 +240,5 @@
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
+    bindSwipeDown(ov, ".detail-head, .detail-tabs-wrap", closeCompose);
   }

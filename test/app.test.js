@@ -745,3 +745,25 @@ test("Darstellung: Hell/Dunkel-Schalter unter Vorgaben – auto folgt dem Gerät
   fire(w2, w2.document.querySelector('#theme-ctl button[data-theme="auto"]'));
   assert.equal(w2.document.documentElement.getAttribute("data-theme"), null);
 });
+
+test("Detail: Kopf antippen und nach unten wischen schließt die Ansicht (nicht bei kurzem oder seitlichem Wisch)", async () => {
+  const w = boot({ settings: { mctShare: 0 } });
+  const touch = (el, type, x, y) => { const ev = new w.Event(type, { bubbles: true }); ev.touches = [{ clientX: x, clientY: y }]; ev.changedTouches = ev.touches; el.dispatchEvent(ev); };
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const head = c.querySelector(".detail-head");
+  // kurzer Wisch: bleibt offen
+  touch(head, "touchstart", 100, 50); await wait(320); touch(head, "touchmove", 100, 90); touch(head, "touchend", 100, 90); await wait(220);
+  assert.ok(!$(w, "detail-overlay").hidden, "kurzer Wisch schließt nicht");
+  // seitlicher Wisch (Blätterwechsel): bleibt offen
+  touch(head, "touchstart", 100, 50); await wait(320); touch(head, "touchmove", 260, 80); touch(head, "touchend", 260, 80); await wait(220);
+  assert.ok(!$(w, "detail-overlay").hidden, "seitlicher Wisch schließt nicht");
+  // langer Wisch nach unten: schließt
+  touch(head, "touchstart", 100, 50); await wait(320); touch(head, "touchmove", 105, 200); touch(head, "touchend", 105, 200); await wait(220);
+  assert.ok($(w, "detail-overlay").hidden, "langer Wisch nach unten schließt");
+  // Wisch auf der Tabelle (nicht am Kopf) tut nichts
+  c = openRecipe(w, "Hendl & Brokkoli");
+  const tbl = c.querySelector(".pane[data-pane=mahlzeit] table");
+  touch(tbl, "touchstart", 100, 300); touch(tbl, "touchmove", 100, 500); touch(tbl, "touchend", 100, 500); await wait(220);
+  assert.ok(!$(w, "detail-overlay").hidden, "Wisch auf dem Inhalt schließt nicht");
+});
