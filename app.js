@@ -1620,50 +1620,53 @@
     const d = derived(); ensureDayPlan(d);
     const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, fluid: 0, filled: 0 };
     const facts = [];
+    // Jede Mahlzeit ist eine Zeile wie in der Rezeptliste: Nummer · Icon · Name + Pille / Werte · Ändern · Entfernen.
+    // Tipp auf die Zeile öffnet das Rezept; leere Zeilen öffnen die Auswahl.
     const slotsHtml = state.dayPlan.map((slot, i) => {
       const rec = recipeByKey(slot.key);
       if (!rec) {
         facts.push(null);
-        return '<div class="slot empty-slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span></div>' +
-          '<button type="button" class="btn secondary" data-pick="' + i + '">＋ Rezept wählen</button></div>';
+        return '<div class="tile slot empty-slot" role="button" tabindex="0" data-pick="' + i + '"><span class="slot-no">' + (i + 1) + '</span><span class="tile-icon">＋</span>' +
+          '<div class="tile-body"><div class="tile-line1"><span class="tile-name">Rezept wählen</span></div><div class="tile-stats"><span>Mahlzeit ' + (i + 1) + ' · ' + fmt(d.kcalMahl, 0) + ' kcal</span></div></div><span class="tile-chev" aria-hidden="true">›</span></div>';
       }
       const f = mealFacts(rec, d); facts.push(f);
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
       tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
-      return '<div class="slot"><div class="slot-head"><span class="slot-no">Mahlzeit ' + (i + 1) + '</span>' +
-        '<span class="slot-name">' + (rec.icon || "🥑") + " " + escapeHtml(rec.name) + "</span></div>" +
-        '<div class="slot-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span>' +
-        '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span></div>' +
-        '<details class="collapsible feed"><summary>💉 Füttern – Menge</summary><div class="feed-body">' +
-          '<div class="fill-hero small"><div class="fill-big">≈ ' + fmt(f.gNoOil, 0) + ' g</div><div class="fill-sub">≈ ' + fmt(f.mlNoOil, 0) + ' ml' + (f.hasOil ? " · <strong>ohne Öl</strong>" : "") + "</div></div>" +
-          (f.hasOil ? '<ul class="oil-list">' + f.oils.map(o => "<li><span>" + escapeHtml(o.food) + "</span><strong>" + fmt(num(o.grams), 1) + " g</strong></li>").join("") + "</ul>" +
-            '<div class="hint">Öl erst kurz vor dem Füttern einrühren' + (rec.varoma ? "; vorher durch ein feines Sieb streichen" : "") + ".</div>" : "") +
-        "</div></details>" +
-        '<div class="slot-actions"><button type="button" class="linkbtn" data-open="' + i + '">Rezept öffnen</button>' +
-        '<button type="button" class="linkbtn" data-pick="' + i + '">Ändern</button>' +
-        '<button type="button" class="linkbtn" data-clear="' + i + '">Entfernen</button></div></div>';
+      const proteinOk = f.sum.eiweiss >= d.eiweissMahl * 0.9;
+      const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
+      return '<div class="tile slot" role="button" tabindex="0" data-open="' + i + '"><span class="slot-no">' + (i + 1) + '</span><span class="tile-icon">' + (rec.icon || "🥑") + '</span>' +
+        '<div class="tile-body"><div class="tile-line1"><span class="tile-name">' + escapeHtml(rec.name) + '</span><span class="tile-badge">' +
+          (ratioClass(f.ratio, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span>' : "") + '</span></div>' +
+        '<div class="tile-stats"><span>' + fmt(f.sum.kcal, 0) + ' kcal</span><span>💉 ≈ ' + fmt(f.gNoOil, 0) + ' g / ' + fmt(f.mlNoOil, 0) + ' ml' + (f.hasOil ? ' ohne Öl' : '') + '</span>' +
+          (oilTxt ? '<span>🧈 ' + oilTxt + '</span>' : "") + '<span class="' + (proteinOk ? "prot-ok" : "prot-low") + '">Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></div></div>' +
+        '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
+        '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>';
     }).join("");
     const ratioDay = (tot.eiweiss + tot.kh) > 0 ? tot.fett / (tot.eiweiss + tot.kh) : null;
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Ziele anteilig
-    const pct = (v, t) => t > 0 ? Math.round(v / t * 100) : 0;
     const eiweissZiel = d.eiweiss * share, kcalZiel = d.kcal * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.kcal < kcalMinZiel - 0.5;
+    // Kopf wie in der Rezeptliste: Gruppen-Überschrift mit Zähler, rechts Drucken und Leeren.
+    const head = '<div class="group-head day-head">📅 Tagesplan <span class="group-count">' + d.mahl + ' × ' + fmt(d.kcalMahl, 0) + ' kcal</span>' +
+      '<span class="head-actions"><button type="button" class="iconbtn round" id="print-day" title="Tagesplan drucken" aria-label="Tagesplan drucken">🖨️</button>' +
+      '<button type="button" class="iconbtn round" id="clear-day" title="Plan leeren" aria-label="Plan leeren">🗑️</button></span></div>';
+    // Statuszeile + Kacheln wie auf dem Blatt „Tag“ (kcal · Eiweiß · Verhältnis · Flüssigkeit); Öl in der Statuszeile.
+    const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "", tot.mct > 0 ? "MCT " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
+    const status = tot.filled
+      ? '<div class="portion-line">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant' + (tot.filled < d.mahl ? ' · Ziele anteilig' : '') + (oilDay ? ' · Öl je Tag: ' + oilDay : '') + '</div>'
+      : '<div class="portion-line">Noch keine Mahlzeit geplant – je Mahlzeit ein Rezept wählen, die Tagessummen erscheinen automatisch.</div>';
     const sums = tot.filled
-      ? '<div class="card"><h3>Σ Tagessummen <span class="hint">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></h3>' +
-        '<div class="detail-tiles">' +
-        '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + ' (' + pct(tot.kcal, kcalZiel) + ' %)<br><small>Minimum ' + fmt(kcalMinZiel, 0) + (kcalLow ? ' – unterschritten!' : ' ✓') + '</small></div></div>' +
-        '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g (' + pct(tot.eiweiss, eiweissZiel) + ' %)</div></div>' +
-        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis über den Tag · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
-        '<div class="dstat"><div class="v">' + fmt(tot.mct, 1) + ' g</div><div class="l">MCT je Tag' + (tot.raps > 0 ? '<br><small>Rapsöl ' + fmt(tot.raps, 0) + ' g</small>' : "") + '</div></div>' +
+      ? '<div class="detail-tiles strip" id="day-sums">' +
+        '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + '<br><small>Minimum ' + fmt(kcalMinZiel, 0) + (kcalLow ? ' – unterschritten!' : ' ✓') + '</small></div></div>' +
+        '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g</div></div>' +
+        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
         (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml</div></div>' : "") +
         "</div>" +
         (d.fluidDay > 0 && d.wasserModus === "zwischen" ? zwischenText(d, fluidZiel - tot.fluid, tot.filled) : "") +
         (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 3 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
-        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "") +
-        (tot.filled < d.mahl ? '<div class="note info">Ziele sind anteilig auf die ' + tot.filled + ' geplanten Mahlzeiten gerechnet.</div>' : "") +
-        '<div class="btn-row"><button type="button" class="btn secondary" id="print-day">🖨️ Tagesplan drucken</button><button type="button" class="btn ghost" id="clear-day">Plan leeren</button></div></div>'
-      : '<div class="card"><p class="hint">Noch keine Mahlzeit geplant. Wähle je Mahlzeit ein Rezept – die Tagessummen (kcal, Eiweiß, Verhältnis über den Tag, MCT je Tag) erscheinen automatisch.</p></div>';
-    // Packungsstand (z. B. Compleat 500 ml, 3 Tage): heute verplant, Rest für morgen.
+        (kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "")
+      : "";
+    // Packungsstand (z. B. Compleat 500 ml, 3 Tage) als grüne Notiz wie in der Detailansicht.
     const packs = {};
     facts.forEach(f => {
       if (!f || !f.rec.packung) return;
@@ -1674,20 +1677,21 @@
     const packHtml = Object.keys(packs).map(k => {
       const x = packs[k], rest = x.pk.ml - x.ml, per = x.meals ? x.ml / x.meals : 0;
       const restMeals = per > 0 ? Math.floor(Math.max(0, rest) / per + 1e-9) : 0;
-      const zweiTage = x.ml * x.pk.tage;
-      return '<div class="card"><h3>🧃 ' + escapeHtml(k) + ' <span class="hint">Packung ' + x.pk.ml + ' ml · offen ' + x.pk.tage + ' Tage haltbar</span></h3><div class="detail-tiles">' +
-        '<div class="dstat"><div class="v">' + fmt(x.ml, 0) + ' ml</div><div class="l">heute · ' + x.meals + ' Mahlzeit' + (x.meals === 1 ? "" : "en") + ' à ' + fmt(per, 0) + ' ml</div></div>' +
-        '<div class="dstat' + (rest < -0.5 ? " warn" : "") + '"><div class="v">' + fmt(Math.max(0, rest), 0) + ' ml</div><div class="l">' +
-          (rest < -0.5 ? 'fehlen ' + fmt(-rest, 0) + ' ml – der Plan braucht mehr als eine Packung' : 'bleibt für morgen · reicht für ' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en")) + '</div></div></div>' +
-        (rest >= -0.5 && zweiTage > x.pk.ml + 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen fehlen ' + fmt(zweiTage - x.pk.ml, 0) + ' ml – dafür braucht es eine zweite Packung.</div>' : "") +
-        (rest >= -0.5 && zweiTage < x.pk.ml - 0.5 ? '<div class="note info">Bei gleichem Plan an ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - zweiTage, 0) + ' ml übrig (danach entsorgen) – oder mehr Mahlzeiten damit planen bzw. das Rezept mit Pre Apta wählen, das je Mahlzeit weniger Compleat braucht.</div>' : "") +
-        (Math.abs(zweiTage - x.pk.ml) <= 0.5 ? '<div class="note tip">✅ Bei gleichem Plan an ' + x.pk.tage + ' Tagen geht die Packung genau auf.</div>' : "") +
-        '</div>';
+      const nTage = x.ml * x.pk.tage;
+      return '<div class="note tip pack">🧃 <strong>' + escapeHtml(k) + '</strong> (Packung ' + x.pk.ml + ' ml, offen ' + x.pk.tage + ' Tage): heute <strong>' + fmt(x.ml, 0) + ' ml</strong> (' + x.meals + ' × ' + fmt(per, 0) + ' ml) · ' +
+        (rest < -0.5 ? '<strong>fehlen ' + fmt(-rest, 0) + ' ml</strong> – der Plan braucht mehr als eine Packung' : 'bleiben ' + fmt(rest, 0) + ' ml für morgen (' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en") + ')') +
+        (rest >= -0.5 && nTage > x.pk.ml + 0.5 ? ' · in ' + x.pk.tage + ' Tagen fehlen ' + fmt(nTage - x.pk.ml, 0) + ' ml, zweite Packung nötig' : "") +
+        (rest >= -0.5 && nTage < x.pk.ml - 0.5 ? ' · in ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - nTage, 0) + ' ml übrig (entsorgen oder mehr Mahlzeiten damit planen)' : "") +
+        (Math.abs(nTage - x.pk.ml) <= 0.5 ? ' · ✅ geht in ' + x.pk.tage + ' Tagen genau auf' : "") + '.</div>';
     }).join("");
-    box.innerHTML = '<div class="card"><h3>📅 Tagesplan <span class="hint">' + d.mahl + ' Mahlzeiten · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit</span></h3><div class="slots">' + slotsHtml + "</div></div>" + sums + packHtml;
-    box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => openPicker(num(b.dataset.pick))));
-    box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); }));
-    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", () => { state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
+    box.innerHTML = head + status + sums + '<div class="tiles day-slots">' + slotsHtml + "</div>" + packHtml;
+    box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
+    box.querySelectorAll("[data-open]").forEach(b => {
+      const open = () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); };
+      b.addEventListener("click", open);
+      b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    });
+    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
     const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => { if (confirm("Tagesplan leeren?")) { state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderHeute(); } });

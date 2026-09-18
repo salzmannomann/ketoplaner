@@ -543,10 +543,13 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
   hc = $(w, "heute-content");
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
-  const kcalTile = [...hc.querySelectorAll(".card:last-child .dstat")][0].querySelector(".v").textContent;
+  const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  const mctTile = [...hc.querySelectorAll(".card:last-child .dstat")][3].querySelector(".v").textContent;
-  assert.match(mctTile, /1,2/);
+  assert.match(hc.querySelector(".portion-line").textContent, /MCT 1,2 g/);
+  // Layout wie Rezeptliste: Mahlzeiten als Zeilen mit Nummer, Ändern (↻) und Entfernen (✕); Kopf mit Drucken/Leeren
+  assert.ok(hc.querySelector(".tile.slot .slot-no") && hc.querySelector(".tile.slot [data-clear]") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
+  fire(w, hc.querySelector('.tile.slot [data-clear="0"]'));
+  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 5, "Entfernen leert die Zeile");
   $(w, "set-mahlzeiten").value = "3"; fire(w, $(w, "set-mahlzeiten"), "input");
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
 });

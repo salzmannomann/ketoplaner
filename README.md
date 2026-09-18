@@ -178,12 +178,15 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
 
 ### Heute (Tagesplan)
 
-Ein Slot je Mahlzeit (Anzahl folgt den Vorgaben). Über **„Rezept wählen"**
-öffnet sich ein Picker mit Suche; jeder Slot zeigt kcal, Verhältnis, Menge und
-Öl. Unten stehen die **Tagessummen** (kcal, Eiweiß, Fett, MCT gesamt) im
-Vergleich zur Verordnung. Die **Füttern-Ansicht** zeigt je Slot nur das, was am
-Bett gebraucht wird (Menge, Öl, ggf. Hinweise); der Tagesplan lässt sich
-drucken.
+Gleiche Optik wie Rezeptliste und Detailansicht: oben die Kopfzeile
+„📅 Tagesplan · 5 × 136 kcal" mit 🖨️ Drucken und 🗑️ Leeren, darunter die
+Statuszeile (geplante Mahlzeiten, Öl je Tag) und die vier Kacheln kcal (mit
+Minimum), Eiweiß, Verhältnis und Flüssigkeit, dann der Wasser-Hinweis. Jede
+Mahlzeit ist eine Zeile wie in der Rezeptliste: Nummer, Icon, Name, kcal,
+💉 Abfüllmenge ohne Öl, 🧈 Öl vor dem Füttern, Eiweiß; ↻ tauscht das Rezept
+(Picker mit Suche), ✕ leert die Zeile, ein Tipp auf die Zeile öffnet das
+Rezept. Leere Zeilen („＋ Rezept wählen") öffnen den Picker. Bei Compleat
+steht der Packungsstand als grüne Notiz darunter.
 
 ## Fachliche Details
 
