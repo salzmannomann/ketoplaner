@@ -930,6 +930,9 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 #recipe-search, .toolbar.top input[type=search] { background: var(--panel); }
+/* Pille in den Vorgaben: „zurück“-Zustand (ein Tipp führt dorthin, wo man herkam) */
+.rx-chip.back { background: var(--brand); border-color: var(--brand); color: #fff; }
+.rx-chip.back .rx-line:first-child::before, .rx-chip.back .rx-short:first-of-type::before { content: "↩ "; }
 
 /* ===== Dunkelmodus: folgt dem System (prefers-color-scheme); zusätzlich per <html data-theme="dark"> erzwingbar,
    per data-theme="light" abschaltbar. Die Regeln stehen zweimal (Medienabfrage und Attribut), erzeugt aus einer Liste. ===== */

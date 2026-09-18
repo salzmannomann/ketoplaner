@@ -707,3 +707,24 @@ test("Editor (eigenes Rezept) im Detail-Layout: Kopf mit Name, zwei Blätter, Ka
   fire(w, $(w, "compose-close"));
   assert.ok(tileNames(w).includes("Mein Hendl"), "eigenes Rezept in der Liste");
 });
+
+test("Pille: Tipp öffnet die Vorgaben, zweiter Tipp führt zurück zur vorigen Ansicht", () => {
+  const w = boot({ settings: { view: "rezepte" } });
+  const chip = $(w, "rx-chip");
+  fire(w, chip);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.view, "vorgaben");
+  assert.ok(!$(w, "view-vorgaben").hidden && $(w, "view-rezepte").hidden);
+  assert.ok(chip.classList.contains("back"), "Pille zeigt den Zurück-Zustand");
+  assert.match(chip.title, /Zurück zu Rezepte/);
+  fire(w, chip);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.view, "rezepte");
+  assert.ok(!$(w, "view-rezepte").hidden && $(w, "view-vorgaben").hidden);
+  assert.ok(!chip.classList.contains("back"));
+  // Von Heute aus: zurück nach Heute; über die Leiste gewechselt → Pille öffnet nur, kein Zurück
+  fire(w, $(w, "tab-heute")); fire(w, chip); fire(w, chip);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.view, "heute");
+  fire(w, w.document.querySelector('.tabbar button[data-view="vorgaben"]'));
+  assert.ok(!chip.classList.contains("back"), "über die Leiste geöffnet: kein Zurück");
+  fire(w, chip);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.view, "vorgaben", "bleibt in den Vorgaben");
+});

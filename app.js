@@ -700,6 +700,15 @@
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     try { window.scrollTo(0, 0); } catch (e) {}
+    if (typeof markChip === "function") markChip();
+  }
+  // Merkt sich, von wo die Pille in die Vorgaben geführt hat – ein zweiter Tipp führt zurück.
+  let chipReturn = null;
+  function markChip() {
+    const chip = document.getElementById("rx-chip"); if (!chip) return;
+    const back = (state.settings.view === "vorgaben") && !!chipReturn;
+    chip.classList.toggle("back", back);
+    chip.title = back ? "Zurück zu " + ({ heute: "Heute", rezepte: "Rezepte" }[chipReturn.view] || "vorher") : "Aktive Vorgaben – tippen zum Ändern";
   }
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
@@ -854,9 +863,21 @@
     if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
     const hk = document.getElementById("hide-keto");
     if (hk) hk.addEventListener("change", () => { state.settings.hideKeto = hk.checked; save(); renderRezepte(); });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");
-    if (chip) chip.addEventListener("click", () => showView("vorgaben"));
+    if (chip) chip.addEventListener("click", () => {
+      const cur = state.settings.view || "rezepte";
+      if (cur === "vorgaben" && chipReturn) {
+        const back = chipReturn; chipReturn = null;
+        showView(back.view);
+        try { window.scrollTo(0, back.y); } catch (e) {}
+      } else if (cur !== "vorgaben") {
+        chipReturn = { view: cur, y: window.pageYOffset || document.documentElement.scrollTop || 0 };
+        showView("vorgaben");
+      }
+      markChip();
+    });
     // Verhältnis wird händisch eingegeben – „1,8", „1,8:1" oder „1:1,5"; ungültige Zwischenstände (z. B. „1:") bleiben folgenlos.
     const ri = document.getElementById("set-ratio");
     if (ri) {
