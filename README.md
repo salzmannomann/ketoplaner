@@ -30,7 +30,8 @@ Körpergewicht** (Eiweiß automatisch nach Gewicht) eingestellt.
 
 Keine Installation, kein Server nötig.
 
-Die App folgt dem **Hell-/Dunkelmodus des Geräts** (Systemeinstellung); der
+Die App folgt dem **Hell-/Dunkelmodus des Geräts** (Systemeinstellung); unter
+Vorgaben → 🎨 Darstellung lässt sich Hell oder Dunkel auch fest wählen. Der
 Dunkelmodus färbt alle Ansichten, Karten, Tabellen, Hinweise und Overlays um.
 
 ## Aufbau der App

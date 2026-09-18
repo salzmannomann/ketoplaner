@@ -777,6 +777,20 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
+    document.querySelectorAll("#theme-ctl button[data-theme]").forEach(b =>
+      b.classList.toggle("active", b.dataset.theme === themeSetting()));
+  }
+  // Darstellung: „auto“ folgt dem Gerät (prefers-color-scheme), „light“/„dark“ erzwingen per data-theme am <html>.
+  function themeSetting() { const t = state.settings.theme; return t === "light" || t === "dark" ? t : "auto"; }
+  function applyTheme() {
+    const t = themeSetting(), root = document.documentElement;
+    if (t === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", t);
+    // Farbe der Statusleiste am Handy mitziehen (bei „auto“ entscheiden die media-Attribute der beiden Meta-Tags).
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
+      if (t === "auto") { if (m.dataset.orig) m.setAttribute("content", m.dataset.orig); return; }
+      if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content");
+      m.setAttribute("content", t === "dark" ? "#1a2320" : "#ffffff");
+    });
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
   function renderWerte() {
@@ -889,6 +903,8 @@
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
+    document.querySelectorAll("#theme-ctl button[data-theme]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.theme = b.dataset.theme; save(); applyTheme(); renderRezepte(); }));
     const zw = document.getElementById("set-zwischen");
     if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
@@ -2026,6 +2042,7 @@
   /* ---------- Init ---------- */
   function init() {
     rebuildFoodIndex();
+    applyTheme();
     bindSettingsBar();
     bindDetail();
     bindCompose();

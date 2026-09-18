@@ -728,3 +728,20 @@ test("Pille: Tipp öffnet die Vorgaben, zweiter Tipp führt zurück zur vorigen 
   fire(w, chip);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.view, "vorgaben", "bleibt in den Vorgaben");
 });
+
+test("Darstellung: Hell/Dunkel-Schalter unter Vorgaben – auto folgt dem Gerät, hell/dunkel erzwingen per data-theme", () => {
+  const w = boot({ settings: { view: "vorgaben" } });
+  const root = w.document.documentElement;
+  assert.equal(root.getAttribute("data-theme"), null, "auto: kein Attribut");
+  assert.ok(w.document.querySelector('#theme-ctl button[data-theme="auto"]').classList.contains("active"));
+  fire(w, w.document.querySelector('#theme-ctl button[data-theme="dark"]'));
+  assert.equal(root.getAttribute("data-theme"), "dark");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.theme, "dark");
+  assert.ok(w.document.querySelector('#theme-ctl button[data-theme="dark"]').classList.contains("active"));
+  assert.ok([...w.document.querySelectorAll('meta[name="theme-color"]')].every(m => m.getAttribute("content") === "#1a2320"));
+  // Neustart übernimmt die Wahl; „Wie das Gerät“ entfernt das Attribut wieder
+  const w2 = boot(JSON.parse(w.localStorage.getItem("ketoplaner.v5")));
+  assert.equal(w2.document.documentElement.getAttribute("data-theme"), "dark");
+  fire(w2, w2.document.querySelector('#theme-ctl button[data-theme="auto"]'));
+  assert.equal(w2.document.documentElement.getAttribute("data-theme"), null);
+});

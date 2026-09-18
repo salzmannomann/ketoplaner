@@ -1,6 +1,7 @@
   /* ---------- Init ---------- */
   function init() {
     rebuildFoodIndex();
+    applyTheme();
     bindSettingsBar();
     bindDetail();
     bindCompose();
