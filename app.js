@@ -565,8 +565,8 @@
   /* ---------- Wischen in der Rezeptliste: links = nächste Gruppe, rechts = vorige ----------
      Drücken und Ziehen im Bereich der Rezepte (Finger oder Maus) blättert zwischen den Gruppen wie zwischen
      den Blättern der Detailansicht: die Nachbargruppe wird beim Ziehen in eine zweite Fläche gerendert und
-     rutscht neben der aktuellen Liste 1:1 mit dem Finger herein; in der Chip-Zeile blasst der alte Chip aus,
-     der nächste färbt sich ein, die Zeile rollt nach. Beim Loslassen läuft die Bewegung bis zur Ruhelage
+     rutscht neben der aktuellen Liste 1:1 mit dem Finger herein; die Chip-Zeile rollt mit, die Markierung springt
+     ab halbem Weg auf die Nachbargruppe (wie die Reiter der Detailansicht, ohne Überblenden). Beim Loslassen läuft die Bewegung bis zur Ruhelage
      durch (oder weich zurück). Senkrechtes Wischen bleibt Scrollen; nach einem Zug löst der folgende Klick
      keine Kachel aus. */
   function chipScrollTarget(fb, chip) {
@@ -595,9 +595,14 @@
     let dir = 0, curChip = null, nextChip = null, s0 = 0, s1 = 0, scrollable = false, peek = null;
     const chips = () => [...fb.querySelectorAll(".chip")];
     const curIdx = () => Math.max(0, FILTERS.findIndex(f => f.id === state.settings.filter));
-    const setHl = (chip, v) => { if (chip) { chip.classList.add("hl"); chip.style.setProperty("--hl", String(Math.max(0, Math.min(1, v)))); } };
-    const settle = (chip, v) => { if (chip) { chip.classList.add("settle"); setHl(chip, v); } };
-    const clearHl = () => chips().forEach(c => { c.classList.remove("hl", "settle"); c.style.removeProperty("--hl"); });
+    // Markierung wie bei den Reitern der Detailansicht: kein Überblenden, sie springt ab halbem Weg auf die
+    // Nachbargruppe (und zurück, wenn man wieder zurückzieht).
+    let marked = false;
+    const mark = (next) => {
+      if (next === marked || !curChip || !nextChip) return;
+      marked = next;
+      curChip.classList.toggle("active", !next); nextChip.classList.toggle("active", next);
+    };
     // Seitenbreite: eine Fläche plus Spalt; in Umgebungen ohne Layout (Tests) ein fester Wert
     const W = () => (stage.clientWidth || list.clientWidth || 320) + 24;
     const removePeek = () => { if (peek) { peek.remove(); peek = null; } };
@@ -621,7 +626,7 @@
     const trans = (t) => { const v = t ? "transform " + t + "ms cubic-bezier(.2,.7,.3,1)" : "none"; list.style.transition = v; if (peek) peek.style.transition = v; };
     const pick = (d) => {
       const all = chips(), cur = curIdx();
-      dir = d; curChip = all[cur] || null; nextChip = all[cur + d] || null;
+      dir = d; marked = false; curChip = all[cur] || null; nextChip = all[cur + d] || null;
       scrollable = fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth;
       if (scrollable && curChip && nextChip) { s0 = fb.scrollLeft; s1 = chipScrollTarget(fb, nextChip); }
       buildPeek(d);
@@ -638,22 +643,22 @@
       if (!horiz) { list.style.transform = ""; return; }
       dragged = true;
       const d = dx < 0 ? 1 : -1;
-      if (d !== dir) { if (dir) { setHl(curChip, 1); setHl(nextChip, 0); } pick(d); trans(0); }
+      if (d !== dir) { mark(false); pick(d); trans(0); }
       const blocked = !nextChip, p = blocked ? 0 : Math.min(1, Math.abs(dx) / W());
       // Beide Flächen ziehen 1:1 mit; am Rand (keine weitere Gruppe) nur ein kurzer Widerstand
       place(blocked ? dx * 0.1 : dx);
-      // Markierung und Chip-Zeile wandern proportional mit
-      setHl(curChip, 1 - p); setHl(nextChip, p);
+      // Chip-Zeile rollt proportional mit; die Markierung springt ab halbem Weg
       if (scrollable && nextChip) fb.scrollLeft = s0 + (s1 - s0) * p;
+      mark(p > 0.5);
       if (e.cancelable && e.type === "touchmove") e.preventDefault();
     };
     const finish = (d, dx) => {
       const w = W(), rest = Math.max(0, w - Math.abs(dx));
       const t = reduced() ? 0 : Math.round(Math.min(280, Math.max(120, rest * 0.6)));
       busy = true;
-      // Beide Flächen laufen bis zur Ruhelage weiter; Markierung wandert fertig, Chip-Zeile rollt nach
+      // Beide Flächen laufen bis zur Ruhelage weiter; Markierung sitzt auf der Nachbargruppe, Chip-Zeile rollt nach
       trans(t); place(-d * w);
-      settle(curChip, 0); settle(nextChip, 1);
+      mark(true);
       if (scrollable && nextChip) { if (fb.scrollTo) fb.scrollTo({ left: s1, behavior: t ? "smooth" : "auto" }); else fb.scrollLeft = s1; }
       setTimeout(() => {
         // Dann wird die Nachbargruppe zur echten Liste (gleicher Inhalt, kein sichtbarer Sprung)
@@ -667,8 +672,9 @@
       const t = reduced() ? 0 : 200;
       busy = true;
       trans(t); place(0);
-      settle(curChip, 1); settle(nextChip, 0);
-      setTimeout(() => { trans(0); list.style.transform = ""; removePeek(); list.style.transition = ""; clearHl(); busy = false; }, t + 20);
+      mark(false);
+      if (scrollable && nextChip) { if (fb.scrollTo) fb.scrollTo({ left: s0, behavior: t ? "smooth" : "auto" }); else fb.scrollLeft = s0; }
+      setTimeout(() => { trans(0); list.style.transform = ""; removePeek(); list.style.transition = ""; busy = false; }, t + 20);
     };
     const end = (e) => {
       if (!active) return; active = false;

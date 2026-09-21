@@ -1065,13 +1065,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert.
    Die Bühne schneidet seitlich ab; die Nachbargruppe (#recipe-peek) liegt als zweite Fläche daneben und
-   zieht mit der Liste 1:1 mit. Die Chip-Markierung wandert über --hl (0..1) mit. */
+   zieht mit der Liste 1:1 mit. */
 .list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; }
 #recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; will-change: transform; }
 #recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
-#filter-bar .chip.hl {
-  background: color-mix(in srgb, var(--brand) calc(var(--hl, 0) * 100%), var(--panel));
-  border-color: color-mix(in srgb, var(--brand) calc(var(--hl, 0) * 100%), var(--line));
-  color: color-mix(in srgb, #fff calc(var(--hl, 0) * 100%), var(--ink));
-}
-#filter-bar .chip.settle { transition: background-color .18s ease-out, border-color .18s ease-out, color .18s ease-out; }
