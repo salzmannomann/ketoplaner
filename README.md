@@ -115,7 +115,9 @@ Vorgaben.
   HiPP-Gläschen, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
   in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Auch
   **in der Liste selbst** wechselt seitliches Wischen (drücken und ziehen, Finger
-  oder Maus) zur nächsten bzw. vorigen Gruppe; senkrecht bleibt Scrollen. Rechts
+  oder Maus) zur nächsten bzw. vorigen Gruppe: schon beim Ziehen wandert die
+  Markierung in der Chip-Zeile mit, beim Loslassen gleitet die alte Liste hinaus
+  und die neue herein; senkrecht bleibt Scrollen. Rechts
   daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
   Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die

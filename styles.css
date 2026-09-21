@@ -1063,9 +1063,12 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #heute-content .detail-tiles.strip .dstat .l small { font-size: 10px; }
 }
 
-/* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht wechselt den Chip */
-#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; transition: transform .18s ease-out; will-change: transform; }
-#recipe-list.slide-from-right { animation: slideFromRight .22s ease-out; }
-#recipe-list.slide-from-left { animation: slideFromLeft .22s ease-out; }
-@keyframes slideFromRight { from { transform: translateX(36px); opacity: .35; } to { transform: none; opacity: 1; } }
-@keyframes slideFromLeft { from { transform: translateX(-36px); opacity: .35; } to { transform: none; opacity: 1; } }
+/* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht wechselt den Chip.
+   Beim Ziehen zieht die Liste mit und blendet ab; die Chip-Markierung wandert über --hl (0..1) mit. */
+#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; transition: transform .2s ease-out, opacity .2s ease-out; will-change: transform, opacity; }
+#filter-bar .chip.hl {
+  background: color-mix(in srgb, var(--brand) calc(var(--hl, 0) * 100%), var(--panel));
+  border-color: color-mix(in srgb, var(--brand) calc(var(--hl, 0) * 100%), var(--line));
+  color: color-mix(in srgb, #fff calc(var(--hl, 0) * 100%), var(--ink));
+}
+#filter-bar .chip.settle { transition: background-color .18s ease-out, border-color .18s ease-out, color .18s ease-out; }
