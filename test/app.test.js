@@ -165,7 +165,7 @@ const badgeOf = (t) => t.querySelector(".tile-badge").textContent;
 test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild, KetoCal ausblendbar, Gruppen, Suche", () => {
   const w = boot();
   const all = tileNames(w).length;
-  assert.ok(all >= 45 && all <= 56, "Rezepte: " + all);
+  assert.ok(all >= 45 && all <= 60, "Rezepte: " + all);
   assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
   assert.ok(new Set(tileNames(w)).size < all, "Gerichte in beiden Fettbasen erscheinen zweimal (gleicher Name)");
   const kc = tiles(w).filter(t => /🥄/.test(badgeOf(t))).length;
@@ -182,7 +182,7 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild,
   hk.checked = false; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all);
   clickChip(w, "🥤 Angerührt");
-  assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Öl", "KetoCal & Pre Apta"]);
+  assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Gemüse & Öl", "HiPP Hühnchen & Öl", "HiPP Rind & Gemüse & Öl", "HiPP Rind & Öl", "KetoCal & Pre Apta"]);
   clickChip(w, "🥚 Ei");
   assert.ok(tileNames(w).length >= 4 && tileNames(w).every(n => /^Ei /.test(n)));
   clickChip(w, "🍗 Geflügel");

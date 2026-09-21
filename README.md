@@ -1,7 +1,7 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 38 fertige Gerichte (54 Rezept-Varianten), die automatisch auf die **verordnete
+enthält 41 fertige Gerichte (57 Rezept-Varianten), die automatisch auf die **verordnete
 Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
@@ -112,7 +112,7 @@ Vorgaben.
   „🥄 KetoCal". Im ⋯-Menü lassen sich **Rezepte mit KetoCal ausblenden**.
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
-  HiPP-Fertigprodukt, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
+  HiPP-Gläschen, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
   in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Rechts
   daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
@@ -246,10 +246,14 @@ Ausgewogen über die Gruppen Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel &
 Gemüse sowie Obst & Brei. Die Namen folgen dem Schema **„Hauptzutat &
 Beilage"** (z. B. „Hendl & Karotte", „Ei & Spinat"); in `recipes.js` tragen
 KetoCal-Varianten den Zusatz „(mit KetoCal)" und werden in der App mit der
-Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen das
-Fertigprodukt **„HiPP Hühnchen & Öl"** sowie die Pulver-Mischungen **„KetoCal &
-Pre Apta"**, **„Compleat & KetoCal"** und **„Compleat & KetoCal & Pre Apta"**
-(Nestlé Compleat **Paediatric** Nature Mix; für die Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
+Grundvariante zu einem Gericht zusammengefasst. Unter „Angerührt" stehen die
+Gläschen-Rezepte **„HiPP Hühnchen & Öl"**, **„HiPP Rind & Öl"**, **„HiPP Hühnchen &
+Gemüse & Öl"** und **„HiPP Rind & Gemüse & Öl"** (HiPP Bio-Fleischzubereitung
+125 g bzw. Gemüse-Allerlei 190 g – in Österreich bei Spar, Billa und dm erhältlich;
+Menü-Gläser mit Reis/Erdäpfeln sind wegen der Kohlenhydrate bewusst nicht dabei)
+sowie die Pulver-Mischungen **„KetoCal & Pre Apta"**, **„Compleat & KetoCal"** und
+**„Compleat & KetoCal & Pre Apta"** (Nestlé Compleat **Paediatric** Nature Mix; für die
+Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
 
 **Compleat-Packung (500 ml, offen 3 Tage haltbar):** Die Compleat-Rezepte zeigen
 unter Rechnen, für wie viele Mahlzeiten eine Packung bei der aktuellen Rechnung
