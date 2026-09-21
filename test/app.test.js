@@ -770,3 +770,38 @@ test("Detail: Kopf antippen und nach unten wischen schließt die Ansicht (nicht 
   touch(tbl, "touchstart", 100, 300); touch(tbl, "touchmove", 100, 500); touch(tbl, "touchend", 100, 500); await wait(220);
   assert.ok(!$(w, "detail-overlay").hidden, "Wisch auf dem Inhalt schließt nicht");
 });
+
+test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nächste, rechts = vorige), senkrecht nicht, kein Klick nach dem Zug", () => {
+  const w = boot({ settings: { mctShare: 0 } });
+  const list = $(w, "recipe-list");
+  const ptr = (type, x, y, target) => (target || list).dispatchEvent(new w.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 }));
+  const drag = (x1, y1, x2, y2) => { ptr("pointerdown", x1, y1); ptr("pointermove", (x1 + x2) / 2, (y1 + y2) / 2); ptr("pointermove", x2, y2); ptr("pointerup", x2, y2); };
+  const activeChip = () => w.document.querySelector("#filter-bar .chip.active").textContent.trim();
+  const stored = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.filter;
+  assert.equal(activeChip(), "Alle");
+  // nach links ziehen → nächste Gruppe
+  drag(300, 400, 120, 410);
+  assert.equal(activeChip(), "🍗 Geflügel"); assert.equal(stored(), "gefluegel");
+  drag(300, 400, 100, 400);
+  assert.equal(activeChip(), "🥩 Rind & Schwein");
+  // nach rechts ziehen → vorige Gruppe
+  drag(100, 400, 300, 395);
+  assert.equal(activeChip(), "🍗 Geflügel");
+  // senkrechtes Ziehen (Scrollen) wechselt nicht, kurzer Zug auch nicht
+  drag(200, 300, 210, 500);
+  drag(200, 300, 170, 300);
+  assert.equal(activeChip(), "🍗 Geflügel");
+  // am Anfang bleibt „Alle“ stehen
+  drag(100, 400, 300, 400);
+  assert.equal(activeChip(), "Alle");
+  drag(100, 400, 300, 400);
+  assert.equal(activeChip(), "Alle");
+  // Nach einem Zug öffnet der folgende Klick auf eine Kachel kein Rezept; ein normaler Tipp danach schon
+  const tile = () => tiles(w)[0];
+  ptr("pointerdown", 300, 400, tile()); ptr("pointermove", 200, 400, tile()); ptr("pointerup", 100, 400, tile());
+  assert.equal(activeChip(), "🍗 Geflügel");
+  fire(w, tile());
+  assert.ok($(w, "detail-overlay").hidden, "Klick nach dem Zug wird geschluckt");
+  fire(w, tile());
+  assert.ok(!$(w, "detail-overlay").hidden, "normaler Tipp öffnet");
+});

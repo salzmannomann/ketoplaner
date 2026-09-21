@@ -1,3 +1,64 @@
+  /* ---------- Wischen in der Rezeptliste: links = nächste Gruppe, rechts = vorige ----------
+     Drücken und Ziehen im Bereich der Rezepte (Finger oder Maus) wechselt den Gruppen-Chip, so wie die
+     Reiter in der Detailansicht. Senkrechtes Wischen bleibt Scrollen; nach einem Zug löst der folgende
+     Klick keine Kachel aus. */
+  function stepFilter(dir) {
+    const cur = FILTERS.findIndex(f => f.id === state.settings.filter);
+    const i = Math.min(FILTERS.length - 1, Math.max(0, (cur < 0 ? 0 : cur) + dir));
+    if (i === (cur < 0 ? 0 : cur)) return false;
+    state.settings.filter = FILTERS[i].id; save();
+    const list = document.getElementById("recipe-list");
+    renderRezepte();
+    // Steht die Liste weiter unten, an den Anfang der neuen Gruppe springen (Chip-Zeile bleibt sichtbar).
+    const bar = document.querySelector("#view-rezepte .listbar");
+    const top = (bar ? bar.getBoundingClientRect().top : list.getBoundingClientRect().top) + window.scrollY - 8;
+    if (window.scrollY > top) window.scrollTo(0, Math.max(0, top));
+    // Kurzes Hereingleiten aus der Wischrichtung
+    if (!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      list.classList.remove("slide-from-left", "slide-from-right");
+      void list.offsetWidth;
+      list.classList.add(dir > 0 ? "slide-from-right" : "slide-from-left");
+      setTimeout(() => list.classList.remove("slide-from-left", "slide-from-right"), 260);
+    }
+    return true;
+  }
+  function bindFilterSwipe() {
+    const list = document.getElementById("recipe-list"); if (!list) return;
+    let x0 = 0, y0 = 0, t0 = 0, active = false, horiz = null, dragged = false;
+    const start = (e) => {
+      if (e.button != null && e.button !== 0) return;
+      x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); active = true; horiz = null; dragged = false;
+      list.style.transition = "none";
+    };
+    const move = (e) => {
+      if (!active) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (horiz === null && (Math.abs(dx) > 12 || Math.abs(dy) > 12)) horiz = Math.abs(dx) > Math.abs(dy) * 1.3;
+      if (!horiz) { list.style.transform = ""; return; }
+      dragged = true;
+      // Leichtes Mitziehen als Rückmeldung; am Rand (keine weitere Gruppe) nur ein kurzer Widerstand
+      const cur = FILTERS.findIndex(f => f.id === state.settings.filter);
+      const blocked = (dx < 0 && cur >= FILTERS.length - 1) || (dx > 0 && cur <= 0);
+      list.style.transform = "translateX(" + Math.round(dx * (blocked ? 0.08 : 0.25)) + "px)";
+      if (e.cancelable && e.type === "touchmove") e.preventDefault();
+    };
+    const end = (e) => {
+      if (!active) return; active = false;
+      const dx = e.clientX - x0, dy = e.clientY - y0, dt = Date.now() - t0;
+      list.style.transition = ""; list.style.transform = "";
+      if (!horiz) return;
+      const flick = dt < 300 && Math.abs(dx) > 30;
+      if ((Math.abs(dx) > 60 || flick) && Math.abs(dx) > Math.abs(dy) * 1.3) stepFilter(dx < 0 ? 1 : -1);
+    };
+    list.addEventListener("pointerdown", start);
+    list.addEventListener("pointermove", move);
+    list.addEventListener("pointerup", end);
+    list.addEventListener("pointercancel", end);
+    list.addEventListener("pointerleave", (e) => { if (active && e.pointerType === "mouse") end(e); });
+    // Nach einem Zug den Klick auf die Kachel schlucken (sonst öffnet sich beim Loslassen ein Rezept)
+    list.addEventListener("click", (e) => { if (dragged) { dragged = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
   /* ---------- Rezepte rendern ---------- */
   function renderRezepte() {
     const s = state.settings;

@@ -1062,3 +1062,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #heute-content .detail-tiles.strip .dstat .l { font-size: 10.5px; line-height: 1.2; }
   #heute-content .detail-tiles.strip .dstat .l small { font-size: 10px; }
 }
+
+/* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht wechselt den Chip */
+#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; transition: transform .18s ease-out; will-change: transform; }
+#recipe-list.slide-from-right { animation: slideFromRight .22s ease-out; }
+#recipe-list.slide-from-left { animation: slideFromLeft .22s ease-out; }
+@keyframes slideFromRight { from { transform: translateX(36px); opacity: .35; } to { transform: none; opacity: 1; } }
+@keyframes slideFromLeft { from { transform: translateX(-36px); opacity: .35; } to { transform: none; opacity: 1; } }

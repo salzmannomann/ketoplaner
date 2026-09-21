@@ -113,7 +113,9 @@ Vorgaben.
 - **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
   🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
   HiPP-Gläschen, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
-  in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Rechts
+  in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Auch
+  **in der Liste selbst** wechselt seitliches Wischen (drücken und ziehen, Finger
+  oder Maus) zur nächsten bzw. vorigen Gruppe; senkrecht bleibt Scrollen. Rechts
   daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
   Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die

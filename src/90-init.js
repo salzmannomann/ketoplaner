@@ -6,6 +6,7 @@
     bindDetail();
     bindCompose();
     bindHeute();
+    bindFilterSwipe();
     renderRezepte();
     showView(state.settings.view || "rezepte");
   }
