@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=15836e32" />
+  <link rel="stylesheet" href="styles.css?v=eaaed324" />
 </head>
 <body>
   <header class="topbar">
@@ -73,7 +73,8 @@
           </select>
         </span>
       </div>
-      <div id="recipe-list"></div>
+      <!-- Bühne fürs Blättern: beim Wischen rutscht die Nachbargruppe als zweite Fläche herein -->
+      <div id="list-stage" class="list-stage"><div id="recipe-list"></div></div>
     </section>
 
     <!-- ===== Vorgaben ===== -->
@@ -259,7 +260,7 @@
 
   <script src="foods.js?v=522bcd1a"></script>
   <script src="recipes.js?v=d9303e2e"></script>
-  <script src="app.js?v=a423df00"></script>
+  <script src="app.js?v=6cde74d8"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

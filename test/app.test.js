@@ -784,6 +784,14 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   assert.equal(activeChip(), "Alle");
   // Während des Ziehens wandert die Markierung schon mit: „Alle“ blasst aus, „Geflügel“ färbt sich ein
   ptr("pointerdown", 300, 400); ptr("pointermove", 240, 402);
+  // … und die Nachbargruppe steht schon als zweite Fläche neben der Liste, beide 1:1 mitgezogen
+  const peek = $(w, "recipe-peek");
+  assert.ok(peek, "Nachbargruppe wird beim Ziehen gerendert");
+  const heads = [...peek.querySelectorAll(".group-head")].map(h => h.textContent);
+  assert.ok(heads.length >= 1 && heads.every(h => /Geflügel/.test(h)), "zweite Fläche zeigt nur die Nachbargruppe: " + heads.join(", "));
+  assert.ok(peek.querySelectorAll(".tile").length >= 5, "Kacheln in der zweiten Fläche");
+  assert.equal(list.style.transform, "translateX(-60px)");
+  assert.equal(peek.style.transform, "translateX(284px)", "Nachbarfläche eine Seitenbreite (320 + 24 Spalt) daneben");
   const a = chipHl("Alle"), g = chipHl("🍗 Geflügel");
   assert.ok(a !== null && a < 1 && a > 0, "alter Chip blasst aus: " + a);
   assert.ok(g !== null && g > 0 && g < 1 && Math.abs(a + g - 1) < 1e-6, "neuer Chip färbt sich ein: " + g);
@@ -791,6 +799,8 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   ptr("pointerup", 240, 402); await wait(450);
   assert.equal(activeChip(), "🍷 Geflügel".replace("🍷", "🍗")); assert.equal(stored(), "gefluegel");
   assert.ok(!w.document.querySelector("#filter-bar .chip.hl"), "keine Zwischenfärbung mehr nach dem Wechsel");
+  assert.equal($(w, "recipe-peek"), null, "zweite Fläche nach dem Wechsel wieder weg");
+  assert.equal(list.style.transform, "", "Liste steht wieder in Ruhelage");
   // weiter nach links → nächste Gruppe
   await drag(300, 400, 100, 400);
   assert.equal(activeChip(), "🥩 Rind & Schwein");
@@ -802,6 +812,7 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   await drag(200, 300, 170, 300);
   assert.equal(activeChip(), "🍗 Geflügel");
   assert.ok(!w.document.querySelector("#filter-bar .chip.hl"), "Zwischenfärbung nach kurzem Zug wieder weg");
+  assert.equal($(w, "recipe-peek"), null, "zweite Fläche nach kurzem Zug wieder weg");
   // am Anfang bleibt „Alle“ stehen
   await drag(100, 400, 300, 400);
   assert.equal(activeChip(), "Alle");
