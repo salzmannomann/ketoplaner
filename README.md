@@ -97,7 +97,10 @@ Vorgaben.
   Kopieren) – so lassen sich alle Einstellungen, Favoriten, eigene Rezepte und
   der Tagesplan auf ein anderes Handy übertragen. **„Werte prüfen"** listet
   die Nährwerte aller verwendeten Lebensmittel zum Abgleich mit der
-  Diätologin.
+  Diätologin. Die drei Fisch-Filets **Lachs, Seelachs (Alaska-Seelachs) und
+  Kabeljau** stehen mit Tabellenwerten für rohe Handelsfilets in der Liste
+  (Zuchtlachs 20 g Eiweiß / 13 g Fett, Seelachs 17,4 / 0,8, Kabeljau 17,7 / 0,7
+  je 100 g) – bitte gegen die Packung bzw. mit der Diätologin abgleichen.
 
 ### Rezepte
 
