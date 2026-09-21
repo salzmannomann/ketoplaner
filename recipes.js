@@ -476,4 +476,33 @@ const RECIPES_SONDE = [
     varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Rindfleisch, Spinat und Erdäpfel klein schneiden, in den Varoma geben und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Rinderfaschiertes", grams: 20 }, { food: "Spinat, gekocht", grams: 60 }, { food: "Kartoffel gekocht", grams: 5 }, { food: "Rapsöl", grams: 9 }, { food: "Wasser", grams: 40 } ],
   },
+  // ---- Nach dem Ketokochbuch von Real Food Blends (2020), mit unseren Zutaten nachgebaut: Fisolen als ballaststoffreiches,
+  // kohlenhydratarmes Gemüse, Ei als zweite Eiweißquelle, etwas Hafer; das Fett stellt die App fürs Verhältnis ein. ----
+  {
+    name: "Hendl & Fisolen & Ei",
+    icon: "🍗",
+    ketocal: false,
+    zubereitung: "Fisolen und Hendl weich garen, Ei hart kochen. Alles mit Wasser fein pürieren, dann Olivenöl untermischen.",
+    thermomix: "Fisolen 5 Sek./Stufe 5 zerkleinern. Wasser und Hendl zugeben, 15 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Olivenöl zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Hendl und Fisolen klein schneiden, in den Varoma geben, das Ei in der Schale dazulegen und ca. 18–20 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Ei schälen. Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Olivenöl 30–40 Sek./Stufe 7–8 cremig pürieren. Durch ein feines Sieb streichen – Fisolen haben Fäden.",
+    items: [ { food: "Hühnerbrust ohne Haut", grams: 15 }, { food: "Grüne Bohnen (Fisolen) roh", grams: 45 }, { food: "Ei ganz versprudelt", grams: 15 }, { food: "Olivenöl", grams: 11 }, { food: "Wasser", grams: 50 } ],
+  },
+  {
+    name: "Lachs & Hafer & Kürbis",
+    icon: "🐟",
+    ketocal: false,
+    zubereitung: "Kürbis, Fisolen und Lachs weich garen. Mit Haferflocken und Wasser fein pürieren, kurz quellen lassen, dann Rapsöl untermischen.",
+    thermomix: "Kürbis und Fisolen 5 Sek./Stufe 5 zerkleinern. Wasser, Haferflocken und Lachs zugeben, 12 Min./100 °C/Stufe 1 garen. Rapsöl zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Lachs, Kürbis und Fisolen klein schneiden, in den Varoma geben und ca. 15–18 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren. Die Haferflocken dabei mitpürieren und die Masse 5 Min. stehen lassen, damit der Hafer quillt; bei Bedarf nochmals kurz pürieren.",
+    items: [ { food: "Lachsfilet (TK oder frisch)", grams: 20 }, { food: "Haferflocken", grams: 6 }, { food: "Kürbis roh", grams: 40 }, { food: "Grüne Bohnen (Fisolen) roh", grams: 15 }, { food: "Rapsöl", grams: 8 }, { food: "Wasser", grams: 60 } ],
+  },
+  {
+    name: "Ei & Apfel & Hafer",
+    icon: "🥚",
+    ketocal: false,
+    zubereitung: "Apfel und Spinat weich garen, Ei hart kochen. Mit Haferflocken und Wasser fein pürieren, kurz quellen lassen, dann Rapsöl untermischen.",
+    thermomix: "Apfel und Spinat 5 Sek./Stufe 5 zerkleinern. Wasser und Haferflocken zugeben, 8 Min./100 °C/Stufe 1 garen. Geschältes hart gekochtes Ei und Rapsöl zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Apfel schälen und klein schneiden, mit dem Spinat in den Varoma geben, das Ei in der Schale dazulegen und ca. 15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Ei schälen. Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl 30–40 Sek./Stufe 7–8 cremig pürieren. Die Haferflocken dabei mitpürieren und die Masse 5 Min. stehen lassen, damit der Hafer quillt.",
+    items: [ { food: "Ei ganz versprudelt", grams: 30 }, { food: "Apfel geschält roh", grams: 30 }, { food: "Haferflocken", grams: 6 }, { food: "Spinat, gekocht", grams: 15 }, { food: "Rapsöl", grams: 10 }, { food: "Wasser", grams: 50 } ],
+  },
 ];

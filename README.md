@@ -1,7 +1,7 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 36 fertige Gerichte (50 Rezept-Varianten), die automatisch auf die **verordnete
+enthält 38 fertige Gerichte (54 Rezept-Varianten), die automatisch auf die **verordnete
 Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
@@ -120,6 +120,10 @@ Vorgaben.
   Eine KetoCal-Vorgabe gibt es nicht mehr.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
   Stern markiert Favoriten (immer ganz oben).
+- **Nach dem Real-Food-Blends-Ketokochbuch** (2020) nachgebaut, ohne
+  Diätologie-Schild: **Hendl & Fisolen & Ei**, **Lachs & Hafer & Kürbis** und
+  **Ei & Apfel & Hafer** – Fisolen als ballaststoffreiches Gemüse, Ei als zweite
+  Eiweißquelle, etwas Hafer; das Fett stellt die App fürs Verhältnis ein.
 - **➕ Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
   mehrere Fette zum Ausgleich; die App berechnet die Fettmenge fürs
   Verhältnis, wahlweise für eine fixe Zutatenmenge oder hochgerechnet auf eine
