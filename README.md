@@ -70,7 +70,7 @@ Vorgaben.
   dabei.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
   Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
-  dazu **Flüssigkeit gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
+  dazu **Gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
   100 ml/kg bis 10 kg) und, nur beim Sondieren, **Wasser je Zwischenzeit**
   (Vorgabe 60 ml = eine Spritze; bei N Mahlzeiten N−1 Gaben). Beim Sondieren
   kommt der Rest des Tagesbedarfs in die Mahlzeiten, höchstens 25 ml/kg je

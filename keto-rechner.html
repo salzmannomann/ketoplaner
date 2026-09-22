@@ -149,15 +149,15 @@ input:focus, select:focus { outline: none; border-color: var(--brand); box-shado
 .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 .field-note { font-size: 12px; color: var(--muted); margin-top: 3px; }
 
-button.btn {
+.btn {
   background: var(--brand); color: #fff; border: 0; cursor: pointer;
   padding: 10px 16px; border-radius: 9px; font-size: 15px; font-weight: 600;
 }
-button.btn:hover { background: var(--brand-dark); }
-button.btn.secondary { background: #edf2f7; color: var(--ink); }
-button.btn.secondary:hover { background: #e2e8f0; }
-button.btn.ghost { background: transparent; color: var(--red); padding: 6px 10px; font-weight: 500; }
-button.btn.ghost:hover { background: var(--red-bg); }
+.btn:hover { background: var(--brand-dark); }
+.btn.secondary { background: #edf2f7; color: var(--ink); }
+.btn.secondary:hover { background: #e2e8f0; }
+.btn.ghost { background: transparent; color: var(--red); padding: 6px 10px; font-weight: 500; }
+.btn.ghost:hover { background: var(--red-bg); }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 
 /* Tables */
@@ -848,7 +848,8 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   #view-vorgaben .card h3 .hint { font-size: 12px; }
   #view-vorgaben .settings-grid { grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-bottom: 4px; }
   #view-vorgaben .settings-grid > div { padding-bottom: 18px; }
-  #view-vorgaben .settings-grid > div.wide, #view-vorgaben #eiweiss-manual { grid-column: span 2; }
+  #view-vorgaben .settings-grid > div.wide { grid-column: span 2; }
+  #view-vorgaben label .lh { display: none; }
   #view-vorgaben label { font-size: 13px; margin-bottom: 3px; }
   #view-vorgaben input, #view-vorgaben select { padding: 8px 10px; font-size: 16px; }
   #view-vorgaben .reset-line { height: 16px; line-height: 16px; }
@@ -861,7 +862,9 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
   #view-vorgaben .collapsible.mini summary { font-size: 12px; }
   #view-vorgaben .btn-row { gap: 6px; }
 }
-@media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } }
+/* Eingabe und Auswahl gleich hoch (select ist sonst 1 px höher) */
+#view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select { height: 42px; }
+@media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } #view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select { height: 38px; } }
 /* Rezeptleiste am Desktop: alle Gruppen in einer Zeile (schmalere Chips), Knöpfe oben ausgerichtet */
 @media (min-width: 821px) {
   .listbar { align-items: flex-start; gap: 10px; }
@@ -967,10 +970,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .rx-chip { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
   :root:not([data-theme="light"]) .rx-chip:hover { background: #2b4536; }
   :root:not([data-theme="light"]) .iconbtn, :root:not([data-theme="light"]) .stepbtn, :root:not([data-theme="light"]) .tm-chip, :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) .pick-row, :root:not([data-theme="light"]) .oil-list li, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea, :root:not([data-theme="light"]) .segmented button { background: var(--panel); color: var(--ink); }
-  :root:not([data-theme="light"]) .iconbtn.primary, :root:not([data-theme="light"]) button.btn { color: #fff; }
-  :root:not([data-theme="light"]) button.btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
-  :root:not([data-theme="light"]) button.btn.secondary { background: #26322c; color: var(--ink); }
-  :root:not([data-theme="light"]) button.btn.secondary:hover { background: #30403a; }
+  :root:not([data-theme="light"]) .iconbtn.primary, :root:not([data-theme="light"]) .btn { color: #fff; }
+  :root:not([data-theme="light"]) .btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
+  :root:not([data-theme="light"]) .btn.secondary { background: #26322c; color: var(--ink); }
+  :root:not([data-theme="light"]) .btn.secondary:hover { background: #30403a; }
   :root:not([data-theme="light"]) .chip { background: var(--panel); color: var(--ink); }
   :root:not([data-theme="light"]) .chip:hover { background: var(--brand-soft); }
   :root:not([data-theme="light"]) .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
@@ -996,9 +999,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .overlay-close { background: #26322c; color: var(--ink); }
   :root:not([data-theme="light"]) #compose-content .title-input:focus { background: var(--bg); }
   :root:not([data-theme="light"]) .pages { background: var(--bg); }
-  :root:not([data-theme="light"]) .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
-  :root:not([data-theme="light"]) .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
-  :root:not([data-theme="light"]) .pages .pane:last-child { box-shadow: none; }
+  :root:not([data-theme="light"]) .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: none; }
+  /* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
+  @media (max-width: 820px) {
+    :root:not([data-theme="light"]) .pages .pane { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
+    :root:not([data-theme="light"]) .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
+    :root:not([data-theme="light"]) .pages .pane:last-child { box-shadow: none; }
+  }
   :root:not([data-theme="light"]) .detail-actions { background: var(--panel); }
   :root:not([data-theme="light"]) .brand .logo-img { box-shadow: 0 1px 3px rgba(0,0,0,.5); }
   :root:not([data-theme="light"]) input:disabled { background: var(--bg); color: var(--muted); }
@@ -1018,10 +1025,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 [data-theme="dark"] .rx-chip { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
 [data-theme="dark"] .rx-chip:hover { background: #2b4536; }
 [data-theme="dark"] .iconbtn, [data-theme="dark"] .stepbtn, [data-theme="dark"] .tm-chip, [data-theme="dark"] .slot, [data-theme="dark"] .pick-row, [data-theme="dark"] .oil-list li, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .segmented button { background: var(--panel); color: var(--ink); }
-[data-theme="dark"] .iconbtn.primary, [data-theme="dark"] button.btn { color: #fff; }
-[data-theme="dark"] button.btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
-[data-theme="dark"] button.btn.secondary { background: #26322c; color: var(--ink); }
-[data-theme="dark"] button.btn.secondary:hover { background: #30403a; }
+[data-theme="dark"] .iconbtn.primary, [data-theme="dark"] .btn { color: #fff; }
+[data-theme="dark"] .btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
+[data-theme="dark"] .btn.secondary { background: #26322c; color: var(--ink); }
+[data-theme="dark"] .btn.secondary:hover { background: #30403a; }
 [data-theme="dark"] .chip { background: var(--panel); color: var(--ink); }
 [data-theme="dark"] .chip:hover { background: var(--brand-soft); }
 [data-theme="dark"] .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
@@ -1047,9 +1054,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 [data-theme="dark"] .overlay-close { background: #26322c; color: var(--ink); }
 [data-theme="dark"] #compose-content .title-input:focus { background: var(--bg); }
 [data-theme="dark"] .pages { background: var(--bg); }
-[data-theme="dark"] .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
-[data-theme="dark"] .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
-[data-theme="dark"] .pages .pane:last-child { box-shadow: none; }
+[data-theme="dark"] .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: none; }
+/* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
+@media (max-width: 820px) {
+  [data-theme="dark"] .pages .pane { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
+  [data-theme="dark"] .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
+  [data-theme="dark"] .pages .pane:last-child { box-shadow: none; }
+}
 [data-theme="dark"] .detail-actions { background: var(--panel); }
 [data-theme="dark"] .brand .logo-img { box-shadow: 0 1px 3px rgba(0,0,0,.5); }
 [data-theme="dark"] input:disabled { background: var(--bg); color: var(--muted); }
@@ -1156,7 +1167,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="settings-grid">
           <div>
-            <label>Verhältnis (Fett : Eiweiß+KH)</label>
+            <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
           </div>
           <div>
@@ -1165,7 +1176,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
-            <label>Kalorien mindestens pro Tag</label>
+            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
             <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
@@ -1177,18 +1188,15 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div class="wide">
+          <div>
             <label>Eiweiß-Bedarf</label>
-            <div class="inline-row">
-              <select id="set-proteinmode">
-                <option value="0">manuell eingeben</option>
-                <option value="1">1,0 g/kg/Tag</option>
-                <option value="1.2">1,2 g/kg/Tag</option>
-                <option value="1.5">1,5 g/kg/Tag (Standard)</option>
-                <option value="2">2,0 g/kg/Tag</option>
-              </select>
-              <span id="eiweiss-auto" class="calc"></span>
-            </div>
+            <select id="set-proteinmode">
+              <option value="0">manuell (g/Tag)</option>
+              <option value="1">1,0 g/kg/Tag</option>
+              <option value="1.2">1,2 g/kg/Tag</option>
+              <option value="1.5">1,5 g/kg/Tag</option>
+              <option value="2">2,0 g/kg/Tag</option>
+            </select>
             <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
@@ -1210,12 +1218,12 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         </div>
         <div class="settings-grid">
           <div>
-            <label>Flüssigkeit gesamt pro Tag (ml)</label>
+            <label>Gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
             <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
-            <label>Wasser je Zwischenzeit (ml)</label>
+            <label>Je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
             <div class="reset-line"><span class="src" id="src-zwischen"></span><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
@@ -1241,15 +1249,15 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <div id="mct-more">
           <details class="collapsible mini">
             <summary>ⓘ MCT-Anteil und Rechenregel</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
           </details>
           <div class="settings-grid">
             <div>
-              <label>MCT-Öl: Fett je 100 g (Etikett)</label>
+              <label>MCT-Öl: Fett je 100 g</label>
               <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
             </div>
             <div>
-              <label>MCT-Öl: kcal je 100 g (830 = Praxiswert)</label>
+              <label>MCT-Öl: kcal je 100 g</label>
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
@@ -1260,7 +1268,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <h3>🍳 Küche</h3>
         <div class="settings-grid">
           <div>
-            <label>Verdunstung beim Dämpfen (ml)</label>
+            <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
         </div>
@@ -2846,17 +2854,21 @@ const RECIPES_SONDE = [
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
     src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
-    src("protein", d.proteinPerKg !== d.proteinStandard, "Standard " + fmt(d.proteinStandard, 1) + " g/kg/Tag", "↺ Standard");
     // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
     const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
     const zwManual = zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60;
     put("set-zwischen", zwOn ? d.zwischenMl : "");
     if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "" : "– (alles in den Mahlzeiten)"; }
     src("zwischen", zwManual, zwOn ? "Vorgabe · eine Spritze" : "nicht nötig", "↺ 60 ml");
-    // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
+    // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
-    const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
+    {
+      const sp = $("src-protein"), bt = $("reset-protein"), isStd = d.proteinPerKg === d.proteinStandard, hasW = num(s.weight) > 0;
+      const txt = d.autoProtein ? (hasW ? (isStd ? "✓ Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
+      if (sp) { sp.textContent = txt; sp.classList.toggle("auto", d.autoProtein && isStd && hasW); }
+      if (bt) { bt.hidden = isStd; bt.textContent = "↺ Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
+    }
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

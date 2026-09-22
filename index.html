@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=efd813d2" />
+  <link rel="stylesheet" href="styles.css?v=53df724a" />
 </head>
 <body>
   <header class="topbar">
@@ -83,7 +83,7 @@
         <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="settings-grid">
           <div>
-            <label>Verhältnis (Fett : Eiweiß+KH)</label>
+            <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
           </div>
           <div>
@@ -92,7 +92,7 @@
             <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div>
-            <label>Kalorien mindestens pro Tag</label>
+            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
             <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
             <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
@@ -104,18 +104,15 @@
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div class="wide">
+          <div>
             <label>Eiweiß-Bedarf</label>
-            <div class="inline-row">
-              <select id="set-proteinmode">
-                <option value="0">manuell eingeben</option>
-                <option value="1">1,0 g/kg/Tag</option>
-                <option value="1.2">1,2 g/kg/Tag</option>
-                <option value="1.5">1,5 g/kg/Tag (Standard)</option>
-                <option value="2">2,0 g/kg/Tag</option>
-              </select>
-              <span id="eiweiss-auto" class="calc"></span>
-            </div>
+            <select id="set-proteinmode">
+              <option value="0">manuell (g/Tag)</option>
+              <option value="1">1,0 g/kg/Tag</option>
+              <option value="1.2">1,2 g/kg/Tag</option>
+              <option value="1.5">1,5 g/kg/Tag</option>
+              <option value="2">2,0 g/kg/Tag</option>
+            </select>
             <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
           </div>
           <div id="eiweiss-manual">
@@ -137,12 +134,12 @@
         </div>
         <div class="settings-grid">
           <div>
-            <label>Flüssigkeit gesamt pro Tag (ml)</label>
+            <label>Gesamt pro Tag (ml)</label>
             <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
             <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
           </div>
           <div id="zwischen-field">
-            <label>Wasser je Zwischenzeit (ml)</label>
+            <label>Je Zwischenzeit (ml)</label>
             <input id="set-zwischen" type="number" min="0" step="10" inputmode="numeric" placeholder="60 (eine Spritze)" />
             <div class="reset-line"><span class="src" id="src-zwischen"></span><button type="button" class="linkbtn" id="reset-zwischen" data-reset="zwischenMl" title="Zurück auf 60 ml" hidden>↺ 60 ml</button></div>
           </div>
@@ -168,15 +165,15 @@
         <div id="mct-more">
           <details class="collapsible mini">
             <summary>ⓘ MCT-Anteil und Rechenregel</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit.</p>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
           </details>
           <div class="settings-grid">
             <div>
-              <label>MCT-Öl: Fett je 100 g (Etikett)</label>
+              <label>MCT-Öl: Fett je 100 g</label>
               <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
             </div>
             <div>
-              <label>MCT-Öl: kcal je 100 g (830 = Praxiswert)</label>
+              <label>MCT-Öl: kcal je 100 g</label>
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
@@ -187,7 +184,7 @@
         <h3>🍳 Küche</h3>
         <div class="settings-grid">
           <div>
-            <label>Verdunstung beim Dämpfen (ml)</label>
+            <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
         </div>
@@ -260,7 +257,7 @@
 
   <script src="foods.js?v=522bcd1a"></script>
   <script src="recipes.js?v=d9303e2e"></script>
-  <script src="app.js?v=3e665a5b"></script>
+  <script src="app.js?v=0a338bcf"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

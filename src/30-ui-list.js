@@ -222,17 +222,21 @@
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
     src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
-    src("protein", d.proteinPerKg !== d.proteinStandard, "Standard " + fmt(d.proteinStandard, 1) + " g/kg/Tag", "↺ Standard");
     // Menge je Zwischenzeit: im Modus „in den Mahlzeiten“ bleibt das Feld an seinem Platz, ist aber ausgegraut (nichts springt).
     const zwOn = d.wasserModus === "zwischen", zwEl = $("set-zwischen");
     const zwManual = zwOn && !(s.zwischenMl === "" || s.zwischenMl == null) && num(s.zwischenMl) !== 60;
     put("set-zwischen", zwOn ? d.zwischenMl : "");
     if (zwEl) { zwEl.disabled = !zwOn; zwEl.placeholder = zwOn ? "" : "– (alles in den Mahlzeiten)"; }
     src("zwischen", zwManual, zwOn ? "Vorgabe · eine Spritze" : "nicht nötig", "↺ 60 ml");
-    // Eiweiß: bei Bedarf je kg steht das Ergebnis neben der Auswahl, das Gramm-Feld erscheint nur bei „manuell“.
+    // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
-    const ea = $("eiweiss-auto"); if (ea) ea.textContent = d.autoProtein ? "= " + fmt(d.eiweiss, 0) + " g/Tag" : (num(s.weight) > 0 ? "" : "(Gewicht eintragen)");
+    {
+      const sp = $("src-protein"), bt = $("reset-protein"), isStd = d.proteinPerKg === d.proteinStandard, hasW = num(s.weight) > 0;
+      const txt = d.autoProtein ? (hasW ? (isStd ? "✓ Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
+      if (sp) { sp.textContent = txt; sp.classList.toggle("auto", d.autoProtein && isStd && hasW); }
+      if (bt) { bt.hidden = isStd; bt.textContent = "↺ Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
+    }
     renderHeader(d);
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();

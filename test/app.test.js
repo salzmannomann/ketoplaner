@@ -292,7 +292,7 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.equal($(w, "set-kcalmin").value, "600");
   assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag · 100 ml\/kg/);
   // Eiweiß: Standard 1,5 g/kg erkennbar
-  assert.match(w.document.querySelector("#set-proteinmode option[value='1.5']").textContent, /Standard/);
+  assert.match($(w, "src-protein").textContent, /✓ Standard · \d+ g\/Tag/, "Standard steht in der Zeile unter der Auswahl");
   assert.ok($(w, "reset-protein").hidden, "kein Standard-Link, solange der Standard gilt");
   // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
   const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
@@ -482,7 +482,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.value, "1,8");
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
-  assert.match($(w, "eiweiss-auto").textContent, /= 12 g\/Tag/);
+  assert.match($(w, "src-protein").textContent, /✓ Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
   assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · zwischen den Mahlzeiten: 4 × 60 ml · Rest in den Mahlzeiten/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
