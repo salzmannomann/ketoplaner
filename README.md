@@ -230,8 +230,12 @@ Reiter nebeneinander.
 
 ### Heute (Zeitplan)
 
-Eine einzige **Zeitleiste** für den ganzen Tag, am Handy mit 4 Mahlzeiten auf
-einem Bildschirm ohne Scrollen (4 und 5 Mahlzeiten). Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
+Eine einzige **Zeitleiste** für den ganzen Tag, am Handy auf einem Bildschirm
+ohne Scrollen (4 und 5 Mahlzeiten). Sie **füllt den Bildschirm bis zur
+Tab-Leiste**: Bleibt Platz (weniger Mahlzeiten, größeres Handy, installierte
+App), werden die Zeilen höher (Mahlzeiten mehr als Wasser), die Schrift etwas
+größer, lange Rezeptnamen zweizeilig, und jede Mahlzeit zeigt zusätzlich kcal
+und Eiweiß. Ist es eng, bleibt die kompakte Darstellung. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
 min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
 **letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30, 20:00), **🖨️** druckt,
 **🗑️** leert den Plan (ohne Rückfrage, mit **Rückgängig**). Darunter eine

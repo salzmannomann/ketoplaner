@@ -1272,6 +1272,22 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
 .print-overlay.zoomed .print-sheet { margin: 0; }
 
+/* Heute füllt am Handy den Bildschirm: freie Höhe verteilt sich auf die Zeilen (Mahlzeiten 3 : Wasser 1),
+   bei genug Platz („roomy“) etwas größere Schrift und Rezeptnamen bis zu zwei Zeilen (fitHeute). */
+.zp-list.fill .zp-row.meal { flex: 3 1 auto; }
+.zp-list.fill .zp-row.water, .zp-list.fill .zp-row.sleep { flex: 1 1 auto; }
+.zp-list.roomy .zp-row.meal .zp-name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.22; font-size: 15px; }
+.zp-row .zp-txt small.zp-more { display: none; }
+.zp-list.roomy .zp-row .zp-txt small.zp-more { display: block; }
+.zp-list.roomy .zp-time { font-size: 15px; flex-basis: 44px; }
+.zp-list.roomy .zp-ic { font-size: 18px; }
+.zp-list.roomy .zp-vol { font-size: 13px; }
+.zp-list.roomy .zp-row.water .zp-txt, .zp-list.roomy .zp-row.sleep .zp-txt { font-size: 14px; }
+@media (max-width: 820px) {
+  body[data-view="heute"] .zeitplan { margin-bottom: 0; }
+  body[data-view="heute"] .main { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+}
+
 </style>
 </head>
 <body>
@@ -4515,7 +4531,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
-        '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' +
+        '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') +
+          '<small class="zp-more">' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</small></span>' +
         '<span class="zp-vol" title="langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">≈ ' + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>' +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
         '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
@@ -4589,7 +4606,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderRezepte();
       showToast("🗑️ Tagesplan geleert", [["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }]]);
     });
+    fitHeute();
   }
+  // Am Handy füllt der Tag den Bildschirm bis zur Tab-Leiste: Bleibt Platz (z. B. bei 4 statt 5 Mahlzeiten
+  // oder als installierte App), werden die Zeilen höher – Mahlzeiten mehr als Wasser –, lange
+  // Rezeptnamen dürfen zweizeilig werden und jede Mahlzeit zeigt zusätzlich kcal und Eiweiß. Reicht der Platz nicht, bleibt die kompakte Darstellung.
+  function fitHeute() {
+    const box = document.getElementById("heute-content"), list = box && box.querySelector(".zp-list");
+    const zp = box && box.querySelector(".zeitplan"), tab = document.querySelector(".tabbar");
+    if (!list || !zp || !tab) return;
+    list.classList.remove("roomy", "fill"); list.style.minHeight = "";
+    if (window.innerWidth > 820 || !box.offsetParent || getComputedStyle(tab).position !== "fixed") return;
+    const spare = () => tab.getBoundingClientRect().top - (zp.getBoundingClientRect().bottom + (window.scrollY || 0)) - 12;
+    if (spare() > 70) { list.classList.add("roomy"); if (spare() < 0) list.classList.remove("roomy"); }
+    const s = spare(), n = list.children.length;
+    if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 36)) + "px"; }
+  }
+  if (typeof window !== "undefined") window.addEventListener("resize", () => { if (typeof fitHeute === "function") fitHeute(); });
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)
   let pickerSlot = -1;
   function openPicker(i) {
