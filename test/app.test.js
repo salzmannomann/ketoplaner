@@ -244,7 +244,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   fire(w2, $(w2, "tab-heute"));
   const hc = $(w2, "heute-content").textContent;
   assert.match(hc, /🧃 Compleat Paediatric/); assert.match(hc, new RegExp(fmtDe(mlK) + " ml") /* Tag = 4 Portionen */);
-  assert.match(hc, /Minimum 600 ✓/);
+  assert.ok(!$(w2, "day-sums").querySelector(".dstat").classList.contains("warn"), "Minimum erreicht – keine Warnung");
 });
 function fmtDe(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
@@ -261,7 +261,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung,
   assert.match($(w2, "verordnung-summary").textContent, /800 kcal\/Tag, manuell/);
   fire(w2, $(w2, "tab-heute"));
   const t2 = $(w2, "heute-content").textContent;
-  assert.match(t2, /Minimum 800 – unterschritten!/); assert.match(t2, /unter dem Kalorien-Minimum/);
+  assert.ok($(w2, "day-sums").querySelector(".dstat").classList.contains("warn"), "kcal-Kachel warnt"); assert.match(t2, /unter dem Kalorien-Minimum/);
 });
 
 test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden auf Gerichte umgezogen", () => {
@@ -547,7 +547,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".portion-line.day-line").textContent, /MCT 1,2 g/);
+  assert.match(hc.querySelector(".zp-row.slot small").textContent, /Rapsöl [\d,]+ g \+ MCT-Öl 1,2 g vor dem Füttern/, "Öl steht als zweite Zeile an der Mahlzeit");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
@@ -610,8 +610,8 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const hc2 = $(w2, "heute-content");
-  assert.match(hc2.querySelector("#day-sums").textContent, /in den Mahlzeiten\+ Wasser/);
-  const tot2 = numDe(/Flüssigkeit am Tag ≈ ([\d.]+) ml/.exec(hc2.querySelector(".zp-sum").textContent)[1]);
+  assert.match(hc2.querySelector("#day-sums").textContent, /💧 Ziel 850 ml/);
+  const tot2 = numDe([...$(w2, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot2 - 850) <= 12, "Zeitplan erreicht das Tagesziel: " + tot2);
   assert.match($(w2, "rx-chip").textContent, /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
   // Manuelle Vorgabe
@@ -651,11 +651,11 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const waters = [...hc.querySelectorAll(".zp-row.water strong")].map(e => e.textContent);
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
   assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser$/.test(x)), waters.join(" | "));
-  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*188 kcal · ≈ 125 ml/);
+  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*≈ 125 ml/);
+  assert.equal(hc.querySelector(".zp-row.meal small"), null, "ohne Öl und mit genug Eiweiß nur eine Zeile");
   assert.equal(hc.querySelectorAll(".zp-row.water small").length, 0, "Wassergaben einzeilig");
-  const tot = numDe(/Flüssigkeit am Tag ≈ ([\d.]+) ml/.exec(hc.querySelector(".zp-sum").textContent)[1]);
+  const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
-  assert.match(hc.querySelector(".zp-sum").textContent, /größte Menge auf einmal ≈ 125 ml/);
   assert.equal(hc.querySelectorAll(".zeitplan .note.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
   // Letzte Mahlzeit früher → Abstand 2 h → Warnung
   let el = $(w, "zp-letzte"); el.value = "13:00"; fire(w, el, "change");
@@ -675,8 +675,9 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const w2 = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
   fire(w2, $(w2, "tab-heute"));
   const hz = $(w2, "heute-content");
-  assert.match(hz.querySelector(".zp-row.meal").textContent, /Mahlzeit 1 · Rezept wählen.*188 kcal · ≈ \d+ ml \(Schätzung\)/);
-  assert.match(hz.querySelector(".zp-sum").textContent, /offene Mahlzeiten geschätzt/);
+  assert.match(hz.querySelector(".zp-row.meal").textContent, /Mahlzeit 1 · Rezept wählen≈ \d+ ml/);
+  assert.ok(hz.querySelector(".zp-row.meal .zp-vol.est"), "geschätzte Menge gekennzeichnet");
+  assert.match([...$(w2, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent, /^≈ /, "offene Mahlzeiten geschätzt");
   fire(w2, hz.querySelector('.empty-slot[data-pick="1"]'));
   assert.equal($(w2, "picker-overlay").hidden, false);
 });

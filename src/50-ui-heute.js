@@ -25,9 +25,9 @@
       const rec = m.rec;
       if (!rec) {
         facts.push(null);
-        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '">' + time + '<span class="zp-ic add">＋</span>' +
-          '<span class="zp-txt"><span class="zp-name">Mahlzeit ' + (i + 1) + ' · <span class="zp-open">Rezept wählen</span></span><small>' + fmt(d.kcalMahl, 0) + ' kcal · ≈ ' + fmt(m.vol, 0) + ' ml (Schätzung)</small></span>' +
-          '<span class="tile-chev" aria-hidden="true">›</span></div>' });
+        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Menge geschätzt – Rezept wählen">' + time + '<span class="zp-ic add">＋</span>' +
+          '<span class="zp-txt"><span class="zp-name">Mahlzeit ' + (i + 1) + ' · <span class="zp-open">Rezept wählen</span></span></span>' +
+          '<span class="zp-vol est">≈ ' + fmt(m.vol, 0) + ' ml</span><span class="tile-chev" aria-hidden="true">›</span></div>' });
         return;
       }
       const f = m.f; facts.push(f);
@@ -36,9 +36,12 @@
       const proteinOk = f.sum.eiweiss >= d.eiweissMahl * 0.9;
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       const pill = ratioClass(f.ratio, d.ratio) !== "ok" ? ' <span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span>' : "";
-      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
-        '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span><small>' + fmt(f.sum.kcal, 0) + ' kcal · ≈ ' + fmt(m.vol, 0) + ' ml' +
-          (oilTxt ? ' · 🧈 ' + oilTxt : '') + ' · <span class="' + (proteinOk ? "prot-ok" : "prot-low") + '">Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></small></span>' +
+      // Eine Zeile: Uhrzeit · Rezept · Menge. Zweite Zeile nur, wenn sie etwas zu tun gibt: Öl vor dem Füttern
+      // zugeben oder zu wenig Eiweiß. kcal je Mahlzeit sind gleich (Vorgabe), Eiweiß gesamt steht in der Kachel.
+      const sub = [oilTxt ? '🧈 ' + oilTxt + ' vor dem Füttern' : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
+      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
+        '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' +
+        '<span class="zp-vol">≈ ' + fmt(m.vol, 0) + ' ml</span>' +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
         '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
     });
@@ -55,21 +58,23 @@
       '<span class="head-actions"><button type="button" class="iconbtn round' + (zpEdit ? ' open' : '') + '" id="zp-toggle" title="Uhrzeiten einstellen" aria-label="Uhrzeiten einstellen" aria-expanded="' + (zpEdit ? "true" : "false") + '">⏰</button>' +
       '<button type="button" class="iconbtn round" id="print-day" title="Tagesplan drucken" aria-label="Tagesplan drucken">🖨️</button>' +
       '<button type="button" class="iconbtn round" id="clear-day" title="Plan leeren" aria-label="Plan leeren">🗑️</button></span></div>';
-    const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "", tot.mct > 0 ? "MCT " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
-    const status = tot.filled
-      ? '<div class="portion-line day-line">' + tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant' + (tot.filled < d.mahl ? ' · Ziele anteilig' : '') + (oilDay ? ' · Öl je Tag: ' + oilDay : '') + '</div>'
-      : '<div class="portion-line day-line">Noch kein Rezept gewählt – Mengen sind geschätzt. Tipp auf eine Mahlzeit wählt das Rezept.</div>';
-    const sums = tot.filled
-      ? '<div class="detail-tiles strip" id="day-sums">' +
-        '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + '<br><small>Minimum ' + fmt(kcalMinZiel, 0) + (kcalLow ? ' – unterschritten!' : ' ✓') + '</small></div></div>' +
-        '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Verhältnis · Ziel ' + fmtTarget(d.ratio) + '</div></div>' +
-        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && tot.fluid < fluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(tot.fluid, 0) + ' ml</div><div class="l">' + (d.wasserModus === "mahlzeit" ? 'Flüssigkeit · Ziel ' + fmt(fluidZiel, 0) + ' ml' : 'in den Mahlzeiten<br><small>+ Wasser</small>') + '</div></div>' : "") +
-        "</div>"
+    // Tagessummen in einer niedrigen Kachelreihe (Ziele anteilig, wenn nicht alle Mahlzeiten geplant sind).
+    // Flüssigkeit = ganzer Tag laut Zeitplan (Mahlzeiten + Wassergaben); „≈“, wenn offene Mahlzeiten geschätzt sind.
+    const est = dm.known < d.mahl;
+    const fluidTile = d.fluidDay > 0
+      ? '<div class="dstat' + (wp.total < d.fluidDay - 15 ? " warn" : "") + '" title="Mahlzeiten ' + fmt(dm.sum, 0) + ' ml' + (wp.per > 0 ? ' + Wasser ' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml' : '') + (est ? ' · offene Mahlzeiten geschätzt' : '') + '">' +
+        '<div class="v">' + (est ? '≈ ' : '') + fmt(wp.total, 0) + ' ml</div><div class="l">💧 Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
       : "";
+    const sums = '<div class="detail-tiles strip day-strip" id="day-sums">' +
+      (tot.filled
+        ? '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + '</div></div>' +
+          '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + '</div></div>' +
+          '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Ziel ' + fmtTarget(d.ratio) + '</div></div>'
+        : '<div class="dstat wide"><div class="v">' + d.mahl + ' × ' + fmt(d.kcalMahl, 0) + ' kcal</div><div class="l">Rezepte wählen: Tipp auf eine Mahlzeit</div></div>') +
+      fluidTile + "</div>";
     const warns =
-      (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.filled && tot.fluid < fluidZiel - 3 ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel (' + fmt(fluidZiel, 0) + ' ml) – bei einem Rezept ist das Wasser gemerkt und kleiner als der Anteil.</div>' : "") +
-      (tot.filled && kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal). Eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "");
+      (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.filled && tot.fluid < fluidZiel - 3 ? '<div class="note warn">💧 Unter dem Flüssigkeitsziel – bei einem Rezept ist weniger Wasser gemerkt als sein Anteil.</div>' : "") +
+      (tot.filled && kcalLow ? '<div class="note warn">⚠️ Der Tag liegt unter dem Kalorien-Minimum (' + fmt(d.kcalMin, 0) + ' kcal) – eine Mahlzeit mit mehr Kalorien einplanen.</div>' : "");
     // Packungsstand (z. B. Compleat 500 ml, 3 Tage) als grüne Notiz wie in der Detailansicht.
     const packs = {};
     facts.forEach(f => {
@@ -82,15 +87,16 @@
       const x = packs[k], rest = x.pk.ml - x.ml, per = x.meals ? x.ml / x.meals : 0;
       const restMeals = per > 0 ? Math.floor(Math.max(0, rest) / per + 1e-9) : 0;
       const nTage = x.ml * x.pk.tage;
-      return '<div class="note tip pack">🧃 <strong>' + escapeHtml(k) + '</strong> (Packung ' + x.pk.ml + ' ml, offen ' + x.pk.tage + ' Tage): heute <strong>' + fmt(x.ml, 0) + ' ml</strong> (' + x.meals + ' × ' + fmt(per, 0) + ' ml) · ' +
-        (rest < -0.5 ? '<strong>fehlen ' + fmt(-rest, 0) + ' ml</strong> – der Plan braucht mehr als eine Packung' : 'bleiben ' + fmt(rest, 0) + ' ml für morgen (' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en") + ')') +
-        (rest >= -0.5 && nTage > x.pk.ml + 0.5 ? ' · in ' + x.pk.tage + ' Tagen fehlen ' + fmt(nTage - x.pk.ml, 0) + ' ml, zweite Packung nötig' : "") +
-        (rest >= -0.5 && nTage < x.pk.ml - 0.5 ? ' · in ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - nTage, 0) + ' ml übrig (entsorgen oder mehr Mahlzeiten damit planen)' : "") +
-        (Math.abs(nTage - x.pk.ml) <= 0.5 ? ' · ✅ geht in ' + x.pk.tage + ' Tagen genau auf' : "") + '.</div>';
+      // Kurz: heute verplant und Rest für morgen; Einzelheiten zur Packung stehen im Rezept (Blatt „Tag“).
+      const shortName = k.replace(/\s*\(.*?\)/g, "").replace(/\s+Nature Mix/, "");
+      return '<div class="note tip pack" title="Packung ' + x.pk.ml + ' ml, offen ' + x.pk.tage + ' Tage">🧃 <strong>' + escapeHtml(shortName) + '</strong> heute ' + fmt(x.ml, 0) + ' ml · ' +
+        (rest < -0.5 ? '<strong>fehlen ' + fmt(-rest, 0) + ' ml</strong> (mehr als eine Packung)' : 'bleiben ' + fmt(rest, 0) + ' ml (' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en") + ')') +
+        (rest >= -0.5 && nTage > x.pk.ml + 0.5 ? ' · in ' + x.pk.tage + ' Tagen 2. Packung nötig' : "") +
+        (rest >= -0.5 && nTage < x.pk.ml - 0.5 ? ' · nach ' + x.pk.tage + ' Tagen ' + fmt(x.pk.ml - nTage, 0) + ' ml übrig' : "") + '</div>';
     }).join("");
-    box.innerHTML = '<div class="zeitplan">' + head + zeitplanSettings(times) + status + sums +
+    box.innerHTML = '<div class="zeitplan">' + head + zeitplanSettings(times) + sums +
       '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>' +
-      '<div class="portion-line zp-sum">' + zeitplanSum(d, dm, wp) + '</div>' + zeitplanNotes(d, times, dm, wp) + warns + packHtml + '</div>';
+      zeitplanNotes(d, times, dm, wp) + warns + packHtml + '</div>';
     bindZeitplan(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
     box.querySelectorAll("[data-open]").forEach(b => {

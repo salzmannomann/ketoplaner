@@ -3,6 +3,7 @@
   function showView(name) {
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
+    document.body.setAttribute("data-view", name);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });

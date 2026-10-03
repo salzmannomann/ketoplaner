@@ -72,24 +72,17 @@
   }
   // Uhrzeiten-Felder sind eingeklappt (⏰ im Kopf klappt sie auf); bei ungültigen Zeiten immer offen.
   let zpEdit = false;
-  // Hinweise zum Zeitplan (Abstand, Schlafen, Wassermenge) und Summenzeile.
+  // Hinweise zum Zeitplan (Abstand, Schlafen, Wassermenge).
   function zeitplanNotes(d, times, dm, wp) {
     const notes = [];
     const lastMeal = times.meals[times.meals.length - 1];
     if (times.bad) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen.</div>');
-    if (times.interval != null && times.interval < 180) notes.push('<div class="note warn">⚠️ Nur ' + fmtDauer(times.interval) + ' zwischen den Mahlzeiten. Fettreiche Keto-Kost braucht oft 3 bis 4 Stunden, bis der Magen leer ist – steht beim Öffnen noch Nahrung an, 30 bis 60 Minuten warten.</div>');
-    if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit liegt nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – mindestens 2 Stunden einplanen, sonst droht Rückfluss im Liegen.</div>');
-    if (wp.over) notes.push('<div class="note warn">⚠️ Je Wassergabe ' + fmt(wp.per, 0) + ' ml – mehr als die Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Eine Schlafenszeit eintragen (zusätzliche Abendgabe) oder Wasser auf mehr Gaben verteilen.</div>');
+    if (times.interval != null && times.interval < 180) notes.push('<div class="note warn">⚠️ Nur ' + fmtDauer(times.interval) + ' zwischen den Mahlzeiten – Keto-Kost braucht oft 3–4 h. Steht beim Öffnen noch Nahrung an, 30–60 min warten.</div>');
+    if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – mindestens 2 h einplanen (Rückfluss im Liegen).</div>');
+    if (wp.over) notes.push('<div class="note warn">⚠️ ' + fmt(wp.per, 0) + ' ml je Wassergabe – über ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen.</div>');
     if (wp.unplaced) notes.push('<div class="note warn">💧 Es fehlen ' + fmt(wp.rest, 0) + ' ml, aber es gibt keine Pause für eine Wassergabe – Schlafenszeit eintragen.</div>');
     if (d.fluidDay > 0 && wp.rest < -10) notes.push('<div class="note tip">💧 Die Mahlzeiten liefern schon ' + fmt(-wp.rest, 0) + ' ml mehr als das Tagesziel – keine Wassergaben nötig.</div>');
     return notes.join("");
-  }
-  function zeitplanSum(d, dm, wp) {
-    if (!(d.fluidDay > 0)) return 'Kein Flüssigkeitsziel – unter Vorgaben Körpergewicht oder ml/Tag eintragen.';
-    const biggest = Math.max(Math.max.apply(null, dm.meals.map(m => m.vol)), wp.per);
-    return '💧 Flüssigkeit am Tag ≈ <strong>' + fmt(wp.total, 0) + ' ml</strong> (Ziel ' + fmt(d.fluidDay, 0) + '): Mahlzeiten ' + fmt(dm.sum, 0) +
-      (wp.per > 0 ? ' + Wasser ' + wp.n + ' × ' + fmt(wp.per, 0) : '') +
-      ' · größte Menge auf einmal ≈ ' + fmt(biggest, 0) + ' ml' + (dm.known < d.mahl ? ' · offene Mahlzeiten geschätzt' : '');
   }
   function zeitplanSettings(times) {
     const field = (id, label, val) => '<label class="zp-f"><span>' + label + '</span><input id="' + id + '" type="time" value="' + escapeHtml(String(val)) + '"></label>';
