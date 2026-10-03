@@ -41,7 +41,7 @@ Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
 
 | Bereich | Wofür |
 | --- | --- |
-| **Heute** | Tagesplan: ein Slot je Mahlzeit, Tagessummen, Füttern-Ansicht |
+| **Heute** | Zeitplan mit Uhrzeiten und Wassergaben, Tagesplan mit einem Rezept je Mahlzeit, Tagessummen |
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
 | **Vorgaben** | Verordnung, MCT-Öl, Küche, Daten (Backup) |
 
@@ -71,12 +71,15 @@ Vorgaben.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
   Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
   dazu **Gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
-  100 ml/kg bis 10 kg) und, nur beim Sondieren, **Wasser je Zwischenzeit**
-  (Vorgabe 60 ml = eine Spritze; bei N Mahlzeiten N−1 Gaben). Beim Sondieren
-  kommt der Rest des Tagesbedarfs in die Mahlzeiten, höchstens 25 ml/kg je
-  Mahlzeit; reicht das nicht, nennt die App die Fehlmenge. „In den Mahlzeiten
+  100 ml/kg bis 10 kg) und, nur beim Sondieren, **Höchstens kcal je ml**
+  (Vorgabe 1,5). Beim Sondieren behält jede Mahlzeit nur ihr Rezept-Wasser zum
+  Anrühren – so bleibt sie klein; ist sie damit dichter als erlaubt (z. B.
+  Compleat & KetoCal), füllt die App gerade so weit auf. Der Rest des
+  Tagesbedarfs kommt als **Wassergaben**, deren Menge die App selbst rechnet
+  (Uhrzeiten unter Heute → ⏰ Zeitplan). Für den Stuhl zählt die Tagesmenge,
+  nicht ob das Wasser in oder zwischen den Mahlzeiten kommt. „In den Mahlzeiten
   dabei" gibt jeder Mahlzeit ihren vollen Anteil. Gemerktes Wasser hat immer
-  Vorrang; liegt eine Mahlzeit über 25 ml/kg, warnt die App. Gezählt wird das
+  Vorrang; liegt eine Mahlzeit oder Wassergabe über 25 ml/kg, warnt die App. Gezählt wird das
   Wasser der Zutaten (Näherung: Rest ohne Eiweiß, Fett, KH, Ballaststoffe;
   Pulver und Fertigprodukte mit Etikettwert) plus das Rezept-Wasser.
 - **Rundung beim Abwiegen (fest):** Gemüse, Fleisch, Obst, Brei und Pulver
@@ -188,12 +191,25 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
    Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
    bevorzugt, Dämpfwasser eingerechnet).
 
-### Heute (Tagesplan)
+### Heute (Zeitplan und Tagesplan)
 
-Gleiche Optik wie Rezeptliste und Detailansicht: oben die Kopfzeile
+**⏰ Zeitplan** ganz oben: **erste Mahlzeit**, **letzte Mahlzeit** und
+**Schlafen** einstellen (Vorgabe 7:00, 17:30, 20:00). Die App verteilt die
+Mahlzeiten gleichmäßig dazwischen, legt je eine **Wassergabe in die Mitte jeder
+Pause** (dann ist der Magen weitgehend leer) und eine zwischen letzter Mahlzeit
+und Schlafen. Die Menge je Wassergabe ergibt sich aus dem Tagesziel minus der
+Flüssigkeit der Mahlzeiten, gleich verteilt und auf 5 ml gerundet. Jede Zeile
+nennt Uhrzeit, Mahlzeit bzw. Wassermenge und das Volumen; offene Mahlzeiten
+ohne Rezept werden geschätzt, ein Tipp darauf öffnet die Rezeptwahl. Darunter
+die Tagessumme und die größte Menge auf einmal. Hinweise erscheinen bei weniger
+als 3 Stunden Abstand, bei weniger als 2 Stunden zwischen letzter Mahlzeit und
+Schlafen und wenn eine Wassergabe über 25 ml/kg liegt. Ohne Schlafenszeit
+entfällt die Abendgabe. Der Ausdruck enthält den Zeitplan als Tabelle.
+
+**📅 Tagesplan** darunter, gleiche Optik wie Rezeptliste und Detailansicht: oben die Kopfzeile
 „📅 Tagesplan · 5 × 136 kcal" mit 🖨️ Drucken und 🗑️ Leeren, darunter die
 Statuszeile (geplante Mahlzeiten, Öl je Tag) und die vier Kacheln kcal (mit
-Minimum), Eiweiß, Verhältnis und Flüssigkeit, dann der Wasser-Hinweis. Jede
+Minimum), Eiweiß, Verhältnis und Flüssigkeit (beim Sondieren: Flüssigkeit in den Mahlzeiten). Jede
 Mahlzeit ist eine Zeile wie in der Rezeptliste: Nummer, Icon, Name, kcal,
 💉 Abfüllmenge ohne Öl, 🧈 Öl vor dem Füttern, Eiweiß; ↻ tauscht das Rezept
 (Picker mit Suche), ✕ leert die Zeile, ein Tipp auf die Zeile öffnet das

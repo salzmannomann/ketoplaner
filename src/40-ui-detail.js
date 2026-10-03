@@ -84,23 +84,34 @@
     }
     // Flüssigkeit „in den Mahlzeiten“: Wasser so setzen, dass die Mahlzeit ihren Anteil am Tagesbedarf liefert
     // (Zutaten-Wasser + Wasser = Flüssigkeit je Mahlzeit). Nie weniger als das Rezept-Wasser; gemerktes Wasser hat Vorrang.
-    // Modus „zwischen“: dasselbe mit dem Rest nach den Zwischenzeiten, aber nur bis zur Höchstmenge je Mahlzeit (Bolus).
+    // Modus „zwischen“ (fluidMahl = 0): die Mahlzeit behält ihr Rezept-Wasser, der Rest kommt als Wassergaben.
     let fluidAdjusted = false, waterCapped = false;
     if (d.fluidMahl > 0 && !hasWaterOverride) {
       const isW2 = (it) => /wasser/i.test(it.food);
       const foodFluid = fluidOf(res.items.filter(it => !isW2(it)));
       const stdWater = res.items.filter(isW2).reduce((a, it) => a + num(it.grams), 0);
-      let need = d.fluidMahl - foodFluid;
-      if (d.wasserModus === "zwischen" && d.maxMahlMl > 0) {
-        const room = d.maxMahlMl - volumeMl(res.items.filter(it => !isW2(it)));
-        if (room < need) { need = room; waterCapped = true; }
-      }
+      const need = d.fluidMahl - foodFluid;
       if (need > stdWater + 0.05) {
         const items3 = stdWater > 0
           ? res.items.map(it => isW2(it) ? { food: it.food, grams: round1(num(it.grams) * need / stdWater) } : it)
           : res.items.concat([{ food: "Wasser", grams: round1(need) }]);
         res = Object.assign({}, res, { items: items3 });
         fluidAdjusted = true;
+      }
+    }
+    // Modus „zwischen“: Rezept-Wasser bleibt, außer die Mahlzeit wäre dichter als erlaubt (kcal je ml) – dann gerade so
+    // viel Wasser dazu, dass die Grenze eingehalten ist. Gemerktes Wasser hat Vorrang.
+    let densityAdjusted = false;
+    if (d.wasserModus === "zwischen" && d.maxDichte > 0 && !hasWaterOverride) {
+      const isW3 = (it) => /wasser/i.test(it.food);
+      const kcalM = sumMacros(res.items).kcal, vol = volumeMl(res.items), minVol = kcalM / d.maxDichte;
+      if (vol < minVol - 0.5) {
+        const add = minVol - vol, stdW = res.items.filter(isW3).reduce((a, it) => a + num(it.grams), 0);
+        const items4 = stdW > 0
+          ? res.items.map(it => isW3(it) ? { food: it.food, grams: round1(num(it.grams) * (stdW + add) / stdW) } : it)
+          : res.items.concat([{ food: "Wasser", grams: round1(add) }]);
+        res = Object.assign({}, res, { items: items4 });
+        densityAdjusted = true;
       }
     }
     // Zum Schluss: Rundung fürs Abwiegen (Vorgabe „Rundung“), Verhältnis über die Fettträger nachgestellt.
@@ -110,7 +121,7 @@
       res = Object.assign({}, res, { items: itemsR, ratio: ratioOf(smR), kcal: smR.kcal });
     }
     const fluid = fluidOf(res.items);
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, waterCapped, fluid,
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
       portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
@@ -129,15 +140,14 @@
       gRaps: oils.filter(it => it.food === "Rapsöl").reduce((a, it) => a + num(it.grams), 0),
     };
   }
-  // Hinweis auf die globale Rechenregel (Vorgaben) – gilt für MCT und Packung gleichermaßen.
-  // Wassergaben „zwischen den Mahlzeiten“: bei N Mahlzeiten N−1 Zwischenzeiten (mindestens 1).
-  function gaps(n) { return Math.max(1, Math.round(n) - 1); }
-  // Modus „zwischen“: feste Wassergabe je Zwischenzeit; fehlt danach noch etwas (Höchstmenge je Mahlzeit erreicht), wird es genannt.
-  function zwischenText(d, rest, n) {
-    const g = gaps(n), plan = d.zwischenMl * g, diff = rest - plan; // Toleranz 5 ml (Wasser wird je Mahlzeit auf 1 ml gerundet)
-    if (diff > 5) return '<div class="note warn">💧 Zwischen den Mahlzeiten: ' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml (Vorgabe) – am Tag fehlen noch <strong>' + fmt(diff, 0) + ' ml</strong> (Mahlzeiten an der Höchstmenge ' + fmt(d.maxMahlMl, 0) + ' ml): je Zwischenzeit ≈ ' + fmt(rest / g, 0) + ' ml geben oder eine Wassergabe mehr.</div>';
-    if (diff < -5) return '<div class="note tip">💧 Zwischen den Mahlzeiten reichen <strong>' + fmt(Math.max(0, rest), 0) + ' ml</strong> (' + g + ' × ≈ ' + fmt(Math.max(0, rest) / g, 0) + ' ml) – die Mahlzeiten liefern schon mehr als geplant.</div>';
-    return '<div class="note tip">💧 Zwischen den Mahlzeiten: <strong>' + g + ' × ' + fmt(d.zwischenMl, 0) + ' ml</strong> (je eine Spritze) – Tagesbedarf ' + fmt(d.fluidDay, 0) + ' ml erreicht.</div>';
+  // Modus „zwischen“: Wassergaben für einen Tag aus Mahlzeiten mit dieser Flüssigkeit (Uhrzeiten unter Heute → Zeitplan).
+  function zwischenText(d, mealFluidPer) {
+    const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
+    const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
+    if (wp.unplaced) return '<div class="note warn">💧 ' + base + ' – es fehlen ' + fmt(wp.rest, 0) + ' ml, aber der Zeitplan hat keine Pause für Wasser.</div>';
+    if (wp.per === 0) return '<div class="note tip">💧 ' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">💧 Ein Tag mit diesem Rezept: ' + base + ', dazu <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> zwischen den Mahlzeiten – zusammen ≈ ' + fmt(wp.total, 0) + ' ml (Ziel ' + fmt(d.fluidDay, 0) + '). Uhrzeiten unter Heute → ⏰ Zeitplan.' +
+      (wp.over ? ' ⚠️ Mehr als ' + fmt(d.maxMahlMl, 0) + ' ml je Wassergabe – im Zeitplan eine Schlafenszeit eintragen.' : '') + '</div>';
   }
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
@@ -315,7 +325,7 @@
       const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
       // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
       // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
-      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : "")) : "";
+      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">⟵ höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Abwiegen: für die Zubereitungsmenge
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
         '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
@@ -350,20 +360,20 @@
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ') · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' +
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
-          ? (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
-          : (mv.fluidAdjusted ? (mv.waterCapped ? ' – Wasser bis zur Höchstmenge (' + fmt(d.maxMahlMl, 0) + ' ml) erhöht, Rest per Spritze' : ' – Wasser dafür erhöht') : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – Rest per Spritze'))) +
+          ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
+          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Anrühren') + ', der Rest des Tages kommt als Wassergaben zwischen den Mahlzeiten') +
         (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ Mahlzeit ' + fmt(volumeMl(items), 0) + ' ml, über der Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
-    const dayFluid = fluidPer * dayN, fluidRest = d.fluidDay - dayFluid;
+    const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayTile = d.fluidDay > 0
-      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < d.fluidDay - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">Flüssigkeit/Tag · Ziel ' + fmt(d.fluidDay, 0) + ' ml</div></div>'
+      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < dayFluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">' + (d.wasserModus === "mahlzeit" ? 'Flüssigkeit/Tag · Ziel ' + fmt(dayFluidZiel, 0) + ' ml' : 'Flüssigkeit/Tag in den Mahlzeiten') + '</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
-          ? zwischenText(d, fluidRest, dayN)
-          : (dayFluid < d.fluidDay - 3
+          ? zwischenText(d, fluidPer)
+          : (dayFluid < dayFluidZiel - 3
               ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel – das gemerkte Wasser im Rezept ist kleiner als der rechnerische Anteil.</div>'
               : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
@@ -371,13 +381,13 @@
     // Abwiegen: Kacheln für die Zubereitungsmenge – gleiches Layout wie „Mahlzeit“, nur mit den Mengen der Zubereitung
     // (Standard: ein Tag). Ziele skalieren mit; bei ganzen Tagen zählt das Flüssigkeitsziel je Tag.
     const qTag = days === 1 ? "/Tag" : "";
-    const qFluid = fluidPer * mult, qFluidZiel = days ? d.fluidDay * days : d.fluidMahl * mult;
+    const qFluid = fluidPer * mult, qFluidZiel = days ? dayFluidZiel * days : d.fluidMahl * mult, qZiel = d.wasserModus === "mahlzeit";
     const qTiles =
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + ((days && dayLow) ? " warn" : "") + '"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal' + qTag + ' · Ziel ' + fmt(d.kcalMahl * mult, 0) + '</div></div>' +
         '<div class="dstat' + (proteinOk ? "" : " warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß' + qTag + ' · Ziel ' + fmt(proteinTarget, 0) + ' g</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + qTag + '</div></div>' +
-        (d.fluidDay > 0 ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml</div></div>' : '') +
+        (d.fluidDay > 0 ? '<div class="dstat' + (qZiel && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + (qZiel ? ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml' : ' in den Mahlzeiten') + '</div></div>' : '') +
       '</div>';
     // Tages-Check nur als Warnung (wie die Eiweiß-Warnung auf „Mahlzeit“): Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow

@@ -30,10 +30,10 @@
       l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · ";
       if (d.wasserModus === "mahlzeit") l2 += "alles in den Mahlzeiten (je " + fmt(d.fluidMahl, 0) + " ml)";
       else {
-        l2 += "zwischen den Mahlzeiten: " + d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml · Rest in den Mahlzeiten";
-        let planFluid = 0, n = 0;
-        (state.dayPlan || []).forEach(sl => { const r = recipeByKey(sl && sl.key); if (r) { planFluid += mealFacts(r, d).fluid; n++; } });
-        if (n > 0) { const diff = d.fluidDay * (n / d.mahl) - planFluid - d.zwischenMl * gaps(n); if (diff > 5) l2 += " · ⚠️ fehlen " + fmt(diff, 0) + " ml"; }
+        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ⚠️ wenn eine Gabe über der Höchstmenge liegt.
+        const wg = waterGiftsText(d);
+        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
+        if (wg.wp.over || wg.wp.unplaced) l2 += " · ⚠️ zu viel auf einmal";
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
@@ -42,8 +42,9 @@
     let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
     if (d.fluidDay > 0) {
       s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
-      s3 = d.wasserModus === "mahlzeit" ? "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit" : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml dazwischen";
-      if (/fehlen/.test(l2)) s3 += " ⚠️";
+      if (d.wasserModus === "mahlzeit") s3 = "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit";
+      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + wg.text : "kein Wasser extra"; }
+      if (/⚠️/.test(l2)) s3 += " ⚠️";
     }
     chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
       '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + [s2, s3].filter(Boolean).map(t => '<span class="rx-line rx-sub rx-short">' + escapeHtml(t) + "</span>").join("");
@@ -71,7 +72,9 @@
       ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
         (d.wasserModus === "mahlzeit"
           ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
-          : d.gapsDay + " × " + fmt(d.zwischenMl, 0) + " ml zwischen den Mahlzeiten sondieren (" + fmt(d.zwischenTag, 0) + " ml), Rest " + fmt(d.fluidDay - d.zwischenTag, 0) + " ml in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml" + (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml je Mahlzeit, 25 ml/kg)" : ""))
+          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
+              (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + "<strong>" + wg.text + "</strong>" : "derzeit keine nötig") +
+              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Zeitplan."; })())
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -214,8 +217,14 @@
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#theme-ctl button[data-theme]").forEach(b =>
       b.addEventListener("click", () => { state.settings.theme = b.dataset.theme; save(); applyTheme(); renderRezepte(); }));
-    const zw = document.getElementById("set-zwischen");
-    if (zw) zw.addEventListener("input", () => { const v = Math.max(0, num(zw.value)); state.settings.zwischenMl = (zw.value === "" || v === 60) ? "" : v; save(); renderRezepte(); });
+    const di = document.getElementById("set-dichte");
+    if (di) di.addEventListener("input", () => {
+      const v = parseFloat(String(di.value).replace(",", "."));
+      if (di.value.trim() === "") state.settings.maxDichte = "";
+      else if (isFinite(v) && v >= 0) state.settings.maxDichte = v === 1.5 ? "" : v;
+      else return;
+      save(); renderRezepte();
+    });
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");

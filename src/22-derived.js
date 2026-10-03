@@ -31,17 +31,15 @@
     const fluidDay = num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto;
     // Zwei Stellungen: „zwischen“ (Standard; frühere Werte „ausgewogen“/„zwischen“ landen hier) oder „mahlzeit“.
     const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : "zwischen";
-    // Höchstmenge je Mahlzeit (Bolus): 25 ml/kg – im Modus „zwischen“ wird Wasser nur bis zu dieser Größe in die
-    // Mahlzeit gerechnet; was darüber hinaus fehlt, meldet die App als Fehlmenge.
+    // Höchstmenge auf einmal (Mahlzeit oder Wassergabe): 25 ml/kg – darüber warnt die App.
     const maxMahlMl = weight > 0 ? r10(weight * 25) : 0;
-    // Wasser je Zwischenzeit (eine Spritze ≈ 60 ml): feste Vorgabe; die Mahlzeiten bekommen den Rest des Tagesbedarfs.
-    const zwischenMl = (s.zwischenMl === "" || s.zwischenMl == null) ? 60 : Math.max(0, num(s.zwischenMl));
-    const gapsDay = Math.max(1, mahl - 1);
-    const zwischenTag = wasserModus === "zwischen" ? zwischenMl * gapsDay : 0;
-    // Flüssigkeitsziel je Mahlzeit: nach Abzug der Zwischenzeiten (im Modus „mahlzeit“ der volle Anteil).
-    const fluidMahlZiel = Math.max(0, fluidDay - zwischenTag) / mahl;
+    // Flüssigkeitsziel je Mahlzeit: nur im Modus „in den Mahlzeiten dabei“ (Tagesbedarf gleich verteilt).
+    // Modus „zwischen“: die Mahlzeit behält ihr Rezept-Wasser zum Anrühren, der Rest kommt als Wassergaben (Zeitplan).
+    const fluidMahlZiel = wasserModus === "mahlzeit" ? fluidDay / mahl : 0;
+    // Energiedichte höchstens (kcal je ml Mahlzeit), nur im Modus „zwischen“: reicht das Rezept-Wasser nicht,
+    // wird gerade so weit aufgefüllt. Vorgabe 1,5 kcal/ml (übliche KetoCal-Zubereitungen 1–1,5); 0 = keine Grenze.
+    const maxDichte = (s.maxDichte === "" || s.maxDichte == null) ? 1.5 : Math.max(0, num(s.maxDichte));
     return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung, rundung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
-      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl,
-      zwischenMl, zwischenTag, gapsDay };
+      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxDichte };
   }

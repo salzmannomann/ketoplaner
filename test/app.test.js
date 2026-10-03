@@ -483,7 +483,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "src-protein").textContent, /✓ Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
-  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · zwischen den Mahlzeiten: 4 × 60 ml · Rest in den Mahlzeiten/);
+  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
   {
@@ -545,7 +545,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".portion-line").textContent, /MCT 1,2 g/);
+  assert.match(hc.querySelector(".day-head ~ .portion-line").textContent, /MCT 1,2 g/);
   // Layout wie Rezeptliste: Mahlzeiten als Zeilen mit Nummer, Ändern (↻) und Entfernen (✕); Kopf mit Drucken/Leeren
   assert.ok(hc.querySelector(".tile.slot .slot-no") && hc.querySelector(".tile.slot [data-clear]") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   fire(w, hc.querySelector('.tile.slot [data-clear="0"]'));
@@ -554,33 +554,34 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
 });
 
-test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mahlzeiten sondieren oder in den Mahlzeiten dabei; Tagesplan", () => {
+test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mahlzeiten sondieren (Rezept-Wasser, Rest als Wassergaben) oder in den Mahlzeiten dabei", () => {
   const w = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, wasserModus: "ausgewogen" } }); // alter Wert → „zwischen“
   assert.equal($(w, "set-fluid").value, "850");
   assert.equal(w.document.querySelectorAll("#wasser-modus-ctl button").length, 2, "nur zwei Stellungen");
   assert.ok(w.document.querySelector("#wasser-modus-ctl button[data-wmodus=zwischen]").classList.contains("active"));
-  assert.ok(!$(w, "set-zwischen").disabled, "Menge je Zwischenzeit aktiv");
-  assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge mehr");
-  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*3 × 60 ml zwischen den Mahlzeiten sondieren \(180 ml\), Rest 670 ml in den Mahlzeiten: je 168 ml/);
-  // „zwischen“: Mahlzeit wird auf 168 ml aufgefüllt, Rest per Spritze
+  assert.equal($(w, "set-zwischen"), null, "kein festes Feld je Zwischenzeit mehr – die Menge rechnet der Zeitplan");
+  assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge");
+  assert.ok(!$(w, "set-dichte").disabled); assert.equal($(w, "set-dichte").value, "1,5");
+  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*Rezept-Wasser zum Anrühren.*Wassergaben zwischen den Mahlzeiten: ≈ 4 × \d+ ml/);
+  // „zwischen“: die Mahlzeit behält ihr Rezept-Wasser, der Tag nennt die Wassergaben
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
-  const paneZ = rechnenText(c);
-  assert.match(paneZ, /Flüssigkeit\/Tag · Ziel 850 ml/); assert.match(paneZ, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\)/);
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Ziel 168 ml je Mahlzeit/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Anrühren, der Rest des Tages kommt als Wassergaben/);
+  assert.match(rechnenText(c), /Ein Tag mit diesem Rezept: Mahlzeiten 4 × \d+ ml, dazu 4 × \d+ ml Wasser/);
+  assert.doesNotMatch(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
+  assert.match(rechnenText(c), /Flüssigkeit\/Tag in den Mahlzeiten/);
   fire(w, $(w, "detail-close"));
-  // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit erreicht ≈ 213 ml, Tag ≈ 850 ml; Feld je Zwischenzeit verschwindet
+  // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit ≈ 850 ÷ 4 ≈ 213 ml; Dichte-Feld ausgegraut
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
-  assert.ok($(w, "set-zwischen").disabled, "Menge je Zwischenzeit ausgegraut, Feld bleibt an Ort und Stelle");
-  assert.ok(!$(w, "zwischen-field").hidden);
-  assert.match($(w, "fluid-summary").textContent, /alles in den Mahlzeiten: je 213 ml/);
-  assert.match($(w, "rx-chip").textContent, /alles in den Mahlzeiten \(je 213 ml\)/);
+  assert.ok($(w, "set-dichte").disabled, "Dichte nur beim Sondieren, Feld bleibt an Ort und Stelle");
+  assert.match($(w, "fluid-summary").textContent, /alles in den Mahlzeiten: je 21[23] ml/);
+  assert.match($(w, "rx-chip").textContent, /alles in den Mahlzeiten \(je 21[23] ml\)/);
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
   assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit je Portion ≈ 21[23] ml/);
-  const tile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
-  assert.ok(Math.abs(parseFloat(tile.querySelector(".v").textContent) - 850) <= 3, tile.textContent);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit je Portion ≈ 21[234] ml/);
+  const tile = [...c.querySelectorAll(".pane .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
+  assert.ok(Math.abs(numDe(tile.querySelector(".v").textContent) - 850) <= 4, tile.textContent);
   assert.match(rechnenText(c), /in den Mahlzeiten dabei/);
   assert.equal(ratioOf(c), 1.8);
   // Gemerktes Wasser hat Vorrang
@@ -590,44 +591,76 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal(kitchenRows(c)["Wasser"], 40);
   assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /nicht erreicht/);
   fire(w, $(w, "detail-close"));
-  // Tagesplan im Modus „zwischen“: Flüssigkeits-Kachel und Sondier-Hinweis
+  // Tagesplan im Modus „zwischen“: Kachel zählt nur die Mahlzeiten, der Zeitplan ergänzt das Wasser bis zum Ziel
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.wasserModus = "zwischen"; st.water = {};
   st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:Hendl & Brokkoli" }));
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
-  const t2 = $(w2, "heute-content").textContent;
-  assert.match(t2, /Flüssigkeit · Ziel 850 ml/); assert.match(t2, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\) – Tagesbedarf 850 ml erreicht/);
-  assert.match($(w2, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml · Rest in den Mahlzeiten/);
-  assert.doesNotMatch($(w2, "rx-chip").textContent, /fehlen/);
+  const hc2 = $(w2, "heute-content");
+  assert.match(hc2.textContent, /Flüssigkeit in den Mahlzeiten/);
+  const tot2 = numDe(/Flüssigkeit am Tag ≈ ([\d.]+) ml/.exec(hc2.querySelector(".zp-sum").textContent)[1]);
+  assert.ok(Math.abs(tot2 - 850) <= 12, "Zeitplan erreicht das Tagesziel: " + tot2);
+  assert.match($(w2, "rx-chip").textContent, /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
   assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);
-  // Standard (ohne gespeicherten Modus) = „zwischen“: Wasser bis zur Höchstmenge (210 ml, 25 ml/kg) in die Mahlzeit
+  // Energiedichte: Compleat & KetoCal hätte mit Rezept-Wasser > 2 kcal/ml – die App füllt bis 1,5 kcal/ml auf
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
-  assert.match($(w3, "fluid-summary").textContent, /3 × 60 ml zwischen den Mahlzeiten sondieren .* \(höchstens 210 ml je Mahlzeit, 25 ml\/kg\)/);
+  const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
   let c3 = openRecipe(w3, "Compleat & KetoCal");
-  const kochen = c3.querySelector(".pane[data-pane=abwiegen]").textContent;
-  assert.match(kochen, /Flüssigkeitsziel/); assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Ziel 168 ml je Mahlzeit/);
-  const vol = parseFloat([...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
-  assert.ok(vol <= 212 && vol >= 180, "Mahlzeit unter Höchstmenge: " + vol);
-  const fluidTile = [...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
-  assert.ok(Math.abs(parseFloat(fluidTile.querySelector(".v").textContent) - 670) <= 3, "Mahlzeiten liefern 850 − 180: " + fluidTile.textContent);
-  const paneA = rechnenText(c3);
-  assert.match(paneA, /Zwischen den Mahlzeiten: 3 × 60 ml \(je eine Spritze\) – Tagesbedarf 850 ml erreicht/);
-  assert.match($(w3, "rx-chip").textContent, /zwischen den Mahlzeiten: 3 × 60 ml/);
-  // Zwischenzeit auf 0 ml: Mahlzeiten müssten 213 ml Flüssigkeit liefern – über der Höchstmenge → Hinweis auf Fehlmenge
+  assert.ok(Math.abs(volOf(c3) - 188 / 1.5) <= 2, "Volumen ≈ 125 ml: " + volOf(c3));
+  assert.match(c3.querySelector(".pane[data-pane=mahlzeit] table").textContent, /höchstens 1,5 kcal\/ml/);
+  assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser so weit erhöht, dass die Mahlzeit höchstens 1,5 kcal\/ml hat/);
   fire(w3, $(w3, "detail-close"));
-  const zw = $(w3, "set-zwischen"); zw.value = "0"; fire(w3, zw, "input");
+  const di = $(w3, "set-dichte"); di.value = "2"; fire(w3, di, "input");
   c3 = openRecipe(w3, "Compleat & KetoCal");
-  assert.match(rechnenText(c3), /am Tag fehlen noch \d+ ml/);
-  zw.value = ""; fire(w3, zw, "input");
+  assert.ok(volOf(c3) >= 90 && volOf(c3) <= 100, "bei 2 kcal/ml ≈ 94 ml: " + volOf(c3));
   assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
   fire(w3, $(w3, "detail-close"));
-  // Gericht, das von selbst groß ist: kein Wasser über die Höchstmenge hinaus
-  c3 = openRecipe(w3, "Hendl & Brokkoli");
-  const vol2 = parseFloat([...c3.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d]/g, ""));
-  assert.ok(vol2 <= 212, "nicht über Höchstmenge: " + vol2);
+  di.value = ""; fire(w3, di, "input");
+  assert.equal($(w3, "set-dichte").value, "1,5");
+});
+
+test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in der Pausenmitte und vor dem Schlafen, Menge nach Tagesziel, Hinweise", () => {
+  const plan = [0, 1, 2, 3].map(() => ({ key: "std:Compleat & KetoCal" }));
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 }, dayPlan: plan });
+  fire(w, $(w, "tab-heute"));
+  let hc = $(w, "heute-content");
+  assert.ok(hc.firstElementChild.classList.contains("zeitplan"), "Zeitplan steht oben");
+  const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
+  assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
+  assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
+  const waters = [...hc.querySelectorAll(".zp-row.water strong")].map(e => e.textContent);
+  assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
+  assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser$/.test(x)), waters.join(" | "));
+  assert.match(hc.querySelector(".zp-row.meal").textContent, /Mahlzeit 1 · Compleat & KetoCal.*≈ 125 ml/);
+  const tot = numDe(/Flüssigkeit am Tag ≈ ([\d.]+) ml/.exec(hc.querySelector(".zp-sum").textContent)[1]);
+  assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
+  assert.match(hc.querySelector(".zp-sum").textContent, /größte Menge auf einmal ≈ 125 ml/);
+  assert.equal(hc.querySelectorAll(".zeitplan .note.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
+  // Letzte Mahlzeit früher → Abstand 2 h → Warnung
+  let el = $(w, "zp-letzte"); el.value = "13:00"; fire(w, el, "change");
+  assert.match($(w, "heute-content").querySelector(".zeitplan").textContent, /Nur 2 h zwischen den Mahlzeiten/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.zpLetzte, "13:00");
+  // Letzte Mahlzeit spät → zu knapp vor dem Schlafen
+  el = $(w, "zp-letzte"); el.value = "19:00"; fire(w, el, "change");
+  assert.match($(w, "heute-content").querySelector(".zeitplan").textContent, /nur 1 h vor dem Schlafen/);
+  // Ohne Schlafenszeit: keine Abendgabe, kein Mond
+  el = $(w, "zp-schlaf"); el.value = ""; fire(w, el, "change");
+  hc = $(w, "heute-content");
+  assert.equal(hc.querySelectorAll(".zp-row.water").length, 3);
+  assert.equal(hc.querySelectorAll(".zp-row.sleep").length, 0);
+  assert.equal($(w, "zp-spuel"), null, "kein Spülen – der Schlauch wird abgenommen und separat gespült");
+  assert.doesNotMatch($(w, "heute-content").textContent, /spül/i);
+  // Ohne gewählte Rezepte: geschätzte Mengen, Tipp auf eine Mahlzeit öffnet die Rezeptwahl
+  const w2 = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
+  fire(w2, $(w2, "tab-heute"));
+  const hz = $(w2, "heute-content");
+  assert.match(hz.querySelector(".zp-row.meal").textContent, /188 kcal · Rezept wählen.*\(Schätzung\)/);
+  assert.match(hz.querySelector(".zp-sum").textContent, /offene Mahlzeiten geschätzt/);
+  fire(w2, hz.querySelector('[data-zp-meal="1"]'));
+  assert.equal($(w2, "picker-overlay").hidden, false);
 });
 
 test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MCT-Anteil gilt für alle Rezepte", () => {
