@@ -207,8 +207,9 @@ min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
 niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 (Mahlzeiten plus Wassergaben, „≈" solange Mahlzeiten offen sind).
 
-In der Zeitleiste steht jede **Mahlzeit** einzeilig mit Uhrzeit, Rezept und
-Menge; eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt
+In der Zeitleiste steht jede **Mahlzeit** einzeilig mit Uhrzeit, Rezept, Menge
+und **Sondierdauer** (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B.
+„≈ 125 ml · 25 min“; Wasser ohne Zeitangabe); eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt
 („🧈 Raps 11,4 g + MCT 1,3 g“) oder das Eiweiß zu niedrig ist. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
 Menge. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
@@ -220,7 +221,8 @@ gerundet. Kurze Hinweise erscheinen bei weniger als 3 Stunden Abstand, bei
 weniger als 2 Stunden zwischen letzter Mahlzeit und Schlafen und wenn eine
 Wassergabe über 25 ml/kg liegt. Bei Compleat steht der Packungsstand einzeilig
 darunter (Einzelheiten im Rezept). Der Haftungshinweis steht am Handy nur unter
-Rezepte und Vorgaben. Der Ausdruck enthält den Zeitplan als Tabelle.
+Rezepte und Vorgaben. Der Ausdruck enthält den Zeitplan als Tabelle mit Spalte „Dauer“ und dem Hinweis,
+den Oberkörper während der Gabe und 30 Minuten danach hoch zu halten.
 
 ## Fachliche Details
 

@@ -1220,3 +1220,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 }
 /* Zweite Zeile einer Mahlzeit (Öl, Eiweiß) darf umbrechen statt abgeschnitten zu werden – Mengen nie verstecken */
 .zp-row.meal small { white-space: normal; overflow: visible; }
+/* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
+.zp-vol { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+.zp-vol small { font-size: 11px; color: var(--muted); font-style: normal; }

@@ -1856,7 +1856,7 @@
         facts.push(null);
         rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Menge geschätzt – Rezept wählen">' + time + '<span class="zp-ic add">＋</span>' +
           '<span class="zp-txt"><span class="zp-name">Mahlzeit ' + (i + 1) + ' · <span class="zp-open">Rezept wählen</span></span></span>' +
-          '<span class="zp-vol est">≈ ' + fmt(m.vol, 0) + ' ml</span><span class="tile-chev" aria-hidden="true">›</span></div>' });
+          '<span class="zp-vol est">≈ ' + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span><span class="tile-chev" aria-hidden="true">›</span></div>' });
         return;
       }
       const f = m.f; facts.push(f);
@@ -1872,7 +1872,7 @@
       const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' +
-        '<span class="zp-vol">≈ ' + fmt(m.vol, 0) + ' ml</span>' +
+        '<span class="zp-vol" title="langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">≈ ' + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>' +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
         '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
     });
@@ -2001,11 +2001,12 @@
     // Zeitplan für den Kühlschrank: Uhrzeit · was · Menge
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const zr = [];
-    times.meals.forEach((t, i) => { const m = dm.meals[i]; zr.push({ t, h: "<tr><td>" + fmtHM(t) + "</td><td>🍽️ Mahlzeit " + (i + 1) + (m.rec ? " · " + escapeHtml(m.rec.name) : "") + "</td><td>≈ " + fmt(m.vol, 0) + " ml</td></tr>" }); });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr><td>" + fmtHM(g.t) + "</td><td>💧 Wasser</td><td>" + fmt(wp.per, 0) + " ml</td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr><td>" + fmtHM(times.schlaf) + "</td><td>🌙 Schlafen</td><td></td></tr>" });
+    times.meals.forEach((t, i) => { const m = dm.meals[i]; zr.push({ t, h: "<tr><td>" + fmtHM(t) + "</td><td>🍽️ Mahlzeit " + (i + 1) + (m.rec ? " · " + escapeHtml(m.rec.name) : "") + "</td><td>≈ " + fmt(m.vol, 0) + " ml</td><td>" + sondierMin(m.vol) + " min</td></tr>" }); });
+    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr><td>" + fmtHM(g.t) + "</td><td>💧 Wasser</td><td>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
+    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr><td>" + fmtHM(times.schlaf) + "</td><td>🌙 Schlafen</td><td></td><td></td></tr>" });
     zr.sort((a, b) => a.t - b.t);
-    const zeitHtml = "<h2>⏰ Zeitplan</h2><table class='zp'><thead><tr><th>Uhrzeit</th><th>Was</th><th>Menge</th></tr></thead><tbody>" + zr.map(r => r.h).join("") + "</tbody></table>" +
+    const zeitHtml = "<h2>⏰ Zeitplan</h2><table class='zp'><thead><tr><th>Uhrzeit</th><th>Was</th><th>Menge</th><th>Dauer</th></tr></thead><tbody>" + zr.map(r => r.h).join("") + "</tbody></table>" +
+      "<p class='sub'>Mahlzeiten langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. Oberkörper hoch – während der Gabe und 30 Minuten danach.</p>" +
       (d.fluidDay > 0 ? "<p class='sub'>Flüssigkeit am Tag ≈ " + fmt(wp.total, 0) + " ml (Ziel " + fmt(d.fluidDay, 0) + " ml)" + (dm.known < d.mahl ? " · offene Mahlzeiten geschätzt" : "") + "</p>" : "");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" +
       "@page{size:A4 portrait;margin:16mm}body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;font-size:11pt;line-height:1.45;margin:0}" +
@@ -2040,6 +2041,10 @@
   function fmtHM(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
+  // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
+  // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen und bekommt keine Zeitangabe.
+  const SONDIER_ML_MIN = 5;
+  function sondierMin(vol) { return Math.max(10, round5(vol / SONDIER_ML_MIN)); }
   // Eingestellte Uhrzeiten (leer = Vorgabe; Schlafen darf leer sein = keine Abendgabe).
   function zeitSettings() {
     const s = state.settings;

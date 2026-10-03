@@ -547,7 +547,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot small").textContent, /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit");
+  assert.match(hc.querySelector(".zp-row.slot .zp-txt small").textContent, /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
@@ -652,8 +652,9 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const waters = [...hc.querySelectorAll(".zp-row.water strong")].map(e => e.textContent);
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
   assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser$/.test(x)), waters.join(" | "));
-  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*≈ 125 ml/);
-  assert.equal(hc.querySelector(".zp-row.meal small"), null, "ohne Öl und mit genug Eiweiß nur eine Zeile");
+  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*≈ 125 ml25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
+  assert.equal(hc.querySelectorAll(".zp-row.water .zp-vol").length, 0, "beim Wasser keine Zeitangabe");
+  assert.equal(hc.querySelector(".zp-row.meal .zp-txt small"), null, "ohne Öl und mit genug Eiweiß nur eine Zeile");
   assert.equal(hc.querySelectorAll(".zp-row.water small").length, 0, "Wassergaben einzeilig");
   const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);

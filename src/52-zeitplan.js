@@ -13,6 +13,10 @@
   function fmtHM(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
+  // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
+  // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen und bekommt keine Zeitangabe.
+  const SONDIER_ML_MIN = 5;
+  function sondierMin(vol) { return Math.max(10, round5(vol / SONDIER_ML_MIN)); }
   // Eingestellte Uhrzeiten (leer = Vorgabe; Schlafen darf leer sein = keine Abendgabe).
   function zeitSettings() {
     const s = state.settings;
