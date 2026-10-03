@@ -38,8 +38,10 @@
       const pill = ratioClass(f.ratio, d.ratio) !== "ok" ? ' <span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span>' : "";
       // Eine Zeile: Uhrzeit · Rezept · Menge. Zweite Zeile nur, wenn sie etwas zu tun gibt: Öl vor dem Füttern
       // zugeben oder zu wenig Eiweiß. kcal je Mahlzeit sind gleich (Vorgabe), Eiweiß gesamt steht in der Kachel.
-      const sub = [oilTxt ? '🧈 ' + oilTxt + ' vor dem Füttern' : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
-      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
+      // Öl kurz benannt („Raps 11,4 g + MCT 1,2 g“), damit beide Mengen auch am Handy ganz zu sehen sind.
+      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
+      const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
+      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' +
         '<span class="zp-vol">≈ ' + fmt(m.vol, 0) + ' ml</span>' +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
@@ -89,10 +91,10 @@
       const nTage = x.ml * x.pk.tage;
       // Kurz: heute verplant und Rest für morgen; Einzelheiten zur Packung stehen im Rezept (Blatt „Tag“).
       const shortName = k.replace(/\s*\(.*?\)/g, "").replace(/\s+Nature Mix/, "");
-      return '<div class="note tip pack" title="Packung ' + x.pk.ml + ' ml, offen ' + x.pk.tage + ' Tage">🧃 <strong>' + escapeHtml(shortName) + '</strong> heute ' + fmt(x.ml, 0) + ' ml · ' +
-        (rest < -0.5 ? '<strong>fehlen ' + fmt(-rest, 0) + ' ml</strong> (mehr als eine Packung)' : 'bleiben ' + fmt(rest, 0) + ' ml (' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en") + ')') +
-        (rest >= -0.5 && nTage > x.pk.ml + 0.5 ? ' · in ' + x.pk.tage + ' Tagen 2. Packung nötig' : "") +
-        (rest >= -0.5 && nTage < x.pk.ml - 0.5 ? ' · nach ' + x.pk.tage + ' Tagen ' + fmt(x.pk.ml - nTage, 0) + ' ml übrig' : "") + '</div>';
+      const more = (rest >= -0.5 && nTage > x.pk.ml + 0.5 ? 'In ' + x.pk.tage + ' Tagen ist eine 2. Packung nötig. ' : "") +
+        (rest >= -0.5 && nTage < x.pk.ml - 0.5 ? 'Nach ' + x.pk.tage + ' Tagen bleiben ' + fmt(x.pk.ml - nTage, 0) + ' ml übrig. ' : "");
+      return '<div class="note tip pack" title="Packung ' + x.pk.ml + ' ml, offen ' + x.pk.tage + ' Tage. Rest reicht für ' + restMeals + ' Mahlzeit' + (restMeals === 1 ? "" : "en") + '. ' + more + '">🧃 <strong>' + escapeHtml(shortName) + '</strong> heute ' + fmt(x.ml, 0) + ' ml · ' +
+        (rest < -0.5 ? '<strong>fehlen ' + fmt(-rest, 0) + ' ml</strong>' : 'Rest ' + fmt(rest, 0) + ' ml') + (more && rest >= -0.5 && nTage > x.pk.ml + 0.5 ? ' · ⚠️ 2. Packung' : '') + '</div>';
     }).join("");
     box.innerHTML = '<div class="zeitplan">' + head + zeitplanSettings(times) + sums +
       '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>' +

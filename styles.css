@@ -1210,3 +1210,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .zp-vol { font-size: 12px; }
   .zp-row.meal { gap: 6px; }
 }
+.zp-sleep { flex: 0 0 auto; margin-left: auto; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+@media (max-width: 560px) {
+  .zp-list .zp-row.slot, :root .zp-list .zp-row.slot { min-height: 34px; padding-top: 3px; padding-bottom: 3px; }
+  .zp-row.water, .zp-row.sleep { padding-top: 2px; padding-bottom: 2px; min-height: 26px; }
+  .zp-sleep { font-size: 12px; }
+  .zeitplan .note { padding: 5px 9px; }
+  .zeitplan .day-head .head-actions .iconbtn.round { width: 30px; height: 30px; }
+}
+/* Zweite Zeile einer Mahlzeit (Öl, Eiweiß) darf umbrechen statt abgeschnitten zu werden – Mengen nie verstecken */
+.zp-row.meal small { white-space: normal; overflow: visible; }

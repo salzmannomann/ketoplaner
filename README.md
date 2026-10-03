@@ -200,7 +200,7 @@ Reiter nebeneinander.
 ### Heute (Zeitplan)
 
 Eine einzige **Zeitleiste** für den ganzen Tag, am Handy mit 4 Mahlzeiten auf
-einem Bildschirm ohne Scrollen. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
+einem Bildschirm ohne Scrollen (4 und 5 Mahlzeiten). Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
 min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
 **letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30, 20:00), **🖨️** druckt,
 **🗑️** leert den Plan (ohne Rückfrage, mit **Rückgängig**). Darunter eine
@@ -208,13 +208,13 @@ niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 (Mahlzeiten plus Wassergaben, „≈" solange Mahlzeiten offen sind).
 
 In der Zeitleiste steht jede **Mahlzeit** einzeilig mit Uhrzeit, Rezept und
-Menge; eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt oder
-das Eiweiß zu niedrig ist. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
+Menge; eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt
+(„🧈 Raps 11,4 g + MCT 1,3 g“) oder das Eiweiß zu niedrig ist. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
 Menge. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
 über 25 ml/kg) und Eiweiß. Die Mahlzeiten liegen gleichmäßig zwischen erster
 und letzter; dazwischen stehen einzeilig die **Wassergaben** (Mitte jeder Pause
-und eine vor dem Schlafen). Die Menge je Wassergabe ergibt sich aus dem
+und eine vor dem Schlafen; „🌙 Schlafen 20:00“ steht rechts in deren Zeile). Die Menge je Wassergabe ergibt sich aus dem
 Tagesziel minus der Flüssigkeit der Mahlzeiten, gleich verteilt und auf 5 ml
 gerundet. Kurze Hinweise erscheinen bei weniger als 3 Stunden Abstand, bei
 weniger als 2 Stunden zwischen letzter Mahlzeit und Schlafen und wenn eine

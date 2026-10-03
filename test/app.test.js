@@ -547,7 +547,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot small").textContent, /Rapsöl [\d,]+ g \+ MCT-Öl 1,2 g vor dem Füttern/, "Öl steht als zweite Zeile an der Mahlzeit");
+  assert.match(hc.querySelector(".zp-row.slot small").textContent, /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
@@ -641,7 +641,8 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   let hc = $(w, "heute-content");
   assert.ok(hc.firstElementChild.classList.contains("zeitplan"), "Zeitplan steht oben");
   const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
-  assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
+  assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45"]);
+  assert.match(hc.querySelector(".zp-row.water:last-child").textContent, /18:45.*Wasser.*🌙 Schlafen 20:00/, "Schlafen in der Zeile der Abendgabe");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
   assert.match(hc.querySelector(".day-head").textContent, /Heute 7:00–17:30 · alle 3 h 30 min/);
@@ -659,7 +660,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.equal(hc.querySelectorAll(".zeitplan .note.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
   // Letzte Mahlzeit früher → Abstand 2 h → Warnung
   let el = $(w, "zp-letzte"); el.value = "13:00"; fire(w, el, "change");
-  assert.match($(w, "heute-content").querySelector(".zeitplan").textContent, /Nur 2 h zwischen den Mahlzeiten/);
+  assert.match($(w, "heute-content").querySelector(".zeitplan").textContent, /Nur 2 h Abstand/);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.zpLetzte, "13:00");
   // Letzte Mahlzeit spät → zu knapp vor dem Schlafen
   el = $(w, "zp-letzte"); el.value = "19:00"; fire(w, el, "change");
