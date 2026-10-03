@@ -163,7 +163,7 @@
       const r = ratioOf(sum);
       const totalG = items.reduce((a, it) => a + num(it.grams), 0);
       const ml = volumeMl(items);
-      const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+      const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9, pStateC = proteinState(sum.eiweiss, d.eiweissMahl);
       meta.innerHTML = '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span><span>' + fmt(sum.kcal, 0) + ' kcal je Portion</span>' + badge;
       let rows = "";
       items.forEach(it => {
@@ -181,6 +181,7 @@
           '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
         "</div>" +
         (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+        (pStateC === "high" ? '<div class="note warn">↑ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
         '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         rows +
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +

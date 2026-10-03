@@ -269,6 +269,8 @@
   /* ---------- Abgeleitete Werte ---------- */
   // Voreinstellung der App für den Eiweißbedarf (g je kg Körpergewicht und Tag); die Verordnung geht immer vor.
   const PROTEIN_STANDARD = 1.5;
+  // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
+  function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
   function derived() {
     const s = state.settings;
     const ratio = num(s.ratio);
@@ -800,7 +802,7 @@
       const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
       put("set-dichte", on ? fmtNum(d.maxDichte) : "");
       if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "– (alles in den Mahlzeiten)"; }
-      src("dichte", on && manual, on ? "Vorgabe · KetoCal üblich 1–1,5" : "nicht nötig", "↺ 1,5");
+      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "↺ 1,5");
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
@@ -1098,7 +1100,7 @@
     const r = ratioOf(sum);
     const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
     const ml = volumeMl(res.items);
-    const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+    const pState = proteinState(sum.eiweiss, d.eiweissMahl);
     const name = fam ? fam.name : familyOf(rec);
     const multi = isMulti(rec);
 
@@ -1120,7 +1122,7 @@
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
         "<span>≈ " + fmt(totalG, 0) + " g / " + fmt(ml, 0) + " ml</span>" +
-        '<span class="' + (proteinOk ? "prot-ok" : "prot-low") + '">Eiweiß ' + fmt(sum.eiweiss) + " g</span>" +
+        '<span class="prot-' + pState + '"' + (pState === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : "") + '>Eiweiß ' + fmt(sum.eiweiss) + " g" + (pState === "high" ? " ↑" : "") + "</span>" +
       "</div></div>" +
       '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       '<span class="tile-chev" aria-hidden="true">›</span>';
@@ -1257,6 +1259,15 @@
     return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
       portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
   }
+  // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern je Portion erst vor dem Füttern eingerührt – als letzter Schritt
+  // mit den Mengen einer Portion (Raps/MCT nach Öl-Mix). Angerührte Rezepte nennen das schon im eigenen Text.
+  function oilFeedStep(rec, itemsPer) {
+    if (rec.angeruehrt) return "";
+    const oils = itemsPer.filter(it => /öl|oil/i.test(it.food || "") && num(it.grams) > 0);
+    if (!oils.length) return "";
+    return "Abfüllen, das Öl kommt nicht in den Topf: Erst kurz vor dem Füttern je Portion " +
+      oils.map(o => String(o.food).replace(/\s*C8\+C10/, "") + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " gründlich einrühren.";
+  }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
   function mealFacts(rec, d) {
     const mv = computeMealView(rec, d, null);
@@ -1279,8 +1290,8 @@
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
     if (wp.unplaced) return '<div class="note warn">💧 ' + base + ' – es fehlen ' + fmt(wp.rest, 0) + ' ml, aber der Zeitplan hat keine Pause für Wasser.</div>';
     if (wp.per === 0) return '<div class="note tip">💧 ' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">💧 Ein Tag mit diesem Rezept: ' + base + ', dazu <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> zwischen den Mahlzeiten – zusammen ≈ ' + fmt(wp.total, 0) + ' ml (Ziel ' + fmt(d.fluidDay, 0) + '). Uhrzeiten unter Heute → ⏰ Zeitplan.' +
-      (wp.over ? ' ⚠️ Mehr als ' + fmt(d.maxMahlMl, 0) + ' ml je Wassergabe – im Zeitplan eine Schlafenszeit eintragen.' : '') + '</div>';
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">💧 ' + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
+      (wp.over ? ' · ⚠️ über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
     return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
@@ -1347,6 +1358,7 @@
     const ml = volumeMl(items) * mult;
     const proteinTarget = d.eiweissMahl * mult;
     const proteinOk = sum.eiweiss >= proteinTarget * 0.9;
+    const pStateMeal = proteinState(sumPer.eiweiss, d.eiweissMahl), pStateQ = proteinState(sum.eiweiss, proteinTarget);
     const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
     const days = scaleDays();
     const portionLabel = mult === 1 ? "1 Portion" : (days ? (days === 1 ? "1 Tag" : days + " Tage") + " = " : "") + portionsTxt + " Portionen";
@@ -1370,8 +1382,8 @@
       return t
         .replace("Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet).",
           "Ca. " + bowlWater + " ml Wasser in den Mixtopf geben (das Dämpfwasser wird später mitverwendet – es enthält wertvolle Stoffe" + (bowlWater < 300 ? "; mindestens ~300 ml, damit der Topf nicht trocken läuft" : "") + ").")
-        .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl",
-          "Das Dämpfwasser NICHT abgießen – davon " + Math.round(waterG) + " ml abmessen (ist weniger übrig, mit frischem Wasser auf " + Math.round(waterG) + " ml ergänzen; ist mehr übrig, den Rest nicht verwenden) und mit den gedämpften Zutaten und Rapsöl");
+        .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser",
+          "Das Dämpfwasser NICHT abgießen – davon " + Math.round(waterG) + " ml abmessen (ist weniger übrig, mit frischem Wasser auf " + Math.round(waterG) + " ml ergänzen; ist mehr übrig, den Rest nicht verwenden) und zusammen mit den gedämpften Zutaten");
     };
 
     const ketoBadge = (rec.ketocal
@@ -1474,6 +1486,7 @@
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
+    const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
     const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (kommen erst vor dem Füttern dazu)
     const oilRowsPer = items.filter(it => isOil(it.food));
@@ -1493,15 +1506,15 @@
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit je Portion ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
+      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
-          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Anrühren') + ', der Rest des Tages kommt als Wassergaben zwischen den Mahlzeiten') +
-        (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ Mahlzeit ' + fmt(volumeMl(items), 0) + ' ml, über der Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
+          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Anrühren') + ', der Rest kommt als Wassergaben') +
+        (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ ' + fmt(volumeMl(items), 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayTile = d.fluidDay > 0
-      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < dayFluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">' + (d.wasserModus === "mahlzeit" ? 'Flüssigkeit/Tag · Ziel ' + fmt(dayFluidZiel, 0) + ' ml' : 'Flüssigkeit/Tag in den Mahlzeiten') + '</div></div>'
+      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < dayFluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">' + (d.wasserModus === "mahlzeit" ? 'Flüssigkeit/Tag · Ziel ' + fmt(dayFluidZiel, 0) + ' ml' : 'Flüssigkeit/Tag') + '</div></div>'
       : "";
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
@@ -1518,9 +1531,9 @@
     const qTiles =
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + ((days && dayLow) ? " warn" : "") + '"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal' + qTag + ' · Ziel ' + fmt(d.kcalMahl * mult, 0) + '</div></div>' +
-        '<div class="dstat' + (proteinOk ? "" : " warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß' + qTag + ' · Ziel ' + fmt(proteinTarget, 0) + ' g</div></div>' +
+        '<div class="dstat' + (pStateQ === "ok" ? "" : " warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g' + (pStateQ === "high" ? ' ↑' : '') + '</div><div class="l">Eiweiß' + qTag + ' · Ziel ' + fmt(proteinTarget, 0) + ' g</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + qTag + '</div></div>' +
-        (d.fluidDay > 0 ? '<div class="dstat' + (qZiel && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + (qZiel ? ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml' : ' in den Mahlzeiten') + '</div></div>' : '') +
+        (d.fluidDay > 0 ? '<div class="dstat' + (qZiel && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + (qZiel ? ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml' : ' in Mahlzeiten') + '</div></div>' : '') +
       '</div>';
     // Tages-Check nur als Warnung (wie die Eiweiß-Warnung auf „Mahlzeit“): Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow
@@ -1549,7 +1562,7 @@
       if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) · <button type="button" class="linkbtn portion-reset">↺ wie berechnet</button>');
       if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
       return parts.length ? parts.join(" · ")
-        : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ' · Gramm ändern skaliert alles mit'; // eine Zeile am Handy
+        : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ' · Gramm ändern skaliert mit'; // eine Zeile am Handy
     };
     const mealStatus = statusLine(1, "je Mahlzeit");
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
@@ -1576,11 +1589,13 @@
       '<div class="portion-line">' + mealStatus + '</div>' +
       '<div class="detail-tiles strip">' +
         '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
-        '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perGnoOil : totalG / mult, 0) + ' g</div><div class="l">Menge' + (hasOil ? ' ohne Öl' : "") + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(hasOil ? perMlNoOil : ml / mult, 0) + ' ml</div><div class="l">Volumen' + (hasOil ? ' ohne Öl' : "") + '</div></div>' +
+        '<div class="dstat ' + (pStateMeal === "ok" ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g' + (pStateMeal === "high" ? ' ↑' : '') + '</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
+        // Menge und Volumen der ganzen Mahlzeit (mit Öl) – wie im Zeitplan; „ohne Öl“ steht beim Abfüllen (Kochen).
+        '<div class="dstat"><div class="v">≈ ' + fmt(totalG / mult, 0) + ' g</div><div class="l">Menge</div></div>' +
+        '<div class="dstat"><div class="v">≈ ' + fmt(ml / mult, 0) + ' ml</div><div class="l">Volumen</div></div>' +
       "</div>" +
-      (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (pStateMeal === "low" ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (pStateMeal === "high" ? '<div class="note warn" title="Viel Eiweiß kann die Ketose schwächen.">↑ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel – mit dem Team abklären.</div>' : "") +
       '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         nRows +
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG / mult, 0) + "</td><td>" + fmt(sumPer.eiweiss) + "</td><td>" +
@@ -1618,7 +1633,7 @@
       '<h4 class="ph">🍳 Kochen <span class="hint">für ' + portionLabel + '</span></h4>' +
       '<div class="portion-line">💉 <strong>Abfüllen je Portion</strong>' + (hasOil ? ' – ohne Öl, das kommt erst vor dem Füttern dazu' : '') +
         (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
-          (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
+          (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "") + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
       '<div class="detail-tiles strip fill-tiles">' +
         '<div class="dstat"><div class="v fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div><div class="l">je Portion' + (hasOil ? ' ohne Öl' : '') + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
@@ -1899,7 +1914,7 @@
     const sums = '<div class="detail-tiles strip day-strip" id="day-sums">' +
       (tot.filled
         ? '<div class="dstat' + (kcalLow ? " warn" : "") + '"><div class="v">' + fmt(tot.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(kcalZiel, 0) + '</div></div>' +
-          '<div class="dstat' + (tot.eiweiss < eiweissZiel * 0.9 ? " warn" : "") + '"><div class="v">' + fmt(tot.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + '</div></div>' +
+          (() => { const ps = proteinState(tot.eiweiss, eiweissZiel); return '<div class="dstat' + (ps === "ok" ? "" : " warn") + '"' + (ps === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : '') + '><div class="v">' + fmt(tot.eiweiss) + ' g' + (ps === "high" ? ' ↑' : '') + '</div><div class="l">Eiweiß · Ziel ' + fmt(eiweissZiel, 0) + '</div></div>'; })() +
           '<div class="dstat"><div class="v"><span class="ratio-pill ' + ratioClass(ratioDay, d.ratio) + '">' + fmtRatio(ratioDay, 2) + '</span></div><div class="l">Ziel ' + fmtTarget(d.ratio) + '</div></div>'
         : '<div class="dstat wide"><div class="v">' + d.mahl + ' × ' + fmt(d.kcalMahl, 0) + ' kcal</div><div class="l">Rezepte wählen: Tipp auf eine Mahlzeit</div></div>') +
       fluidTile + "</div>";
@@ -2153,8 +2168,8 @@
     const adaptVaroma = (t) => (!t || pWaterG <= 0) ? t : t
       .replace("Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet).",
         "Ca. " + pBowl + " ml Wasser in den Mixtopf geben (das Dämpfwasser wird später mitverwendet).")
-      .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser und Rapsöl",
-        "Das Dämpfwasser NICHT abgießen – davon " + Math.round(pWaterG) + " ml abmessen (bei Bedarf mit frischem Wasser auf " + Math.round(pWaterG) + " ml ergänzen) und mit den gedämpften Zutaten und Rapsöl");
+      .replace("Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser",
+        "Das Dämpfwasser NICHT abgießen – davon " + Math.round(pWaterG) + " ml abmessen (bei Bedarf mit frischem Wasser auf " + Math.round(pWaterG) + " ml ergänzen) und zusammen mit den gedämpften Zutaten");
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
@@ -2162,7 +2177,14 @@
     const totalG = items.reduce((a, it) => a + num(it.grams), 0) * mult;
     const ml = volumeMl(items) * mult;
     const daysP = d.mahl > 0 && Math.abs(mult / d.mahl - Math.round(mult / d.mahl)) < 1e-6 ? Math.round(mult / d.mahl) : 0;
-    const portionLabel = mult === 1 ? "1 Mahlzeit" : (daysP ? (daysP === 1 ? "Ganzer Tag – " : daysP + " Tage – ") : "") + fmt(mult, 1) + " Mahlzeiten";
+    const multTxt = Math.abs(mult - Math.round(mult)) < 1e-6 ? String(Math.round(mult)) : fmt(mult, 1);
+    const portionLabel = mult === 1 ? "1 Mahlzeit" : (daysP ? (daysP === 1 ? "1 Tag = " : daysP + " Tage = ") : "") + multTxt + " Portionen";
+    // Abfüllen je Portion (ohne Öl) und Öl je Portion vor dem Füttern – wie im Blatt „Kochen“.
+    const isOilP = (n) => /öl|oil/i.test(n || "");
+    const noOilP = items.filter(it => !isOilP(it.food)), oilsP = items.filter(it => isOilP(it.food) && num(it.grams) > 0);
+    const fillLine = "<p class='fill'><strong>💉 Abfüllen je Portion:</strong> ≈ " + fmt(noOilP.reduce((a, it) => a + num(it.grams), 0), 0) + " g / " + fmt(volumeMl(noOilP), 0) + " ml" +
+      (oilsP.length && !rec.angeruehrt ? " · <strong>🧈 vor dem Füttern einrühren:</strong> " + oilsP.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "") + "</p>";
+    const oilStepP = oilFeedStep(rec, items);
     const rows = items.map(it => {
       const g = num(it.grams) * mult;
       const m = lineMacros({ food: it.food, grams: g });
@@ -2183,18 +2205,18 @@
       ".prep{background:#f2f4f6;border-radius:2mm;padding:3mm 4mm;margin:3mm 0;line-height:1.5;break-inside:avoid}" +
       ".prep strong{display:block;margin-bottom:1mm}" +
       "tr{break-inside:avoid}" +
-      ".note{color:#666;font-size:8.5pt;margin-top:6mm}" +
+      ".note{color:#666;font-size:8.5pt;margin-top:6mm}.fill{margin:2mm 0 4mm;font-size:10.5pt}" +
       "</style></head><body>" +
       "<h1>" + (rec.icon || "") + " " + escapeHtml(rec.name) + (rec.ketocal ? " (mit KetoCal)" : " (ohne KetoCal)") + "</h1>" +
       "<p class='sub'><strong>" + portionLabel + "</strong> · " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
       " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) + " g · Verhältnis " +
       fmtRatio(r, 2) + "<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
       "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
-      "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" +
+      "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" + fillLine +
       (mult > 1 ? "<p class='sub'>Hinweis: Mengen für " + portionLabel + "." + (rec.angeruehrt ? "" : " Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.") + "</p>" : "") +
       (rec.varoma
-        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + "</div>"
-        : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + "</div>" : "")) +
+        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + (oilStepP ? " " + escapeHtml(oilStepP) : "") + "</div>"
+        : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + (oilStepP ? " " + escapeHtml(oilStepP) : "") + "</div>" : "")) +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
     let w = null;
@@ -2370,7 +2392,7 @@
       const r = ratioOf(sum);
       const totalG = items.reduce((a, it) => a + num(it.grams), 0);
       const ml = volumeMl(items);
-      const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+      const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9, pStateC = proteinState(sum.eiweiss, d.eiweissMahl);
       meta.innerHTML = '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span><span>' + fmt(sum.kcal, 0) + ' kcal je Portion</span>' + badge;
       let rows = "";
       items.forEach(it => {
@@ -2388,6 +2410,7 @@
           '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
         "</div>" +
         (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+        (pStateC === "high" ? '<div class="note warn">↑ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
         '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
         rows +
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +

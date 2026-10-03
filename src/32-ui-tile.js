@@ -4,7 +4,7 @@
     const r = ratioOf(sum);
     const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
     const ml = volumeMl(res.items);
-    const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9;
+    const pState = proteinState(sum.eiweiss, d.eiweissMahl);
     const name = fam ? fam.name : familyOf(rec);
     const multi = isMulti(rec);
 
@@ -26,7 +26,7 @@
       '<div class="tile-stats">' +
         "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
         "<span>≈ " + fmt(totalG, 0) + " g / " + fmt(ml, 0) + " ml</span>" +
-        '<span class="' + (proteinOk ? "prot-ok" : "prot-low") + '">Eiweiß ' + fmt(sum.eiweiss) + " g</span>" +
+        '<span class="prot-' + pState + '"' + (pState === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : "") + '>Eiweiß ' + fmt(sum.eiweiss) + " g" + (pState === "high" ? " ↑" : "") + "</span>" +
       "</div></div>" +
       '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
       '<span class="tile-chev" aria-hidden="true">›</span>';

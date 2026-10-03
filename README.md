@@ -127,7 +127,10 @@ Vorgaben.
   Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die
   Eine KetoCal-Vorgabe gibt es nicht mehr.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
-  Stern markiert Favoriten (immer ganz oben).
+  Stern markiert Favoriten (immer ganz oben). Eiweiß unter 90 % des Ziels ist
+  gelb, über dem **Doppelten des Ziels** gelb mit „↑“ – im Rezept steht dann
+  „Eiweiß x-mal so hoch wie das Ziel – mit dem Team abklären“ (viel Eiweiß kann
+  die Ketose schwächen; bei 1,5:1 liefern viele Fleisch-Rezepte 2–3 × das Ziel).
 - **Nach dem Real-Food-Blends-Ketokochbuch** (2020) nachgebaut, ohne
   Diätologie-Schild: **Hendl & Fisolen & Ei**, **Lachs & Hafer & Kürbis** und
   **Ei & Apfel & Hafer** – Fisolen als ballaststoffreiches Gemüse, Ei als zweite
@@ -195,7 +198,10 @@ Reiter nebeneinander.
    Öl erst kurz vor dem Füttern dazukommt, ml und Spritzenzahl, Öl-Kacheln),
    bei mehreren Portionen die Gesamtmenge, eine kurze Notiz (Sieb, MCT,
    Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
-   bevorzugt, Dämpfwasser eingerechnet).
+   bevorzugt, Dämpfwasser eingerechnet). **Öl kommt nie in den Topf:** püriert
+   wird ohne Öl, der letzte Schritt nennt das Öl je Portion („Erst kurz vor dem
+   Füttern je Portion Rapsöl 14,2 g + MCT-Öl 1,6 g gründlich einrühren“). Der
+   Ausdruck enthält dieselbe Abfüllzeile und denselben Schritt.
 
 ### Heute (Zeitplan)
 

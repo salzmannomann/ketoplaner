@@ -578,10 +578,10 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   // „zwischen“: die Mahlzeit behält ihr Rezept-Wasser, der Tag nennt die Wassergaben
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Anrühren, der Rest des Tages kommt als Wassergaben/);
-  assert.match(rechnenText(c), /Ein Tag mit diesem Rezept: Mahlzeiten 4 × \d+ ml, dazu 4 × \d+ ml Wasser/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Anrühren, der Rest kommt als Wassergaben/);
+  assert.match(rechnenText(c), /💧 Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ≈ \d+ ml am Tag/);
   assert.doesNotMatch(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
-  assert.match(rechnenText(c), /Flüssigkeit\/Tag in den Mahlzeiten/);
+  assert.match(rechnenText(c), /Flüssigkeit\/Tag in Mahlzeiten|Flüssigkeit\/Tag/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit ≈ 850 ÷ 4 ≈ 213 ml; Dichte-Feld ausgegraut
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
@@ -591,7 +591,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
   assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit je Portion ≈ 21[234] ml/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit ≈ 21[234] ml/);
   const tile = [...c.querySelectorAll(".pane .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(numDe(tile.querySelector(".v").textContent) - 850) <= 4, tile.textContent);
   assert.match(rechnenText(c), /in den Mahlzeiten dabei/);
@@ -923,4 +923,30 @@ test("Detail → „Für heute“: Rezept für alle, nur freie oder eine Mahlzei
   fire(w, [...$(w, "toast").querySelectorAll(".toast-btn")].find(b => b.textContent === "Ansehen"));
   assert.ok($(w, "detail-overlay").hidden); assert.ok(!$(w, "view-heute").hidden);
   assert.match($(w, "heute-content").querySelector(".zp-row.meal").textContent, /^7:00.*KetoCal & Pre Apta/);
+});
+
+test("Kochen: Öl wird nicht mitpüriert, letzter Schritt nennt Öl je Portion vor dem Füttern; Eiweiß über dem Doppelten wird markiert", () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 } });
+  // In keinem gekochten Rezepttext steht Öl beim Pürieren
+  const recs = new Function(read("recipes.js") + "; return RECIPES_SONDE;")().filter(r => !r.angeruehrt);
+  recs.forEach(r => ["zubereitung", "thermomix", "varoma"].forEach(k => {
+    if (r[k]) assert.doesNotMatch(r[k], /Rapsöl|Olivenöl/, r.name + " / " + k);
+  }));
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  c = switchDetailTab(w, "zubereitung");
+  const steps = [...c.querySelectorAll(".pane[data-pane=zubereitung] .steps li")].map(li => li.textContent);
+  assert.match(steps[steps.length - 1], /^Abfüllen, das Öl kommt nicht in den Topf: Erst kurz vor dem Füttern je Portion Rapsöl [\d,]+ g \+ MCT-Öl [\d,]+ g gründlich einrühren\.$/);
+  assert.ok(steps.some(s => /Dämpfwasser NICHT abgießen.*zusammen mit den gedämpften Zutaten 30–40 Sek/.test(s)), steps.join(" | "));
+  assert.match(c.querySelector(".pane[data-pane=zubereitung] .portion-line").textContent, /Öl gesamt Raps \d+ g \+ MCT \d+ g/);
+  // Mahlzeit: Eiweiß ~3× Ziel → ↑ und Hinweis; Volumen mit Öl wie im Zeitplan
+  const mz = c.querySelector(".pane[data-pane=mahlzeit]");
+  assert.match(mz.textContent, /↑ Eiweiß [\d,]+-mal so hoch wie das Ziel/);
+  assert.doesNotMatch(mz.textContent, /ohne Öl/);
+  fire(w, $(w, "detail-close"));
+  // Rezeptliste: ↑ am Eiweiß
+  assert.ok(tiles(w).some(t => /Eiweiß [\d,]+ g ↑/.test(t.textContent) && t.querySelector(".prot-high")));
+  // Angerührt: kein zusätzlicher Öl-Schritt (Text sagt es selbst)
+  c = openRecipe(w, "HiPP Hühnchen & Öl"); c = switchDetailTab(w, "zubereitung");
+  assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Öl kommt nicht in den Topf/);
+  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Rapsöl( \+ MCT-Öl)? erst kurz vor dem Füttern/);
 });

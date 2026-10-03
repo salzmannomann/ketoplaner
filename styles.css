@@ -343,6 +343,7 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .tile-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 13px; }
 .tile-stats .prot-ok { color: var(--green); }
 .tile-stats .prot-low { color: var(--yellow); }
+.tile-stats .prot-high { color: var(--yellow); font-weight: 600; }
 .tile-cta { margin-top: auto; color: var(--brand-dark); font-size: 13px; font-weight: 600; }
 
 /* Detail-Overlay */

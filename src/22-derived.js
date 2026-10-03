@@ -1,6 +1,8 @@
   /* ---------- Abgeleitete Werte ---------- */
   // Voreinstellung der App für den Eiweißbedarf (g je kg Körpergewicht und Tag); die Verordnung geht immer vor.
   const PROTEIN_STANDARD = 1.5;
+  // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
+  function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
   function derived() {
     const s = state.settings;
     const ratio = num(s.ratio);

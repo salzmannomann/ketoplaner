@@ -227,7 +227,7 @@
       const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
       put("set-dichte", on ? fmtNum(d.maxDichte) : "");
       if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "– (alles in den Mahlzeiten)"; }
-      src("dichte", on && manual, on ? "Vorgabe · KetoCal üblich 1–1,5" : "nicht nötig", "↺ 1,5");
+      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "↺ 1,5");
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
