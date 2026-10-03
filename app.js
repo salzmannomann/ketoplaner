@@ -131,6 +131,17 @@
     if (html !== undefined) e.innerHTML = html;
     return e;
   }
+  // Kurze Meldung unten am Bildschirm (über Overlays), mit optionalen Knöpfen [Beschriftung, Aktion]; verschwindet nach 7 s.
+  let toastTimer = null;
+  function showToast(html, buttons) {
+    let t = document.getElementById("toast");
+    if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn" data-ti="' + i + '">' + b[0] + '</button>').join("");
+    t.querySelectorAll(".toast-btn").forEach(b => b.addEventListener("click", () => { hideToast(); buttons[num(b.dataset.ti)][1](); }));
+    t.hidden = false; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
+  }
+  function hideToast() { const t = document.getElementById("toast"); if (t) { t.classList.remove("show"); t.hidden = true; } clearTimeout(toastTimer); }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -1685,16 +1696,20 @@
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
 
-    // Feste Aktionsleiste unten: Favorit · Drucken · Editor (· Löschen bei eigenen Rezepten)
+    // Feste Aktionsleiste unten: Favorit · Drucken · Für heute · Editor (· Löschen bei eigenen Rezepten).
+    // Am Handy zeigen Favorit und Drucken nur ihr Symbol (Beschriftung .lbl ausgeblendet).
     const actions = c.querySelector("#detail-actions");
     const fav = isFav(rec);
-    const favBtn = el("button", { class: "btn secondary" }, (fav ? "★ Favorit" : "☆ Favorit"));
+    const favBtn = el("button", { class: "btn secondary icon-lbl", title: "Favorit", "aria-label": "Favorit" }, (fav ? "★" : "☆") + ' <span class="lbl">Favorit</span>');
     favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
     actions.appendChild(favBtn);
-    const printBtn = el("button", { class: "btn secondary" }, "🖨️ Drucken");
+    const printBtn = el("button", { class: "btn secondary icon-lbl", title: "Drucken", "aria-label": "Drucken" }, '🖨️ <span class="lbl">Drucken</span>');
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
     actions.appendChild(printBtn);
-    const editBtn = el("button", { class: "btn", id: "edit-btn" }, "✏️ " + (rec.custom ? "Bearbeiten" : "Editor"));
+    const todayBtn = el("button", { class: "btn", id: "today-btn", "aria-haspopup": "true" }, "📅 Für heute");
+    todayBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleTodaySheet(rec); });
+    actions.appendChild(todayBtn);
+    const editBtn = el("button", { class: "btn secondary", id: "edit-btn" }, "✏️ " + (rec.custom ? "Bearbeiten" : "Editor"));
     editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
     actions.appendChild(editBtn);
     if (rec.custom) {
@@ -1708,6 +1723,42 @@
       });
       actions.appendChild(delBtn);
     }
+  }
+
+  /* ---------- „Für heute“: Rezept in den Tagesplan übernehmen ----------
+     Auswahl über der Aktionsleiste: alle Mahlzeiten, nur freie oder eine einzelne (mit Uhrzeit aus dem Zeitplan).
+     Danach eine Meldung mit „Rückgängig“ (stellt den vorherigen Plan her) und „Ansehen“ (wechselt zu Heute). */
+  function closeTodaySheet() { const sh = document.getElementById("today-sheet"); if (sh) sh.remove(); }
+  function toggleTodaySheet(rec) {
+    if (document.getElementById("today-sheet")) { closeTodaySheet(); return; }
+    const d = derived(); ensureDayPlan(d);
+    const key = recipeKey(rec), times = zeitTimes(d);
+    const free = state.dayPlan.map((sl, i) => recipeByKey(sl && sl.key) ? -1 : i).filter(i => i >= 0);
+    const filled = d.mahl - free.length;
+    const opt = (val, main, sub, cls) => '<button type="button" class="today-opt' + (cls ? " " + cls : "") + '" data-today="' + val + '"><span>' + main + '</span>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
+    let html = '<div class="today-title">In den Tagesplan übernehmen</div>' +
+      opt("all", "Alle " + d.mahl + " Mahlzeiten", filled ? "ersetzt den bisherigen Plan" : "", "main");
+    if (filled && free.length) html += opt("free", "Nur freie Mahlzeiten (" + free.length + ")", "gewählte Rezepte bleiben");
+    html += '<div class="today-sep">oder eine Mahlzeit ersetzen</div>';
+    state.dayPlan.forEach((sl, i) => {
+      const cur = recipeByKey(sl && sl.key), same = sl && sl.key === key;
+      html += opt(String(i), fmtHM(times.meals[i]) + " · Mahlzeit " + (i + 1) + (same ? " ✓" : ""), cur ? escapeHtml(cur.name) : "frei", same ? "same" : "");
+    });
+    const sh = el("div", { class: "today-sheet", id: "today-sheet", role: "menu" }, html);
+    const actions = document.getElementById("detail-actions");
+    actions.parentNode.insertBefore(sh, actions);
+    sh.addEventListener("click", (e) => e.stopPropagation());
+    sh.querySelectorAll("[data-today]").forEach(b => b.addEventListener("click", () => {
+      const v = b.dataset.today, prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
+      const idx = v === "all" ? state.dayPlan.map((_, i) => i) : v === "free" ? free : [num(v)];
+      idx.forEach(i => { state.dayPlan[i] = { key }; });
+      save(); closeTodaySheet(); renderRezepte();
+      const what = v === "all" ? "für alle " + d.mahl + " Mahlzeiten" : v === "free" ? "für " + idx.length + " freie Mahlzeit" + (idx.length === 1 ? "" : "en") : "für Mahlzeit " + (idx[0] + 1) + " (" + fmtHM(times.meals[idx[0]]) + ")";
+      showToast("📅 " + escapeHtml(familyOf(rec)) + " " + what + " übernommen", [
+        ["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }],
+        ["Ansehen", () => { closeDetail(); showView("heute"); }],
+      ]);
+    }));
   }
 
   function seedComposeFromSaved(sr) {
@@ -1733,6 +1784,7 @@
     save();
   }
   function closeDetail() {
+    closeTodaySheet();
     document.getElementById("detail-overlay").hidden = true;
     modalClose("detail");
   }
@@ -1769,6 +1821,9 @@
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
     bindSwipeDown(overlay, ".detail-head, .detail-tabs-wrap", closeDetail);
+    // Auswahl „Für heute“ schließt bei Klick daneben oder Escape
+    overlay.addEventListener("click", () => closeTodaySheet());
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeTodaySheet(); });
   }
 
   /* ---------- Heute: Tagesplan ---------- */

@@ -868,3 +868,45 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   fire(w, tile());
   assert.ok(!$(w, "detail-overlay").hidden, "normaler Tipp öffnet");
 });
+
+test("Detail → „Für heute“: Rezept für alle, nur freie oder eine Mahlzeit übernehmen, Meldung mit Rückgängig und Ansehen", () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 }, dayPlan: [{ key: "std:KetoCal & Pre Apta" }, { key: null }, { key: null }, { key: null }] });
+  const plan = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5")).dayPlan.map(s => s.key);
+  let c = openRecipe(w, "Compleat & KetoCal");
+  // Aktionsleiste: Favorit und Drucken mit Symbol + Beschriftung (am Handy nur Symbol), „Für heute“, Editor
+  assert.ok($(w, "today-btn") && $(w, "edit-btn"));
+  assert.ok([...c.querySelectorAll("#detail-actions .btn.icon-lbl .lbl")].map(e => e.textContent).join() === "Favorit,Drucken");
+  fire(w, $(w, "today-btn"));
+  let sh = $(w, "today-sheet");
+  assert.ok(sh, "Auswahl klappt auf");
+  const opts = [...sh.querySelectorAll("[data-today]")].map(b => b.dataset.today);
+  assert.deepEqual(opts, ["all", "free", "0", "1", "2", "3"]);
+  assert.match(sh.textContent, /Alle 4 Mahlzeiten.*ersetzt den bisherigen Plan.*Nur freie Mahlzeiten \(3\).*7:00 · Mahlzeit 1KetoCal & Pre Apta.*10:30 · Mahlzeit 2frei/);
+  // Nur freie: Mahlzeit 1 bleibt
+  fire(w, sh.querySelector('[data-today="free"]'));
+  assert.equal($(w, "today-sheet"), null, "Auswahl schließt");
+  assert.deepEqual(plan(), ["std:KetoCal & Pre Apta", "std:Compleat & KetoCal", "std:Compleat & KetoCal", "std:Compleat & KetoCal"]);
+  assert.match($(w, "toast").textContent, /Compleat & KetoCal für 3 freie Mahlzeiten übernommen/);
+  // Rückgängig stellt den vorherigen Plan her
+  fire(w, [...$(w, "toast").querySelectorAll(".toast-btn")].find(b => b.textContent === "Rückgängig"));
+  assert.deepEqual(plan(), ["std:KetoCal & Pre Apta", null, null, null]);
+  // Alle Mahlzeiten
+  fire(w, $(w, "today-btn")); fire(w, $(w, "today-sheet").querySelector('[data-today="all"]'));
+  assert.deepEqual(plan(), [0, 1, 2, 3].map(() => "std:Compleat & KetoCal"));
+  // Einzelne Mahlzeit ersetzen; schon gesetzte ist mit ✓ markiert, „nur freie“ fehlt, wenn nichts frei ist
+  c = openRecipe(w, "KetoCal & Pre Apta");
+  fire(w, $(w, "today-btn")); sh = $(w, "today-sheet");
+  assert.equal(sh.querySelector('[data-today="free"]'), null);
+  fire(w, sh.querySelector('[data-today="2"]'));
+  assert.deepEqual(plan(), ["std:Compleat & KetoCal", "std:Compleat & KetoCal", "std:KetoCal & Pre Apta", "std:Compleat & KetoCal"]);
+  assert.match($(w, "toast").textContent, /für Mahlzeit 3 \(14:00\) übernommen/);
+  fire(w, $(w, "today-btn"));
+  assert.match($(w, "today-sheet").querySelector('[data-today="2"]').textContent, /Mahlzeit 3 ✓/);
+  // Klick daneben schließt die Auswahl
+  fire(w, $(w, "detail-overlay")); assert.equal($(w, "today-sheet"), null);
+  // Ansehen: Detail zu, Heute offen, Zeitleiste zeigt die Rezepte
+  fire(w, $(w, "today-btn")); fire(w, $(w, "today-sheet").querySelector('[data-today="0"]'));
+  fire(w, [...$(w, "toast").querySelectorAll(".toast-btn")].find(b => b.textContent === "Ansehen"));
+  assert.ok($(w, "detail-overlay").hidden); assert.ok(!$(w, "view-heute").hidden);
+  assert.match($(w, "heute-content").querySelector(".zp-row.meal").textContent, /^7:00.*KetoCal & Pre Apta/);
+});

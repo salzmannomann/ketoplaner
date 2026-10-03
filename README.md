@@ -149,8 +149,14 @@ Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Punkte
 tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
 sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). Oben
 stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
-Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen Rezepten auch
-🗑️). Am Desktop sind die vier Blätter Reiter nebeneinander.
+Aktionsleiste **☆ Favorit · 🖨️ Drucken · 📅 Für heute · ✏️ Editor** (bei eigenen
+Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol). **📅 Für
+heute** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
+freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
+erscheint eine Meldung mit **Rückgängig** und **Ansehen** (wechselt zu Heute).
+Übernommen wird genau die offene Variante (mit oder ohne KetoCal); angepasste
+Portion und Wasser gelten auch im Tagesplan. Am Desktop sind die vier Blätter
+Reiter nebeneinander.
 
 1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Menge,
    Volumen), die Zutatentabelle je Portion und die Flüssigkeitszeile (Zutaten +

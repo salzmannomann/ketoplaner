@@ -43,6 +43,17 @@
     if (html !== undefined) e.innerHTML = html;
     return e;
   }
+  // Kurze Meldung unten am Bildschirm (über Overlays), mit optionalen Knöpfen [Beschriftung, Aktion]; verschwindet nach 7 s.
+  let toastTimer = null;
+  function showToast(html, buttons) {
+    let t = document.getElementById("toast");
+    if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn" data-ti="' + i + '">' + b[0] + '</button>').join("");
+    t.querySelectorAll(".toast-btn").forEach(b => b.addEventListener("click", () => { hideToast(); buttons[num(b.dataset.ti)][1](); }));
+    t.hidden = false; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
+  }
+  function hideToast() { const t = document.getElementById("toast"); if (t) { t.classList.remove("show"); t.hidden = true; } clearTimeout(toastTimer); }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
