@@ -1009,3 +1009,32 @@ test("Drucken aus dem Editor: Vorschau öffnet sich ohne Fehler, Öl als letzter
   assert.ok(!$(w, "print-overlay").hidden, "Vorschau offen");
   assert.match($(w, "print-sheet").shadowRoot.textContent, /Zutaten.*Zubereitung/);
 });
+
+test("Druckvorschau zoomen: zwei Finger auseinander vergrößert, Doppeltippen wechselt zwischen 2,5-fach und Seitenbreite", async () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 }, dayPlan: [0, 1, 2, 3].map(() => ({ key: "std:Compleat & KetoCal" })) });
+  fire(w, $(w, "tab-heute")); fire(w, $(w, "print-day"));
+  const ov = $(w, "print-overlay"), sc = ov.querySelector(".print-scroll"), sheet = $(w, "print-sheet");
+  const touch = (type, pts, changed) => { const ev = new w.Event(type, { bubbles: true, cancelable: true }); ev.touches = pts; ev.changedTouches = changed || pts; sc.dispatchEvent(ev); return ev; };
+  const zoomOf = () => parseFloat(sheet.style.zoom || "1");
+  const z0 = zoomOf();
+  // Pinch: Abstand 100 → 200 px
+  const ev = touch("touchstart", [{ clientX: 100, clientY: 200 }, { clientX: 200, clientY: 200 }]);
+  assert.ok(ev.defaultPrevented, "die App übernimmt das Zwei-Finger-Zoomen");
+  touch("touchmove", [{ clientX: 50, clientY: 200 }, { clientX: 250, clientY: 200 }]);
+  touch("touchend", [], [{ clientX: 250, clientY: 200 }]);
+  assert.ok(Math.abs(zoomOf() / z0 - 2) < 0.02, "doppelt so groß: " + zoomOf() + " statt " + z0);
+  assert.ok(ov.classList.contains("zoomed"));
+  // Doppeltippen: zurück auf Seitenbreite
+  const tap = () => { touch("touchstart", [{ clientX: 150, clientY: 300 }]); touch("touchend", [], [{ clientX: 150, clientY: 300 }]); };
+  tap(); tap();
+  assert.ok(Math.abs(zoomOf() - z0) < 0.002, "zurück auf Seitenbreite"); assert.ok(!ov.classList.contains("zoomed"));
+  await new Promise(r => setTimeout(r, 400));
+  tap(); tap();
+  assert.ok(Math.abs(zoomOf() / z0 - 2.5) < 0.02, "Doppeltippen vergrößert 2,5-fach");
+  // Nicht kleiner als Seitenbreite, nicht größer als 4-fach
+  touch("touchstart", [{ clientX: 100, clientY: 200 }, { clientX: 300, clientY: 200 }]); touch("touchmove", [{ clientX: 195, clientY: 200 }, { clientX: 205, clientY: 200 }]); touch("touchend", [], []);
+  assert.ok(Math.abs(zoomOf() - z0) < 0.002, "Untergrenze Seitenbreite");
+  // Neues Öffnen beginnt wieder bei Seitenbreite
+  fire(w, $(w, "print-back")); fire(w, $(w, "print-day"));
+  assert.ok(Math.abs(zoomOf() - z0) < 0.002);
+});

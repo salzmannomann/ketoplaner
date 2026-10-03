@@ -30,16 +30,67 @@
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
-    const sc = ov.querySelector(".print-scroll"); if (sc) sc.scrollTop = 0;
-    fitPrintSheet();
+    const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+    printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
   }
   // Vorschau als ganze A4-Seite: am Handy auf die Breite verkleinert (wie gedruckt bzw. als PDF geteilt).
+  // Zoomen in der Vorschau: Die App sperrt sonst das Zoomen (versehentliches Vergrößern beim Tippen) – hier gibt es
+  // ein eigenes Zoomen: zwei Finger auseinander/zusammen, Doppeltippen vergrößert bzw. zurück auf Seitenbreite.
+  // printZoom ist der Faktor über der Seitenbreite (1 = ganze Seite sichtbar, bis 4).
+  let printZoom = 1;
+  const PRINT_ZOOM_MAX = 4;
+  function printFitZoom() {
+    const ov = document.getElementById("print-overlay"); if (!ov) return 1;
+    const sc = ov.querySelector(".print-scroll");
+    const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = 794; // 210 mm bei 96 dpi
+    return avail > 0 ? Math.min(1, avail / full) : 1;
+  }
   function fitPrintSheet() {
     const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
-    const sc = ov.querySelector(".print-scroll"), sheet = ov.querySelector("#print-sheet");
-    const avail = (sc.clientWidth || window.innerWidth) - 20, full = 794; // 210 mm bei 96 dpi
-    const z = avail > 0 ? Math.min(1, avail / full) : 1;
-    sheet.style.zoom = z < 0.999 ? String(Math.round(z * 1000) / 1000) : "";
+    const sheet = ov.querySelector("#print-sheet");
+    const z = printFitZoom() * printZoom;
+    sheet.style.zoom = Math.abs(z - 1) > 0.001 ? String(Math.round(z * 1000) / 1000) : "";
+    ov.classList.toggle("zoomed", printZoom > 1.01);
+  }
+  // Zoom auf einen Punkt (Bildschirmkoordinaten) setzen: der Inhalt unter dem Punkt bleibt an seiner Stelle.
+  function setPrintZoom(f, cx, cy) {
+    const ov = document.getElementById("print-overlay"); if (!ov) return;
+    const sc = ov.querySelector(".print-scroll");
+    f = Math.max(1, Math.min(PRINT_ZOOM_MAX, f));
+    const r = sc.getBoundingClientRect(), px = (cx == null ? r.width / 2 : cx - r.left), py = (cy == null ? r.height / 2 : cy - r.top);
+    const k = f / printZoom, x = sc.scrollLeft + px, y = sc.scrollTop + py;
+    printZoom = f; fitPrintSheet();
+    sc.scrollLeft = Math.max(0, x * k - px); sc.scrollTop = Math.max(0, y * k - py);
+  }
+  function bindPrintZoom(sc) {
+    if (!sc || sc.dataset.zoomBound) return;
+    sc.dataset.zoomBound = "1";
+    let d0 = 0, f0 = 1, lastTap = 0, moved = false;
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const mid = (t) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+    sc.addEventListener("touchstart", (e) => {
+      if (e.touches && e.touches.length === 2) { d0 = dist(e.touches); f0 = printZoom; e.preventDefault(); }
+      else moved = false;
+    }, { passive: false });
+    sc.addEventListener("touchmove", (e) => {
+      if (e.touches && e.touches.length === 2 && d0 > 0) {
+        e.preventDefault();
+        const m = mid(e.touches);
+        setPrintZoom(f0 * dist(e.touches) / d0, m.x, m.y);
+      } else moved = true;
+    }, { passive: false });
+    sc.addEventListener("touchend", (e) => {
+      if (d0 > 0) { if (!e.touches || e.touches.length < 2) d0 = 0; return; }
+      if (moved || !e.changedTouches || !e.changedTouches[0]) return;
+      const now = Date.now(), t = e.changedTouches[0];
+      if (now - lastTap < 320) { lastTap = 0; setPrintZoom(printZoom > 1.01 ? 1 : 2.5, t.clientX, t.clientY); e.preventDefault(); }
+      else lastTap = now;
+    }, { passive: false });
+    // Am Computer: Strg/Cmd + Mausrad zoomt die Vorschau
+    sc.addEventListener("wheel", (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault(); setPrintZoom(printZoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+    }, { passive: false });
   }
   if (typeof window !== "undefined") window.addEventListener("resize", fitPrintSheet);
   function closePrintView() {

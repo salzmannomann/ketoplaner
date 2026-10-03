@@ -157,7 +157,10 @@ Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol).
 **🖨️ Drucken** (Rezept, Tagesplan, eigenes Rezept) öffnet eine **Druckvorschau in
 der App** – die ganze A4-Seite, am Handy auf die Breite verkleinert – mit
 **‹ Zurück**, **📤 Teilen** und **🖨️ Drucken**. Kein neues Fenster, damit es auch
-in der am iPhone installierten App funktioniert. **📤 Teilen** erzeugt aus
+in der am iPhone installierten App funktioniert. Die Vorschau lässt sich
+**zoomen**: zwei Finger auseinanderziehen (bis 4-fach), Doppeltippen wechselt
+zwischen 2,5-fach und Seitenbreite, mit einem Finger verschieben, am Desktop
+Strg/⌘ + Mausrad. Der Rest der App bleibt wie bisher nicht zoombar. **📤 Teilen** erzeugt aus
 derselben Vorlage ein **PDF** (z. B. „Tagesplan 2026-10-03.pdf“, „Hendl &
 Brokkoli.pdf“) und öffnet das Teilen-Menü (WhatsApp, Signal, Mail, Dateien); am
 Desktop wird es heruntergeladen. Das PDF entsteht offline in der App (jsPDF);

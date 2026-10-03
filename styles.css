@@ -1250,3 +1250,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .print-bar #print-back { margin-right: auto; }
   .print-bar .btn { padding: 8px 11px; font-size: 13.5px; }
 }
+/* Vorschau zoombar: mit einem Finger verschieben, das Zwei-Finger-Zoomen übernimmt die App (Seite selbst bleibt fix) */
+.print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
+.print-overlay.zoomed .print-sheet { margin: 0; }
