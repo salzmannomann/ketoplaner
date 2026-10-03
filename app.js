@@ -2035,13 +2035,35 @@
         "<div><b>" + fmtRatio(ratioDay, 2) + "</b><span>Verhältnis · Ziel " + fmtTarget(d.ratio) + "</span></div>" +
         (d.fluidDay > 0 ? "<div><b>" + (dm.known < d.mahl ? "ca. " : "") + fmt(wp.total, 0) + " ml</b><span>Flüssigkeit · Ziel " + fmt(d.fluidDay, 0) + "</span></div>" : "") + "</div>"
       : "";
-    const rows = facts.map((f, i) => f
-      ? "<tr><td class='nw'>" + (i + 1) + "</td><td>" + escapeHtml(f.rec.name) + "</td><td class='num'>" + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td>" +
-        "<td class='num'>" + fmt(f.sum.kcal, 0) + "</td><td class='num'>" + fmt(f.sum.eiweiss) + " g</td><td class='num'>" + fmtRatio(f.ratio, 2) + "</td></tr>"
-      : "<tr><td>" + (i + 1) + "</td><td colspan='6'><small>nicht geplant</small></td></tr>").join("");
+    // Mahlzeiten im Detail: je Rezept ein Block mit den Zutaten einer Portion (zwei Spalten), gleiche
+    // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), darunter Abfüllen und Öl vor dem Füttern.
+    const isOilD = (n) => /öl|oil/i.test(n || "");
+    const groups = [];
+    facts.forEach((f, i) => {
+      if (!f) return;
+      const sig = f.rec.name + "|" + f.res.items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
+      const g = groups.find(x => x.sig === sig);
+      if (g) g.nums.push(i + 1); else groups.push({ sig, f, nums: [i + 1] });
+    });
+    const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
+    const blocks = groups.map(({ f, nums }) => {
+      const ing = f.res.items.filter(it => !isOilD(it.food) && num(it.grams) > 0);
+      const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
+      let rows = "";
+      for (let k = 0; k < ing.length; k += 2) rows += "<tr>" + cell(ing[k]) + cell(ing[k + 1]) + "</tr>";
+      const hi = proteinState(f.sum.eiweiss, d.eiweissMahl) === "high";
+      return "<tr class='grp'><td colspan='4'><b>Mahlzeit " + nums.join(" + ") + " · " + escapeHtml(f.rec.name) + "</b> " +
+        "<small>" + fmt(f.sum.kcal, 0) + " kcal · Eiweiß " + fmt(f.sum.eiweiss) + " g" + (hi ? " (hoch)" : "") + " · Fett " + fmt(f.sum.fett) + " g · KH " + fmt(f.sum.kh) + " g · Verhältnis " + fmtRatio(f.ratio, 2) + "</small></td></tr>" +
+        rows +
+        "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(f.mlNoOil, 0) + " ml" : "Abfüllen ohne Öl: ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml") +
+        (f.hasOil ? " · <b>vor dem Füttern einrühren:</b> " + oilTxtOf(f) : "") + "</td></tr>";
+    }).join("");
+    const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
     const detail = tot.filled
-      ? "<h2>Mahlzeiten im Detail</h2><table><thead><tr><th>#</th><th>Rezept</th><th class='num'>Abfüllen ohne Öl</th><th>Öl vor dem Füttern</th><th class='num'>kcal</th><th class='num'>Eiweiß</th><th class='num'>Verhältnis</th></tr></thead><tbody>" + rows +
-        "<tr class='sum'><td></td><td>Summe</td><td></td><td>" + [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ") + "</td><td class='num'>" + fmt(tot.kcal, 0) + "</td><td class='num'>" + fmt(tot.eiweiss) + " g</td><td class='num'>" + fmtRatio(ratioDay, 2) + "</td></tr></tbody></table>"
+      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'><tbody>" + blocks +
+        (open.length ? "<tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr>" : "") +
+        "</tbody></table>" +
+        (oilDay ? "<p class='note'><b>Öl für den ganzen Tag:</b> " + oilDay + "</p>" : "")
       : "";
     const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +
       (d.fluidDay > 0 ? " · Flüssigkeit " + fmt(d.fluidDay, 0) + " ml/Tag" : "") + (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + "</p>";
@@ -2286,6 +2308,12 @@
     ".sums{display:flex;gap:3mm;margin:1mm 0}.sums div{flex:1;border:.6pt solid #cfdcd3;border-radius:1.5mm;padding:1.6mm 2mm}" +
     ".sums b{display:block;font-size:12pt}.sums span{font-size:8.5pt;color:#555}" +
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
+    "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
+    "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
+    "table.meals tr.grp:first-child td{border-top:none}" +
+    "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
+    "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
+    ".note{margin:2mm 0 0;font-size:9.5pt}" +
     "tr,li,.box{break-inside:avoid}" +
     ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
   function printDoc(title, meta, bodyHtml) {
@@ -2422,12 +2450,39 @@
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
           if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
           if (data.section === "body") {
+            if (/\bmeals\b/.test(tbl.className)) {
+              data.cell.styles.lineWidth = 0;
+              if (/\bgrp\b/.test(cls)) {
+                // Kopfzeile je Rezept: Name fett, Nährwerte klein dahinter
+                const b = el.querySelector("b"), s = el.querySelector("small");
+                data.cell.text = [pdfText(b ? b.textContent : el.textContent)];
+                data.cell.smallText = s ? pdfText(s.textContent) : "";
+                data.cell.styles.fillColor = [238, 245, 240]; data.cell.styles.fontStyle = "bold";
+                data.cell.styles.lineWidth = { bottom: 0.25 }; data.cell.styles.lineColor = [155, 184, 166];
+                data.cell.styles.cellPadding = { top: 1.6, bottom: 1.4, left: 1.4, right: 1.4 };
+              } else if (/\bft\b/.test(cls)) {
+                data.cell.styles.fontSize = 8.4; data.cell.styles.textColor = [51, 51, 51];
+                data.cell.styles.cellPadding = { top: 1.2, bottom: 3.2, left: 1.4, right: 1.4 };
+              } else {
+                data.cell.styles.cellPadding = { top: 0.8, bottom: 0.8, left: 1.4, right: el.classList.contains("g") ? 6 : 1.4 };
+                data.cell.styles.cellWidth = el.classList.contains("g") ? W * 0.16 : W * 0.34;
+              }
+            }
             if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
             if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
             if (/\bsum\b/.test(cls)) { data.cell.styles.fontStyle = "bold"; data.cell.styles.lineWidth = { top: 0.35 }; data.cell.styles.lineColor = [119, 119, 119]; }
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
+        },
+        didDrawCell: (data) => {
+          // Nährwerte klein und normal hinter dem fetten Rezeptnamen
+          if (!data.cell.smallText) return;
+          const name = (data.cell.text || []).join(" ");
+          font(data.cell.styles.fontSize, true);
+          const x = data.cell.x + data.cell.padding("left") + doc.getTextWidth(name) + 2.5;
+          font(7.8, false, MUTED);
+          doc.text(data.cell.smallText, x, data.cell.y + data.cell.height / 2, { baseline: "middle" });
         },
       });
       y = doc.lastAutoTable.finalY + 2.5;
@@ -2455,7 +2510,20 @@
         font(9, false, MUTED); metaLines.forEach((l, i) => doc.text(l, PW - M, y + 3.5 + i * 4, { align: "right" }));
         y += Math.max(titleLines.length * lh, metaLines.length * 4 + 1) + 1.5;
         doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.45); doc.line(M, y, PW - M, y); y += 3.5;
-      } else if (tag === "h2") { ensure(12); para(el.textContent, { size: 11.5, bold: true, color: GREEN, gap: 1 }); }
+      } else if (tag === "h2") {
+        ensure(12);
+        const sm = el.querySelector("small"), main = el.cloneNode(true);
+        [...main.querySelectorAll("small")].forEach(n => n.remove());
+        if (!sm) para(el.textContent, { size: 11.5, bold: true, color: GREEN, gap: 1 });
+        else {
+          // Zusatz in der Überschrift klein und grau
+          const lh = lineH(11.5), t = pdfText(main.textContent);
+          font(11.5, true, GREEN); doc.text(t, M, y + lh * 0.78);
+          const x = M + doc.getTextWidth(t) + 2;
+          font(8.5, false, MUTED); doc.text(pdfText(sm.textContent), x, y + lh * 0.78);
+          y += lh + 1;
+        }
+      }
       else if (tag === "table") table(el);
       else if (tag === "ol") {
         [...el.children].forEach((li, i) => {
@@ -2470,6 +2538,7 @@
       } else if (/\bbox\b/.test(cls)) box(el);
       else if (/\bsums\b/.test(cls)) sums(el);
       else if (/\bfoot\b/.test(cls)) { y += 3; para(el.textContent, { size: 8, color: MUTED }); }
+      else if (/\bnote\b/.test(cls)) para(el.textContent, { size: 9.5, gap: 2 });
       else if (/\brx\b/.test(cls)) para(el.textContent, { size: 9.5, color: [51, 51, 51], gap: 2 });
       else para(el.textContent, { size: 10 });
     });

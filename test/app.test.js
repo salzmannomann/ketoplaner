@@ -988,6 +988,16 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   await new Promise(r => setTimeout(r, 50));
   assert.ok(shared && shared.files && shared.files[0], "Teilen-Menü bekommt eine Datei");
   assert.equal(w.document.getElementById("print-sheet").shadowRoot.querySelectorAll("td.chk, .chk").length, 0, "keine Kästchen zum Abhaken");
+  // Mahlzeiten im Detail: gleiche Rezepte zusammengefasst, Zutaten je Portion, Öl nicht in der Zutatenliste
+  const ps = w.document.getElementById("print-sheet").shadowRoot;
+  const grp = [...ps.querySelectorAll("table.meals tr.grp")].map(r => r.textContent);
+  assert.equal(grp.length, 2, grp.join(" | "));
+  assert.match(grp[0], /Mahlzeit 1 \+ 2 \+ 4 · Compleat & KetoCal.*kcal.*Eiweiß.*Verhältnis/);
+  assert.match(grp[1], /Mahlzeit 3 · Hendl & Brokkoli/);
+  const ing = [...ps.querySelectorAll("table.meals td.ing")].map(td => td.textContent).filter(Boolean);
+  assert.ok(ing.some(t => /Hühnerbrust/.test(t)) && !ing.some(t => /öl/i.test(t)), ing.join(", "));
+  assert.match(ps.querySelector("table.meals").textContent, /vor dem Füttern einrühren:.*Rapsöl/);
+  assert.match(ps.querySelector(".note").textContent, /Öl für den ganzen Tag: Rapsöl/);
   const f = shared.files[0];
   assert.match(f.name, /^Tagesplan \d{4}-\d{2}-\d{2}\.pdf$/); assert.equal(f.type, "application/pdf");
   const buf = Buffer.from(await new Promise(res => { const fr = new w.FileReader(); fr.onload = () => res(fr.result); fr.readAsArrayBuffer(f); }));

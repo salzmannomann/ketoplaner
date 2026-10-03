@@ -61,12 +61,39 @@
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
           if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
           if (data.section === "body") {
+            if (/\bmeals\b/.test(tbl.className)) {
+              data.cell.styles.lineWidth = 0;
+              if (/\bgrp\b/.test(cls)) {
+                // Kopfzeile je Rezept: Name fett, Nährwerte klein dahinter
+                const b = el.querySelector("b"), s = el.querySelector("small");
+                data.cell.text = [pdfText(b ? b.textContent : el.textContent)];
+                data.cell.smallText = s ? pdfText(s.textContent) : "";
+                data.cell.styles.fillColor = [238, 245, 240]; data.cell.styles.fontStyle = "bold";
+                data.cell.styles.lineWidth = { bottom: 0.25 }; data.cell.styles.lineColor = [155, 184, 166];
+                data.cell.styles.cellPadding = { top: 1.6, bottom: 1.4, left: 1.4, right: 1.4 };
+              } else if (/\bft\b/.test(cls)) {
+                data.cell.styles.fontSize = 8.4; data.cell.styles.textColor = [51, 51, 51];
+                data.cell.styles.cellPadding = { top: 1.2, bottom: 3.2, left: 1.4, right: 1.4 };
+              } else {
+                data.cell.styles.cellPadding = { top: 0.8, bottom: 0.8, left: 1.4, right: el.classList.contains("g") ? 6 : 1.4 };
+                data.cell.styles.cellWidth = el.classList.contains("g") ? W * 0.16 : W * 0.34;
+              }
+            }
             if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
             if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
             if (/\bsum\b/.test(cls)) { data.cell.styles.fontStyle = "bold"; data.cell.styles.lineWidth = { top: 0.35 }; data.cell.styles.lineColor = [119, 119, 119]; }
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
+        },
+        didDrawCell: (data) => {
+          // Nährwerte klein und normal hinter dem fetten Rezeptnamen
+          if (!data.cell.smallText) return;
+          const name = (data.cell.text || []).join(" ");
+          font(data.cell.styles.fontSize, true);
+          const x = data.cell.x + data.cell.padding("left") + doc.getTextWidth(name) + 2.5;
+          font(7.8, false, MUTED);
+          doc.text(data.cell.smallText, x, data.cell.y + data.cell.height / 2, { baseline: "middle" });
         },
       });
       y = doc.lastAutoTable.finalY + 2.5;
@@ -94,7 +121,20 @@
         font(9, false, MUTED); metaLines.forEach((l, i) => doc.text(l, PW - M, y + 3.5 + i * 4, { align: "right" }));
         y += Math.max(titleLines.length * lh, metaLines.length * 4 + 1) + 1.5;
         doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.45); doc.line(M, y, PW - M, y); y += 3.5;
-      } else if (tag === "h2") { ensure(12); para(el.textContent, { size: 11.5, bold: true, color: GREEN, gap: 1 }); }
+      } else if (tag === "h2") {
+        ensure(12);
+        const sm = el.querySelector("small"), main = el.cloneNode(true);
+        [...main.querySelectorAll("small")].forEach(n => n.remove());
+        if (!sm) para(el.textContent, { size: 11.5, bold: true, color: GREEN, gap: 1 });
+        else {
+          // Zusatz in der Überschrift klein und grau
+          const lh = lineH(11.5), t = pdfText(main.textContent);
+          font(11.5, true, GREEN); doc.text(t, M, y + lh * 0.78);
+          const x = M + doc.getTextWidth(t) + 2;
+          font(8.5, false, MUTED); doc.text(pdfText(sm.textContent), x, y + lh * 0.78);
+          y += lh + 1;
+        }
+      }
       else if (tag === "table") table(el);
       else if (tag === "ol") {
         [...el.children].forEach((li, i) => {
@@ -109,6 +149,7 @@
       } else if (/\bbox\b/.test(cls)) box(el);
       else if (/\bsums\b/.test(cls)) sums(el);
       else if (/\bfoot\b/.test(cls)) { y += 3; para(el.textContent, { size: 8, color: MUTED }); }
+      else if (/\bnote\b/.test(cls)) para(el.textContent, { size: 9.5, gap: 2 });
       else if (/\brx\b/.test(cls)) para(el.textContent, { size: 9.5, color: [51, 51, 51], gap: 2 });
       else para(el.textContent, { size: 10 });
     });

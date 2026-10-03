@@ -119,6 +119,12 @@
     ".sums{display:flex;gap:3mm;margin:1mm 0}.sums div{flex:1;border:.6pt solid #cfdcd3;border-radius:1.5mm;padding:1.6mm 2mm}" +
     ".sums b{display:block;font-size:12pt}.sums span{font-size:8.5pt;color:#555}" +
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
+    "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
+    "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
+    "table.meals tr.grp:first-child td{border-top:none}" +
+    "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
+    "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
+    ".note{margin:2mm 0 0;font-size:9.5pt}" +
     "tr,li,.box{break-inside:avoid}" +
     ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
   function printDoc(title, meta, bodyHtml) {

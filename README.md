@@ -170,8 +170,11 @@ Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
 Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den
 **Zeitplan** (Uhrzeit, Was, Menge, Öl vor dem Füttern,
 Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
-Kennzahlen und darunter die **Mahlzeiten im Detail** fürs Team (Abfüllen ohne Öl,
-Öl, kcal, Eiweiß, Verhältnis). Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
+Kennzahlen und darunter die **Mahlzeiten im Detail**: je Rezept ein Block
+(gleiche Mahlzeiten zusammengefasst, z. B. „Mahlzeit 3 + 4“) mit kcal, Eiweiß,
+Fett, KH und Verhältnis in der Kopfzeile, den **Zutaten je Portion** in zwei
+Spalten und darunter Abfüllen (ohne Öl) bzw. Anrühren und das Öl vor dem
+Füttern; am Ende das Öl für den ganzen Tag. Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
 die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (ohne Öl,
 Öl vor dem Füttern), ggf. den Eiweiß-Hinweis und die **nummerierten
