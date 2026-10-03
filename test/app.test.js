@@ -987,6 +987,7 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   fire(w, $(w, "print-share"));
   await new Promise(r => setTimeout(r, 50));
   assert.ok(shared && shared.files && shared.files[0], "Teilen-Menü bekommt eine Datei");
+  assert.equal(w.document.getElementById("print-sheet").shadowRoot.querySelectorAll("td.chk, .chk").length, 0, "keine Kästchen zum Abhaken");
   const f = shared.files[0];
   assert.match(f.name, /^Tagesplan \d{4}-\d{2}-\d{2}\.pdf$/); assert.equal(f.type, "application/pdf");
   const buf = Buffer.from(await new Promise(res => { const fr = new w.FileReader(); fr.onload = () => res(fr.result); fr.readAsArrayBuffer(f); }));

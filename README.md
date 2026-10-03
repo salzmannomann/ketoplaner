@@ -165,7 +165,7 @@ Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
 Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den
-**Zeitplan mit Abhak-Kästchen** (Uhrzeit, Was, Menge, Öl vor dem Füttern,
+**Zeitplan** (Uhrzeit, Was, Menge, Öl vor dem Füttern,
 Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
 Kennzahlen und darunter die **Mahlzeiten im Detail** fürs Team (Abfüllen ohne Öl,
 Öl, kcal, Eiweiß, Verhältnis). Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,

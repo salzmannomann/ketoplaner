@@ -60,7 +60,6 @@
           const tr = el.parentElement, cls = tr ? tr.className : "";
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
           if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
-          if (el.classList.contains("chk")) { data.cell.styles.cellWidth = 7; data.cell.text = [""]; }
           if (data.section === "body") {
             if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
             if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
@@ -68,13 +67,6 @@
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
-        },
-        didDrawCell: (data) => {
-          const el = data.cell.raw && data.cell.raw.nodeType === 1 ? data.cell.raw : null;
-          if (data.section === "body" && el && el.classList.contains("chk") && el.querySelector("span")) {
-            doc.setDrawColor(85, 85, 85); doc.setLineWidth(0.25);
-            doc.roundedRect(data.cell.x + 1.6, data.cell.y + 1.5, 3.4, 3.4, 0.6, 0.6, "S");
-          }
         },
       });
       y = doc.lastAutoTable.finalY + 2.5;

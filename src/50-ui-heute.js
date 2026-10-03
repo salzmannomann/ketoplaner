@@ -164,7 +164,7 @@
     document.getElementById("picker-search").addEventListener("input", renderPicker);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
   }
-  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan mit Abhak-Kästchen (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
+  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
@@ -172,13 +172,13 @@
     const zr = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='chk'><span></span></td><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
+      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
         "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
     });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='chk'><span></span></td><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='chk'></td><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
+    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
+    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
     zr.sort((a, b) => a.t - b.t);
-    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th></th><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
+    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
       zr.map(r => r.h).join("") + "</tbody></table>" +
       "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
       "Öl erst unmittelbar vor dem Füttern in die Portion einrühren. Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";

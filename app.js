@@ -2008,7 +2008,7 @@
     document.getElementById("picker-search").addEventListener("input", renderPicker);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
   }
-  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan mit Abhak-Kästchen (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
+  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
@@ -2016,13 +2016,13 @@
     const zr = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='chk'><span></span></td><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
+      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
         "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
     });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='chk'><span></span></td><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='chk'></td><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
+    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
+    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
     zr.sort((a, b) => a.t - b.t);
-    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th></th><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
+    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
       zr.map(r => r.h).join("") + "</tbody></table>" +
       "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
       "Öl erst unmittelbar vor dem Füttern in die Portion einrühren. Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
@@ -2229,7 +2229,6 @@
     "td.t{font-weight:bold;white-space:nowrap;width:15mm}" +
     "tr.water td{background:#f3f8fc;color:#24557f}tr.sleep td{color:#777}" +
     "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
-    "td.chk{width:7mm}td.chk span{display:inline-block;width:3.6mm;height:3.6mm;border:.8pt solid #555;border-radius:.8mm}" +
     "small{color:#666;font-size:8.5pt}" +
     ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
     ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
@@ -2371,7 +2370,6 @@
           const tr = el.parentElement, cls = tr ? tr.className : "";
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
           if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
-          if (el.classList.contains("chk")) { data.cell.styles.cellWidth = 7; data.cell.text = [""]; }
           if (data.section === "body") {
             if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
             if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
@@ -2379,13 +2377,6 @@
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
-        },
-        didDrawCell: (data) => {
-          const el = data.cell.raw && data.cell.raw.nodeType === 1 ? data.cell.raw : null;
-          if (data.section === "body" && el && el.classList.contains("chk") && el.querySelector("span")) {
-            doc.setDrawColor(85, 85, 85); doc.setLineWidth(0.25);
-            doc.roundedRect(data.cell.x + 1.6, data.cell.y + 1.5, 3.4, 3.4, 0.6, 0.6, "S");
-          }
         },
       });
       y = doc.lastAutoTable.finalY + 2.5;

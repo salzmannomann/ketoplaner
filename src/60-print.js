@@ -62,7 +62,6 @@
     "td.t{font-weight:bold;white-space:nowrap;width:15mm}" +
     "tr.water td{background:#f3f8fc;color:#24557f}tr.sleep td{color:#777}" +
     "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
-    "td.chk{width:7mm}td.chk span{display:inline-block;width:3.6mm;height:3.6mm;border:.8pt solid #555;border-radius:.8mm}" +
     "small{color:#666;font-size:8.5pt}" +
     ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
     ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
