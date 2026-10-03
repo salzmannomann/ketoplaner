@@ -1170,3 +1170,4 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .detail-actions .btn.icon-lbl .lbl { display: none; }
   .today-sheet { bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
+.pick-vol.big { color: var(--yellow); font-weight: 600; }

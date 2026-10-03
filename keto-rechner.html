@@ -1188,6 +1188,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .detail-actions .btn.icon-lbl .lbl { display: none; }
   .today-sheet { bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
+.pick-vol.big { color: var(--yellow); font-weight: 600; }
 
 </style>
 </head>
@@ -4088,7 +4089,12 @@ const RECIPES_SONDE = [
     box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
     const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
     const cd = box.querySelector("#clear-day");
-    if (cd) cd.addEventListener("click", () => { if (confirm("Tagesplan leeren?")) { state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderHeute(); } });
+    if (cd) cd.addEventListener("click", () => {
+      if (!state.dayPlan.some(sl => sl && sl.key)) return;
+      const prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
+      state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderRezepte();
+      showToast("🗑️ Tagesplan geleert", [["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }]]);
+    });
   }
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)
   let pickerSlot = -1;
@@ -4111,12 +4117,14 @@ const RECIPES_SONDE = [
       .filter(x => !state.settings.hideKeto || !x.rec.ketocal)
       .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
       .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
+      .map(x => Object.assign(x, { res: computeMealView(x.rec, d, null).res }))
       .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0)); });
     list.innerHTML = recs.map(x => {
-      const s = sumMacros(x.res.items);
+      const s = sumMacros(x.res.items), vol = volumeMl(x.res.items);
+      const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5;
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '"><span class="pick-icon">' + (x.rec.icon || "🥑") + '</span>' +
         '<span class="pick-name">' + escapeHtml(x.fam.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + fmt(s.kcal, 0) + " kcal · Eiweiß " + fmt(s.eiweiss) + " g" + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + (x.rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(x.rec)) : "") + "</span></button>";
+        '<span class="pick-meta">' + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">≈ ' + fmt(vol, 0) + ' ml' + (big ? ' ⚠️' : '') + '</span> · Eiweiß ' + fmt(s.eiweiss) + " g" + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + (x.rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(x.rec)) : "") + "</span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
       if (pickerSlot >= 0) { ensureDayPlan(derived()); state.dayPlan[pickerSlot] = { key: b.dataset.key }; save(); }

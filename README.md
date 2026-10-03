@@ -208,7 +208,9 @@ Verhältnis und Flüssigkeit.
 
 In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, kcal, Volumen,
 Öl und Eiweiß; ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp öffnet das
-Rezept. Offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte Menge.
+Rezept. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️ über
+25 ml/kg) und Eiweiß. 🗑️ leert den Plan ohne Rückfrage, mit **Rückgängig** in der
+Meldung. Offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte Menge.
 Die Mahlzeiten liegen gleichmäßig zwischen erster und letzter; dazwischen
 stehen einzeilig die **Wassergaben** (Mitte jeder Pause, dann ist der Magen
 weitgehend leer, und eine vor dem Schlafen). Die Menge je Wassergabe ergibt

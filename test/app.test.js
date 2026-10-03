@@ -540,6 +540,8 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot.empty-slot").length, 5);
   fire(w, hc.querySelector("[data-pick=\"0\"]"));
   assert.equal($(w, "picker-overlay").hidden, false);
+  // Auswahl zeigt je Rezept kcal, Volumen der Mahlzeit und Eiweiß
+  assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · ≈ [\d.]+ ml.* · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
   hc = $(w, "heute-content");
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
@@ -551,6 +553,15 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
   fire(w, hc.querySelector('.zp-row.slot [data-clear="0"]'));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 5, "Entfernen leert die Zeile");
+  // Plan leeren ohne Rückfrage, mit Rückgängig
+  fire(w, hc.querySelector('[data-pick="1"]'));
+  fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
+  w.confirm = () => { throw new Error("keine Rückfrage mehr"); };
+  fire(w, $(w, "clear-day"));
+  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 5, "geleert");
+  assert.match($(w, "toast").textContent, /Tagesplan geleert/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.equal($(w, "heute-content").querySelectorAll(".slot:not(.empty-slot)").length, 1, "Rückgängig stellt den Plan wieder her");
   $(w, "set-mahlzeiten").value = "3"; fire(w, $(w, "set-mahlzeiten"), "input");
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
 });
