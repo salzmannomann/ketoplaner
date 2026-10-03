@@ -1224,3 +1224,22 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
 .zp-vol { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
 .zp-vol small { font-size: 11px; color: var(--muted); font-style: normal; }
+
+/* Druckvorschau in der App: Leiste mit Zurück und Drucken, darunter das weiße Blatt. Beim Drucken nur das Blatt. */
+.print-overlay { position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: #e9edf0; }
+.print-overlay[hidden] { display: none; }
+.print-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; padding-top: calc(10px + env(safe-area-inset-top)); background: var(--panel); border-bottom: 1px solid var(--line); }
+.print-bar .print-title { flex: 1; min-width: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
+.print-bar .btn { padding: 8px 14px; font-size: 14px; white-space: nowrap; }
+.print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.print-sheet { max-width: 794px; margin: 0 auto; background: #fff; color: #1f2933; padding: 18mm 16mm; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 4px; }
+@media (max-width: 560px) { .print-sheet { padding: 16px 12px; } .print-scroll { padding: 10px; } }
+@media print {
+  @page { size: A4 portrait; margin: 16mm; }
+  body.printing > *:not(#print-overlay) { display: none !important; }
+  body.printing, body.printing.modal-open { position: static !important; top: auto !important; overflow: visible !important; background: #fff !important; }
+  body.printing .print-overlay { position: static; display: block; background: #fff; }
+  body.printing .print-bar { display: none; }
+  body.printing .print-scroll { overflow: visible; padding: 0; }
+  body.printing .print-sheet { max-width: none; padding: 0; box-shadow: none; border-radius: 0; }
+}

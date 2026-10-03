@@ -950,3 +950,26 @@ test("Kochen: Öl wird nicht mitpüriert, letzter Schritt nennt Öl je Portion v
   assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Öl kommt nicht in den Topf/);
   assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Rapsöl( \+ MCT-Öl)? erst kurz vor dem Füttern/);
 });
+
+test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken (iPhone-App)", () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 }, dayPlan: [0, 1, 2, 3].map(() => ({ key: "std:Compleat & KetoCal" })) });
+  let opened = 0, printed = 0; w.open = () => { opened++; return null; }; w.print = () => { printed++; };
+  fire(w, $(w, "tab-heute"));
+  fire(w, $(w, "print-day"));
+  const ov = $(w, "print-overlay");
+  assert.ok(ov && !ov.hidden, "Vorschau offen"); assert.equal(opened, 0, "kein neues Fenster");
+  const root = $(w, "print-sheet").shadowRoot;
+  assert.match(root.textContent, /Zeitplan.*7:00.*Mahlzeit 1/);
+  assert.doesNotMatch(root.querySelector("style").textContent, /(^|[}\s])body\s*\{|@page/, "Druckstil berührt die App nicht");
+  assert.ok(w.document.body.classList.contains("printing"));
+  fire(w, $(w, "print-go")); assert.equal(printed, 1, "Drucken ruft den Druckdialog");
+  fire(w, $(w, "print-back"));
+  assert.ok(ov.hidden, "Zurück schließt die Vorschau"); assert.ok(!w.document.body.classList.contains("printing"));
+  assert.ok(!w.document.body.classList.contains("modal-open"), "Seite wieder scrollbar");
+  // Rezept-Ausdruck aus der Detailansicht: Vorschau liegt über dem Rezept, Zurück führt ins Rezept
+  const c = openRecipe(w, "Compleat & KetoCal");
+  fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
+  assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal \(mit KetoCal\)/);
+  fire(w, $(w, "print-back"));
+  assert.ok(ov.hidden); assert.ok(!$(w, "detail-overlay").hidden, "Rezept bleibt offen");
+});

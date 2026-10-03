@@ -153,7 +153,11 @@ tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
 sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). Oben
 stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
 Aktionsleiste **☆ Favorit · 🖨️ Drucken · 📅 Für heute · ✏️ Editor** (bei eigenen
-Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol). **📅 Für
+Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol).
+**🖨️ Drucken** (Rezept, Tagesplan, eigenes Rezept) öffnet eine **Druckvorschau in
+der App** mit **‹ Zurück** und **🖨️ Drucken** – kein neues Fenster, damit es auch
+in der am iPhone installierten App funktioniert (Druckdialog mit AirPrint oder
+„Als PDF sichern“); gedruckt wird nur das weiße Blatt. **📅 Für
 heute** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
 freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
 erscheint eine Meldung mit **Rückgängig** und **Ansehen** (wechselt zu Heute).

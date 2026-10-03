@@ -2034,11 +2034,7 @@
       "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
       "</tbody></table><p class='sub'>Verhältnis über den Tag: " + fmtRatio(ratioDay, 2) + " · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
-    let w = null;
-    try { w = window.open("", "_blank"); } catch (e) {}
-    if (!w) { alert("Bitte Pop-ups für diese Seite erlauben, um drucken zu können."); return; }
-    w.document.open(); w.document.write(html); w.document.close(); w.focus();
-    setTimeout(() => { try { w.print(); } catch (e) {} }, 250);
+    openPrintView(html);
   }
 
   /* ---------- Zeitplan: Uhrzeiten für Mahlzeiten und Wassergaben ----------
@@ -2157,7 +2153,38 @@
     if (tg) tg.addEventListener("click", () => { zpEdit = !zpEdit; renderHeute(); });
   }
 
-  /* ---------- Drucken (A4 Hochformat) ---------- */
+  /* ---------- Drucken (A4 Hochformat) ----------
+     Der Ausdruck öffnet sich als Vorschau in der App (kein neues Fenster – in der installierten iPhone-App gäbe es
+     dort weder Zurück noch zuverlässig einen Druckdialog). Inhalt und Stil liegen in einem Shadow-DOM, damit die
+     Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css). */
+  function openPrintView(html) {
+    const css = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "")
+      .replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
+    const body = (html.match(/<body>([\s\S]*?)<\/body>/) || [])[1] || html;
+    const title = ((html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "Drucken");
+    let ov = document.getElementById("print-overlay");
+    if (!ov) {
+      ov = document.createElement("div");
+      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
+      ov.innerHTML = '<div class="print-bar"><button type="button" class="btn secondary" id="print-back">‹ Zurück</button>' +
+        '<span class="print-title"></span><button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
+        '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
+      document.body.appendChild(ov);
+      ov.querySelector("#print-back").addEventListener("click", closePrintView);
+      ov.querySelector("#print-go").addEventListener("click", () => { try { window.print(); } catch (e) {} });
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePrintView(); });
+    }
+    ov.querySelector(".print-title").textContent = title.replace(/&amp;/g, "&");
+    const sheet = ov.querySelector("#print-sheet");
+    const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
+    root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
+    ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
+    const sc = ov.querySelector(".print-scroll"); if (sc) sc.scrollTop = 0;
+  }
+  function closePrintView() {
+    const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
+    ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
+  }
   function printRecipe(rec, res, d, mult) {
     mult = mult || 1;
     const hasMct = res.items.some(it => it.food === "MCT-Öl C8+C10");
@@ -2219,12 +2246,7 @@
         : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + (oilStepP ? " " + escapeHtml(oilStepP) : "") + "</div>" : "")) +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
       "</body></html>";
-    let w = null;
-    try { w = window.open("", "_blank"); } catch (e) {}
-    if (!w) { alert("Bitte Pop-ups für diese Seite erlauben, um drucken zu können."); return; }
-    w.document.open(); w.document.write(html); w.document.close();
-    w.focus();
-    setTimeout(() => { try { w.print(); } catch (e) {} }, 250);
+    openPrintView(html);
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */

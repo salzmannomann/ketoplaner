@@ -190,9 +190,5 @@
       "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
       "</tbody></table><p class='sub'>Verhältnis über den Tag: " + fmtRatio(ratioDay, 2) + " · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
       "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
-    let w = null;
-    try { w = window.open("", "_blank"); } catch (e) {}
-    if (!w) { alert("Bitte Pop-ups für diese Seite erlauben, um drucken zu können."); return; }
-    w.document.open(); w.document.write(html); w.document.close(); w.focus();
-    setTimeout(() => { try { w.print(); } catch (e) {} }, 250);
+    openPrintView(html);
   }
