@@ -70,48 +70,39 @@
     const dm = dayMeals(d), wp = waterPlan(d, dm.sum, zeitTimes(d));
     return { wp, text: wp.per > 0 ? wp.n + " × " + fmt(wp.per, 0) + " ml" : "keine", est: dm.known < d.mahl };
   }
-  function renderZeitplan(d) {
-    const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
-    const rows = [];
-    times.meals.forEach((t, i) => {
-      const m = dm.meals[i];
-      const what = m.rec
-        ? '<strong>Mahlzeit ' + (i + 1) + '</strong> · ' + escapeHtml(m.rec.name)
-        : '<strong>Mahlzeit ' + (i + 1) + '</strong> · ' + fmt(d.kcalMahl, 0) + ' kcal · <span class="zp-open">Rezept wählen</span>';
-      const sub = m.est ? "≈ " + fmt(m.vol, 0) + " ml (Schätzung)" : "≈ " + fmt(m.vol, 0) + " ml";
-      rows.push({ t, html: '<div class="zp-row meal" role="button" tabindex="0" data-zp-meal="' + i + '"><span class="zp-time">' + fmtHM(t) + '</span><span class="zp-ic">🍽️</span>' +
-        '<span class="zp-txt">' + what + '<small>' + sub + '</small></span><span class="tile-chev" aria-hidden="true">›</span></div>' });
-    });
-    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span><span class="zp-ic">💧</span>' +
-      '<span class="zp-txt"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong><small>' + (g.kind === "abend" ? "vor dem Schlafen" : "Mitte der Pause") + '</small></span></div>' }));
-    if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-ic">🌙</span><span class="zp-txt">Schlafen</span></div>' });
-    rows.sort((a, b) => a.t - b.t);
-    const maxMeal = Math.max.apply(null, dm.meals.map(m => m.vol));
-    const biggest = Math.max(maxMeal, wp.per);
+  // Uhrzeiten-Felder sind eingeklappt (⏰ im Kopf klappt sie auf); bei ungültigen Zeiten immer offen.
+  let zpEdit = false;
+  // Hinweise zum Zeitplan (Abstand, Schlafen, Wassermenge) und Summenzeile.
+  function zeitplanNotes(d, times, dm, wp) {
     const notes = [];
+    const lastMeal = times.meals[times.meals.length - 1];
     if (times.bad) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen.</div>');
     if (times.interval != null && times.interval < 180) notes.push('<div class="note warn">⚠️ Nur ' + fmtDauer(times.interval) + ' zwischen den Mahlzeiten. Fettreiche Keto-Kost braucht oft 3 bis 4 Stunden, bis der Magen leer ist – steht beim Öffnen noch Nahrung an, 30 bis 60 Minuten warten.</div>');
-    if (times.schlaf != null && times.schlaf - times.meals[times.meals.length - 1] < 120) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit liegt nur ' + fmtDauer(times.schlaf - times.meals[times.meals.length - 1]) + ' vor dem Schlafen – mindestens 2 Stunden einplanen, sonst droht Rückfluss im Liegen.</div>');
+    if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit liegt nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – mindestens 2 Stunden einplanen, sonst droht Rückfluss im Liegen.</div>');
     if (wp.over) notes.push('<div class="note warn">⚠️ Je Wassergabe ' + fmt(wp.per, 0) + ' ml – mehr als die Höchstmenge von ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Eine Schlafenszeit eintragen (zusätzliche Abendgabe) oder Wasser auf mehr Gaben verteilen.</div>');
     if (wp.unplaced) notes.push('<div class="note warn">💧 Es fehlen ' + fmt(wp.rest, 0) + ' ml, aber es gibt keine Pause für eine Wassergabe – Schlafenszeit eintragen.</div>');
     if (d.fluidDay > 0 && wp.rest < -10) notes.push('<div class="note tip">💧 Die Mahlzeiten liefern schon ' + fmt(-wp.rest, 0) + ' ml mehr als das Tagesziel – keine Wassergaben nötig.</div>');
-    if (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && wp.per === 0 && wp.rest >= -10) notes.push('<div class="note tip">💧 Die Flüssigkeit ist in den Mahlzeiten dabei – Wasser zwischendurch nur bei Bedarf.</div>');
-    const sumLine = d.fluidDay > 0
-      ? '💧 Flüssigkeit am Tag ≈ <strong>' + fmt(wp.total, 0) + ' ml</strong> (Ziel ' + fmt(d.fluidDay, 0) + '): Mahlzeiten ' + fmt(dm.sum, 0) +
-        (wp.per > 0 ? ' + Wasser ' + wp.n + ' × ' + fmt(wp.per, 0) : '') +
-        ' · größte Menge auf einmal ≈ ' + fmt(biggest, 0) + ' ml' + (dm.known < d.mahl ? ' · offene Mahlzeiten geschätzt' : '')
-      : 'Kein Flüssigkeitsziel – unter Vorgaben Körpergewicht oder ml/Tag eintragen.';
-    const field = (id, label, val, type, extra) => '<label class="zp-f"><span>' + label + '</span><input id="' + id + '" type="' + type + '" value="' + escapeHtml(String(val)) + '"' + (extra || "") + '></label>';
-    return '<div class="zeitplan">' +
-      '<div class="group-head zp-head">⏰ Zeitplan <span class="group-count">' + d.mahl + ' Mahlzeiten' + (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span></div>' +
-      '<div class="zp-set">' +
-        field("zp-erste", "Erste Mahlzeit", times.z.erste, "time") +
-        field("zp-letzte", "Letzte Mahlzeit", times.z.letzte, "time") +
-        field("zp-schlaf", "Schlafen", times.z.schlaf, "time") +
-      '</div>' +
-      '<div class="zp-list">' + rows.map(r => r.html).join("") + '</div>' +
-      '<div class="portion-line zp-sum">' + sumLine + '</div>' + notes.join("") +
-    '</div>';
+    return notes.join("");
+  }
+  function zeitplanSum(d, dm, wp) {
+    if (!(d.fluidDay > 0)) return 'Kein Flüssigkeitsziel – unter Vorgaben Körpergewicht oder ml/Tag eintragen.';
+    const biggest = Math.max(Math.max.apply(null, dm.meals.map(m => m.vol)), wp.per);
+    return '💧 Flüssigkeit am Tag ≈ <strong>' + fmt(wp.total, 0) + ' ml</strong> (Ziel ' + fmt(d.fluidDay, 0) + '): Mahlzeiten ' + fmt(dm.sum, 0) +
+      (wp.per > 0 ? ' + Wasser ' + wp.n + ' × ' + fmt(wp.per, 0) : '') +
+      ' · größte Menge auf einmal ≈ ' + fmt(biggest, 0) + ' ml' + (dm.known < d.mahl ? ' · offene Mahlzeiten geschätzt' : '');
+  }
+  function zeitplanSettings(times) {
+    const field = (id, label, val) => '<label class="zp-f"><span>' + label + '</span><input id="' + id + '" type="time" value="' + escapeHtml(String(val)) + '"></label>';
+    return '<div class="zp-set"' + (zpEdit || times.bad ? "" : " hidden") + '>' +
+      field("zp-erste", "Erste Mahlzeit", times.z.erste) + field("zp-letzte", "Letzte Mahlzeit", times.z.letzte) + field("zp-schlaf", "Schlafen", times.z.schlaf) + '</div>';
+  }
+  // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute).
+  function zeitplanExtraRows(times, wp) {
+    const rows = [];
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span><span class="zp-ic">💧</span>' +
+      '<span class="zp-txt"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong>' + (g.kind === "abend" ? ' <span class="zp-note">vor dem Schlafen</span>' : '') + '</span></div>' }));
+    if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-ic">🌙</span><span class="zp-txt">Schlafen</span></div>' });
+    return rows;
   }
   function bindZeitplan(box) {
     const set = (key, v) => { state.settings[key] = v; save(); renderRezepte(); };
@@ -119,9 +110,6 @@
       const el = box.querySelector("#" + id); if (!el) return;
       el.addEventListener("change", () => set(key, el.value || (key === "zpSchlaf" ? "" : null)));
     });
-    box.querySelectorAll("[data-zp-meal]").forEach(row => {
-      const go = () => { const i = num(row.dataset.zpMeal), r = recipeByKey(state.dayPlan[i] && state.dayPlan[i].key); if (r) openRecipeDetail(r); else openPicker(i); };
-      row.addEventListener("click", go);
-      row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
-    });
+    const tg = box.querySelector("#zp-toggle");
+    if (tg) tg.addEventListener("click", () => { zpEdit = !zpEdit; renderHeute(); });
   }

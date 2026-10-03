@@ -41,7 +41,7 @@ Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
 
 | Bereich | Wofür |
 | --- | --- |
-| **Heute** | Zeitplan mit Uhrzeiten und Wassergaben, Tagesplan mit einem Rezept je Mahlzeit, Tagessummen |
+| **Heute** | Zeitleiste mit Uhrzeiten, einem Rezept je Mahlzeit, Wassergaben und Tagessummen |
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
 | **Vorgaben** | Verordnung, MCT-Öl, Küche, Daten (Backup) |
 
@@ -191,30 +191,27 @@ Aktionsleiste **☆ Favorit · 🖨️ Drucken · ✏️ Editor** (bei eigenen R
    Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
    bevorzugt, Dämpfwasser eingerechnet).
 
-### Heute (Zeitplan und Tagesplan)
+### Heute (Zeitplan)
 
-**⏰ Zeitplan** ganz oben: **erste Mahlzeit**, **letzte Mahlzeit** und
-**Schlafen** einstellen (Vorgabe 7:00, 17:30, 20:00). Die App verteilt die
-Mahlzeiten gleichmäßig dazwischen, legt je eine **Wassergabe in die Mitte jeder
-Pause** (dann ist der Magen weitgehend leer) und eine zwischen letzter Mahlzeit
-und Schlafen. Die Menge je Wassergabe ergibt sich aus dem Tagesziel minus der
-Flüssigkeit der Mahlzeiten, gleich verteilt und auf 5 ml gerundet. Jede Zeile
-nennt Uhrzeit, Mahlzeit bzw. Wassermenge und das Volumen; offene Mahlzeiten
-ohne Rezept werden geschätzt, ein Tipp darauf öffnet die Rezeptwahl. Darunter
-die Tagessumme und die größte Menge auf einmal. Hinweise erscheinen bei weniger
-als 3 Stunden Abstand, bei weniger als 2 Stunden zwischen letzter Mahlzeit und
-Schlafen und wenn eine Wassergabe über 25 ml/kg liegt. Ohne Schlafenszeit
-entfällt die Abendgabe. Der Ausdruck enthält den Zeitplan als Tabelle.
+Eine einzige **Zeitleiste** für den ganzen Tag. Der Kopf „📅 Heute ·
+7:00–17:30 · alle 3 h 30 min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf
+(**erste Mahlzeit**, **letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30,
+20:00), **🖨️** druckt, **🗑️** leert den Plan. Darunter die Statuszeile
+(geplante Mahlzeiten, Öl je Tag) und die Kacheln kcal (mit Minimum), Eiweiß,
+Verhältnis und Flüssigkeit.
 
-**📅 Tagesplan** darunter, gleiche Optik wie Rezeptliste und Detailansicht: oben die Kopfzeile
-„📅 Tagesplan · 5 × 136 kcal" mit 🖨️ Drucken und 🗑️ Leeren, darunter die
-Statuszeile (geplante Mahlzeiten, Öl je Tag) und die vier Kacheln kcal (mit
-Minimum), Eiweiß, Verhältnis und Flüssigkeit (beim Sondieren: Flüssigkeit in den Mahlzeiten). Jede
-Mahlzeit ist eine Zeile wie in der Rezeptliste: Nummer, Icon, Name, kcal,
-💉 Abfüllmenge ohne Öl, 🧈 Öl vor dem Füttern, Eiweiß; ↻ tauscht das Rezept
-(Picker mit Suche), ✕ leert die Zeile, ein Tipp auf die Zeile öffnet das
-Rezept. Leere Zeilen („＋ Rezept wählen") öffnen den Picker. Bei Compleat
-steht der Packungsstand als grüne Notiz darunter.
+In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, kcal, Volumen,
+Öl und Eiweiß; ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp öffnet das
+Rezept. Offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte Menge.
+Die Mahlzeiten liegen gleichmäßig zwischen erster und letzter; dazwischen
+stehen einzeilig die **Wassergaben** (Mitte jeder Pause, dann ist der Magen
+weitgehend leer, und eine vor dem Schlafen). Die Menge je Wassergabe ergibt
+sich aus dem Tagesziel minus der Flüssigkeit der Mahlzeiten, gleich verteilt
+und auf 5 ml gerundet. Darunter die Flüssigkeit am Tag und die größte Menge auf
+einmal. Hinweise erscheinen bei weniger als 3 Stunden Abstand, bei weniger als
+2 Stunden zwischen letzter Mahlzeit und Schlafen und wenn eine Wassergabe über
+25 ml/kg liegt. Ohne Schlafenszeit entfällt die Abendgabe. Bei Compleat steht
+der Packungsstand darunter; der Ausdruck enthält den Zeitplan als Tabelle.
 
 ## Fachliche Details
 

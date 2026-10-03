@@ -1108,3 +1108,37 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .zp-txt { font-size: 13.5px; }
 }
 .zp-sum strong { color: var(--ink); }
+
+/* Heute kompakt: eine Zeitleiste – Mahlzeiten (mit Rezept, ↻/✕) und Wasser einzeilig, Uhrzeiten hinter ⏰ */
+.zeitplan .zp-set[hidden] { display: none; }
+.zeitplan .zp-set { margin: 0 0 8px; }
+.zeitplan .detail-tiles.strip { margin: 4px 0 8px; }
+.zp-row.meal .zp-name { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zp-row.meal .zp-name .ratio-pill { font-weight: 600; }
+.zp-row.meal small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zp-row .slot-act { flex: 0 0 auto; }
+.zp-row.water, .zp-row.sleep { padding-top: 5px; padding-bottom: 5px; }
+.zp-row.water .zp-ic, .zp-row.sleep .zp-ic { font-size: 15px; }
+.zp-row.water .zp-txt, .zp-row.sleep .zp-txt { font-size: 13.5px; }
+.zp-row .zp-note { color: var(--muted); font-size: 12px; font-weight: 400; }
+.zp-ic.add { color: var(--brand); font-weight: 700; width: 22px; text-align: center; }
+.zp-row.empty-slot { cursor: pointer; }
+.zp-row.empty-slot .zp-name { font-weight: 500; }
+@media (max-width: 560px) {
+  .zeitplan .group-count { font-size: 11.5px; }
+  .zp-row.meal { padding: 7px 8px; }
+  .zp-row.water, .zp-row.sleep { padding: 4px 8px; }
+  .zp-row .slot-act { width: 30px; height: 30px; }
+}
+/* Mahlzeiten-Zeilen der Zeitleiste ohne eigenen Kartenrahmen (die Liste ist die Karte); leere Zeile leicht abgesetzt */
+.zp-list .zp-row.slot, :root .zp-list .zp-row.slot { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 8px 10px 8px 12px; background: var(--panel); box-shadow: none; margin: 0; }
+.zp-list .zp-row.slot:first-child { border-top: 0; }
+.zp-list .zp-row.slot.empty-slot { display: flex; flex-wrap: nowrap; justify-content: flex-start; border-style: solid; background: var(--bg); }
+/* Kopf von Heute einzeilig: Titel nicht umbrechen, Rahmenzeit kürzen statt umbrechen */
+.zeitplan .day-head { flex-wrap: nowrap; align-items: center; }
+.zeitplan .day-head .day-title { white-space: nowrap; }
+.zeitplan .day-head .group-count { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 560px) {
+  .zp-list .zp-row.slot, :root .zp-list .zp-row.slot { padding: 7px 6px 7px 8px; }
+  .zeitplan .day-head .head-actions .iconbtn.round { width: 32px; height: 32px; font-size: 14px; }
+}
