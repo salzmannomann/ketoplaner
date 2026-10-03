@@ -164,31 +164,43 @@
     document.getElementById("picker-search").addEventListener("input", renderPicker);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
   }
+  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan mit Abhak-Kästchen (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
+  // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
-    const rows = facts.map((f, i) => f
-      ? "<tr><td>" + (i + 1) + "</td><td>" + escapeHtml(f.rec.name) + "</td><td>" + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml</td><td>" +
-        (f.hasOil ? f.oils.map(o => escapeHtml(o.food) + " " + fmt(num(o.grams), 1) + " g").join("<br>") : "–") + "</td><td>" + fmt(f.sum.kcal, 0) + "</td><td>" + fmt(f.sum.eiweiss) + " g</td></tr>"
-      : "<tr><td>" + (i + 1) + "</td><td colspan='5' style='color:#888'>– nicht geplant –</td></tr>").join("");
-    // Zeitplan für den Kühlschrank: Uhrzeit · was · Menge
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
+    const oilTxtOf = (f) => (f && f.hasOil) ? f.oils.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
     const zr = [];
-    times.meals.forEach((t, i) => { const m = dm.meals[i]; zr.push({ t, h: "<tr><td>" + fmtHM(t) + "</td><td>🍽️ Mahlzeit " + (i + 1) + (m.rec ? " · " + escapeHtml(m.rec.name) : "") + "</td><td>≈ " + fmt(m.vol, 0) + " ml</td><td>" + sondierMin(m.vol) + " min</td></tr>" }); });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr><td>" + fmtHM(g.t) + "</td><td>💧 Wasser</td><td>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr><td>" + fmtHM(times.schlaf) + "</td><td>🌙 Schlafen</td><td></td><td></td></tr>" });
+    times.meals.forEach((t, i) => {
+      const m = dm.meals[i], f = facts[i];
+      zr.push({ t, h: "<tr><td class='chk'><span></span></td><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
+        "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
+    });
+    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='chk'><span></span></td><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
+    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='chk'></td><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
     zr.sort((a, b) => a.t - b.t);
-    const zeitHtml = "<h2>⏰ Zeitplan</h2><table class='zp'><thead><tr><th>Uhrzeit</th><th>Was</th><th>Menge</th><th>Dauer</th></tr></thead><tbody>" + zr.map(r => r.h).join("") + "</tbody></table>" +
-      "<p class='sub'>Mahlzeiten langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. Oberkörper hoch – während der Gabe und 30 Minuten danach.</p>" +
-      (d.fluidDay > 0 ? "<p class='sub'>Flüssigkeit am Tag ≈ " + fmt(wp.total, 0) + " ml (Ziel " + fmt(d.fluidDay, 0) + " ml)" + (dm.known < d.mahl ? " · offene Mahlzeiten geschätzt" : "") + "</p>" : "");
-    const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" +
-      "@page{size:A4 portrait;margin:16mm}body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;font-size:11pt;line-height:1.45;margin:0}" +
-      "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}table{width:100%;border-collapse:collapse}" +
-      "th,td{border-bottom:0.4pt solid #bbb;padding:1.8mm 1.5mm;text-align:left;vertical-align:top;font-size:10.5pt}th{background:#f2f4f6}" +
-      ".tot td{font-weight:bold;border-top:1pt solid #777}.note{color:#666;font-size:8.5pt;margin-top:6mm}h2{font-size:13pt;margin:4mm 0 2mm}table.zp td:first-child{font-weight:bold;width:18mm}</style></head><body>" +
-      "<h1>📅 Tagesplan</h1><p class='sub'>" + d.mahl + " Mahlzeiten · " + fmt(d.kcal, 0) + " kcal/Tag · Verhältnis " + fmtTarget(d.ratio) +
-      (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + " · " + new Date().toLocaleDateString("de-AT") + "</p>" + zeitHtml + "<h2>🍽️ Mahlzeiten</h2>" +
-      "<table><thead><tr><th>#</th><th>Mahlzeit</th><th>Abfüllen (ohne Öl)</th><th>Öl vor dem Füttern</th><th>kcal</th><th>Eiweiß</th></tr></thead><tbody>" + rows +
-      "<tr class='tot'><td></td><td>Summe</td><td></td><td>" + (tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 0) + " g" : "") + (tot.mct > 0 ? "<br>MCT " + fmt(tot.mct, 1) + " g" : "") + "</td><td>" + fmt(tot.kcal, 0) + "</td><td>" + fmt(tot.eiweiss) + " g</td></tr>" +
-      "</tbody></table><p class='sub'>Verhältnis über den Tag: " + fmtRatio(ratioDay, 2) + " · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag</p>" +
-      "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen mit dem Behandlungsteam abstimmen.</p></body></html>";
-    openPrintView(html);
+    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th></th><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
+      zr.map(r => r.h).join("") + "</tbody></table>" +
+      "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
+      "Öl erst unmittelbar vor dem Füttern in die Portion einrühren. Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
+    const share = tot.filled / d.mahl;
+    const kcalZiel = d.kcal * share, eiweissZiel = d.eiweiss * share;
+    const sums = tot.filled
+      ? "<h2>Tagessummen" + (tot.filled < d.mahl ? " <small>(" + tot.filled + " von " + d.mahl + " Mahlzeiten geplant, Ziele anteilig)</small>" : "") + "</h2><div class='sums'>" +
+        "<div><b>" + fmt(tot.kcal, 0) + " kcal</b><span>Ziel " + fmt(kcalZiel, 0) + "</span></div>" +
+        "<div><b>" + fmt(tot.eiweiss) + " g Eiweiß</b><span>Ziel " + fmt(eiweissZiel, 0) + " g" + (proteinState(tot.eiweiss, eiweissZiel) === "high" ? " – deutlich darüber" : "") + "</span></div>" +
+        "<div><b>" + fmtRatio(ratioDay, 2) + "</b><span>Verhältnis · Ziel " + fmtTarget(d.ratio) + "</span></div>" +
+        (d.fluidDay > 0 ? "<div><b>" + (dm.known < d.mahl ? "ca. " : "") + fmt(wp.total, 0) + " ml</b><span>Flüssigkeit · Ziel " + fmt(d.fluidDay, 0) + "</span></div>" : "") + "</div>"
+      : "";
+    const rows = facts.map((f, i) => f
+      ? "<tr><td class='nw'>" + (i + 1) + "</td><td>" + escapeHtml(f.rec.name) + "</td><td class='num'>" + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td>" +
+        "<td class='num'>" + fmt(f.sum.kcal, 0) + "</td><td class='num'>" + fmt(f.sum.eiweiss) + " g</td><td class='num'>" + fmtRatio(f.ratio, 2) + "</td></tr>"
+      : "<tr><td>" + (i + 1) + "</td><td colspan='6'><small>nicht geplant</small></td></tr>").join("");
+    const detail = tot.filled
+      ? "<h2>Mahlzeiten im Detail</h2><table><thead><tr><th>#</th><th>Rezept</th><th class='num'>Abfüllen ohne Öl</th><th>Öl vor dem Füttern</th><th class='num'>kcal</th><th class='num'>Eiweiß</th><th class='num'>Verhältnis</th></tr></thead><tbody>" + rows +
+        "<tr class='sum'><td></td><td>Summe</td><td></td><td>" + [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ") + "</td><td class='num'>" + fmt(tot.kcal, 0) + "</td><td class='num'>" + fmt(tot.eiweiss) + " g</td><td class='num'>" + fmtRatio(ratioDay, 2) + "</td></tr></tbody></table>"
+      : "";
+    const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +
+      (d.fluidDay > 0 ? " · Flüssigkeit " + fmt(d.fluidDay, 0) + " ml/Tag" : "") + (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + "</p>";
+    const html = printDoc("Tagesplan", escapeHtml(printDateLong()), rx + zeit + sums + detail);
+    openPrintView(html, "Tagesplan " + fileDate());
   }

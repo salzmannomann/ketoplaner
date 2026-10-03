@@ -969,7 +969,42 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   // Rezept-Ausdruck aus der Detailansicht: Vorschau liegt über dem Rezept, Zurück führt ins Rezept
   const c = openRecipe(w, "Compleat & KetoCal");
   fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
-  assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal \(mit KetoCal\)/);
+  assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal.*KetoCal.*Zutaten/);
   fire(w, $(w, "print-back"));
   assert.ok(ov.hidden); assert.ok(!$(w, "detail-overlay").hidden, "Rezept bleibt offen");
+});
+
+test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü übergeben (Fallback: Download)", async () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 }, dayPlan: [0, 1, 2, 3].map(i => ({ key: i === 2 ? "std:Hendl & Brokkoli" : "std:Compleat & KetoCal" })) });
+  // PDF-Bibliothek wie in der App laden
+  if (!w.TextEncoder) { w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder; } // im Browser vorhanden, jsdom liefert sie nicht
+  w.eval(read("vendor/jspdf.umd.min.js")); w.eval(read("vendor/jspdf.plugin.autotable.min.js"));
+  assert.ok(w.jspdf && w.jspdf.jsPDF, "jsPDF geladen");
+  let shared = null;
+  Object.defineProperty(w.navigator, "canShare", { value: (d) => !!(d && d.files && d.files.length), configurable: true });
+  Object.defineProperty(w.navigator, "share", { value: async (d) => { shared = d; }, configurable: true });
+  fire(w, $(w, "tab-heute")); fire(w, $(w, "print-day"));
+  fire(w, $(w, "print-share"));
+  await new Promise(r => setTimeout(r, 50));
+  assert.ok(shared && shared.files && shared.files[0], "Teilen-Menü bekommt eine Datei");
+  const f = shared.files[0];
+  assert.match(f.name, /^Tagesplan \d{4}-\d{2}-\d{2}\.pdf$/); assert.equal(f.type, "application/pdf");
+  const buf = Buffer.from(await new Promise(res => { const fr = new w.FileReader(); fr.onload = () => res(fr.result); fr.readAsArrayBuffer(f); }));
+  assert.equal(buf.slice(0, 5).toString(), "%PDF-", "echtes PDF"); assert.ok(buf.length > 3000, "PDF-Größe " + buf.length);
+  // Rezept-Ausdruck → Dateiname = Rezeptname
+  fire(w, $(w, "print-back"));
+  const c = openRecipe(w, "Hendl & Brokkoli");
+  fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
+  shared = null; fire(w, $(w, "print-share")); await new Promise(r => setTimeout(r, 50));
+  assert.equal(shared.files[0].name, "Hendl & Brokkoli.pdf");
+});
+
+test("Drucken aus dem Editor: Vorschau öffnet sich ohne Fehler, Öl als letzter Schritt", () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
+  const c = openRecipe(w, "Hendl & Karotte");
+  fire(w, c.querySelector("#edit-btn"));
+  const pb = [...w.document.querySelectorAll("#compose-actions .btn")].find(b => /Drucken/.test(b.textContent));
+  assert.ok(pb, "Drucken im Editor"); fire(w, pb);
+  assert.ok(!$(w, "print-overlay").hidden, "Vorschau offen");
+  assert.match($(w, "print-sheet").shadowRoot.textContent, /Zutaten.*Zubereitung/);
 });

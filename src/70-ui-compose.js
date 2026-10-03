@@ -214,7 +214,7 @@
     printBtn.addEventListener("click", () => {
       if (!lastOk) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
       const recForPrint = { name: (nameInp.value || "").trim() || "Eigenes Rezept", icon: "📝", ketocal: false,
-        zubereitung: "Zutaten vorbereiten, fein pürieren und das berechnete Fett untermischen." };
+        zubereitung: "Zutaten vorbereiten und mit dem Wasser fein pürieren. Butter, Obers oder Creme gleich mit untermischen." };
       printRecipe(recForPrint, { items: lastItems }, derived(), 1);
     });
     actions.appendChild(printBtn);

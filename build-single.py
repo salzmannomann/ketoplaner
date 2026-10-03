@@ -16,7 +16,7 @@ import os, re, hashlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "src")
 
-ASSETS = ("styles.css", "foods.js", "recipes.js", "app.js")
+ASSETS = ("styles.css", "foods.js", "recipes.js", "vendor/jspdf.umd.min.js", "vendor/jspdf.plugin.autotable.min.js", "app.js")
 
 APP_HEAD = '''/* HamHam Keto — Logik (GENERIERT aus src/*.js durch build-single.py – nicht direkt bearbeiten)
    Eine Seite: Vorgaben + Standard-Rezepte, die automatisch auf das
@@ -110,7 +110,7 @@ def main():
         html = html.replace('src="icon-192.png"', 'src="data:image/png;base64,' + b64 + '"')
 
     # Skripte einbetten (Reihenfolge wie in index.html beibehalten)
-    for src in ("foods.js", "recipes.js", "app.js"):
+    for src in ("foods.js", "recipes.js", "vendor/jspdf.umd.min.js", "vendor/jspdf.plugin.autotable.min.js", "app.js"):
         js = read(src)
         html = re.sub(
             r'<script src="%s(?:\?v=[^"]*)?"></script>' % re.escape(src),
@@ -119,7 +119,7 @@ def main():
         )
 
     # Sicherstellen, dass keine externen Verweise mehr übrig sind
-    leftovers = re.findall(r'(?:src|href)="(?:foods\.js|recipes\.js|app\.js|styles\.css)(?:\?v=[^"]*)?"', html)
+    leftovers = re.findall(r'(?:src|href)="(?:foods\.js|recipes\.js|app\.js|styles\.css|vendor/[^"]+)(?:\?v=[^"]*)?"', html)
     if leftovers:
         raise SystemExit("Fehler: externe Verweise nicht ersetzt: %s" % leftovers)
 

@@ -1,37 +1,93 @@
-  /* ---------- Drucken (A4 Hochformat) ----------
+  /* ---------- Drucken und Teilen (A4 Hochformat) ----------
      Der Ausdruck öffnet sich als Vorschau in der App (kein neues Fenster – in der installierten iPhone-App gäbe es
      dort weder Zurück noch zuverlässig einen Druckdialog). Inhalt und Stil liegen in einem Shadow-DOM, damit die
-     Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css). */
-  function openPrintView(html) {
+     Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css).
+     „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
+  let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
+  function openPrintView(html, file) {
     const css = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "")
       .replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
     const body = (html.match(/<body>([\s\S]*?)<\/body>/) || [])[1] || html;
-    const title = ((html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "Drucken");
+    const title = ((html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "Drucken").replace(/&amp;/g, "&");
+    printCurrent = { html, title, file: file || title };
     let ov = document.getElementById("print-overlay");
     if (!ov) {
       ov = document.createElement("div");
       ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
       ov.innerHTML = '<div class="print-bar"><button type="button" class="btn secondary" id="print-back">‹ Zurück</button>' +
-        '<span class="print-title"></span><button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
+        '<span class="print-title"></span>' +
+        '<button type="button" class="btn secondary" id="print-share">📤 Teilen</button>' +
+        '<button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => { try { window.print(); } catch (e) {} });
+      ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
       document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePrintView(); });
     }
-    ov.querySelector(".print-title").textContent = title.replace(/&amp;/g, "&");
+    ov.querySelector(".print-title").textContent = title;
     const sheet = ov.querySelector("#print-sheet");
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) sc.scrollTop = 0;
+    fitPrintSheet();
   }
+  // Vorschau als ganze A4-Seite: am Handy auf die Breite verkleinert (wie gedruckt bzw. als PDF geteilt).
+  function fitPrintSheet() {
+    const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
+    const sc = ov.querySelector(".print-scroll"), sheet = ov.querySelector("#print-sheet");
+    const avail = (sc.clientWidth || window.innerWidth) - 20, full = 794; // 210 mm bei 96 dpi
+    const z = avail > 0 ? Math.min(1, avail / full) : 1;
+    sheet.style.zoom = z < 0.999 ? String(Math.round(z * 1000) / 1000) : "";
+  }
+  if (typeof window !== "undefined") window.addEventListener("resize", fitPrintSheet);
   function closePrintView() {
     const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
+
+  // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
+  const PRINT_CSS =
+    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}" +
+    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:10.5pt;line-height:1.4}" +
+    ".head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2pt solid #2f855a;padding-bottom:2mm;margin-bottom:3mm}" +
+    "h1{font-size:17pt;margin:0;line-height:1.15}.meta{color:#555;font-size:9pt;text-align:right;white-space:nowrap}" +
+    ".rx{margin:0 0 3mm;color:#333;font-size:9.5pt}" +
+    "h2{font-size:11.5pt;margin:5mm 0 1.5mm;color:#2f855a}" +
+    "table{width:100%;border-collapse:collapse;margin:0}" +
+    "th{background:#eef5f0;text-align:left;font-size:8.5pt;font-weight:bold;color:#33463b;padding:1.4mm 1.5mm;border-bottom:.6pt solid #9bb8a6}" +
+    "td{border-bottom:.4pt solid #d5dbd8;padding:1.6mm 1.5mm;vertical-align:top}" +
+    ".num{text-align:right;white-space:nowrap}.nw{white-space:nowrap}" +
+    "td.t{font-weight:bold;white-space:nowrap;width:15mm}" +
+    "tr.water td{background:#f3f8fc;color:#24557f}tr.sleep td{color:#777}" +
+    "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
+    "td.chk{width:7mm}td.chk span{display:inline-block;width:3.6mm;height:3.6mm;border:.8pt solid #555;border-radius:.8mm}" +
+    "small{color:#666;font-size:8.5pt}" +
+    ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
+    ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
+    ".sums{display:flex;gap:3mm;margin:1mm 0}.sums div{flex:1;border:.6pt solid #cfdcd3;border-radius:1.5mm;padding:1.6mm 2mm}" +
+    ".sums b{display:block;font-size:12pt}.sums span{font-size:8.5pt;color:#555}" +
+    "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
+    "tr,li,.box{break-inside:avoid}" +
+    ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
+  function printDoc(title, meta, bodyHtml) {
+    return "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>" + escapeHtml(title) + "</title><style>" + PRINT_CSS + "</style></head><body>" +
+      "<div class='head'><h1>" + escapeHtml(title) + "</h1><div class='meta'>" + meta + "</div></div>" + bodyHtml +
+      "<div class='foot'>Erstellt mit HamHam Keto am " + new Date().toLocaleDateString("de-AT") + ". Kein Ersatz für ärztliche oder diätologische Beratung – Mengen mit dem Behandlungsteam abstimmen.</div></body></html>";
+  }
+  function printDateLong() {
+    try { return new Date().toLocaleDateString("de-AT", { weekday: "short", day: "numeric", month: "long", year: "numeric" }); }
+    catch (e) { return new Date().toLocaleDateString("de-AT"); }
+  }
+  function fileDate() { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
+  const oilName = (food) => String(food).replace(/\s*C8\+C10/, "");
+
+  // Rezept: Zutaten je Portion (und für die gewählte Menge), Nährwerte, Abfüllen, nummerierte Zubereitung.
   function printRecipe(rec, res, d, mult) {
     mult = mult || 1;
+    // Rezepte aus dem Editor bringen keine eigene Zutatenliste mit – die berechnete gilt dann auch für Texte und Fettbasis.
+    if (!Array.isArray(rec.items)) rec = Object.assign({}, rec, { items: res.items });
     const hasMct = res.items.some(it => it.food === "MCT-Öl C8+C10");
     const oilWord = hasMct ? (res.items.some(it => it.food === "Rapsöl") ? "Rapsöl + MCT-Öl" : "MCT-Öl") : null;
     const adaptOil = (t) => oilWord ? String(t).replace(/Rapsöl/g, oilWord) : t;
@@ -44,52 +100,44 @@
         "Das Dämpfwasser NICHT abgießen – davon " + Math.round(pWaterG) + " ml abmessen (bei Bedarf mit frischem Wasser auf " + Math.round(pWaterG) + " ml ergänzen) und zusammen mit den gedämpften Zutaten");
     const items = res.items;
     const sumPer = sumMacros(items);
-    const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
     const r = ratioOf(sumPer);
-    const totalG = items.reduce((a, it) => a + num(it.grams), 0) * mult;
-    const ml = volumeMl(items) * mult;
     const daysP = d.mahl > 0 && Math.abs(mult / d.mahl - Math.round(mult / d.mahl)) < 1e-6 ? Math.round(mult / d.mahl) : 0;
     const multTxt = Math.abs(mult - Math.round(mult)) < 1e-6 ? String(Math.round(mult)) : fmt(mult, 1);
-    const portionLabel = mult === 1 ? "1 Mahlzeit" : (daysP ? (daysP === 1 ? "1 Tag = " : daysP + " Tage = ") : "") + multTxt + " Portionen";
-    // Abfüllen je Portion (ohne Öl) und Öl je Portion vor dem Füttern – wie im Blatt „Kochen“.
+    const portionLabel = mult === 1 ? "1 Portion" : (daysP ? (daysP === 1 ? "1 Tag = " : daysP + " Tage = ") : "") + multTxt + " Portionen";
     const isOilP = (n) => /öl|oil/i.test(n || "");
     const noOilP = items.filter(it => !isOilP(it.food)), oilsP = items.filter(it => isOilP(it.food) && num(it.grams) > 0);
-    const fillLine = "<p class='fill'><strong>💉 Abfüllen je Portion:</strong> ≈ " + fmt(noOilP.reduce((a, it) => a + num(it.grams), 0), 0) + " g / " + fmt(volumeMl(noOilP), 0) + " ml" +
-      (oilsP.length && !rec.angeruehrt ? " · <strong>🧈 vor dem Füttern einrühren:</strong> " + oilsP.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "") + "</p>";
-    const oilStepP = oilFeedStep(rec, items);
+    const gNoOil = noOilP.reduce((a, it) => a + num(it.grams), 0);
+    const fluidPer = fluidOf(items), volPer = volumeMl(items);
+    const showMult = mult !== 1;
     const rows = items.map(it => {
-      const g = num(it.grams) * mult;
-      const m = lineMacros({ food: it.food, grams: g });
-      return "<tr><td>" + escapeHtml(it.food) + "</td><td>" + fmt(g, 1) +
-        " g</td><td>" + fmt(m.kcal, 0) + " kcal</td></tr>";
+      const g = num(it.grams), m = lineMacros({ food: it.food, grams: g });
+      const oil = isOilP(it.food) && !rec.angeruehrt;
+      return "<tr><td>" + escapeHtml(it.food) + (oil ? " <small>(vor dem Füttern)</small>" : "") + "</td><td class='num'>" + fmt(g, 1) + " g</td>" +
+        (showMult ? "<td class='num'><b>" + fmt(g * mult, 1) + " g</b></td>" : "") +
+        "<td class='num'>" + fmt(m.eiweiss) + "</td><td class='num'>" + fmt(m.fett) + "</td><td class='num'>" + fmt(m.kh) + "</td><td class='num'>" + fmt(m.kcal, 0) + "</td></tr>";
     }).join("");
-    const html =
-      "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>" + escapeHtml(rec.name) + "</title>" +
-      "<style>" +
-      "@page{size:A4 portrait;margin:18mm}" +
-      "*{box-sizing:border-box}" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:11pt;line-height:1.45}" +
-      "h1{font-size:18pt;margin:0 0 2mm}.sub{color:#444;margin:0 0 5mm;font-size:10pt}" +
-      "table{width:100%;border-collapse:collapse;margin:4mm 0}" +
-      "th,td{border-bottom:0.4pt solid #bbb;padding:1.6mm 1mm;text-align:left;font-size:10.5pt}" +
-      "td:nth-child(2),td:nth-child(3){text-align:right;white-space:nowrap}" +
-      "tr:last-child td{font-weight:bold;border-top:1pt solid #777}" +
-      ".prep{background:#f2f4f6;border-radius:2mm;padding:3mm 4mm;margin:3mm 0;line-height:1.5;break-inside:avoid}" +
-      ".prep strong{display:block;margin-bottom:1mm}" +
-      "tr{break-inside:avoid}" +
-      ".note{color:#666;font-size:8.5pt;margin-top:6mm}.fill{margin:2mm 0 4mm;font-size:10.5pt}" +
-      "</style></head><body>" +
-      "<h1>" + (rec.icon || "") + " " + escapeHtml(rec.name) + (rec.ketocal ? " (mit KetoCal)" : " (ohne KetoCal)") + "</h1>" +
-      "<p class='sub'><strong>" + portionLabel + "</strong> · " + fmt(sum.kcal, 0) + " kcal · Eiweiß " + fmt(sum.eiweiss) +
-      " g · Fett " + fmt(sum.fett) + " g · KH " + fmt(sum.kh) + " g · Verhältnis " +
-      fmtRatio(r, 2) + "<br>Gesamtmenge ca. " + fmt(totalG, 0) + " g (≈ " + fmt(ml, 0) + " ml)</p>" +
-      "<table><thead><tr><th>Lebensmittel</th><th>Menge</th><th>Energie</th></tr></thead><tbody>" + rows +
-      "<tr><td>Summe</td><td>" + fmt(totalG, 0) + " g</td><td>" + fmt(sum.kcal, 0) + " kcal</td></tr></tbody></table>" + fillLine +
-      (mult > 1 ? "<p class='sub'>Hinweis: Mengen für " + portionLabel + "." + (rec.angeruehrt ? "" : " Die Varoma-/Garzeiten gelten für eine Mahlzeit – bei der größeren Menge länger garen, bis alles weich ist.") + "</p>" : "") +
-      (rec.varoma
-        ? "<div class='prep'><strong>Zubereitung mit Varoma (dämpfen)</strong>" + escapeHtml(adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))) + (oilStepP ? " " + escapeHtml(oilStepP) : "") + "</div>"
-        : (rec.zubereitung ? "<div class='prep'><strong>Zubereitung</strong>" + escapeHtml(adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat))) + (oilStepP ? " " + escapeHtml(oilStepP) : "") + "</div>" : "")) +
-      "<p class='note'>Erstellt mit HamHam Keto. Bitte Mengen vor der Zubereitung mit dem Behandlungsteam abstimmen.</p>" +
-      "</body></html>";
-    openPrintView(html);
+    const totalG = items.reduce((a, it) => a + num(it.grams), 0);
+    const table = "<table><thead><tr><th>Lebensmittel</th><th class='num'>je Portion</th>" + (showMult ? "<th class='num'>" + escapeHtml(portionLabel) + "</th>" : "") +
+      "<th class='num'>Eiweiß</th><th class='num'>Fett</th><th class='num'>KH</th><th class='num'>kcal</th></tr></thead><tbody>" + rows +
+      "<tr class='sum'><td>Summe je Portion</td><td class='num'>" + fmt(totalG, 0) + " g</td>" + (showMult ? "<td class='num'>" + fmt(totalG * mult, 0) + " g</td>" : "") +
+      "<td class='num'>" + fmt(sumPer.eiweiss) + "</td><td class='num'>" + fmt(sumPer.fett) + "</td><td class='num'>" + fmt(sumPer.kh) + "</td><td class='num'>" + fmt(sumPer.kcal, 0) + "</td></tr></tbody></table>";
+    const fill = rec.angeruehrt
+      ? "<div class='box'><b>Je Portion:</b> alles zusammen anrühren, ≈ " + fmt(volPer, 0) + " ml" + (oilsP.length ? " – das Öl erst kurz vor dem Füttern einrühren." : ".") + "</div>"
+      : "<div class='box'><b>Abfüllen je Portion:</b> ≈ " + fmt(gNoOil, 0) + " g / " + fmt(volumeMl(noOilP), 0) + " ml" +
+        (oilsP.length ? " · <b>vor dem Füttern einrühren:</b> " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "") +
+        (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ≈ " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
+    const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
+    const steps = splitSteps(prepSrc);
+    const oilStepP = oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(oilStepP);
+    const prep = steps.length
+      ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" +
+        (!rec.angeruehrt ? "<div class='box'>Vor dem Abfüllen durch ein feines Sieb streichen, damit nichts die Spritze verstopft." + (showMult ? " Garzeiten gelten für eine Portion – bei der größeren Menge länger garen, bis alles weich ist." : "") + " Im Kühlschrank lagern.</div>" : "")
+      : "";
+    const pState = proteinState(sumPer.eiweiss, d.eiweissMahl);
+    const rx = "<p class='rx'><b>" + escapeHtml(basisLabel(rec)) + "</b>" + (rec.quelle ? " · Rezept der Diätologie" : "") + " · Verhältnis " + fmtRatio(r, 2) +
+      " · " + fmt(sumPer.kcal, 0) + " kcal je Portion · Eiweiß " + fmt(sumPer.eiweiss) + " g (Ziel " + fmt(d.eiweissMahl) + " g) · Flüssigkeit ≈ " + fmt(fluidPer, 0) + " ml · Volumen ≈ " + fmt(volPer, 0) + " ml</p>";
+    const warn = pState === "high" ? "<div class='box warn'>Eiweiß " + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + "-mal so hoch wie das Ziel – mit dem Team abklären.</div>" : "";
+    const title = rec.name;
+    const html = printDoc(title, escapeHtml(printDateLong()) + "<br>" + escapeHtml(portionLabel), rx + "<h2>Zutaten</h2>" + table + fill + warn + prep);
+    openPrintView(html, title);
   }

@@ -155,9 +155,24 @@ stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
 Aktionsleiste **☆ Favorit · 🖨️ Drucken · 📅 Für heute · ✏️ Editor** (bei eigenen
 Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol).
 **🖨️ Drucken** (Rezept, Tagesplan, eigenes Rezept) öffnet eine **Druckvorschau in
-der App** mit **‹ Zurück** und **🖨️ Drucken** – kein neues Fenster, damit es auch
-in der am iPhone installierten App funktioniert (Druckdialog mit AirPrint oder
-„Als PDF sichern“); gedruckt wird nur das weiße Blatt. **📅 Für
+der App** – die ganze A4-Seite, am Handy auf die Breite verkleinert – mit
+**‹ Zurück**, **📤 Teilen** und **🖨️ Drucken**. Kein neues Fenster, damit es auch
+in der am iPhone installierten App funktioniert. **📤 Teilen** erzeugt aus
+derselben Vorlage ein **PDF** (z. B. „Tagesplan 2026-10-03.pdf“, „Hendl &
+Brokkoli.pdf“) und öffnet das Teilen-Menü (WhatsApp, Signal, Mail, Dateien); am
+Desktop wird es heruntergeladen. Das PDF entsteht offline in der App (jsPDF);
+Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
+
+**Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
+Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den
+**Zeitplan mit Abhak-Kästchen** (Uhrzeit, Was, Menge, Öl vor dem Füttern,
+Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
+Kennzahlen und darunter die **Mahlzeiten im Detail** fürs Team (Abfüllen ohne Öl,
+Öl, kcal, Eiweiß, Verhältnis). Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
+Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
+die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (ohne Öl,
+Öl vor dem Füttern), ggf. den Eiweiß-Hinweis und die **nummerierten
+Zubereitungsschritte** mit dem Öl als letztem Schritt. **📅 Für
 heute** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
 freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
 erscheint eine Meldung mit **Rückgängig** und **Ansehen** (wechselt zu Heute).
@@ -328,7 +343,7 @@ npm test           # Build + Regressionstests (node --test)
 Der Quellcode liegt modular in **`src/`** (nummeriert in Ladereihenfolge:
 State, Helfer, Lebensmittel, Filter, Rezept-Anpassung, Fleisch-Tausch,
 Öl-Rechnung, Rezeptliste, Kopfzeile/Vorgaben, Kachel, Detailansicht, Tagesplan,
-Drucken, eigenes Rezept, Init). **`app.js` ist generiert** – Änderungen bitte
+Zeitplan, Drucken, PDF, eigenes Rezept, Init). **`app.js` ist generiert** – Änderungen bitte
 in `src/` machen und `npm run build` ausführen. Die Tests in `test/`
 starten die gebaute App in jsdom und prüfen u. a., dass alle Rezepte das
 Verhältnis bei 1,8:1 und 1:1 treffen, die MCT-Rechnung ihre Zusicherungen
@@ -347,6 +362,9 @@ Tagesplan funktionieren.
 - `test/app.test.js` – Regressionstests
 - `build-single.py` – Build (siehe oben), erzeugt auch `keto-rechner.html`
 - `sw.js`, `manifest.webmanifest`, `icon-*.png` – PWA/Offline
+- `vendor/` – jsPDF 4.2 und jsPDF-AutoTable 5.0 (MIT-Lizenz, siehe
+  `vendor/LICENSE-*.txt`) fürs PDF zum Teilen; werden in die Einzeldatei
+  eingebettet
 
 ## Hinweis
 

@@ -1232,8 +1232,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .print-bar .print-title { flex: 1; min-width: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
 .print-bar .btn { padding: 8px 14px; font-size: 14px; white-space: nowrap; }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-.print-sheet { max-width: 794px; margin: 0 auto; background: #fff; color: #1f2933; padding: 18mm 16mm; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 4px; }
-@media (max-width: 560px) { .print-sheet { padding: 16px 12px; } .print-scroll { padding: 10px; } }
+.print-sheet { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1f2933; padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+@media (max-width: 560px) { .print-scroll { padding: 10px; } }
 @media print {
   @page { size: A4 portrait; margin: 16mm; }
   body.printing > *:not(#print-overlay) { display: none !important; }
@@ -1241,5 +1241,12 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   body.printing .print-overlay { position: static; display: block; background: #fff; }
   body.printing .print-bar { display: none; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
-  body.printing .print-sheet { max-width: none; padding: 0; box-shadow: none; border-radius: 0; }
+  body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; zoom: 1 !important; }
+}
+/* Vorschau-Leiste: am Handy ohne Titel, damit Zurück, Teilen und Drucken Platz haben */
+@media (max-width: 560px) {
+  .print-bar { gap: 6px; padding-left: 10px; padding-right: 10px; }
+  .print-bar .print-title { display: none; }
+  .print-bar #print-back { margin-right: auto; }
+  .print-bar .btn { padding: 8px 11px; font-size: 13.5px; }
 }
