@@ -34,7 +34,7 @@
         // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ⚠️ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
         l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
-        if (wg.wp.over || wg.wp.unplaced) l2 += " · ⚠️ zu viel auf einmal";
+        if (wg.wp.over) l2 += " · ⚠️ zu viel auf einmal";
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).

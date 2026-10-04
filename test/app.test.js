@@ -272,7 +272,7 @@ test("Migration: alte Schlüssel (Flasche, Variante 1, KetoCal-Zwilling) werden 
     dayPlan: [{ key: "std:Flasche: KetoCal & Pre Apta" }, { key: null }],
   });
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
-  assert.equal(st.settings.ketocal, "ohne"); assert.equal(st.settings.filter, "alle");
+  assert.equal(st.settings.ketocal, undefined, "veraltete Einstellung entfernt"); assert.equal(st.settings.filter, "alle");
   assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)", "std:Compleat & KetoCal"]);
   assert.equal(st.scales["fam:Erdäpfel & Zucchini"], 3);
   assert.equal(st.dayPlan[0].key, "std:KetoCal & Pre Apta");

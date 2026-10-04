@@ -11,13 +11,13 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: "", ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketocal: "mit", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: "", ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
       scales: {},
       water: {},
-      portion: {}, // Portion angepasst (Rechnen): Faktor je Gericht, 1 = wie berechnet
+      portion: {}, // Portion angepasst (Blatt Mahlzeit/Tag): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
     };
@@ -59,15 +59,9 @@
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
       const settings = Object.assign(d.settings, p.settings || {});
-      // Migration alter KetoCal-Felder auf einen einzelnen Schalter (withKeto)
-      if (p.settings && typeof p.settings.withKeto !== "boolean") {
-        if (typeof p.settings.showMitKeto === "boolean") settings.withKeto = p.settings.showMitKeto && !p.settings.showOhneKeto;
-        else if (p.settings.ketocal && p.settings.ketocal !== "mit" && p.settings.ketocal !== "ohne") settings.withKeto = false;
-      }
-      // KetoCal-Phase (früher Dreistufen-Filter „alle/ohne/mit“) und alte Gruppen-Filter
-      const ps = p.settings || {};
-      if (ps.ketocal !== "mit" && ps.ketocal !== "ohne") settings.ketocal = ps.ketoFilter === "ohne" ? "ohne" : "mit";
-      delete settings.ketoFilter;
+      // Einstellungen früherer Versionen, die nichts mehr steuern (KetoCal-Schalter, feste Wassermengen, Spülen)
+      ["withKeto", "showMitKeto", "showOhneKeto", "ketocal", "ketoFilter", "zwischenMl", "spuelMl", "maxMahlMl", "rundung"].forEach(k => { delete settings[k]; });
+      // Alte Gruppen-Filter
       if (["fleisch", "vegetarisch", "unterwegs", "flasche"].indexOf(settings.filter) !== -1) settings.filter = "alle";
       // Favoriten gelten je Rezept: Schlüssel nur umbenennen (alte Namen), nicht mehr auf das Gericht zusammenfassen.
       // Ältere Familien-Favoriten („fam:…“) bleiben erhalten und zählen für beide Varianten.
@@ -914,7 +908,7 @@
         // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ⚠️ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
         l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
-        if (wg.wp.over || wg.wp.unplaced) l2 += " · ⚠️ zu viel auf einmal";
+        if (wg.wp.over) l2 += " · ⚠️ zu viel auf einmal";
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
@@ -1163,7 +1157,8 @@
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
-  // Blätter der Detailansicht in Reihenfolge. „Abwiegen“ enthält auch den Tages-Check (früher eigenes Blatt „Ein Tag“).
+  // Blätter der Detailansicht in Reihenfolge: Mahlzeit (eine Portion), Tag (Zubereitungsmenge, intern „abwiegen“),
+  // Anpassen, Kochen (intern „zubereitung“).
   const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["abwiegen", "📅 Tag"], ["anpassen", "🎛️ Anpassen"], ["zubereitung", "🍳 Kochen"]];
   function isMobileLayout() { try { return !!(window.matchMedia && window.matchMedia("(max-width: 820px)").matches); } catch (e) { return false; } }
   // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
@@ -1217,8 +1212,8 @@
     const baseOilIndex = oilSlotIndex(res.items);
     const kcalZielOil = sumMacros(res.items).kcal;
     if (baseOilIndex >= 0 && d.mctShare > 0) res = applyOilMix(res, d, d.mctShare, d.mctMode, kcalZielOil);
-    // Portion angepasst (Rechnen): ein Wert wurde händisch geändert, alle Zutaten skalieren proportional mit
-    // (je Rezept gemerkt). Das Verhältnis bleibt, kcal je Mahlzeit ändern sich – Tagesplan und „Ein Tag“ rechnen damit.
+    // Portion angepasst (Blatt Mahlzeit): ein Wert wurde händisch geändert, alle Zutaten skalieren proportional mit
+    // (je Rezept gemerkt). Das Verhältnis bleibt, kcal je Mahlzeit ändern sich – Tagesplan und Blatt Tag rechnen damit.
     const portionKey = familyKey(rec);
     const portionF = num(state.portion && state.portion[portionKey]);
     const hasPortion = portionF > 0 && Math.abs(portionF - 1) > 1e-6;
@@ -1278,7 +1273,7 @@
         densityAdjusted = true;
       }
     }
-    // Zum Schluss: Rundung fürs Abwiegen (Vorgabe „Rundung“), Verhältnis über die Fettträger nachgestellt.
+    // Zum Schluss: Rundung fürs Abwiegen (fest 0,5 g / Wasser 1 ml), Verhältnis über die Fettträger nachgestellt.
     {
       const itemsR = roundForScale(res.items, d.rundung);
       const smR = sumMacros(itemsR);
@@ -1317,7 +1312,6 @@
   function zwischenText(d, mealFluidPer) {
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
-    if (wp.unplaced) return '<div class="note warn">💧 ' + base + ' – es fehlen ' + fmt(wp.rest, 0) + ' ml, aber der Zeitplan hat keine Pause für Wasser.</div>';
     if (wp.per === 0) return '<div class="note tip">💧 ' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
     return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">💧 ' + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
       (wp.over ? ' · ⚠️ über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
@@ -1378,7 +1372,7 @@
     const mv = computeMealView(rec, d, detailMeat);
     const res = mv.res, adjIndex = mv.adjIndex, adjLabel = mv.adjLabel;
     const baseOilIndex = mv.baseOilIndex, waterKey = mv.waterKey, hasWaterOverride = mv.hasWaterOverride;
-    const mult = scaleMult(d); // gilt für Kochen und Abfüllen; Rechnen zeigt immer eine Portion
+    const mult = scaleMult(d); // gilt für die Blätter Tag und Kochen; das Blatt Mahlzeit zeigt immer eine Portion
     const items = res.items;
     const sumPer = sumMacros(items);
     const sum = { eiweiss: sumPer.eiweiss * mult, fett: sumPer.fett * mult, kh: sumPer.kh * mult, kcal: sumPer.kcal * mult };
@@ -1391,7 +1385,7 @@
     const portionsTxt = (Math.abs(mult - Math.round(mult)) < 0.05 ? String(Math.round(mult)) : fmt(mult, 1));
     const days = scaleDays();
     const portionLabel = mult === 1 ? "1 Portion" : (days ? (days === 1 ? "1 Tag" : days + " Tage") + " = " : "") + portionsTxt + " Portionen";
-    // Abfüllmenge je Portion OHNE Öl (das Öl wird erst kurz vor dem Verabreichen zugegeben).
+    // Abfüllmenge je Portion OHNE Öl (das Öl wird danach in die abgefüllte Portion eingerührt).
     // Nur tatsächliche Öle abziehen (Name enthält "Öl") – Butter/Sahne/KetoCal bleiben in der Masse.
     const isOil = isOilName;
     const itemsNoOil = items.filter(it => !isOil(it.food));
@@ -1488,11 +1482,11 @@
         note + warn + (sOil > 0 ? regelZeile(d) : "") + "</div>";
     }
 
-    // Zwei Sichten auf dieselben Zutaten: Küche (abwiegen, editierbar) und Rechnen (Nährwerte, nur lesen).
+    // Zwei Sichten auf dieselben Zutaten: Blatt Mahlzeit (eine Portion) und Blatt Tag (Zubereitungsmenge), beide editierbar.
     let kRows = "", nRows = "";
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
-      const m = lineMacros({ food: it.food, grams: num(it.grams) }); // Rechnen: je Portion
+      const m = lineMacros({ food: it.food, grams: num(it.grams) }); // Blatt Mahlzeit: je Portion
       const isWaterRow = /wasser/i.test(it.food);
       const fatRow = isFatCarrier(items, i);
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
@@ -1500,7 +1494,7 @@
       // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
       // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
       const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">⟵ höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
-      const mK = lineMacros({ food: it.food, grams: gR }); // Abwiegen: für die Zubereitungsmenge
+      const mK = lineMacros({ food: it.food, grams: gR }); // Blatt Tag: für die Zubereitungsmenge
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
         '<td class="amt"><input class="amt-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
         "<td>" + fmt(mK.eiweiss) + "</td><td>" + fmt(mK.fett) + "</td><td>" + fmt(mK.kh) + "</td><td>" + fmt(mK.kcal, 0) + "</td></tr>";
@@ -1542,9 +1536,6 @@
         (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ ' + fmt(volumeMl(items), 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
-    const fluidDayTile = d.fluidDay > 0
-      ? '<div class="dstat' + (d.wasserModus === "mahlzeit" && dayFluid < dayFluidZiel - 3 ? " warn" : "") + '"><div class="v">' + fmt(dayFluid, 0) + ' ml</div><div class="l">' + (d.wasserModus === "mahlzeit" ? 'Flüssigkeit/Tag · Ziel ' + fmt(dayFluidZiel, 0) + ' ml' : 'Flüssigkeit/Tag') + '</div></div>'
-      : "";
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
           ? zwischenText(d, fluidPer)
@@ -1553,7 +1544,7 @@
               : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
 
-    // Abwiegen: Kacheln für die Zubereitungsmenge – gleiches Layout wie „Mahlzeit“, nur mit den Mengen der Zubereitung
+    // Blatt Tag: Kacheln für die Zubereitungsmenge – gleiches Layout wie „Mahlzeit“, nur mit den Mengen der Zubereitung
     // (Standard: ein Tag). Ziele skalieren mit; bei ganzen Tagen zählt das Flüssigkeitsziel je Tag.
     const qTag = days === 1 ? "/Tag" : "";
     const qFluid = fluidPer * mult, qFluidZiel = days ? dayFluidZiel * days : d.fluidMahl * mult, qZiel = d.wasserModus === "mahlzeit";
@@ -1569,7 +1560,7 @@
       ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
       : (dayHigh ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
     // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
-    // Gilt nur hier (Abwiegen, Zubereitung, Abfüllen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
+    // Gilt nur hier (Blätter Tag und Kochen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
     const scaleBtn = (v, label) => '<button type="button" data-scale="' + v + '"' + ((v === "1" ? (!days && mult === 1) : detailScale === v) ? ' class="active"' : "") + ">" + label + "</button>";
     // Eine Zeile: 1 · 2 · 3 Tage + Stepper für eine freie Portionenzahl (Überschrift nennt die gewählte Menge).
     const scaleSeg =
@@ -1633,7 +1624,7 @@
       fluidLine +
       "</div>" +
 
-      /* ---------- 2 Abwiegen (Zubereitungsmenge, Standard ein Tag) ---------- */
+      /* ---------- 2 Tag (Zubereitungsmenge, Standard ein Tag) ---------- */
       paneOpen("abwiegen") +
       '<h4 class="ph">📅 Tag <span class="hint">' + (mult === 1 ? "eine Portion" : (days === 1 ? "= " : (days ? days + " Tage = " : "")) + portionsTxt + " Portionen") + '</span></h4>' +
       scaleSeg +
@@ -1691,7 +1682,7 @@
     if (pin) pin.addEventListener("change", () => {
       const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = scaleFromPortions(v, d.mahl); persistScale(); renderDetail(); }
     });
-    // Rechnen: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
+    // Blatt Mahlzeit: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
@@ -2160,7 +2151,7 @@
     document.getElementById("picker-search").addEventListener("input", renderPicker);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
   }
-  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
+  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
@@ -2273,7 +2264,7 @@
     const nG = times.gifts.length;
     const per = (d.fluidDay > 0 && rest > 10 && nG > 0) ? Math.max(10, Math.round(rest / nG / 5) * 5) : 0;
     return { rest, per, n: per > 0 ? nG : 0, total: mealFluidSum + per * (per > 0 ? nG : 0),
-      over: d.maxMahlMl > 0 && per > d.maxMahlMl, unplaced: d.fluidDay > 0 && rest > 10 && nG === 0 };
+      over: d.maxMahlMl > 0 && per > d.maxMahlMl };
   }
   // Durchschnittliche Flüssigkeit einer Mahlzeit über alle Rezepte – Schätzung für noch offene Plätze im Tagesplan.
   let avgFluidMemo = { key: null, v: 0, vol: 0 };
@@ -2321,7 +2312,6 @@
     if (times.interval != null && times.interval < 180) notes.push('<div class="note warn" title="Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten.">⚠️ Nur ' + fmtDauer(times.interval) + ' Abstand – Keto-Kost braucht oft 3–4 h.</div>');
     if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn" title="Sonst droht Rückfluss im Liegen.">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – 2 h einplanen.</div>');
     if (wp.over) notes.push('<div class="note warn">⚠️ ' + fmt(wp.per, 0) + ' ml je Wassergabe – über ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen.</div>');
-    if (wp.unplaced) notes.push('<div class="note warn">💧 Es fehlen ' + fmt(wp.rest, 0) + ' ml, aber es gibt keine Pause für eine Wassergabe – Schlafenszeit eintragen.</div>');
     if (d.fluidDay > 0 && wp.rest < -10) notes.push('<div class="note tip">💧 Die Mahlzeiten liefern schon ' + fmt(-wp.rest, 0) + ' ml mehr als das Tagesziel – keine Wassergaben nötig.</div>');
     return notes.join("");
   }

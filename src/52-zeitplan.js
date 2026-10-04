@@ -46,7 +46,7 @@
     const nG = times.gifts.length;
     const per = (d.fluidDay > 0 && rest > 10 && nG > 0) ? Math.max(10, Math.round(rest / nG / 5) * 5) : 0;
     return { rest, per, n: per > 0 ? nG : 0, total: mealFluidSum + per * (per > 0 ? nG : 0),
-      over: d.maxMahlMl > 0 && per > d.maxMahlMl, unplaced: d.fluidDay > 0 && rest > 10 && nG === 0 };
+      over: d.maxMahlMl > 0 && per > d.maxMahlMl };
   }
   // Durchschnittliche Flüssigkeit einer Mahlzeit über alle Rezepte – Schätzung für noch offene Plätze im Tagesplan.
   let avgFluidMemo = { key: null, v: 0, vol: 0 };
@@ -94,7 +94,6 @@
     if (times.interval != null && times.interval < 180) notes.push('<div class="note warn" title="Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten.">⚠️ Nur ' + fmtDauer(times.interval) + ' Abstand – Keto-Kost braucht oft 3–4 h.</div>');
     if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn" title="Sonst droht Rückfluss im Liegen.">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – 2 h einplanen.</div>');
     if (wp.over) notes.push('<div class="note warn">⚠️ ' + fmt(wp.per, 0) + ' ml je Wassergabe – über ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen.</div>');
-    if (wp.unplaced) notes.push('<div class="note warn">💧 Es fehlen ' + fmt(wp.rest, 0) + ' ml, aber es gibt keine Pause für eine Wassergabe – Schlafenszeit eintragen.</div>');
     if (d.fluidDay > 0 && wp.rest < -10) notes.push('<div class="note tip">💧 Die Mahlzeiten liefern schon ' + fmt(-wp.rest, 0) + ' ml mehr als das Tagesziel – keine Wassergaben nötig.</div>');
     return notes.join("");
   }

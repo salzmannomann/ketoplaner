@@ -3,13 +3,13 @@
   /* ---------- State ---------- */
   function defaultState() {
     return {
-      settings: { kcal: "", ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, ketocal: "mit", view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
+      settings: { kcal: "", ratio: 1.8, mahlzeiten: 5, eiweiss: 20, weight: 8, proteinPerKg: 1.5, mctShare: 0.1, mctMode: "verhaeltnis", mctFett100: 100, mctKcal100: 830, dampfVerdunstung: 150, view: "rezepte", filter: "alle", onlyQuelle: false, sort: "kategorie" },
       compose: { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true },
       favorites: [],
       savedRecipes: [],
       scales: {},
       water: {},
-      portion: {}, // Portion angepasst (Rechnen): Faktor je Gericht, 1 = wie berechnet
+      portion: {}, // Portion angepasst (Blatt Mahlzeit/Tag): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
     };
@@ -51,15 +51,9 @@
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
       const settings = Object.assign(d.settings, p.settings || {});
-      // Migration alter KetoCal-Felder auf einen einzelnen Schalter (withKeto)
-      if (p.settings && typeof p.settings.withKeto !== "boolean") {
-        if (typeof p.settings.showMitKeto === "boolean") settings.withKeto = p.settings.showMitKeto && !p.settings.showOhneKeto;
-        else if (p.settings.ketocal && p.settings.ketocal !== "mit" && p.settings.ketocal !== "ohne") settings.withKeto = false;
-      }
-      // KetoCal-Phase (früher Dreistufen-Filter „alle/ohne/mit“) und alte Gruppen-Filter
-      const ps = p.settings || {};
-      if (ps.ketocal !== "mit" && ps.ketocal !== "ohne") settings.ketocal = ps.ketoFilter === "ohne" ? "ohne" : "mit";
-      delete settings.ketoFilter;
+      // Einstellungen früherer Versionen, die nichts mehr steuern (KetoCal-Schalter, feste Wassermengen, Spülen)
+      ["withKeto", "showMitKeto", "showOhneKeto", "ketocal", "ketoFilter", "zwischenMl", "spuelMl", "maxMahlMl", "rundung"].forEach(k => { delete settings[k]; });
+      // Alte Gruppen-Filter
       if (["fleisch", "vegetarisch", "unterwegs", "flasche"].indexOf(settings.filter) !== -1) settings.filter = "alle";
       // Favoriten gelten je Rezept: Schlüssel nur umbenennen (alte Namen), nicht mehr auf das Gericht zusammenfassen.
       // Ältere Familien-Favoriten („fam:…“) bleiben erhalten und zählen für beide Varianten.

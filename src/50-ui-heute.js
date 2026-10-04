@@ -263,7 +263,7 @@
     document.getElementById("picker-search").addEventListener("input", renderPicker);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
   }
-  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Menge, Öl, Dauer), Hinweise zum
+  // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
