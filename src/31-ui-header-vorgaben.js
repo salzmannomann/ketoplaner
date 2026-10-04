@@ -63,9 +63,10 @@
       : "";
     const sum = document.getElementById("verordnung-summary");
     if (sum) sum.className = "note " + (d.ratio < 1 ? "warn" : "tip");
-    if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
-      ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : ", 70 kcal/kg") + ")" +
-      (d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
+    if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : d.kcalBasis === "krick" ? ", Vorschlag nach Krick" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
+      ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : d.kcalBereich ? ", ESPGHAN 60 %" : d.weight > 0 ? ", 70 kcal/kg" : ", 85 % des Ziels") + ")" +
+      (d.kcalBereich ? " · Bereich laut Schätzungen " + fmt(d.kcalLoBd, 0) + "–" + fmt(d.kcalRefBd, 0) + " kcal/Tag (ESPGHAN–FAO/WHO)"
+        : d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
       " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
       (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)");
     // Flüssigkeit: Modus-Buttons und Zusammenfassung

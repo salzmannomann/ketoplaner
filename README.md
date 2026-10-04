@@ -59,14 +59,16 @@ Vorgaben.
   „:1" steht fix daneben („1,8", „1,5", „1"); die App zeigt Verhältnisse
   überall als „x:1", auch unter 1 (z. B. „0,67:1") und warnt dann unter dem
   Feld,
-  **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg) und
-  **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
-  ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
-  6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
+  **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg; ist unter „Bedarf schätzen“ ein
+  Geburtsdatum eingetragen, die **Krick-Schätzung**) und
+  **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Korridor
+  70–90 kcal/kg nach FAO/WHO/UNU 2004 für 6–24 Monate. Mit Geburtsdatum und einem Kind, das nicht geht:
+  Minimum = ESPGHAN-Faustregel 60 % und **Bereich laut Schätzungen** ESPGHAN–FAO/WHO – bitte mit der
+  Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
   markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
-  kommt: grün **„✓ Vorschlag nach Gewicht (80 kcal/kg)"** oder **„eigener
+  kommt: grün **„✓ Vorschlag · 80 kcal/kg"** bzw. **„✓ Vorschlag · Krick"** oder **„eigener
   Wert · ↺ Vorschlag 680"** zum Zurücksetzen. Tippt man genau den Vorschlag
   ein oder leert das Feld, gilt wieder der Vorschlag. Nichts verschiebt sich
   dabei.
@@ -374,6 +376,9 @@ einer). Eine Skala ordnet drei Werte ein; die Legende darunter sagt bei jedem, w
 Auf der Skala und in der Legende heißt jeder Wert nach seiner Quelle (Krick, ESPGHAN, FAO/WHO).
 
 Darunter der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
+
+Die Krick-Schätzung ist zugleich der **Kalorien-Vorschlag** in der Verordnung (gilt nur, solange dort kein
+eigener Wert steht); bei Kindern, die nicht gehen, wird das Minimum die ESPGHAN-Untergrenze (60 %).
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
 die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
 Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „ⓘ“

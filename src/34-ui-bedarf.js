@@ -78,7 +78,8 @@
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
-    const set = (k, v) => { state.settings[k] = v; save(); renderBedarf(derived()); };
+    // Alles neu zeichnen: die Krick-Schätzung ist auch der Kalorien-Vorschlag in der Verordnung
+    const set = (k, v) => { state.settings[k] = v; save(); renderRezepte(); };
     birth.addEventListener("change", () => set("bdBirth", birth.value));
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));

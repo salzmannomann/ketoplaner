@@ -1242,11 +1242,36 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match($(w, "bd-out").textContent, /FAO\/WHO \(2004\): 685 kcal/);
   assert.doesNotMatch($(w, "bd-out").textContent, /ESPGHAN/, "geht: keine Faustregel für Kinder, die nicht gehen");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
+  // Eigener Wert 750 bleibt; der Vorschlag daneben ist die Krick-Schätzung (geht + erhöht → 689 ≈ 690)
+  assert.match($(w, "reset-kcal").textContent, /Vorschlag 690/);
   // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
   b.value = iso(34); fire(w, b, "change");
   assert.match($(w, "bd-out").textContent, /Am 3\. Geburtstag wechselt die Formel/);
   // sehr niedrige Verordnung → Hinweis zu Vitaminen und Mineralstoffen
   const k = $(w, "set-kcal"); k.value = "400"; fire(w, k, "input");
   assert.match($(w, "bd-out").textContent, /Verordnung unter 70 % von Gleichaltrigen/);
+});
+
+test("Kalorien-Vorschlag folgt der Krick-Schätzung, sobald ein Geburtsdatum eingetragen ist", () => {
+  const iso = (mo) => { const n = new Date(); const b = new Date(n.getFullYear(), n.getMonth() - mo, Math.min(n.getDate(), 28)); return b.getFullYear() + "-" + String(b.getMonth() + 1).padStart(2, "0") + "-" + String(b.getDate()).padStart(2, "0"); };
+  const w = boot({ settings: { kcal: "", kcalMin: "", weight: 8.5, ratio: 1.5, mahlzeiten: 4, view: "vorgaben" } });
+  // ohne Geburtsdatum: 80 kcal/kg
+  assert.equal($(w, "set-kcal").value, "680");
+  assert.match($(w, "src-kcal").textContent, /Vorschlag · 80 kcal\/kg/);
+  const b = $(w, "bd-birth"); b.value = iso(26); fire(w, b, "change");
+  // Mädchen, liegt viel, normal → Krick 559 ≈ 560; Minimum ESPGHAN 60 % von 685 ≈ 410; Bereich bis FAO/WHO 690
+  assert.equal($(w, "set-kcal").value, "560");
+  assert.match($(w, "src-kcal").textContent, /Vorschlag · Krick/);
+  assert.equal($(w, "set-kcalmin").value, "410");
+  assert.match($(w, "src-kcalmin").textContent, /Vorschlag · ESPGHAN 60 %/);
+  const sum = $(w, "verordnung-summary").textContent;
+  assert.match(sum, /140 kcal pro Mahlzeit \(560 kcal\/Tag, Vorschlag nach Krick ÷ 4\)/);
+  assert.match(sum, /Bereich laut Schätzungen 410–690 kcal\/Tag \(ESPGHAN–FAO\/WHO\)/);
+  // „geht“: Vorschlag weiter nach Krick, Minimum und Korridor wieder nach Gewicht (70–90 kcal/kg)
+  const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
+  assert.equal($(w, "set-kcal").value, "630");
+  assert.equal($(w, "set-kcalmin").value, "600");
+  assert.match($(w, "verordnung-summary").textContent, /Korridor nach Gewicht 600–770/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal || "", "", "kein eigener Wert gespeichert");
 });
 

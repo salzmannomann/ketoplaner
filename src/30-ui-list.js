@@ -223,9 +223,9 @@
       if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
     };
     put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
-    src("kcal", d.kcalManual, d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
-    src("kcalmin", d.kcalMinManual, d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
     src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
