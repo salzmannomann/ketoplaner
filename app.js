@@ -2042,7 +2042,38 @@
     if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 52)) + "px"; }
   }
 
-  if (typeof window !== "undefined") window.addEventListener("resize", () => { if (typeof fitHeute === "function") fitHeute(); });
+  // Neu einpassen, sobald sich der verfügbare Platz ändert. Am iPhone (installierte App) stehen Statusleiste,
+  // Home-Balken-Abstand (safe-area) und Fensterhöhe beim Start oft noch nicht fest und ändern sich ohne
+  // „resize“ – daher zusätzlich: Größe von Tab-Leiste und Kopf beobachten, sichtbare Fensterhöhe, Rückkehr
+  // in die App, geladene Schriften und zwei verzögerte Nachkontrollen.
+  let fitQueued = false;
+  function queueFitHeute() {
+    if (fitQueued) return; fitQueued = true;
+    const run = () => { fitQueued = false; fitHeute(); };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(run); else setTimeout(run, 16);
+  }
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", queueFitHeute);
+    window.addEventListener("orientationchange", () => setTimeout(queueFitHeute, 300));
+    window.addEventListener("pageshow", queueFitHeute);
+    window.addEventListener("load", () => { queueFitHeute(); setTimeout(queueFitHeute, 400); setTimeout(queueFitHeute, 1500); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) { queueFitHeute(); setTimeout(queueFitHeute, 400); } });
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", queueFitHeute);
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueFitHeute); } catch (e) {}
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof ResizeObserver !== "function") return;
+      const ro = new ResizeObserver(queueFitHeute);
+      // unsichtbarer Platzhalter in Fenstergröße: meldet jede Änderung der Fensterhöhe
+      const vp = document.createElement("div"); vp.className = "vp-probe"; vp.setAttribute("aria-hidden", "true"); document.body.appendChild(vp);
+      [".tabbar", "header", ".vp-probe"].forEach(sel => { const el = document.querySelector(sel); if (el) { try { ro.observe(el, { box: "border-box" }); } catch (e) { ro.observe(el); } } });
+    });
+    // Letzte Sicherung: lässt sich Heute am Handy trotzdem scrollen, ist die gewählte Stufe zu groß – neu einpassen.
+    window.addEventListener("scroll", () => {
+      if (document.body.getAttribute("data-view") !== "heute" || window.innerWidth > 820) return;
+      const zp = document.querySelector("#heute-content .zeitplan");
+      if (zp && !zp.classList.contains("tight") && document.documentElement.scrollHeight > window.innerHeight + 2) queueFitHeute();
+    }, { passive: true });
+  }
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)
   let pickerSlot = -1;
   function openPicker(i) {

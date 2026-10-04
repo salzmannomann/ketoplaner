@@ -1312,3 +1312,4 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zeitplan.tight .day-strip .dstat .l { font-size: 9.5px; line-height: 1.15; }
 .zeitplan.tight .day-strip .dstat .v .ratio-pill { font-size: 12px; padding: 0 6px; }
 .zeitplan.tight .day-head .head-actions .iconbtn.round { width: 26px; height: 26px; font-size: 12px; }
+.vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }
