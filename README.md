@@ -363,11 +363,36 @@ npm run build      # src/*.js -> app.js, Versionen, keto-rechner.html
 npm test           # Build + Regressionstests (node --test)
 ```
 
-Der Quellcode liegt modular in **`src/`** (nummeriert in Ladereihenfolge:
-State, Helfer, Lebensmittel, Filter, Rezept-Anpassung, Fleisch-Tausch,
-Öl-Rechnung, Rezeptliste, Kopfzeile/Vorgaben, Kachel, Detailansicht, Tagesplan,
-Zeitplan, Drucken, PDF, eigenes Rezept, Init). **`app.js` ist generiert** – Änderungen bitte
-in `src/` machen und `npm run build` ausführen. Die Tests in `test/`
+Der Quellcode liegt modular in **`src/`**, nummeriert in Ladereihenfolge; der Build
+fügt alle Dateien in eine gemeinsame Funktion (`app.js`) zusammen, sie teilen sich
+also einen Gültigkeitsbereich. **`app.js` ist generiert** – Änderungen bitte in `src/`
+machen und `npm run build` ausführen.
+
+| Datei | Inhalt |
+|---|---|
+| `00-state.js` | Speicher (localStorage), Standardwerte, Migration alter Daten |
+| `10-helpers.js` | Zahlen/Formatierung, kleine DOM-Helfer, Hinweis-Leiste („Toast“) |
+| `20-foods.js` | Lebensmittel-Index, Nährwerte, Flüssigkeit und Volumen |
+| `21-filter.js` | Gruppen der Rezeptliste |
+| `22-derived.js` | abgeleitete Vorgaben (kcal, Eiweiß, Flüssigkeit, Mahlzeiten 3–5) |
+| `23-adjust.js` | Rezept auf Verhältnis und kcal umrechnen, Rundung fürs Abwiegen |
+| `24-meat.js` | Fleisch tauschen |
+| `25-oil.js` | Öl-Erkennung und MCT-Mischung |
+| `26-favorites.js` | Rezeptfamilien (Fettbasis-Varianten), Favoriten, eigene Rezepte |
+| `30-ui-list.js` | Rezeptliste, Wischen zwischen Gruppen, Vorgaben-Felder |
+| `31-ui-header-vorgaben.js` | Ansichten, Kopf-Pille, Vorgaben, Backup |
+| `32-ui-tile.js` | Rezept-Kachel |
+| `40-ui-detail.js` | Detailansicht (4 Blätter), Mahlzeit-Kennzahlen, Wisch-Gesten |
+| `50-ui-heute.js` | Heute: Zeitleiste, Einpassen auf den Bildschirm, Rezeptauswahl, Tagesplan-Ausdruck |
+| `52-zeitplan.js` | Uhrzeiten, Wassergaben, Hinweise zum Zeitplan |
+| `60-print.js` | Druckvorschau (mit Zoom), Druckvorlage, Rezept-Ausdruck |
+| `62-pdf.js` | PDF zum Teilen aus der Druckvorlage |
+| `70-ui-compose.js` | Editor für eigene Rezepte |
+| `90-init.js` | Start |
+
+`styles.css` ist nach Bereichen gegliedert; spätere Abschnitte verfeinern frühere
+(Handy-Anpassungen in `@media (max-width: 820px/560px)`, Dunkelmodus doppelt für
+„Gerät folgt“ und „dunkel erzwungen“). Die Tests in `test/`
 starten die gebaute App in jsdom und prüfen u. a., dass alle Rezepte das
 Verhältnis bei 1,8:1 und 1:1 treffen, die MCT-Rechnung ihre Zusicherungen
 einhält, Wasser unabhängig skaliert, Abfüllmengen aufgehen, Filter, Backup und
