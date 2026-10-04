@@ -3,10 +3,12 @@
   const PROTEIN_STANDARD = 1.5;
   // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
   function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
+  // Mahlzeiten pro Tag: wählbar sind 3, 4 oder 5 (ältere gespeicherte Werte werden in diesen Bereich geholt).
+  function mahlCount(s) { const n = Math.round(num(s.mahlzeiten)) || 5; return Math.min(5, Math.max(3, n)); }
   function derived() {
     const s = state.settings;
     const ratio = num(s.ratio);
-    const mahl = Math.max(1, num(s.mahlzeiten) || 1);
+    const mahl = mahlCount(s);
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
     // Kalorien: leer = Vorschlag nach Gewicht (80 kcal/kg, FAO/WHO/UNU 2004, 6–24 Monate); ohne Gewicht 700 kcal.
     const r10 = (v) => Math.round(v / 10) * 10;

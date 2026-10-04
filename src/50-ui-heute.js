@@ -39,12 +39,13 @@
       // Eine Zeile: Uhrzeit · Rezept · Menge. Zweite Zeile nur, wenn sie etwas zu tun gibt: Öl vor dem Füttern
       // zugeben oder zu wenig Eiweiß. kcal je Mahlzeit sind gleich (Vorgabe), Eiweiß gesamt steht in der Kachel.
       // Öl kurz benannt („Raps 11,4 g + MCT 1,2 g“), damit beide Mengen auch am Handy ganz zu sehen sind.
-      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
+      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + "&nbsp;" + fmt(num(o.grams), 1) + "&nbsp;g").join(" + ") : "";
       const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') +
           '<small class="zp-more">' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</small></span>' +
-        '<span class="zp-vol" title="langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">≈ ' + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>' +
+        (() => { const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
+          return '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' + (big ? '⚠️ ' : '≈ ') + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>'; })() +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
         '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
     });
@@ -131,7 +132,7 @@
     const spare = () => tab.getBoundingClientRect().top - (zp.getBoundingClientRect().bottom + (window.scrollY || 0)) - 12;
     if (spare() > 70) { list.classList.add("roomy"); if (spare() < 0) list.classList.remove("roomy"); }
     const s = spare(), n = list.children.length;
-    if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 36)) + "px"; }
+    if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 52)) + "px"; }
   }
   if (typeof window !== "undefined") window.addEventListener("resize", () => { if (typeof fitHeute === "function") fitHeute(); });
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)

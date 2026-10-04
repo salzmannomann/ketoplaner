@@ -364,7 +364,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(rechnenText(c), /Summe je Portion/);
   fire(w, $(w, "detail-close"));
   // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
-  const mi = $(w, "set-mahlzeiten"); mi.value = "4"; fire(w, mi, "input");
+  fire(w, w.document.querySelector('#mahlzeiten-ctl button[data-mahl="4"]'));
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
   assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 4 Portionen$/);
@@ -547,7 +547,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot .zp-txt small").textContent, /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit");
+  assert.match(hc.querySelector(".zp-row.slot .zp-txt small").textContent.replace(/\u00a0/g, " "), /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit (Zahl und „g“ bleiben zusammen)");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
@@ -562,8 +562,15 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.match($(w, "toast").textContent, /Tagesplan geleert/);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot:not(.empty-slot)").length, 1, "Rückgängig stellt den Plan wieder her");
-  $(w, "set-mahlzeiten").value = "3"; fire(w, $(w, "set-mahlzeiten"), "input");
+  // Mahlzeiten pro Tag: nur 3, 4 oder 5 wählbar
+  assert.deepEqual([...w.document.querySelectorAll("#mahlzeiten-ctl button")].map(b => b.textContent), ["3", "4", "5"]);
+  assert.equal($(w, "set-mahlzeiten"), null, "kein freies Zahlenfeld mehr");
+  fire(w, w.document.querySelector('#mahlzeiten-ctl button[data-mahl="3"]'));
+  assert.ok(w.document.querySelector('#mahlzeiten-ctl button[data-mahl="3"]').classList.contains("active"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
+  assert.equal(w.document.querySelectorAll("#heute-content .zp-row.water").length, 3, "3 Mahlzeiten: zwei Pausen + Abendgabe");
+  const vols = [...w.document.querySelectorAll("#heute-content .zp-row.meal:not(.empty-slot) .zp-vol")];
+  vols.forEach(v => { const ml = numDe(v.firstChild.textContent.replace(/[^\d,]/g, "")); assert.equal(v.classList.contains("big"), ml > 200 + 0.5, v.textContent); });
 });
 
 test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mahlzeiten sondieren (Rezept-Wasser, Rest als Wassergaben) oder in den Mahlzeiten dabei", () => {

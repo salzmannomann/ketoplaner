@@ -60,7 +60,7 @@ Vorgaben.
   **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg) und
   **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Richtwert
   ≈ 80 kcal/kg und den Korridor 70–90 kcal/kg nach FAO/WHO/UNU 2004 für
-  6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag**, Körpergewicht
+  6–24 Monate – bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
   markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
@@ -245,7 +245,8 @@ niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 In der Zeitleiste steht jede **Mahlzeit** einzeilig mit Uhrzeit, Rezept, Menge
 und **Sondierdauer** (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B.
 „≈ 125 ml · 25 min“; Wasser ohne Zeitangabe); eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt
-(„🧈 Raps 11,4 g + MCT 1,3 g“) oder das Eiweiß zu niedrig ist. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
+(„🧈 Raps 11,4 g + MCT 1,3 g“) oder das Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
+Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
 Menge. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
 über 25 ml/kg) und Eiweiß. Die Mahlzeiten liegen gleichmäßig zwischen erster

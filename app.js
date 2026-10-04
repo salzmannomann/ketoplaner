@@ -271,10 +271,12 @@
   const PROTEIN_STANDARD = 1.5;
   // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
   function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
+  // Mahlzeiten pro Tag: wählbar sind 3, 4 oder 5 (ältere gespeicherte Werte werden in diesen Bereich geholt).
+  function mahlCount(s) { const n = Math.round(num(s.mahlzeiten)) || 5; return Math.min(5, Math.max(3, n)); }
   function derived() {
     const s = state.settings;
     const ratio = num(s.ratio);
-    const mahl = Math.max(1, num(s.mahlzeiten) || 1);
+    const mahl = mahlCount(s);
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
     // Kalorien: leer = Vorschlag nach Gewicht (80 kcal/kg, FAO/WHO/UNU 2004, 6–24 Monate); ohne Gewicht 700 kcal.
     const r10 = (v) => Math.round(v / 10) * 10;
@@ -774,7 +776,7 @@
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
-    put("set-mahlzeiten", s.mahlzeiten);
+    document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b => b.classList.toggle("active", num(b.dataset.mahl) === mahlCount(s)));
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
     put("set-mct-fett", s.mctFett100 || "");
@@ -998,7 +1000,7 @@
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-mahlzeiten": "mahlzeiten", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
@@ -1079,6 +1081,8 @@
       else return;
       save(); renderRezepte();
     });
+    document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.mahlzeiten = num(b.dataset.mahl); save(); renderRezepte(); }));
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
@@ -1883,12 +1887,13 @@
       // Eine Zeile: Uhrzeit · Rezept · Menge. Zweite Zeile nur, wenn sie etwas zu tun gibt: Öl vor dem Füttern
       // zugeben oder zu wenig Eiweiß. kcal je Mahlzeit sind gleich (Vorgabe), Eiweiß gesamt steht in der Kachel.
       // Öl kurz benannt („Raps 11,4 g + MCT 1,2 g“), damit beide Mengen auch am Handy ganz zu sehen sind.
-      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
+      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + "&nbsp;" + fmt(num(o.grams), 1) + "&nbsp;g").join(" + ") : "";
       const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') +
           '<small class="zp-more">' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</small></span>' +
-        '<span class="zp-vol" title="langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">≈ ' + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>' +
+        (() => { const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
+          return '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' + (big ? '⚠️ ' : '≈ ') + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>'; })() +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
         '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
     });
@@ -1975,7 +1980,7 @@
     const spare = () => tab.getBoundingClientRect().top - (zp.getBoundingClientRect().bottom + (window.scrollY || 0)) - 12;
     if (spare() > 70) { list.classList.add("roomy"); if (spare() < 0) list.classList.remove("roomy"); }
     const s = spare(), n = list.children.length;
-    if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 36)) + "px"; }
+    if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 52)) + "px"; }
   }
   if (typeof window !== "undefined") window.addEventListener("resize", () => { if (typeof fitHeute === "function") fitHeute(); });
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)

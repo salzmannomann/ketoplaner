@@ -199,7 +199,7 @@
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
-    put("set-mahlzeiten", s.mahlzeiten);
+    document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b => b.classList.toggle("active", num(b.dataset.mahl) === mahlCount(s)));
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
     put("set-mct-fett", s.mctFett100 || "");
