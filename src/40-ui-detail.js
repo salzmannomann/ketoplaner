@@ -128,7 +128,7 @@
   // mit den Mengen einer Portion (Raps/MCT nach Öl-Mix). Angerührte Rezepte nennen das schon im eigenen Text.
   function oilFeedStep(rec, itemsPer) {
     if (rec.angeruehrt) return "";
-    const oils = itemsPer.filter(it => /öl|oil/i.test(it.food || "") && num(it.grams) > 0);
+    const oils = itemsPer.filter(it => isOilName(it.food) && num(it.grams) > 0);
     if (!oils.length) return "";
     return "Abfüllen, das Öl kommt nicht in den Topf: Erst kurz vor dem Füttern je Portion " +
       oils.map(o => String(o.food).replace(/\s*C8\+C10/, "") + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " gründlich einrühren.";
@@ -137,7 +137,7 @@
   function mealFacts(rec, d) {
     const mv = computeMealView(rec, d, null);
     const items = mv.res.items;
-    const isOilN = (n) => /öl|oil/i.test(n || "");
+    const isOilN = isOilName;
     const noOil = items.filter(it => !isOilN(it.food));
     const oils = items.filter(it => isOilN(it.food));
     const sum = sumMacros(items);
@@ -229,7 +229,7 @@
     const portionLabel = mult === 1 ? "1 Portion" : (days ? (days === 1 ? "1 Tag" : days + " Tage") + " = " : "") + portionsTxt + " Portionen";
     // Abfüllmenge je Portion OHNE Öl (das Öl wird erst kurz vor dem Verabreichen zugegeben).
     // Nur tatsächliche Öle abziehen (Name enthält "Öl") – Butter/Sahne/KetoCal bleiben in der Masse.
-    const isOil = (name) => /öl|oil/i.test(name || "");
+    const isOil = isOilName;
     const itemsNoOil = items.filter(it => !isOil(it.food));
     const hasOil = itemsNoOil.length !== items.length;
     const perGnoOil = itemsNoOil.reduce((a, it) => a + num(it.grams), 0);

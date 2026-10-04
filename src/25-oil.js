@@ -11,7 +11,8 @@
      Öle sind Tabellenwerte (Fett/100 g und kcal/100 g, vom Etikett übersteuerbar,
      siehe rebuildFoodIndex) – "Öl = 100 % Fett" ist nicht hart verdrahtet;
      Emulsionen (Fettanteil « 1) widerlegen das. */
-  function isOilName(name) { return /öl|oil/i.test(name || ""); }
+  // Öl als Zutat (Rapsöl, MCT-Öl, Olivenöl …) – nicht Lebensmittel, die nur in Öl liegen („Thunfisch in Öl“).
+  function isOilName(name) { const n = String(name || ""); return /öl|oil/i.test(n) && !/\bin (öl|oil)\b/i.test(n); }
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
   function oilSlotIndex(items) {
     const fi = fatItemIndex(items);

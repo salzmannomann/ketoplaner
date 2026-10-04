@@ -231,24 +231,25 @@ Reiter nebeneinander.
 ### Heute (Zeitplan)
 
 Eine einzige **Zeitleiste** für den ganzen Tag, am Handy auf einem Bildschirm
-ohne Scrollen (4 und 5 Mahlzeiten). Sie **füllt den Bildschirm bis zur
-Tab-Leiste**: Bleibt Platz (weniger Mahlzeiten, größeres Handy, installierte
-App), zeigt jede Mahlzeit zusätzlich ihre **Zutaten mit Gramm** (eine Zeile über
-die ganze Breite, ohne Öl – das steht darüber) sowie kcal und Eiweiß; die Schrift
-wird etwas größer, lange Rezeptnamen zweizeilig, der Rest verteilt sich als Höhe
-(Mahlzeiten mehr als Wasser). Die App nimmt die ausführlichste Stufe, die ohne
-Scrollen passt; ist es eng (z. B. 5 Mahlzeiten im Browser), bleibt die kompakte
-Darstellung. Am Desktop stehen Zutaten und kcal/Eiweiß immer da. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
+ohne Scrollen (3, 4 und 5 Mahlzeiten, auch im Browser mit Adress- und Werkzeugleiste). Jede
+Mahlzeit zeigt unter dem Namen über die ganze Breite ihre **Zutaten einer Portion mit Gramm**
+(kurze Namen, roh/gekocht bleibt, Gramm ohne „,0“) und am Ende das **Öl vor dem Füttern**
+(„🧈 Raps 14,2 g + MCT 1,6 g“). Die Zeitleiste **füllt den Bildschirm bis zur Tab-Leiste**:
+Die App wählt die großzügigste Stufe, die ohne Scrollen passt – mit viel Platz größere
+Schrift, zweizeilige Rezeptnamen und kcal/Eiweiß je Mahlzeit, der Rest wird Zeilenhöhe
+(Mahlzeiten mehr als Wasser); wird es eng (5 Mahlzeiten im Browser), rückt alles enger
+zusammen (kleinere Schrift, schmale Wasserzeilen, die Kopf-Pille ohne die Wasserzeile).
+Nur auf sehr kleinen Bildschirmen wird gescrollt. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
 min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
 **letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30, 20:00), **🖨️** druckt,
 **🗑️** leert den Plan (ohne Rückfrage, mit **Rückgängig**). Darunter eine
 niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 (Mahlzeiten plus Wassergaben, „≈" solange Mahlzeiten offen sind).
 
-In der Zeitleiste steht jede **Mahlzeit** einzeilig mit Uhrzeit, Rezept, Menge
-und **Sondierdauer** (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B.
-„≈ 125 ml · 25 min“; Wasser ohne Zeitangabe); eine zweite Zeile erscheint nur, wenn Öl vor dem Füttern dazukommt
-(„🧈 Raps 11,4 g + MCT 1,3 g“) oder das Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
+In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondierdauer**
+(etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser ohne
+Zeitangabe), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
+Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
 Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
 Menge. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️

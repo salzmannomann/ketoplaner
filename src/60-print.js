@@ -160,7 +160,7 @@
     const daysP = d.mahl > 0 && Math.abs(mult / d.mahl - Math.round(mult / d.mahl)) < 1e-6 ? Math.round(mult / d.mahl) : 0;
     const multTxt = Math.abs(mult - Math.round(mult)) < 1e-6 ? String(Math.round(mult)) : fmt(mult, 1);
     const portionLabel = mult === 1 ? "1 Portion" : (daysP ? (daysP === 1 ? "1 Tag = " : daysP + " Tage = ") : "") + multTxt + " Portionen";
-    const isOilP = (n) => /öl|oil/i.test(n || "");
+    const isOilP = isOilName;
     const noOilP = items.filter(it => !isOilP(it.food)), oilsP = items.filter(it => isOilP(it.food) && num(it.grams) > 0);
     const gNoOil = noOilP.reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = fluidOf(items), volPer = volumeMl(items);

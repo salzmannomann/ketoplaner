@@ -547,7 +547,8 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot .zp-txt small").textContent.replace(/\u00a0/g, " "), /🧈 Raps [\d,]+ g \+ MCT 1,2 g/, "Öl steht als zweite Zeile an der Mahlzeit (Zahl und „g“ bleiben zusammen)");
+  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), / · 🧈 Raps [\d,]+ g \+ MCT 1,2 g$/, "Öl steht am Ende der Zutatenzeile (Zahl und „g“ bleiben zusammen)");
+  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), /^Hühnerbrust [\d,]+ g · Broccoli gekocht [\d,]+ g · Wasser [\d,]+ g · /, "kurze Namen, roh/gekocht bleibt");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
@@ -665,8 +666,9 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   // Zutaten und kcal/Eiweiß je Mahlzeit nur, wenn Platz ist (Klassen „ing“/„more“ von fitHeute; jsdom misst nicht → kompakt)
   assert.match(hc.querySelector(".zp-row.meal .zp-more").textContent, /^\d+ kcal · Eiweiß [\d,]+ g$/);
   const ingTxt = hc.querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
-  assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat Paediatric Nature Mix [\d,]+ g · Wasser [\d,]+ g$/, ingTxt);
-  assert.ok(!/roomy|ing|more/.test(hc.querySelector(".zp-list").className.replace("day-slots", "")), "ohne Messung bleibt es kompakt");
+  assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ g$/, ingTxt);
+  assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
+  assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
   assert.equal(hc.querySelectorAll(".zp-row.water small").length, 0, "Wassergaben einzeilig");
   const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
@@ -1060,3 +1062,14 @@ test("Druckvorschau zoomen: zwei Finger auseinander vergrößert, Doppeltippen w
   fire(w, $(w, "print-back")); fire(w, $(w, "print-day"));
   assert.ok(Math.abs(zoomOf() - z0) < 0.002);
 });
+
+test("Öl-Erkennung: „Thunfisch in Öl“ ist eine Zutat, kein Öl vor dem Füttern", () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 }, dayPlan: [{ key: "std:Thunfisch & Zucchini" }, { key: null }, { key: null }, { key: null }] });
+  fire(w, $(w, "tab-heute"));
+  const ing = $(w, "heute-content").querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
+  assert.match(ing, /^Thunfisch in Öl [\d,]+ g · /, ing);
+  assert.doesNotMatch(ing.split("🧈")[1] || "", /Thunfisch/, "Thunfisch nicht beim Öl");
+  const c = openRecipe(w, "Thunfisch & Zucchini");
+  assert.doesNotMatch(c.textContent, /Thunfisch in Öl \(Dose, abgetropft\) · vor dem Füttern/);
+});
+

@@ -36,11 +36,9 @@
       const proteinOk = f.sum.eiweiss >= d.eiweissMahl * 0.9;
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       const pill = ratioClass(f.ratio, d.ratio) !== "ok" ? ' <span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span>' : "";
-      // Eine Zeile: Uhrzeit · Rezept · Menge. Zweite Zeile nur, wenn sie etwas zu tun gibt: Öl vor dem Füttern
-      // zugeben oder zu wenig Eiweiß. kcal je Mahlzeit sind gleich (Vorgabe), Eiweiß gesamt steht in der Kachel.
-      // Öl kurz benannt („Raps 11,4 g + MCT 1,2 g“), damit beide Mengen auch am Handy ganz zu sehen sind.
-      const oilShort = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + "&nbsp;" + fmt(num(o.grams), 1) + "&nbsp;g").join(" + ") : "";
-      const sub = [oilShort ? '🧈 ' + oilShort : '', proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>'].filter(Boolean).join(' · ');
+      // Erste Zeile: Uhrzeit · Rezept · Menge/Dauer · ↻ ✕. Darunter über die ganze Breite die Zutaten einer Portion
+      // mit Gramm und am Ende das Öl vor dem Füttern (🧈). Unter dem Namen nur, wenn das Eiweiß zu niedrig ist.
+      const sub = proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>';
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') +
           '<small class="zp-more">' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</small></span>' +
@@ -124,16 +122,26 @@
   // Am Handy füllt der Tag den Bildschirm bis zur Tab-Leiste: Bleibt Platz (z. B. bei 4 statt 5 Mahlzeiten
   // oder als installierte App), zeigt jede Mahlzeit zusätzlich ihre Zutaten mit Gramm und kcal/Eiweiß,
   // lange Rezeptnamen dürfen zweizeilig werden, der Rest verteilt sich als Höhe (Mahlzeiten mehr als Wasser). Reicht der Platz nicht, bleibt die kompakte Darstellung.
-  // Zutaten einer Portion in einer Zeile (ohne Öl – das steht in der Öl-Zeile), Namen ohne Klammerzusatz.
+  // Zutaten einer Portion für die Zeitleiste: kurze Namen (ohne Klammerzusatz, Marke, „ohne Haut“ …; roh/gekocht
+  // bleibt, das ändert das Gewicht), Gramm ohne „,0“, danach das Öl vor dem Füttern („🧈 Raps 14,2 g + MCT 1,6 g“).
+  function shortFood(n) {
+    return String(n).replace(/\s*\(.*?\)/g, "").replace(/,/g, "")
+      .replace(/\s+(Paediatric Nature Mix|Zubereitung|ohne Haut|ganz versprudelt|TK oder Frisch|NÖM)\b/g, "").replace(/\bBio-/g, "")
+      .replace(/^HiPP\s+/, "").replace(/\s+/g, " ").trim();
+  }
+  const gramsShort = (g) => fmt(g, 1).replace(/,0$/, "") + "&nbsp;g";
   function ingLine(f) {
-    return f.res.items.filter(it => !/öl|oil/i.test(it.food || "") && num(it.grams) > 0)
-      .map(it => escapeHtml(String(it.food).replace(/\s*\(.*?\)/g, "")) + "&nbsp;" + fmt(num(it.grams), 1) + "&nbsp;g").join("&nbsp;· ");
+    const ing = f.res.items.filter(it => !isOilName(it.food) && num(it.grams) > 0)
+      .map(it => '<span class="nw">' + escapeHtml(shortFood(it.food)) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ");
+    const oil = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + "&nbsp;" + gramsShort(num(o.grams))).join(" + ") : "";
+    return ing + (oil ? ' · <span class="zp-oil nw" title="erst vor dem Füttern einrühren">🧈&nbsp;' + oil + "</span>" : "");
   }
   function fitHeute() {
     const box = document.getElementById("heute-content"), list = box && box.querySelector(".zp-list");
     const zp = box && box.querySelector(".zeitplan"), tab = document.querySelector(".tabbar");
     if (!list || !zp || !tab) return;
-    const LV = ["roomy", "ing", "more", "fill"];
+    const LV = ["roomy", "more", "tight", "fill"];
+    zp.classList.remove("tight"); document.body.classList.remove("heute-tight");
     list.classList.remove.apply(list.classList, LV); list.style.minHeight = "";
     if (!box.offsetParent) return;
     // Zutatenzeile über die ganze Breite, eingerückt bis zum Rezeptnamen (nach dem Festlegen der Stufe messen)
@@ -142,22 +150,25 @@
       const row = r0.parentElement;
       list.style.setProperty("--ing-indent", Math.round(r0.getBoundingClientRect().left - row.getBoundingClientRect().left - (parseFloat(getComputedStyle(row).paddingLeft) || 0) - (row.clientLeft || 0)) + "px");
     };
-    // Desktop: Platz genug – Zutaten und kcal/Eiweiß immer zeigen
-    if (window.innerWidth > 820 || getComputedStyle(tab).position !== "fixed") { list.classList.add("ing", "more"); indent(); return; }
+    // Desktop: Platz genug – kcal/Eiweiß immer zeigen
+    if (window.innerWidth > 820 || getComputedStyle(tab).position !== "fixed") { list.classList.add("more"); indent(); return; }
     const spare = () => tab.getBoundingClientRect().top - (zp.getBoundingClientRect().bottom + (window.scrollY || 0)) - 12;
-    // Stufen vom ausführlichsten zum kompaktesten; die erste, die ohne Scrollen passt, gilt.
-    if (spare() > 40) {
-      const steps = [["roomy", "ing", "more"], ["roomy", "ing"], ["ing"], ["roomy", "more"], ["roomy"]];
-      for (const st of steps) {
-        list.classList.add.apply(list.classList, st);
-        if (spare() >= 0) break;
-        list.classList.remove.apply(list.classList, st);
-      }
+    // Stufen vom großzügigsten zum knappsten – die Zutaten stehen immer da. Die erste Stufe, die ohne Scrollen
+    // bis zur Tab-Leiste passt, gilt; passt nicht einmal „tight“ (sehr kleiner Bildschirm), darf gescrollt werden.
+    const steps = [["roomy", "more"], ["roomy"], [], ["tight"]];
+    for (const st of steps) {
+      if (st.length) list.classList.add.apply(list.classList, st);
+      zp.classList.toggle("tight", st[0] === "tight");
+      document.body.classList.toggle("heute-tight", st[0] === "tight"); // Kopf-Pille ohne die Wasserzeile (steht in der Zeitleiste)
+      indent();
+      if (spare() >= 0) break;
+      if (st[0] === "tight") break;
+      if (st.length) list.classList.remove.apply(list.classList, st);
     }
-    if (list.classList.contains("ing")) indent();
     const s = spare(), n = list.children.length;
     if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 52)) + "px"; }
   }
+
   if (typeof window !== "undefined") window.addEventListener("resize", () => { if (typeof fitHeute === "function") fitHeute(); });
   // Rezept-Auswahl für einen Slot (Overlay mit Suche)
   let pickerSlot = -1;
@@ -235,7 +246,7 @@
       : "";
     // Mahlzeiten im Detail: je Rezept ein Block mit den Zutaten einer Portion (zwei Spalten), gleiche
     // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), darunter Abfüllen und Öl vor dem Füttern.
-    const isOilD = (n) => /öl|oil/i.test(n || "");
+    const isOilD = isOilName;
     const groups = [];
     facts.forEach((f, i) => {
       if (!f) return;
