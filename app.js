@@ -1166,7 +1166,7 @@
        · Schätzung nach Krick 1992: Grundumsatz × Muskelspannung × Bewegung + 5 kcal je g gewünschter Zunahme
        · 60–70 % des Bedarfs gesund entwickelter Kinder (ESPGHAN 2017 für Kinder, die nicht gehen)
        · Bedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Lebensjahr) */
-  const BD_MOBIL = { geht: [1.3, "geht"], krabbelt: [1.25, "krabbelt"], getragen: [1.2, "getragen / Rollstuhl"], liegt: [1.15, "liegt viel"] };
+  const BD_MOBIL = { geht: [1.3, "geht", "geht"], krabbelt: [1.25, "krabbelt", "krabbelt"], getragen: [1.2, "getragen / Rollstuhl", "getragen wird oder im Rollstuhl sitzt"], liegt: [1.15, "liegt viel", "viel liegt"] };
   const BD_TONUS = { schlaff: [0.9, "schlaffer"], normal: [1.0, "normaler"], erhoeht: [1.1, "erhöhter"] };
   // FAO/WHO/UNU 2004, kcal/kg/Tag für das 2. bis 10. Lebensjahr (Index = volle Jahre 1…9); unter 1 Jahr 80 kcal/kg
   const BD_FAO = { m: [null, 82.4, 83.6, 79.7, 76.8, 74.5, 72.5, 70.5, 68.5, 66.6], w: [null, 80.1, 80.6, 76.5, 73.9, 71.5, 69.3, 66.7, 63.8, 60.8] };
@@ -1209,30 +1209,25 @@
     const r = bedarfCalc(d, s);
     const age = document.getElementById("bd-age"); if (age) age.textContent = r ? bdAgeText(r.mo) : "";
     if (!r) { out.innerHTML = '<div class="note info">' + (!(d.weight > 0) ? "Körpergewicht eintragen (oben bei der Verordnung)." : "Geburtsdatum eintragen – das Alter rechnet die App dann selbst mit.") + "</div>"; return; }
-    // Skala: von etwas unter der 60-%-Grenze bis etwas über dem höchsten Wert, in 50-kcal-Schritten
-    const lo = Math.floor(Math.min(r.lo, r.krick) * 0.9 / 50) * 50, hi = Math.ceil(Math.max(r.ref, r.krick) * 1.08 / 50) * 50;
-    const pos = (v) => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)).toFixed(1) + "%";
-    const ticks = []; const stepT = (hi - lo) > 500 ? 200 : 100;
-    for (let v = Math.ceil(lo / stepT) * stepT; v <= hi; v += stepT) ticks.push('<span class="tick" style="left:' + pos(v) + '">' + v + "</span>");
-    // Liegen Krick und „gesund“ eng beieinander, rücken ihre Beschriftungen nach links bzw. rechts auseinander
-    const near = Math.abs(parseFloat(pos(r.krick)) - parseFloat(pos(r.ref))) < 16;
-    const kgTxt = (v) => fmt(v / r.kg, 0) + "/kg";
+    // Klare Sprache: eine Schätzung für das Kind (Krick), zwei Vergleichswerte, keine feste Empfehlung.
+    const kgTxt = (v) => fmt(v / r.kg, 0) + " kcal/kg";
+    const max = Math.max(r.ref, r.krick, r.hi) * 1.05;
+    const bar = (from, to, cls) => '<span class="bd-bar"><span class="' + cls + '" style="left:' + (from / max * 100).toFixed(1) + "%;width:" + Math.max(1.5, (to - from) / max * 100).toFixed(1) + '%"></span></span>';
     const prot = d.weight > 0 ? d.eiweiss / d.weight : 0;
     out.innerHTML =
-      '<div class="bd-scale" aria-hidden="true"><span class="axis"></span>' +
-        '<span class="band" style="left:' + pos(r.lo) + ';width:calc(' + pos(r.hi) + ' - ' + pos(r.lo) + ')"></span>' +
-        '<span class="lab" style="left:calc((' + pos(r.lo) + ' + ' + pos(r.hi) + ') / 2)"><b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>60–70 %</span>" +
-        '<span class="mk krick" style="left:' + pos(r.krick) + '"></span><span class="lab krick" style="left:' + pos(r.krick) + (near ? ";transform:translateX(" + (r.krick <= r.ref ? "-100%" : "0") + ")" : "") + '"><b>' + fmt(r.krick, 0) + "</b>Krick</span>" +
-        '<span class="mk ref" style="left:' + pos(r.ref) + '"></span><span class="lab" style="left:' + pos(r.ref) + (near ? ";transform:translateX(" + (r.krick <= r.ref ? "0" : "-100%") + ")" : "") + '"><b>' + fmt(r.ref, 0) + "</b>gesund</span>" +
-        ticks.join("") + "</div>" +
-      '<p class="bd-one">Bei „' + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung: <strong>ca. " + fmt(r.krick, 0) + " kcal/Tag</strong> (" + kgTxt(r.krick) + ", Krick) · " +
-        "60–70 % gesunder Kinder: " + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal · gesund entwickelt: " + fmt(r.ref, 0) + " kcal (" + kgTxt(r.ref) + "). " +
-        "Formeln irren um 20–40 % – <strong>ob es passt, zeigt das Wachstum</strong>; mit dem Team besprechen.</p>" +
-      '<p class="bd-one">🥚 Eiweiß-Ziel ' + fmt(prot, 1) + " g/kg · " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">✓ über dem Referenzwert (≈ ' + fmt(r.protRef, 1) + " g/kg)</span>"
-        : '<span class="warn-t">⚠️ unter dem Referenzwert (≈ ' + fmt(r.protRef, 1) + " g/kg) – mit dem Team besprechen</span>") + "</p>" +
-      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Die verordneten Kalorien liegen unter 70 % des Bedarfs gesunder Kinder – dann reichen Vitamine und Mineralstoffe aus der Nahrung oft nicht; Ergänzung mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel für den Grundumsatz – die Schätzung springt bei gleichem Gewicht um etwa ' + r.jump + " %.</p>" : "");
+      '<div class="bd-main"><div class="bd-k">Geschätzter Bedarf</div><div class="bd-v">ca. ' + fmt(r.krick, 0) + ' kcal <small>pro Tag · ' + kgTxt(r.krick) + "</small></div>" +
+        '<div class="bd-s">für ein Kind, das <strong>' + escapeHtml(r.mob[2]) + "</strong>, mit <strong>" + r.ton[1] + " Muskelspannung</strong> – berechnet aus Gewicht, Alter und Geschlecht (Formel nach Krick).</div></div>" +
+      '<div class="bd-cmp"><div class="bd-ct">Zum Vergleich</div>' +
+        '<div class="bd-r"><span class="bd-n">Euer Kind (Schätzung)</span><b>' + fmt(r.krick, 0) + "</b>" + bar(0, r.krick, "me") + "</div>" +
+        '<div class="bd-r"><span class="bd-n">Kinder, die nicht gehen <small>(Leitlinie: 60–70 % von Gleichaltrigen)</small></span><b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>" + bar(r.lo, r.hi, "nw") + "</div>" +
+        '<div class="bd-r"><span class="bd-n">Gleichaltrige ohne Einschränkung</span><b>' + fmt(r.ref, 0) + "</b>" + bar(0, r.ref, "ref") + "</div>" +
+      "</div>" +
+      '<div class="note info bd-note"><strong>Keine feste Empfehlung:</strong> Solche Formeln liegen im Einzelfall oft 20–40 % daneben. Wie viel euer Kind wirklich braucht, legt das Team fest – entscheidend ist, ob es gut wächst und zunimmt.</div>' +
+      '<p class="bd-one">🥚 Eiweiß-Ziel ' + fmt(prot, 1) + " g pro kg · " + (prot >= r.protRef - 0.005
+        ? '<span class="ok">✓ ausreichend (Richtwert ≈ ' + fmt(r.protRef, 1) + " g/kg)</span>"
+        : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + " g/kg) – mit dem Team besprechen</span>") + "</p>" +
+      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Die verordneten Kalorien liegen unter 70 % von Gleichaltrigen – dann reichen Vitamine und Mineralstoffe aus der Nahrung oft nicht; Ergänzung mit dem Team abklären.</p>' : "") +
+      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel – die Schätzung springt bei gleichem Gewicht um etwa ' + r.jump + " %.</p>" : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
