@@ -1837,7 +1837,12 @@
     const actions = c.querySelector("#detail-actions");
     const fav = isFav(rec);
     const favBtn = el("button", { class: "btn secondary icon-lbl", title: "Favorit", "aria-label": "Favorit" }, (fav ? "★" : "☆") + ' <span class="lbl">Favorit</span>');
-    favBtn.addEventListener("click", () => { toggleFav(rec); openRecipeDetail(rec); });
+    // Nur den Stern umschalten (Blatt, Menge und Fleischwahl bleiben) und die Liste dahinter gleich mitziehen.
+    favBtn.addEventListener("click", () => {
+      toggleFav(rec);
+      favBtn.innerHTML = (isFav(rec) ? "★" : "☆") + ' <span class="lbl">Favorit</span>';
+      renderRezepte();
+    });
     actions.appendChild(favBtn);
     const printBtn = el("button", { class: "btn secondary icon-lbl", title: "Drucken", "aria-label": "Drucken" }, '🖨️ <span class="lbl">Drucken</span>');
     printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));

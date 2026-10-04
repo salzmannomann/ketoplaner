@@ -207,7 +207,12 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   assert.ok(rows["Ketocal 3:1"] > 0 && rows["Rapsöl"] === undefined, "Geschwister-Rezept geöffnet");
   assert.equal(c.querySelector("#portion-input").value, "4", "Zubereitungsmenge bleibt beim Wechsel zum Geschwister-Rezept");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
-  [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent)).click();
+  const favB = [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent));
+  favB.click();
+  // Stern sofort gefüllt, Ansicht bleibt (Menge nicht zurückgesetzt), Liste dahinter zeigt den Favoriten schon
+  assert.match(favB.textContent, /★/);
+  assert.equal($(w, "detail-content").querySelector("#portion-input").value, "4", "Stern setzt die Ansicht nicht zurück");
+  assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini" && /🥄/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)"]);
