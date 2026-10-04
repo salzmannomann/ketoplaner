@@ -150,7 +150,10 @@ Vorgaben.
 Die Detailansicht besteht aus **vier Blättern** und öffnet mit **Mahlzeit**. Am
 Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Punkte
 tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
-sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). Oben
+sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). **Nach unten
+wischen schließt** die Ansicht – überall auf der Karte und auf jedem Blatt (auch über die
+Gramm-Felder); ist ein Blatt nach unten gescrollt, scrollt der Wisch zuerst zurück nach oben,
+seitliches Wischen blättert. Gleiches gilt für den Editor. Oben
 stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
 Aktionsleiste **☆ Favorit · 🖨️ Drucken · 📅 Für heute · ✏️ Editor** (bei eigenen
 Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol).

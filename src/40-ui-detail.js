@@ -669,26 +669,50 @@
     document.getElementById("detail-overlay").hidden = true;
     modalClose("detail");
   }
-  // Am Handy: Kopf (Name, Pille, Punkte) antippen und nach unten wischen schließt das Overlay.
-  // Die Karte folgt dem Finger; ab 90 px (oder schnellem Wisch) wird geschlossen, sonst springt sie zurück.
-  function bindSwipeDown(overlay, headSelector, onClose) {
+  // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
+  // wenn der Inhalt unter dem Finger ganz oben steht (sonst scrollt er wie gewohnt nach oben) und die Bewegung
+  // eher senkrecht als waagrecht ist (waagrecht blättert die Seiten). Im gerade bearbeiteten Eingabefeld und
+  // in der „Für heute“-Auswahl wird nicht gezogen. Die Karte folgt dem Finger; ab 90 px oder bei schnellem Wisch
+  // schließt sie, sonst springt sie zurück.
+  function bindSwipeDown(overlay, onClose) {
     const card = overlay.querySelector(".overlay-card"); if (!card) return;
-    let y0 = null, x0 = 0, t0 = 0, dragging = false;
+    let st = null; // { x0, y0, t0, mode: null | "pull" | "skip" }
     const pt = (e) => (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    const scrolledDown = (el) => {
+      // Steht irgendein scrollbarer Behälter zwischen Finger und Overlay nicht ganz oben?
+      for (let n = el; n && n !== overlay.parentNode; n = n.parentElement) {
+        if (n.scrollTop > 0) { const oy = getComputedStyle(n).overflowY; if (oy === "auto" || oy === "scroll") return true; }
+        if (n === overlay) break;
+      }
+      return false;
+    };
     overlay.addEventListener("touchstart", (e) => {
-      if (!(e.target && e.target.closest && e.target.closest(headSelector))) return;
-      const p = pt(e); y0 = p.clientY; x0 = p.clientX; t0 = Date.now(); dragging = true;
-      card.style.transition = "none";
+      st = null;
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.target;
+      if (!t || !t.closest || !t.closest(".overlay-card")) return;
+      // Gramm-Felder: Ziehen darüber zählt (ein Zug fokussiert nicht), nur nicht während darin getippt wird
+      if (t.closest("textarea, select, [contenteditable], .today-sheet") || (t.closest("input") && t.closest("input") === document.activeElement)) return;
+      const p = pt(e);
+      st = { x0: p.clientX, y0: p.clientY, t0: Date.now(), mode: scrolledDown(t) ? "skip" : null };
     }, { passive: true });
     overlay.addEventListener("touchmove", (e) => {
-      if (!dragging) return;
-      const p = pt(e), dy = p.clientY - y0, dx = Math.abs(p.clientX - x0);
-      if (dy < 0 || dx > Math.abs(dy)) { card.style.transform = ""; return; }
-      card.style.transform = "translateY(" + dy + "px)";
-    }, { passive: true });
+      if (!st || st.mode === "skip") return;
+      const p = pt(e), dy = p.clientY - st.y0, dx = p.clientX - st.x0;
+      if (st.mode === null) {
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+        st.mode = (dy > 0 && dy > Math.abs(dx)) ? "pull" : "skip";
+        if (st.mode === "skip") return;
+        card.style.transition = "none";
+      }
+      if (e.cancelable) e.preventDefault(); // kein Gummiband-Scrollen, solange die Karte gezogen wird
+      card.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+    }, { passive: false });
     const end = (e) => {
-      if (!dragging) return; dragging = false;
-      const p = pt(e), dy = p.clientY - y0, fast = (Date.now() - t0) < 300 && dy > 40;
+      if (!st) return;
+      const was = st; st = null;
+      if (was.mode !== "pull") return;
+      const p = pt(e), dy = p.clientY - was.y0, fast = (Date.now() - was.t0) < 300 && dy > 40;
       card.style.transition = "transform .18s ease-out";
       if (dy > 90 || fast) { card.style.transform = "translateY(100%)"; setTimeout(() => { card.style.transform = ""; card.style.transition = ""; onClose(); }, 160); }
       else { card.style.transform = ""; setTimeout(() => { card.style.transition = ""; }, 200); }
@@ -701,7 +725,7 @@
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
-    bindSwipeDown(overlay, ".detail-head, .detail-tabs-wrap", closeDetail);
+    bindSwipeDown(overlay, closeDetail);
     // Auswahl „Für heute“ schließt bei Klick daneben oder Escape
     overlay.addEventListener("click", () => closeTodaySheet());
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeTodaySheet(); });

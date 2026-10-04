@@ -817,7 +817,7 @@ test("Darstellung: Hell/Dunkel-Schalter unter Vorgaben – auto folgt dem Gerät
   assert.equal(w2.document.documentElement.getAttribute("data-theme"), null);
 });
 
-test("Detail: Kopf antippen und nach unten wischen schließt die Ansicht (nicht bei kurzem oder seitlichem Wisch)", async () => {
+test("Detail: nach unten wischen schließt die Ansicht (nicht bei kurzem oder seitlichem Wisch)", async () => {
   const w = boot({ settings: { mctShare: 0 } });
   const touch = (el, type, x, y) => { const ev = new w.Event(type, { bubbles: true }); ev.touches = [{ clientX: x, clientY: y }]; ev.changedTouches = ev.touches; el.dispatchEvent(ev); };
   const wait = (ms) => new Promise(r => setTimeout(r, ms));
@@ -832,11 +832,11 @@ test("Detail: Kopf antippen und nach unten wischen schließt die Ansicht (nicht 
   // langer Wisch nach unten: schließt
   touch(head, "touchstart", 100, 50); await wait(320); touch(head, "touchmove", 105, 200); touch(head, "touchend", 105, 200); await wait(220);
   assert.ok($(w, "detail-overlay").hidden, "langer Wisch nach unten schließt");
-  // Wisch auf der Tabelle (nicht am Kopf) tut nichts
+  // Wisch auf der Tabelle (nicht am Kopf) schließt ebenfalls – überall auf der Karte
   c = openRecipe(w, "Hendl & Brokkoli");
   const tbl = c.querySelector(".pane[data-pane=mahlzeit] table");
   touch(tbl, "touchstart", 100, 300); touch(tbl, "touchmove", 100, 500); touch(tbl, "touchend", 100, 500); await wait(220);
-  assert.ok(!$(w, "detail-overlay").hidden, "Wisch auf dem Inhalt schließt nicht");
+  assert.ok($(w, "detail-overlay").hidden, "Wisch auf dem Inhalt schließt auch");
 });
 
 test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nächste, rechts = vorige), senkrecht nicht, kein Klick nach dem Zug", async () => {
@@ -1071,5 +1071,40 @@ test("Öl-Erkennung: „Thunfisch in Öl“ ist eine Zutat, kein Öl vor dem Fü
   assert.doesNotMatch(ing.split("🧈")[1] || "", /Thunfisch/, "Thunfisch nicht beim Öl");
   const c = openRecipe(w, "Thunfisch & Zucchini");
   assert.doesNotMatch(c.textContent, /Thunfisch in Öl \(Dose, abgetropft\) · vor dem Füttern/);
+});
+
+test("Detailansicht: nach unten wischen schließt – auf jedem Blatt, nur wenn oben, nicht waagrecht und nicht im Eingabefeld", async () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 } });
+  const touch = (el, type, x, y) => {
+    const ev = new w.Event(type, { bubbles: true, cancelable: true });
+    const t = [{ clientX: x, clientY: y, target: el }];
+    Object.defineProperty(ev, "touches", { value: type === "touchend" ? [] : t });
+    Object.defineProperty(ev, "changedTouches", { value: t });
+    el.dispatchEvent(ev);
+  };
+  const drag = (el, dx, dy) => { touch(el, "touchstart", 100, 100); touch(el, "touchmove", 100 + dx / 2, 100 + dy / 2); touch(el, "touchmove", 100 + dx, 100 + dy); touch(el, "touchend", 100 + dx, 100 + dy); };
+  const wait = () => new Promise(r => setTimeout(r, 220));
+  const ov = $(w, "detail-overlay");
+  for (const pane of ["mahlzeit", "abwiegen", "anpassen", "zubereitung"]) {
+    const c = openRecipe(w, "Hendl & Brokkoli");
+    const target = c.querySelector(".pane[data-pane=" + pane + "]").firstElementChild;
+    drag(target, 0, 150); await wait();
+    assert.ok(ov.hidden, "Blatt " + pane + ": nach unten gewischt → geschlossen");
+  }
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const pz = c.querySelector(".pane[data-pane=zubereitung]");
+  drag(pz.firstElementChild, 150, 20); await wait();
+  assert.ok(!ov.hidden, "waagrecht blättert nur");
+  pz.scrollTop = 80; Object.defineProperty(pz, "scrollTop", { value: 80, configurable: true });
+  pz.style.overflowY = "auto";
+  drag(pz.firstElementChild, 0, 150); await wait();
+  assert.ok(!ov.hidden, "Blatt nicht ganz oben → erst scrollen");
+  const inp = c.querySelector(".pane[data-pane=mahlzeit] input");
+  assert.ok(inp, "Gramm-Feld vorhanden");
+  inp.focus(); drag(inp, 0, 150); await wait(); assert.ok(!ov.hidden, "im gerade bearbeiteten Feld wird nicht gezogen");
+  inp.blur(); drag(inp, 0, 150); await wait(); assert.ok(ov.hidden, "über ein Gramm-Feld ziehen schließt (Feld nicht in Bearbeitung)");
+  c = openRecipe(w, "Hendl & Brokkoli");
+  drag(c.querySelector(".detail-head") || c.firstElementChild, 0, 40); await wait();
+  assert.ok(!ov.hidden, "kurzer, langsamer Zug springt zurück");
 });
 
