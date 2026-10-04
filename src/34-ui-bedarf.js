@@ -60,14 +60,14 @@
     out.innerHTML =
       '<div class="bd-main"><div class="bd-scale" aria-hidden="true"><span class="axis"></span>' +
         (walks ? "" : '<span class="band" style="left:' + p(r.lo).toFixed(1) + "%;width:" + (p(r.hi) - p(r.lo)).toFixed(1) + '%"></span>' +
-          lab("below", (r.lo + r.hi) / 2, "<b>" + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>Faustregel")) +
-        '<span class="mk ref" style="left:' + p(r.ref).toFixed(1) + '%"></span>' + lab("below", r.ref, "<b>" + fmt(r.ref, 0) + "</b>gesunde Kinder") +
+          lab("below", (r.lo + r.hi) / 2, "<b>" + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>ESPGHAN")) +
+        '<span class="mk ref" style="left:' + p(r.ref).toFixed(1) + '%"></span>' + lab("below", r.ref, "<b>" + fmt(r.ref, 0) + "</b>FAO/WHO") +
         '<span class="mk krick" style="left:' + p(r.krick).toFixed(1) + '%"></span>' + lab("above krick", r.krick, "Krick <b>" + fmt(r.krick, 0) + " kcal</b>") +
         "</div>" +
         '<ul class="bd-legend">' +
-          '<li><i class="sw krick"></i><b>Krick-Formel: ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</li>" +
-          (walks ? "" : '<li><i class="sw band"></i><b>Faustregel der Leitlinie: ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – für Kinder, die nicht gehen, 60–70 % von gesunden Kindern (ESPGHAN); rechnet nur mit dem Alter</li>") +
-          '<li><i class="sw ref"></i><b>Gesunde Kinder: ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – gleich alt, ohne Einschränkung (FAO/WHO)</li>" +
+          '<li><i class="sw krick"></i><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</li>" +
+          (walks ? "" : '<li><i class="sw band"></i><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</li>") +
+          '<li><i class="sw ref"></i><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</li>" +
         "</ul>" +
         '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005

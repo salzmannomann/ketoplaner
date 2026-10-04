@@ -1230,17 +1230,17 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match($(w, "bd-age").textContent, /^2 J [12] M$/, "Alter läuft automatisch: " + $(w, "bd-age").textContent);
   let t = $(w, "bd-out").textContent;
   // Mädchen, 8,5 kg, < 3 J: Grundumsatz 58,317 × 8,5 − 31,1 = 464,6; liegt viel 1,15 · normal 1,0 · Zunahme 5 g/Tag → 559
-  assert.match(t, /Krick-Formel: 559 kcal \(66\/kg\) – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „liegt viel“ und normaler Muskelspannung/, t);
-  assert.match(t, /Faustregel der Leitlinie: 411–480 kcal – für Kinder, die nicht gehen, 60–70 % von gesunden Kindern/);
-  assert.match(t, /Gesunde Kinder: 685 kcal \(81\/kg\)/);
+  assert.match(t, /Krick-Formel \(1992\): 559 kcal \(66\/kg\) – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „liegt viel“ und normaler Muskelspannung/, t);
+  assert.match(t, /ESPGHAN-Leitlinie \(2017\): 411–480 kcal – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern/);
+  assert.match(t, /FAO\/WHO \(2004\): 685 kcal \(81\/kg\) – Bedarf gesunder Kinder gleichen Alters/);
   assert.match(t, /Keine feste Empfehlung/);
   assert.match(t, /Eiweiß 1,5 g\/kg ✓ ausreichend/);
   // Bewegung „geht“, Spannung „erhöht“ → 464,6 × 1,1 × 1,3 + 25 = 689
   const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
   const to = $(w, "bd-tonus"); to.value = "erhoeht"; fire(w, to, "change");
-  assert.match($(w, "bd-out").textContent, /Krick-Formel: 689 kcal/);
-  assert.match($(w, "bd-out").textContent, /Gesunde Kinder: 685 kcal/);
-  assert.doesNotMatch($(w, "bd-out").textContent, /Faustregel/, "geht: keine Faustregel für Kinder, die nicht gehen");
+  assert.match($(w, "bd-out").textContent, /Krick-Formel \(1992\): 689 kcal/);
+  assert.match($(w, "bd-out").textContent, /FAO\/WHO \(2004\): 685 kcal/);
+  assert.doesNotMatch($(w, "bd-out").textContent, /ESPGHAN/, "geht: keine Faustregel für Kinder, die nicht gehen");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
   // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
   b.value = iso(34); fire(w, b, "change");

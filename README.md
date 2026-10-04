@@ -364,12 +364,14 @@ unverändert**. Eingaben: **Geburtsdatum** (das Alter rechnet die App laufend se
 erhöht); das Gewicht kommt aus der Verordnung. Die Eingaben stehen auf zwei Zeilen (am Desktop auf
 einer). Eine Skala ordnet drei Werte ein; die Legende darunter sagt bei jedem, woher er kommt:
 
-- **Krick-Formel** (persönliche Schätzung): Grundumsatz nach Schofield aus Gewicht, Alter und Geschlecht ×
+- **Krick-Formel (1992)** (persönliche Schätzung): Grundumsatz nach Schofield aus Gewicht, Alter und Geschlecht ×
   Muskelspannung (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme
   (halten/normal/aufholen, unter „ⓘ“),
-- **Faustregel der Leitlinie**: für Kinder, die nicht gehen, 60–70 % des Bedarfs gesunder Kinder (ESPGHAN
-  2017) – rechnet nur mit dem Alter; bei „geht“ ausgeblendet,
-- **gesunde Kinder** gleichen Alters (FAO/WHO/UNU 2004, kcal/kg nach Alter).
+- **ESPGHAN-Leitlinie (2017)**: Faustregel für Kinder, die nicht gehen, 60–70 % des Bedarfs gesunder Kinder
+  (Romano et al., JPGN 2017) – rechnet nur mit dem Alter; bei „geht“ ausgeblendet,
+- **FAO/WHO (2004)**: Bedarf gesunder Kinder gleichen Alters (FAO/WHO/UNU, kcal/kg nach Alter).
+
+Auf der Skala und in der Legende heißt jeder Wert nach seiner Quelle (Krick, ESPGHAN, FAO/WHO).
 
 Darunter der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
