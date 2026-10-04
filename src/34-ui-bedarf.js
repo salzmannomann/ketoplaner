@@ -48,12 +48,17 @@
     const r = bedarfCalc(d, s);
     const age = document.getElementById("bd-age"); if (age) age.textContent = r ? bdAgeText(r.mo) : "";
     if (!r) { out.innerHTML = '<div class="note info">' + (!(d.weight > 0) ? "Körpergewicht eintragen (oben bei der Verordnung)." : "Geburtsdatum eintragen – das Alter rechnet die App dann selbst mit.") + "</div>"; return; }
-    // Kurz und klar: Schätzung für das Kind (Formel nach Krick), zwei Vergleichswerte, keine feste Empfehlung.
+    // Kurz und klar: Schätzung für das Kind (Formel nach Krick). Die 60–70 %-Faustregel ist ein zweiter, gröberer
+    // Rechenweg für dieselbe Gruppe (Kinder, die nicht gehen) und erscheint nur, wenn „geht“ nicht gewählt ist.
     const prot = d.weight > 0 ? d.eiweiss / d.weight : 0;
+    const walks = (s.bdMobil || "liegt") === "geht";
     out.innerHTML =
       '<div class="bd-main"><div class="bd-v"><span class="bd-k">Geschätzter Bedarf</span> ca. ' + fmt(r.krick, 0) + ' kcal/Tag <small>(' + fmt(r.krick / r.kg, 0) + " kcal/kg)</small></div>" +
-        '<div class="bd-s">Zum Vergleich: Kinder, die nicht gehen <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b> · Gleichaltrige ohne Einschränkung <b>" + fmt(r.ref, 0) + "</b> kcal</div>" +
-        '<div class="bd-s bd-m">Keine feste Empfehlung – Formeln liegen oft 20–40 % daneben. Wie viel es braucht, legt das Team nach dem Wachstum fest.</div></div>' +
+        '<div class="bd-s bd-m">Berechnet aus Gewicht, Alter, Bewegung und Muskelspannung.</div>' +
+        (walks
+          ? '<div class="bd-s">Gesunde Gleichaltrige: <b>' + fmt(r.ref, 0) + " kcal</b></div>"
+          : '<div class="bd-s">Zweiter, gröberer Rechenweg – Faustregel für Kinder, die nicht gehen: <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> (60–70 % von gesunden Gleichaltrigen mit " + fmt(r.ref, 0) + " kcal)</div>") +
+        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Rechnungen liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
         ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +

@@ -1231,13 +1231,15 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   let t = $(w, "bd-out").textContent;
   // Mädchen, 8,5 kg, < 3 J: Grundumsatz 58,317 × 8,5 − 31,1 = 464,6; liegt viel 1,15 · normal 1,0 · Zunahme 5 g/Tag → 559
   assert.match(t, /Geschätzter Bedarf ca\. 559 kcal\/Tag \(66 kcal\/kg\)/, t);
-  assert.match(t, /Kinder, die nicht gehen 411–480 · Gleichaltrige ohne Einschränkung 685 kcal/);
+  assert.match(t, /Faustregel für Kinder, die nicht gehen: 411–480 kcal \(60–70 % von gesunden Gleichaltrigen mit 685 kcal\)/);
   assert.match(t, /Keine feste Empfehlung/);
   assert.match(t, /Eiweiß 1,5 g\/kg ✓ ausreichend/);
   // Bewegung „geht“, Spannung „erhöht“ → 464,6 × 1,1 × 1,3 + 25 = 689
   const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
   const to = $(w, "bd-tonus"); to.value = "erhoeht"; fire(w, to, "change");
   assert.match($(w, "bd-out").textContent, /ca\. 689 kcal\/Tag/);
+  assert.match($(w, "bd-out").textContent, /Gesunde Gleichaltrige: 685 kcal/);
+  assert.doesNotMatch($(w, "bd-out").textContent, /Faustregel/, "geht: keine Faustregel für Kinder, die nicht gehen");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
   // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
   b.value = iso(34); fire(w, b, "change");

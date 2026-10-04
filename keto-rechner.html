@@ -1299,7 +1299,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
           </div>
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
-          <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
+          <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>Faustregel 60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen – ein gröberer zweiter Rechenweg, nur nach Alter, ohne Muskelspannung und Bewegung (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
           <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ≈ 31 % weniger als gesunde, Formeln unterschätzten um ≈ 22 %), Borsani 2023 (Ruheverbrauch ≈ 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
         </details>
       </div>
@@ -3788,12 +3788,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const r = bedarfCalc(d, s);
     const age = document.getElementById("bd-age"); if (age) age.textContent = r ? bdAgeText(r.mo) : "";
     if (!r) { out.innerHTML = '<div class="note info">' + (!(d.weight > 0) ? "Körpergewicht eintragen (oben bei der Verordnung)." : "Geburtsdatum eintragen – das Alter rechnet die App dann selbst mit.") + "</div>"; return; }
-    // Kurz und klar: Schätzung für das Kind (Formel nach Krick), zwei Vergleichswerte, keine feste Empfehlung.
+    // Kurz und klar: Schätzung für das Kind (Formel nach Krick). Die 60–70 %-Faustregel ist ein zweiter, gröberer
+    // Rechenweg für dieselbe Gruppe (Kinder, die nicht gehen) und erscheint nur, wenn „geht“ nicht gewählt ist.
     const prot = d.weight > 0 ? d.eiweiss / d.weight : 0;
+    const walks = (s.bdMobil || "liegt") === "geht";
     out.innerHTML =
       '<div class="bd-main"><div class="bd-v"><span class="bd-k">Geschätzter Bedarf</span> ca. ' + fmt(r.krick, 0) + ' kcal/Tag <small>(' + fmt(r.krick / r.kg, 0) + " kcal/kg)</small></div>" +
-        '<div class="bd-s">Zum Vergleich: Kinder, die nicht gehen <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b> · Gleichaltrige ohne Einschränkung <b>" + fmt(r.ref, 0) + "</b> kcal</div>" +
-        '<div class="bd-s bd-m">Keine feste Empfehlung – Formeln liegen oft 20–40 % daneben. Wie viel es braucht, legt das Team nach dem Wachstum fest.</div></div>' +
+        '<div class="bd-s bd-m">Berechnet aus Gewicht, Alter, Bewegung und Muskelspannung.</div>' +
+        (walks
+          ? '<div class="bd-s">Gesunde Gleichaltrige: <b>' + fmt(r.ref, 0) + " kcal</b></div>"
+          : '<div class="bd-s">Zweiter, gröberer Rechenweg – Faustregel für Kinder, die nicht gehen: <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> (60–70 % von gesunden Gleichaltrigen mit " + fmt(r.ref, 0) + " kcal)</div>") +
+        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Rechnungen liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
         ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +

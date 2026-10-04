@@ -367,8 +367,9 @@ einer), das Ergebnis in einem Kasten:
 - **Geschätzter Bedarf ca. … kcal/Tag** (Krick): Grundumsatz nach Schofield × Muskelspannung
   (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme (halten/normal/aufholen,
   unter „ⓘ“),
-- **Zum Vergleich**: Kinder, die nicht gehen (60–70 % des Referenzwerts, ESPGHAN 2017) und Gleichaltrige
-  ohne Einschränkung (FAO/WHO/UNU 2004, kcal/kg nach Alter),
+- als zweiter, gröberer Rechenweg die **Faustregel für Kinder, die nicht gehen**: 60–70 % des Bedarfs gesunder
+  Gleichaltriger (ESPGHAN 2017; Referenz FAO/WHO/UNU 2004, kcal/kg nach Alter) – bei „geht“ nur der
+  Referenzwert gesunder Gleichaltriger,
 - der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
 
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
