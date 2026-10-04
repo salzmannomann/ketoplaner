@@ -37,9 +37,9 @@
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       const pill = ratioClass(f.ratio, d.ratio) !== "ok" ? ' <span class="ratio-pill ' + ratioClass(f.ratio, d.ratio) + '">' + fmtRatio(f.ratio, 2) + '</span>' : "";
       // Erste Zeile: Uhrzeit · Rezept · Menge/Dauer · ↻ ✕. Darunter über die ganze Breite die Zutaten einer Portion
-      // mit Gramm und am Ende das Öl vor dem Füttern (🧈). Unter dem Namen nur, wenn das Eiweiß zu niedrig ist.
+      // mit Gramm, das Öl als normale Zutat am Ende. Unter dem Namen nur, wenn das Eiweiß zu niedrig ist.
       const sub = proteinOk ? '' : '<span class="prot-low">Eiweiß nur ' + fmt(f.sum.eiweiss) + ' g</span>';
-      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl vor dem Füttern: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
+      rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time + '<span class="zp-ic">' + (rec.icon || "🥑") + '</span>' +
         '<span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + pill + '</span>' + (sub ? '<small>' + sub + '</small>' : '') +
           '<small class="zp-more">' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</small></span>' +
         (() => { const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
@@ -123,7 +123,7 @@
   // oder als installierte App), zeigt jede Mahlzeit zusätzlich ihre Zutaten mit Gramm und kcal/Eiweiß,
   // lange Rezeptnamen dürfen zweizeilig werden, der Rest verteilt sich als Höhe (Mahlzeiten mehr als Wasser). Reicht der Platz nicht, bleibt die kompakte Darstellung.
   // Zutaten einer Portion für die Zeitleiste: kurze Namen (ohne Klammerzusatz, Marke, „ohne Haut“ …; roh/gekocht
-  // bleibt, das ändert das Gewicht), Gramm ohne „,0“, danach das Öl vor dem Füttern („🧈 Raps 14,2 g + MCT 1,6 g“).
+  // bleibt, das ändert das Gewicht), Gramm ohne „,0“, das Öl als normale Zutat am Ende („Rapsöl 14,2 g · MCT-Öl 1,6 g“).
   function shortFood(n) {
     return String(n).replace(/\s*\(.*?\)/g, "").replace(/,/g, "")
       .replace(/\s+(Paediatric Nature Mix|Zubereitung|ohne Haut|ganz versprudelt|TK oder Frisch|NÖM)\b/g, "").replace(/\bBio-/g, "")
@@ -131,11 +131,11 @@
   }
   const gramsShort = (g) => fmt(g, 1).replace(/,0$/, "") + "&nbsp;g";
   function ingLine(f) {
-    const ing = f.res.items.filter(it => !isOilName(it.food) && num(it.grams) > 0)
-      .map(it => '<span class="nw">' + escapeHtml(shortFood(it.food)) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ");
-    const oil = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + "&nbsp;" + gramsShort(num(o.grams))).join(" + ") : "";
-    return ing + (oil ? ' · <span class="zp-oil nw" title="erst vor dem Füttern einrühren">🧈&nbsp;' + oil + "</span>" : "");
+    const items = f.res.items.filter(it => num(it.grams) > 0);
+    const ordered = items.filter(it => !isOilName(it.food)).concat(items.filter(it => isOilName(it.food)));
+    return ordered.map(it => '<span class="nw">' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ");
   }
+
   function fitHeute() {
     const box = document.getElementById("heute-content"), list = box && box.querySelector(".zp-list");
     const zp = box && box.querySelector(".zeitplan"), tab = document.querySelector(".tabbar");
@@ -252,20 +252,19 @@
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   function printDayPlan(d, facts, tot, ratioDay) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
-    const oilTxtOf = (f) => (f && f.hasOil) ? f.oils.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
     const zr = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
       zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
-        "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td>" + (oilTxtOf(f) || "–") + "</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
+        "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
     });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td><td></td></tr>" });
+    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
+    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td></tr>" });
     zr.sort((a, b) => a.t - b.t);
-    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th>Öl vor dem Füttern</th><th class='num'>Dauer</th></tr></thead><tbody>" +
+    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th class='num'>Dauer</th></tr></thead><tbody>" +
       zr.map(r => r.h).join("") + "</tbody></table>" +
       "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
-      "Öl erst unmittelbar vor dem Füttern in die Portion einrühren. Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
+      "Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
     const share = tot.filled / d.mahl;
     const kcalZiel = d.kcal * share, eiweissZiel = d.eiweiss * share;
     const sums = tot.filled
@@ -276,8 +275,7 @@
         (d.fluidDay > 0 ? "<div><b>" + (dm.known < d.mahl ? "ca. " : "") + fmt(wp.total, 0) + " ml</b><span>Flüssigkeit · Ziel " + fmt(d.fluidDay, 0) + "</span></div>" : "") + "</div>"
       : "";
     // Mahlzeiten im Detail: je Rezept ein Block mit den Zutaten einer Portion (zwei Spalten), gleiche
-    // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), darunter Abfüllen und Öl vor dem Füttern.
-    const isOilD = isOilName;
+    // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), das Öl als normale Zutat, darunter das Abfüllen.
     const groups = [];
     facts.forEach((f, i) => {
       if (!f) return;
@@ -287,7 +285,8 @@
     });
     const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
     const blocks = groups.map(({ f, nums }) => {
-      const ing = f.res.items.filter(it => !isOilD(it.food) && num(it.grams) > 0);
+      const all = f.res.items.filter(it => num(it.grams) > 0);
+      const ing = all.filter(it => !isOilName(it.food)).concat(all.filter(it => isOilName(it.food)));
       const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
       let rows = "";
       for (let k = 0; k < ing.length; k += 2) rows += "<tr>" + cell(ing[k]) + cell(ing[k + 1]) + "</tr>";
@@ -295,8 +294,9 @@
       return "<tr class='grp'><td colspan='4'><b>Mahlzeit " + nums.join(" + ") + " · " + escapeHtml(f.rec.name) + "</b> " +
         "<small>" + fmt(f.sum.kcal, 0) + " kcal · Eiweiß " + fmt(f.sum.eiweiss) + " g" + (hi ? " (hoch)" : "") + " · Fett " + fmt(f.sum.fett) + " g · KH " + fmt(f.sum.kh) + " g · Verhältnis " + fmtRatio(f.ratio, 2) + "</small></td></tr>" +
         rows +
-        "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(f.mlNoOil, 0) + " ml" : "Abfüllen ohne Öl: ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml") +
-        (f.hasOil ? " · <b>vor dem Füttern einrühren:</b> " + oilTxtOf(f) : "") + "</td></tr>";
+        "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
+          : f.hasOil ? "Je Portion ca. " + fmt(f.gNoOil, 0) + " g abfüllen und das Öl einrühren – zusammen ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
+          : "Je Portion ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml abfüllen") + "</td></tr>";
     }).join("");
     const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
     const detail = tot.filled

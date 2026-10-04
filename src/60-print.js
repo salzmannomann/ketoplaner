@@ -167,8 +167,7 @@
     const showMult = mult !== 1;
     const rows = items.map(it => {
       const g = num(it.grams), m = lineMacros({ food: it.food, grams: g });
-      const oil = isOilP(it.food) && !rec.angeruehrt;
-      return "<tr><td>" + escapeHtml(it.food) + (oil ? " <small>(vor dem Füttern)</small>" : "") + "</td><td class='num'>" + fmt(g, 1) + " g</td>" +
+      return "<tr><td>" + escapeHtml(it.food) + "</td><td class='num'>" + fmt(g, 1) + " g</td>" +
         (showMult ? "<td class='num'><b>" + fmt(g * mult, 1) + " g</b></td>" : "") +
         "<td class='num'>" + fmt(m.eiweiss) + "</td><td class='num'>" + fmt(m.fett) + "</td><td class='num'>" + fmt(m.kh) + "</td><td class='num'>" + fmt(m.kcal, 0) + "</td></tr>";
     }).join("");
@@ -178,9 +177,9 @@
       "<tr class='sum'><td>Summe je Portion</td><td class='num'>" + fmt(totalG, 0) + " g</td>" + (showMult ? "<td class='num'>" + fmt(totalG * mult, 0) + " g</td>" : "") +
       "<td class='num'>" + fmt(sumPer.eiweiss) + "</td><td class='num'>" + fmt(sumPer.fett) + "</td><td class='num'>" + fmt(sumPer.kh) + "</td><td class='num'>" + fmt(sumPer.kcal, 0) + "</td></tr></tbody></table>";
     const fill = rec.angeruehrt
-      ? "<div class='box'><b>Je Portion:</b> alles zusammen anrühren, ≈ " + fmt(volPer, 0) + " ml" + (oilsP.length ? " – das Öl erst kurz vor dem Füttern einrühren." : ".") + "</div>"
-      : "<div class='box'><b>Abfüllen je Portion:</b> ≈ " + fmt(gNoOil, 0) + " g / " + fmt(volumeMl(noOilP), 0) + " ml" +
-        (oilsP.length ? " · <b>vor dem Füttern einrühren:</b> " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "") +
+      ? "<div class='box'><b>Je Portion:</b> alles zusammen anrühren, ≈ " + fmt(volPer, 0) + " ml" + (oilsP.length ? ", das Öl gründlich einrühren." : ".") + "</div>"
+      : "<div class='box'><b>Je Portion:</b> ≈ " + fmt(gNoOil, 0) + " g abfüllen" +
+        (oilsP.length ? " und " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " einrühren – zusammen ≈ " + fmt(volPer, 0) + " ml" : " (≈ " + fmt(volumeMl(noOilP), 0) + " ml)") +
         (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ≈ " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepSrc);

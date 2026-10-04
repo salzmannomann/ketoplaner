@@ -171,16 +171,15 @@ Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
 Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den
-**Zeitplan** (Uhrzeit, Was, Menge, Öl vor dem Füttern,
-Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
+**Zeitplan** (Uhrzeit, Was, Menge, Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
 Kennzahlen und darunter die **Mahlzeiten im Detail**: je Rezept ein Block
 (gleiche Mahlzeiten zusammengefasst, z. B. „Mahlzeit 3 + 4“) mit kcal, Eiweiß,
 Fett, KH und Verhältnis in der Kopfzeile, den **Zutaten je Portion** in zwei
-Spalten und darunter Abfüllen (ohne Öl) bzw. Anrühren und das Öl vor dem
-Füttern; am Ende das Öl für den ganzen Tag. Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
+Spalten (das Öl als normale Zutat) und darunter Abfüllen und Öl einrühren bzw.
+Anrühren; am Ende das Öl für den ganzen Tag. Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
-die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (ohne Öl,
-Öl vor dem Füttern), ggf. den Eiweiß-Hinweis und die **nummerierten
+die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (abfüllen, dann das Öl
+in die Portion einrühren), ggf. den Eiweiß-Hinweis und die **nummerierten
 Zubereitungsschritte** mit dem Öl als letztem Schritt. **📅 Für
 heute** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
 freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
@@ -223,12 +222,12 @@ Reiter nebeneinander.
    gilt für alle Rezepte · ↺ 10 %" (Bezug ist der Wert beim Öffnen).
    Erklärungen hinter „ⓘ".
 4. **Kochen** – oben der Abfüll-Block je Portion (**Menge ohne Öl**, weil das
-   Öl erst kurz vor dem Füttern dazukommt, ml und Spritzenzahl, Öl-Kacheln),
+   Öl erst in die abgefüllte Portion kommt, ml und Spritzenzahl, Öl-Kacheln),
    bei mehreren Portionen die Gesamtmenge, eine kurze Notiz (Sieb, MCT,
    Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
    bevorzugt, Dämpfwasser eingerechnet). **Öl kommt nie in den Topf:** püriert
-   wird ohne Öl, der letzte Schritt nennt das Öl je Portion („Erst kurz vor dem
-   Füttern je Portion Rapsöl 14,2 g + MCT-Öl 1,6 g gründlich einrühren“). Der
+   wird ohne Öl, der letzte Schritt nennt das Öl je Portion („Abfüllen und in jede
+   Portion Rapsöl 14,2 g + MCT-Öl 1,6 g gründlich einrühren“). Der
    Ausdruck enthält dieselbe Abfüllzeile und denselben Schritt.
 
 ### Heute (Zeitplan)
@@ -236,8 +235,8 @@ Reiter nebeneinander.
 Eine einzige **Zeitleiste** für den ganzen Tag, am Handy auf einem Bildschirm
 ohne Scrollen (3, 4 und 5 Mahlzeiten, auch im Browser mit Adress- und Werkzeugleiste). Jede
 Mahlzeit zeigt unter dem Namen über die ganze Breite ihre **Zutaten einer Portion mit Gramm**
-(kurze Namen, roh/gekocht bleibt, Gramm ohne „,0“) und am Ende das **Öl vor dem Füttern**
-(„🧈 Raps 14,2 g + MCT 1,6 g“). Die Zeitleiste **füllt den Bildschirm bis zur Tab-Leiste**:
+(kurze Namen, roh/gekocht bleibt, Gramm ohne „,0“), das **Öl** als normale Zutat am Ende
+(„… · Rapsöl 14,2 g · MCT-Öl 1,6 g“). Die Zeitleiste **füllt den Bildschirm bis zur Tab-Leiste**:
 Die App wählt die großzügigste Stufe, die ohne Scrollen passt – mit viel Platz größere
 Schrift, zweizeilige Rezeptnamen und kcal/Eiweiß je Mahlzeit, der Rest wird Zeilenhöhe
 (Mahlzeiten mehr als Wasser); wird es eng (5 Mahlzeiten im Browser), rückt alles enger

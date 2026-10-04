@@ -39,7 +39,7 @@ const RECIPES_SONDE = [
     icon: "🥫",
     ketocal: false,
     angeruehrt: true,
-    zubereitung: "HiPP-Glas öffnen, die angezeigten Mengen abmessen und das Rapsöl erst kurz vor dem Füttern gründlich einrühren – fertig, ganz ohne Kochen. Ein 125-g-Glas reicht für mehrere Mahlzeiten – Reste im Kühlschrank aufbewahren.",
+    zubereitung: "HiPP-Glas öffnen, die angezeigten Mengen abmessen und das Rapsöl gründlich einrühren – fertig, ganz ohne Kochen. Ein 125-g-Glas reicht für mehrere Mahlzeiten – Reste im Kühlschrank aufbewahren.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
   {
@@ -47,7 +47,7 @@ const RECIPES_SONDE = [
     icon: "🥫",
     ketocal: false,
     angeruehrt: true,
-    zubereitung: "HiPP-Glas (Bio-Rindfleisch Zubereitung, 125 g) öffnen, die angezeigten Mengen abmessen und das Rapsöl erst kurz vor dem Füttern gründlich einrühren – fertig, ganz ohne Kochen. Ein Glas reicht für mehrere Mahlzeiten – Reste verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
+    zubereitung: "HiPP-Glas (Bio-Rindfleisch Zubereitung, 125 g) öffnen, die angezeigten Mengen abmessen und das Rapsöl gründlich einrühren – fertig, ganz ohne Kochen. Ein Glas reicht für mehrere Mahlzeiten – Reste verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
     items: [ { food: "HiPP Bio-Rindfleisch Zubereitung", grams: 100 }, { food: "Rapsöl", grams: 20 } ],
   },
   {
@@ -55,7 +55,7 @@ const RECIPES_SONDE = [
     icon: "🥫",
     ketocal: false,
     angeruehrt: true,
-    zubereitung: "Zwei HiPP-Gläser: Bio-Hühnchenfleisch Zubereitung (125 g) und Gemüse-Allerlei (190 g). Die angezeigten Mengen aus beiden Gläsern abmessen, mit dem Wasser glatt verrühren (bei Bedarf kurz mit dem Stabmixer pürieren, damit keine Gemüsestücke die Spritze verstopfen) und das Rapsöl erst kurz vor dem Füttern gründlich einrühren. Reste beider Gläser verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
+    zubereitung: "Zwei HiPP-Gläser: Bio-Hühnchenfleisch Zubereitung (125 g) und Gemüse-Allerlei (190 g). Die angezeigten Mengen aus beiden Gläsern abmessen, mit dem Wasser glatt verrühren (bei Bedarf kurz mit dem Stabmixer pürieren, damit keine Gemüsestücke die Spritze verstopfen) und das Rapsöl gründlich einrühren. Reste beider Gläser verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
     items: [ { food: "HiPP Bio-Hühnchenfleisch Zubereitung", grams: 60 }, { food: "HiPP Gemüse-Allerlei", grams: 60 }, { food: "Rapsöl", grams: 17 }, { food: "Wasser", grams: 20 } ],
   },
   {
@@ -63,7 +63,7 @@ const RECIPES_SONDE = [
     icon: "🥫",
     ketocal: false,
     angeruehrt: true,
-    zubereitung: "Zwei HiPP-Gläser: Bio-Rindfleisch Zubereitung (125 g) und Gemüse-Allerlei (190 g). Die angezeigten Mengen aus beiden Gläsern abmessen, mit dem Wasser glatt verrühren (bei Bedarf kurz mit dem Stabmixer pürieren, damit keine Gemüsestücke die Spritze verstopfen) und das Rapsöl erst kurz vor dem Füttern gründlich einrühren. Reste beider Gläser verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
+    zubereitung: "Zwei HiPP-Gläser: Bio-Rindfleisch Zubereitung (125 g) und Gemüse-Allerlei (190 g). Die angezeigten Mengen aus beiden Gläsern abmessen, mit dem Wasser glatt verrühren (bei Bedarf kurz mit dem Stabmixer pürieren, damit keine Gemüsestücke die Spritze verstopfen) und das Rapsöl gründlich einrühren. Reste beider Gläser verschlossen im Kühlschrank aufbewahren und am nächsten Tag verbrauchen.",
     items: [ { food: "HiPP Bio-Rindfleisch Zubereitung", grams: 60 }, { food: "HiPP Gemüse-Allerlei", grams: 60 }, { food: "Rapsöl", grams: 17 }, { food: "Wasser", grams: 20 } ],
   },
   {

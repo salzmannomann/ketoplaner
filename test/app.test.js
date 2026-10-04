@@ -547,7 +547,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), / · 🧈 Raps [\d,]+ g \+ MCT 1,2 g$/, "Öl steht am Ende der Zutatenzeile (Zahl und „g“ bleiben zusammen)");
+  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), / · Rapsöl [\d,]+ g · MCT-Öl 1,2 g$/, "Öl steht als normale Zutat am Ende der Zutatenzeile (Zahl und „g“ bleiben zusammen)");
   assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), /^Hühnerbrust [\d,]+ g · Broccoli gekocht [\d,]+ g · Wasser [\d,]+ g · /, "kurze Namen, roh/gekocht bleibt");
   // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
   assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
@@ -939,7 +939,7 @@ test("Detail → „Für heute“: Rezept für alle, nur freie oder eine Mahlzei
   assert.match($(w, "heute-content").querySelector(".zp-row.meal").textContent, /^7:00.*KetoCal & Pre Apta/);
 });
 
-test("Kochen: Öl wird nicht mitpüriert, letzter Schritt nennt Öl je Portion vor dem Füttern; Eiweiß über dem Doppelten wird markiert", () => {
+test("Kochen: Öl wird nicht mitpüriert, letzter Schritt rührt das Öl in jede Portion; Eiweiß über dem Doppelten wird markiert", () => {
   const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 } });
   // In keinem gekochten Rezepttext steht Öl beim Pürieren
   const recs = new Function(read("recipes.js") + "; return RECIPES_SONDE;")().filter(r => !r.angeruehrt);
@@ -949,7 +949,7 @@ test("Kochen: Öl wird nicht mitpüriert, letzter Schritt nennt Öl je Portion v
   let c = openRecipe(w, "Hendl & Brokkoli");
   c = switchDetailTab(w, "zubereitung");
   const steps = [...c.querySelectorAll(".pane[data-pane=zubereitung] .steps li")].map(li => li.textContent);
-  assert.match(steps[steps.length - 1], /^Abfüllen, das Öl kommt nicht in den Topf: Erst kurz vor dem Füttern je Portion Rapsöl [\d,]+ g \+ MCT-Öl [\d,]+ g gründlich einrühren\.$/);
+  assert.match(steps[steps.length - 1], /^Abfüllen und in jede Portion Rapsöl [\d,]+ g \+ MCT-Öl [\d,]+ g gründlich einrühren\.$/);
   assert.ok(steps.some(s => /Dämpfwasser NICHT abgießen.*zusammen mit den gedämpften Zutaten 30–40 Sek/.test(s)), steps.join(" | "));
   assert.match(c.querySelector(".pane[data-pane=zubereitung] .portion-line").textContent, /Öl gesamt Raps \d+ g \+ MCT \d+ g/);
   // Mahlzeit: Eiweiß ~3× Ziel → ↑ und Hinweis; Volumen mit Öl wie im Zeitplan
@@ -961,8 +961,9 @@ test("Kochen: Öl wird nicht mitpüriert, letzter Schritt nennt Öl je Portion v
   assert.ok(tiles(w).some(t => /Eiweiß [\d,]+ g ↑/.test(t.textContent) && t.querySelector(".prot-high")));
   // Angerührt: kein zusätzlicher Öl-Schritt (Text sagt es selbst)
   c = openRecipe(w, "HiPP Hühnchen & Öl"); c = switchDetailTab(w, "zubereitung");
-  assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Öl kommt nicht in den Topf/);
-  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Rapsöl( \+ MCT-Öl)? erst kurz vor dem Füttern/);
+  assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /in jede Portion/);
+  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Rapsöl( \+ MCT-Öl)? gründlich einrühren/);
+  assert.doesNotMatch(c.textContent, /vor dem Füttern/, "kein „vor dem Füttern“ mehr");
 });
 
 test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken (iPhone-App)", () => {
@@ -1002,15 +1003,17 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   await new Promise(r => setTimeout(r, 50));
   assert.ok(shared && shared.files && shared.files[0], "Teilen-Menü bekommt eine Datei");
   assert.equal(w.document.getElementById("print-sheet").shadowRoot.querySelectorAll("td.chk, .chk").length, 0, "keine Kästchen zum Abhaken");
-  // Mahlzeiten im Detail: gleiche Rezepte zusammengefasst, Zutaten je Portion, Öl nicht in der Zutatenliste
+  // Mahlzeiten im Detail: gleiche Rezepte zusammengefasst, Zutaten je Portion, Öl als normale Zutat
   const ps = w.document.getElementById("print-sheet").shadowRoot;
   const grp = [...ps.querySelectorAll("table.meals tr.grp")].map(r => r.textContent);
   assert.equal(grp.length, 2, grp.join(" | "));
   assert.match(grp[0], /Mahlzeit 1 \+ 2 \+ 4 · Compleat & KetoCal.*kcal.*Eiweiß.*Verhältnis/);
   assert.match(grp[1], /Mahlzeit 3 · Hendl & Brokkoli/);
   const ing = [...ps.querySelectorAll("table.meals td.ing")].map(td => td.textContent).filter(Boolean);
-  assert.ok(ing.some(t => /Hühnerbrust/.test(t)) && !ing.some(t => /öl/i.test(t)), ing.join(", "));
-  assert.match(ps.querySelector("table.meals").textContent, /vor dem Füttern einrühren:.*Rapsöl/);
+  assert.ok(ing.some(t => /Hühnerbrust/.test(t)) && ing.some(t => /Rapsöl/.test(t)), ing.join(", "));
+  assert.match(ps.querySelector("table.meals").textContent, /Je Portion ca\. \d+ g abfüllen und das Öl einrühren – zusammen ca\. \d+ ml/);
+  assert.doesNotMatch(ps.textContent, /vor dem Füttern/, "kein „Öl vor dem Füttern“ im Ausdruck");
+  assert.deepEqual([...ps.querySelectorAll("table:not(.meals) th")].map(th => th.textContent), ["Uhrzeit", "Was", "Menge", "Dauer"]);
   assert.match(ps.querySelector(".note").textContent, /Öl für den ganzen Tag: Rapsöl/);
   const f = shared.files[0];
   assert.match(f.name, /^Tagesplan \d{4}-\d{2}-\d{2}\.pdf$/); assert.equal(f.type, "application/pdf");
@@ -1063,14 +1066,15 @@ test("Druckvorschau zoomen: zwei Finger auseinander vergrößert, Doppeltippen w
   assert.ok(Math.abs(zoomOf() - z0) < 0.002);
 });
 
-test("Öl-Erkennung: „Thunfisch in Öl“ ist eine Zutat, kein Öl vor dem Füttern", () => {
+test("Öl-Erkennung: „Thunfisch in Öl“ ist eine Zutat, kein Öl zum Einrühren", () => {
   const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 }, dayPlan: [{ key: "std:Thunfisch & Zucchini" }, { key: null }, { key: null }, { key: null }] });
   fire(w, $(w, "tab-heute"));
   const ing = $(w, "heute-content").querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
   assert.match(ing, /^Thunfisch in Öl [\d,]+ g · /, ing);
-  assert.doesNotMatch(ing.split("🧈")[1] || "", /Thunfisch/, "Thunfisch nicht beim Öl");
-  const c = openRecipe(w, "Thunfisch & Zucchini");
-  assert.doesNotMatch(c.textContent, /Thunfisch in Öl \(Dose, abgetropft\) · vor dem Füttern/);
+  assert.match(ing, / · Rapsöl [\d,]+ g · MCT-Öl [\d,]+ g$/, "Öle am Ende");
+  let c = openRecipe(w, "Thunfisch & Zucchini"); c = switchDetailTab(w, "zubereitung");
+  assert.doesNotMatch(c.textContent, /Thunfisch in Öl \(Dose, abgetropft\) · einrühren/);
+  assert.doesNotMatch(c.textContent, /in jede Portion[^.]*Thunfisch/);
 });
 
 test("Detailansicht: nach unten wischen schließt – auf jedem Blatt, nur wenn oben, nicht waagrecht und nicht im Eingabefeld", async () => {

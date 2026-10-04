@@ -124,13 +124,13 @@
     return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
       portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
   }
-  // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern je Portion erst vor dem Füttern eingerührt – als letzter Schritt
+  // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern in die abgefüllte Portion eingerührt – als letzter Schritt
   // mit den Mengen einer Portion (Raps/MCT nach Öl-Mix). Angerührte Rezepte nennen das schon im eigenen Text.
   function oilFeedStep(rec, itemsPer) {
     if (rec.angeruehrt) return "";
     const oils = itemsPer.filter(it => isOilName(it.food) && num(it.grams) > 0);
     if (!oils.length) return "";
-    return "Abfüllen, das Öl kommt nicht in den Topf: Erst kurz vor dem Füttern je Portion " +
+    return "Abfüllen und in jede Portion " +
       oils.map(o => String(o.food).replace(/\s*C8\+C10/, "") + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " gründlich einrühren.";
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
@@ -353,7 +353,7 @@
     const steps = splitSteps(prepText);
     const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
     const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
-    // Abfüllen: Öl-Zeilen je Portion (kommen erst vor dem Füttern dazu)
+    // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));
     // Vier Blätter: am Handy nebeneinander (seitlich wischen, jedes passt auf einen Bildschirm), am Desktop als Reiter.
     const TABMAP = { rechnen: "mahlzeit", kochen: "abwiegen", tag: "abwiegen", abfuellen: "zubereitung" }; // alte gespeicherte Werte
@@ -496,13 +496,13 @@
       /* ---------- 4 Kochen: Abfüll-Kacheln oben (immer sichtbar), darunter die Schritte ---------- */
       paneOpen("zubereitung") +
       '<h4 class="ph">🍳 Kochen <span class="hint">für ' + portionLabel + '</span></h4>' +
-      '<div class="portion-line">💉 <strong>Abfüllen je Portion</strong>' + (hasOil ? ' – ohne Öl, das kommt erst vor dem Füttern dazu' : '') +
+      '<div class="portion-line">💉 <strong>Abfüllen je Portion</strong>' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
         (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
           (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "") + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
       '<div class="detail-tiles strip fill-tiles">' +
         '<div class="dstat"><div class="v fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div><div class="l">je Portion' + (hasOil ? ' ohne Öl' : '') + '</div></div>' +
         '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
-        (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · vor dem Füttern</div></div>').join("") : "") +
+        (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · einrühren</div></div>').join("") : "") +
       "</div>" +
       // Hinweis zu Garzeiten nur bei gekochten Gerichten; Angerührtes (KetoCal, Compleat, HiPP) wird nur gemischt.
       ((res.mct || rec.varoma || (mult !== 1 && !rec.angeruehrt)) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
