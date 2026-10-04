@@ -362,16 +362,16 @@ neurologischen Einschränkungen – **zur Orientierung fürs Gespräch mit dem T
 unverändert**. Eingaben: **Geburtsdatum** (das Alter rechnet die App laufend selbst), Geschlecht,
 **Bewegung** (geht · krabbelt · getragen/Rollstuhl · liegt viel) und **Muskelspannung** (schlaff · normal ·
 erhöht); das Gewicht kommt aus der Verordnung. Die Eingaben stehen auf zwei Zeilen (am Desktop auf
-einer), das Ergebnis in einem Kasten:
+einer). Eine Skala ordnet drei Werte ein; die Legende darunter sagt bei jedem, woher er kommt:
 
-- **Geschätzter Bedarf ca. … kcal/Tag** (Krick): Grundumsatz nach Schofield × Muskelspannung
-  (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme (halten/normal/aufholen,
-  unter „ⓘ“),
-- als zweiter, gröberer Rechenweg die **Faustregel für Kinder, die nicht gehen**: 60–70 % des Bedarfs gesunder
-  Gleichaltriger (ESPGHAN 2017; Referenz FAO/WHO/UNU 2004, kcal/kg nach Alter) – bei „geht“ nur der
-  Referenzwert gesunder Gleichaltriger,
-- der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
+- **Krick-Formel** (persönliche Schätzung): Grundumsatz nach Schofield aus Gewicht, Alter und Geschlecht ×
+  Muskelspannung (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme
+  (halten/normal/aufholen, unter „ⓘ“),
+- **Faustregel der Leitlinie**: für Kinder, die nicht gehen, 60–70 % des Bedarfs gesunder Kinder (ESPGHAN
+  2017) – rechnet nur mit dem Alter; bei „geht“ ausgeblendet,
+- **gesunde Kinder** gleichen Alters (FAO/WHO/UNU 2004, kcal/kg nach Alter).
 
+Darunter der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
 die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
 Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „ⓘ“

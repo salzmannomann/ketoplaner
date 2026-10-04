@@ -1133,10 +1133,26 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .bd-one .ok { color: var(--green); font-weight: 600; }
 .bd-one .warn-t { color: var(--yellow); font-weight: 600; }
 .bd-gain-row { margin-top: 8px; }
-.bd-main { background: var(--bg); border-radius: 10px; padding: 9px 11px; margin: 4px 0 6px; }
-.bd-main .bd-v { font-size: 19px; font-weight: 700; color: var(--brand-dark); line-height: 1.25; }
-.bd-main .bd-v .bd-k { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
-.bd-main .bd-v small { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.bd-main .bd-s { font-size: 12.5px; line-height: 1.35; margin-top: 4px; color: var(--ink); }
-.bd-main .bd-s.bd-m { color: var(--muted); font-size: 12px; }
+.bd-main { background: var(--bg); border-radius: 10px; padding: 8px 11px 9px; margin: 4px 0 6px; }
+.bd-scale { position: relative; height: 82px; margin: 0 2px; }
+.bd-scale .axis { position: absolute; left: 0; right: 0; top: 33px; height: 6px; border-radius: 3px; background: var(--line); }
+.bd-scale .band { position: absolute; top: 28px; height: 16px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 24%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); box-sizing: border-box; }
+.bd-scale .mk { position: absolute; width: 2px; margin-left: -1px; background: var(--muted); }
+.bd-scale .mk.ref { top: 26px; height: 20px; }
+.bd-scale .mk.krick { top: 20px; height: 26px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--brand); }
+.bd-scale .lab { position: absolute; font-size: 11px; line-height: 1.2; white-space: nowrap; color: var(--muted); text-align: center; }
+.bd-scale .lab b { font-size: 12.5px; color: var(--ink); }
+.bd-scale .lab.below { top: 49px; }
+.bd-scale .lab.below b { display: block; }
+.bd-scale .lab.above { top: 0; font-size: 12px; font-weight: 600; }
+.bd-scale .lab.krick, .bd-scale .lab.krick b { color: var(--brand-dark); }
+.bd-scale .lab.krick b { font-size: 14px; }
+.bd-legend { list-style: none; margin: 2px 0 6px; padding: 0; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
+.bd-legend li { position: relative; padding-left: 17px; margin-top: 4px; }
+.bd-legend li b { color: var(--ink); font-weight: 600; }
+.bd-legend .sw { position: absolute; left: 0; top: 4px; width: 11px; height: 9px; border-radius: 3px; background: var(--muted); }
+.bd-legend .sw.krick { background: var(--brand); }
+.bd-legend .sw.band { background: color-mix(in srgb, var(--accent) 24%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); box-sizing: border-box; }
+.bd-legend .sw.ref { width: 3px; left: 4px; height: 11px; top: 3px; border-radius: 1px; }
+.bd-main .bd-s.bd-m { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .bd-one small { color: var(--muted); }

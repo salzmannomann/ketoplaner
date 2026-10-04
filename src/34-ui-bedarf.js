@@ -48,17 +48,28 @@
     const r = bedarfCalc(d, s);
     const age = document.getElementById("bd-age"); if (age) age.textContent = r ? bdAgeText(r.mo) : "";
     if (!r) { out.innerHTML = '<div class="note info">' + (!(d.weight > 0) ? "Körpergewicht eintragen (oben bei der Verordnung)." : "Geburtsdatum eintragen – das Alter rechnet die App dann selbst mit.") + "</div>"; return; }
-    // Kurz und klar: Schätzung für das Kind (Formel nach Krick). Die 60–70 %-Faustregel ist ein zweiter, gröberer
-    // Rechenweg für dieselbe Gruppe (Kinder, die nicht gehen) und erscheint nur, wenn „geht“ nicht gewählt ist.
+    // Skala mit drei Einordnungen, jede mit Herkunft in der Legende darunter: Krick (persönliche Schätzung),
+    // Faustregel 60–70 % (ESPGHAN, nur für Kinder, die nicht gehen) und gesunde Gleichaltrige (FAO/WHO).
     const prot = d.weight > 0 ? d.eiweiss / d.weight : 0;
-    const walks = (s.bdMobil || "liegt") === "geht";
+    const walks = r.mob === BD_MOBIL.geht;
+    const lo = Math.min(walks ? r.ref : r.lo, r.krick) * 0.88, hi = Math.max(r.ref, r.krick) * 1.08;
+    const p = (v) => Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100));
+    // Beschriftung am Rand nicht abschneiden: ganz links linksbündig, ganz rechts rechtsbündig
+    const lab = (cls, v, html) => { const x = p(v); return '<span class="lab ' + cls + '" style="left:' + x.toFixed(1) + "%;transform:translateX(" + (x < 14 ? "0" : x > 86 ? "-100%" : "-50%") + ')">' + html + "</span>"; };
+    const kg = (v) => fmt(v / r.kg, 0) + "/kg";
     out.innerHTML =
-      '<div class="bd-main"><div class="bd-v"><span class="bd-k">Geschätzter Bedarf</span> ca. ' + fmt(r.krick, 0) + ' kcal/Tag <small>(' + fmt(r.krick / r.kg, 0) + " kcal/kg)</small></div>" +
-        '<div class="bd-s bd-m">Berechnet aus Gewicht, Alter, Bewegung und Muskelspannung.</div>' +
-        (walks
-          ? '<div class="bd-s">Gesunde Gleichaltrige: <b>' + fmt(r.ref, 0) + " kcal</b></div>"
-          : '<div class="bd-s">Zweiter, gröberer Rechenweg – Faustregel für Kinder, die nicht gehen: <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> (60–70 % von gesunden Gleichaltrigen mit " + fmt(r.ref, 0) + " kcal)</div>") +
-        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Rechnungen liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
+      '<div class="bd-main"><div class="bd-scale" aria-hidden="true"><span class="axis"></span>' +
+        (walks ? "" : '<span class="band" style="left:' + p(r.lo).toFixed(1) + "%;width:" + (p(r.hi) - p(r.lo)).toFixed(1) + '%"></span>' +
+          lab("below", (r.lo + r.hi) / 2, "<b>" + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>Faustregel")) +
+        '<span class="mk ref" style="left:' + p(r.ref).toFixed(1) + '%"></span>' + lab("below", r.ref, "<b>" + fmt(r.ref, 0) + "</b>gesunde Kinder") +
+        '<span class="mk krick" style="left:' + p(r.krick).toFixed(1) + '%"></span>' + lab("above krick", r.krick, "Krick <b>" + fmt(r.krick, 0) + " kcal</b>") +
+        "</div>" +
+        '<ul class="bd-legend">' +
+          '<li><i class="sw krick"></i><b>Krick-Formel: ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</li>" +
+          (walks ? "" : '<li><i class="sw band"></i><b>Faustregel der Leitlinie: ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – für Kinder, die nicht gehen, 60–70 % von gesunden Kindern (ESPGHAN); rechnet nur mit dem Alter</li>") +
+          '<li><i class="sw ref"></i><b>Gesunde Kinder: ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – gleich alt, ohne Einschränkung (FAO/WHO)</li>" +
+        "</ul>" +
+        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
         ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
