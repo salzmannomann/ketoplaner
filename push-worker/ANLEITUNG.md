@@ -34,12 +34,10 @@ Die Adresse des Workers steht oben auf seiner Seite, etwa
 
 ## 6. In der App einschalten (auf jedem Handy)
 1. HamHam Keto **vom Home-Bildschirm** öffnen (nicht im Safari-Tab; ab iOS 16.4).
-2. **Vorgaben → 🔔 Erinnerungen → ⓘ Wie funktioniert das?** → Adresse des Workers eintragen.
+2. **Vorgaben → 🔔 Erinnerungen** – die Adresse `https://hamham-push.klemens-sailer.workers.dev`
+   ist bereits eingebaut (`PUSH_URL_DEFAULT` in `src/55-push.js`; unter „ⓘ Wie funktioniert das?“ änderbar).
 3. **🔔 Erinnerungen einschalten** → Mitteilungen **erlauben**.
 4. **Testnachricht** – nach wenigen Sekunden erscheint „🔔 HamHam Keto“.
-
-Wer die Adresse einmal mitteilt, bekommt sie fest in die App eingebaut (`PUSH_URL_DEFAULT` in
-`src/55-push.js`) – dann entfällt Schritt 2.
 
 ## Alternative: Bereitstellung mit der Kommandozeile
 ```

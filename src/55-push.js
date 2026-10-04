@@ -2,7 +2,7 @@
      Die App meldet das Gerät beim Dienst an und schickt ihm die Erinnerungen des Tages (Uhrzeit, Titel, Text).
      Der Dienst verschickt sie täglich zur fälligen Minute, bis ein neuer Plan kommt. Abgeglichen wird
      automatisch, sobald sich Uhrzeiten, Rezepte oder Wassergaben ändern (und einmal am Tag beim Öffnen). */
-  const PUSH_URL_DEFAULT = ""; // nach dem Einrichten die Adresse des Workers eintragen (oder in den Vorgaben)
+  const PUSH_URL_DEFAULT = "https://hamham-push.klemens-sailer.workers.dev"; // eigener Worker (in den Vorgaben änderbar)
   function pushUrl() { return String(state.settings.pushUrl || PUSH_URL_DEFAULT || "").trim().replace(/\/+$/, ""); }
   function pushSupport() {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
