@@ -3,6 +3,7 @@
     rebuildFoodIndex();
     applyTheme();
     bindSettingsBar();
+    bindPush();
     bindDetail();
     bindCompose();
     bindHeute();

@@ -1,6 +1,6 @@
 /* HamHam Keto – Service Worker für Offline-Betrieb und zuverlässige Updates.
    VERSION wird bei jedem Build (build-single.py) automatisch aktualisiert. */
-const VERSION = "hamham-7257766a";
+const VERSION = "hamham-c3312737";
 const CORE = [
   "./",
   "./index.html",
@@ -9,12 +9,12 @@ const CORE = [
   "./icon-180.png",
   "./icon-512.png",
   // ASSETS-START (von build-single.py geschrieben: alle Dateien aus index.html mit ihrer ?v=-Version)
-  "./styles.css?v=b9f1e7e3",
+  "./styles.css?v=4439820a",
   "./foods.js?v=ab545b76",
   "./recipes.js?v=dab57413",
   "./vendor/jspdf.umd.min.js?v=5224faf1",
   "./vendor/jspdf.plugin.autotable.min.js?v=a416d9f9",
-  "./app.js?v=1a816015",
+  "./app.js?v=b84add70",
   // ASSETS-END
 ];
 
@@ -65,4 +65,22 @@ self.addEventListener("fetch", (e) => {
       return cached || net;
     })
   );
+});
+
+// Erinnerungen: Push-Nachricht anzeigen (iOS verlangt zu jeder Push-Nachricht eine sichtbare Mitteilung)
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "HamHam Keto", {
+    body: d.body || "", tag: d.tag || undefined, renotify: true,
+    icon: "icon-192.png", badge: "icon-192.png", data: { url: "./" },
+  }));
+});
+// Tipp auf die Mitteilung öffnet die App (oder holt das offene Fenster nach vorne)
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    for (const c of list) { if ("focus" in c) return c.focus(); }
+    return self.clients.openWindow ? self.clients.openWindow("./") : undefined;
+  }));
 });

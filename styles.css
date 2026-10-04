@@ -1112,3 +1112,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* Kopf-Pille darf schrumpfen (sonst ragt sie bei 320 px aus dem Bild); Logo-Schrift auf sehr schmalen Handys kleiner */
 .rx-chip { min-width: 0; }
 @media (max-width: 360px) { .topbar .brand .brand-name { font-size: 22px; } }
+
+/* Erinnerungen (Vorgaben) */
+.push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
+.push-opts .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--ink); }
+.push-opts .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
+.push-url-lbl { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.push-url-lbl input { font-size: 14px; }
+.push-opts label.check { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: 14px; color: var(--ink); }
+.push-opts label.check input { width: 18px; height: 18px; min-width: 18px; margin: 0; padding: 0; }
+#push-toggle:disabled { opacity: .45; cursor: not-allowed; }

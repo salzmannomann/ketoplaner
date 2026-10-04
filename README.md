@@ -355,6 +355,18 @@ haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
   Ziel-Kalorien gleichzeitig getroffen werden; die übrigen Zutaten werden
   proportional skaliert. Alle Nährwerte stammen aus `foods.js`.
 
+## Erinnerungen (Push)
+
+Unter **Vorgaben → 🔔 Erinnerungen** lassen sich Push-Nachrichten zu jeder **Mahlzeit** und
+**Wassergabe** einschalten (pünktlich oder 5/10/15 min vorher), z. B. „🍽️ Mahlzeit 2 · 10:30 –
+Hendl & Brokkoli · ≈ 217 ml · 45 min“ oder „💧 Wasser · 12:15 – 115 ml Wasser“. Die Uhrzeiten
+kommen aus dem Zeitplan; ändern sich Uhrzeiten, Rezepte oder Wassergaben, gleicht die App den
+Dienst automatisch ab (und einmal am Tag beim Öffnen). Verschickt werden die Nachrichten von einem
+kleinen eigenen **Cloudflare Worker** (`push-worker/`, Web Push mit VAPID und aes128gcm,
+ohne Abhängigkeiten); Einrichtung Schritt für Schritt in `push-worker/ANLEITUNG.md`. Funktioniert
+nur in der App vom Home-Bildschirm (iOS ab 16.4) bzw. in Browsern mit Push, auf jedem Gerät einzeln;
+ohne Internet keine Nachricht. **Testnachricht** prüft die Einrichtung.
+
 ## Entwicklung
 
 ```
@@ -385,6 +397,7 @@ machen und `npm run build` ausführen.
 | `40-ui-detail.js` | Detailansicht (4 Blätter), Mahlzeit-Kennzahlen, Wisch-Gesten |
 | `50-ui-heute.js` | Heute: Zeitleiste, Einpassen auf den Bildschirm, Rezeptauswahl, Tagesplan-Ausdruck |
 | `52-zeitplan.js` | Uhrzeiten, Wassergaben, Hinweise zum Zeitplan |
+| `55-push.js` | Erinnerungen: Anmeldung beim Dienst, Abgleich des Plans, Karte in den Vorgaben |
 | `60-print.js` | Druckvorschau (mit Zoom), Druckvorlage, Rezept-Ausdruck |
 | `62-pdf.js` | PDF zum Teilen aus der Druckvorlage |
 | `70-ui-compose.js` | Editor für eigene Rezepte |
@@ -410,6 +423,8 @@ Tagesplan funktionieren.
 - `test/app.test.js` – Regressionstests
 - `build-single.py` – Build (siehe oben), erzeugt auch `keto-rechner.html`
 - `sw.js`, `manifest.webmanifest`, `icon-*.png` – PWA/Offline
+- `push-worker/` – Erinnerungsdienst für Cloudflare (`worker.js`, `wrangler.toml`,
+  Einrichtung in `ANLEITUNG.md`); nicht Teil der App-Dateien
 - `vendor/` – jsPDF 4.2 und jsPDF-AutoTable 5.0 (MIT-Lizenz, siehe
   `vendor/LICENSE-*.txt`) fürs PDF zum Teilen; werden in die Einzeldatei
   eingebettet

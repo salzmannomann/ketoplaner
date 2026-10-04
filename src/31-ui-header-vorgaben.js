@@ -22,6 +22,7 @@
   }
   // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
   function renderHeader(d) {
+    if (typeof schedulePushSync === "function") schedulePushSync(); // Erinnerungen an geänderten Plan angleichen
     const chip = document.getElementById("rx-chip"); if (!chip) return;
     // Zeile 1: Verordnung. Zeile 2: Flüssigkeit – Ziel, Modus und (laut Tagesplan) die Menge zwischen den Mahlzeiten.
     const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl +
@@ -53,6 +54,7 @@
   function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
+    if (typeof renderPushCard === "function") renderPushCard();
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1

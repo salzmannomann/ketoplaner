@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=b9f1e7e3" />
+  <link rel="stylesheet" href="styles.css?v=4439820a" />
 </head>
 <body>
   <header class="topbar">
@@ -208,6 +208,32 @@
         </div>
       </div>
 
+      <div class="card" id="push-card">
+        <h3>🔔 Erinnerungen <span class="hint">– Nachricht zu jeder Mahlzeit und Wassergabe</span></h3>
+        <div id="push-status" class="note tip"></div>
+        <div class="push-opts">
+          <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
+          <label class="check"><input type="checkbox" id="push-water" /> 💧 Wassergaben</label>
+          <label class="push-lead">Zeitpunkt
+            <select id="push-lead">
+              <option value="0">pünktlich</option>
+              <option value="5">5 min vorher</option>
+              <option value="10">10 min vorher</option>
+              <option value="15">15 min vorher</option>
+            </select>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
+          <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+        </div>
+        <details class="collapsible mini">
+          <summary>ⓘ Wie funktioniert das?</summary>
+          <p>Die Uhrzeiten kommen aus Heute (⏰). Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
+          <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
+        </details>
+      </div>
+
       <div class="card">
         <h3>💾 Daten</h3>
         <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
@@ -261,7 +287,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=1a816015"></script>
+  <script src="app.js?v=b84add70"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

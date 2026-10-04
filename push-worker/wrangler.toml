@@ -1,0 +1,15 @@
+# Cloudflare Worker für die Erinnerungen von HamHam Keto (Bereitstellung mit „npx wrangler deploy“).
+name = "hamham-push"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# KV-Namespace anlegen: npx wrangler kv namespace create PUSH_KV → die ausgegebene id hier eintragen
+[[kv_namespaces]]
+binding = "PUSH_KV"
+id = "HIER_DIE_KV_ID_EINTRAGEN"
+
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+ALLOWED_ORIGIN = "https://salzmannomann.github.io"

@@ -1164,3 +1164,61 @@ test("Audit: Öl-Erkennung, Schlafen vor der letzten Mahlzeit, Suche in einer Gr
   assert.doesNotMatch(sw, /c\.put\(req, r\.clone\(\)\)/, "clone() nicht erst im then()");
 });
 
+test("Erinnerungsdienst (push-worker): Verschlüsselung nach RFC 8291, VAPID-Signatur, pünktlich genau einmal, abgelaufene Abos entfernt", async () => {
+  const crypto = require("crypto");
+  const W = await import("data:text/javascript;base64," + Buffer.from(read("push-worker/worker.js")).toString("base64"));
+  const ua = crypto.createECDH("prime256v1"); ua.generateKeys();
+  const auth = crypto.randomBytes(16);
+  const sub = { endpoint: "https://web.push.apple.com/test", keys: { p256dh: ua.getPublicKey().toString("base64url"), auth: auth.toString("base64url") } };
+  // eigene Entschlüsselung (unabhängig vom Worker-Code)
+  const decrypt = (body) => {
+    const b = Buffer.from(body), salt = b.subarray(0, 16), idlen = b[20], asPub = b.subarray(21, 21 + idlen), ct = b.subarray(21 + idlen);
+    const ecdh = ua.computeSecret(asPub);
+    const ikm = Buffer.from(crypto.hkdfSync("sha256", ecdh, auth, Buffer.concat([Buffer.from("WebPush: info\0"), ua.getPublicKey(), asPub]), 32));
+    const cek = Buffer.from(crypto.hkdfSync("sha256", ikm, salt, Buffer.from("Content-Encoding: aes128gcm\0"), 16));
+    const nonce = Buffer.from(crypto.hkdfSync("sha256", ikm, salt, Buffer.from("Content-Encoding: nonce\0"), 12));
+    const d = crypto.createDecipheriv("aes-128-gcm", cek, nonce); d.setAuthTag(ct.subarray(ct.length - 16));
+    const plain = Buffer.concat([d.update(ct.subarray(0, ct.length - 16)), d.final()]);
+    assert.equal(plain[plain.length - 1], 2, "Abschluss-Begrenzer"); return plain.subarray(0, plain.length - 1).toString();
+  };
+  const msg = JSON.stringify({ title: "🍽️ Mahlzeit 2 · 10:30", body: "Hendl & Brokkoli · ≈ 217 ml" });
+  assert.equal(decrypt(await W.encryptPayload(sub, msg)), msg);
+  const kv = new Map(), env = { PUSH_KV: { get: async (k, t) => kv.has(k) ? (t === "json" ? JSON.parse(kv.get(k)) : kv.get(k)) : null, put: async (k, v) => { kv.set(k, v); }, delete: async (k) => { kv.delete(k); } } };
+  const hdr = await W.vapidAuth(env, sub.endpoint), m = /^vapid t=([^.]+)\.([^.]+)\.([^,]+), k=(.+)$/.exec(hdr);
+  assert.ok(m, hdr);
+  const claims = JSON.parse(Buffer.from(m[2], "base64url"));
+  assert.equal(claims.aud, "https://web.push.apple.com"); assert.match(claims.sub, /^https:\/\//);
+  const pub = await crypto.webcrypto.subtle.importKey("raw", Buffer.from(m[4], "base64url"), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+  assert.ok(await crypto.webcrypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pub, Buffer.from(m[3], "base64url"), Buffer.from(m[1] + "." + m[2])), "VAPID gültig signiert");
+  // Ablauf: anmelden → zur fälligen Minute genau eine Nachricht (auch eine verpasste Runde wird nachgeholt)
+  const sent = []; const origFetch = global.fetch;
+  global.fetch = async (url, opt) => { sent.push(decrypt(opt.body)); return { status: 201 }; };
+  try {
+    const post = (path, data) => W.handle(new Request("https://w.dev" + path, { method: "POST", body: JSON.stringify(data) }), env);
+    const r = await post("/api/sync", { subscription: sub, tz: "Europe/Vienna", items: [{ at: "10:25", title: "M2", body: "B", tag: "m2" }, { at: "12:10", title: "W2", body: "115 ml", tag: "w2" }] });
+    assert.equal(r.status, 200);
+    const wien = (h, mi) => new Date(Date.UTC(2026, 9, 5, h - 2, mi)); // Oktober: Wien = UTC+2
+    await W.tick(env, wien(10, 24)); assert.equal(sent.length, 0, "noch nicht fällig");
+    await W.tick(env, wien(10, 25)); assert.equal(sent.length, 1); assert.match(sent[0], /"title":"M2"/);
+    await W.tick(env, wien(10, 26)); assert.equal(sent.length, 1, "nicht doppelt");
+    await W.tick(env, wien(12, 11)); assert.equal(sent.length, 2, "verpasste Runde nachgeholt");
+    await W.tick(env, wien(10, 25 + 1440)); assert.equal(sent.length, 3, "am nächsten Tag wieder");
+    global.fetch = async () => ({ status: 410 });
+    await W.tick(env, wien(12, 10 + 1440));
+    assert.deepEqual(JSON.parse(kv.get("index")), [], "abgelaufenes Abo entfernt");
+    const bad = await post("/api/sync", { subscription: { endpoint: "http://x" }, items: [] });
+    assert.equal(bad.status, 400, "ungültige Anmeldung abgelehnt");
+  } finally { global.fetch = origFetch; }
+});
+
+test("Erinnerungen in den Vorgaben: Karte mit Optionen, ohne Push-Fähigkeit ein klarer Hinweis statt Einschalten", () => {
+  const w = boot({ settings: { kcal: 750, weight: 8.5, mahlzeiten: 4, view: "vorgaben" } });
+  assert.ok($(w, "push-card"), "Karte vorhanden");
+  assert.ok($(w, "push-meals").checked && $(w, "push-water").checked, "Mahlzeiten und Wasser standardmäßig an");
+  assert.equal($(w, "push-lead").value, "5", "5 min vorher");
+  assert.match($(w, "push-status").textContent, /kann keine Push-Nachrichten|Home-Bildschirm|Online-Version/);
+  assert.ok($(w, "push-toggle").disabled, "ohne Push-Fähigkeit nicht einschaltbar");
+  assert.match(read("sw.js"), /addEventListener\("push"/, "Service Worker zeigt Push-Nachrichten an");
+  assert.match(read("sw.js"), /notificationclick/, "Tipp öffnet die App");
+});
+
