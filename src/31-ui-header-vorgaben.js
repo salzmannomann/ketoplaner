@@ -55,6 +55,7 @@
   function renderVorgaben(d) {
     const s = state.settings;
     if (typeof renderPushCard === "function") renderPushCard();
+    if (typeof renderBedarf === "function") renderBedarf(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1

@@ -1222,3 +1222,28 @@ test("Erinnerungen in den Vorgaben: Karte mit Optionen, ohne Push-Fähigkeit ein
   assert.match(read("sw.js"), /notificationclick/, "Tipp öffnet die App");
 });
 
+test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesunder Kinder; Alter aus dem Geburtsdatum, ändert die Verordnung nicht", () => {
+  const iso = (monthsAgo) => { const t = new Date(); t.setDate(1); t.setMonth(t.getMonth() - monthsAgo); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-01"; };
+  const w = boot({ settings: { kcal: 750, weight: 8.5, ratio: 1.5, mahlzeiten: 4, view: "vorgaben" } });
+  assert.match($(w, "bd-out").textContent, /Geburtsdatum eintragen/);
+  const b = $(w, "bd-birth"); b.value = iso(26); fire(w, b, "change");
+  assert.match($(w, "bd-age").textContent, /^2 J [12] M$/, "Alter läuft automatisch: " + $(w, "bd-age").textContent);
+  let t = $(w, "bd-out").textContent;
+  // Mädchen, 8,5 kg, < 3 J: Grundumsatz 58,317 × 8,5 − 31,1 = 464,6; liegt viel 1,15 · normal 1,0 · Zunahme 5 g/Tag → 559
+  assert.match(t, /ca\. 559 kcal\/Tag \(66\/kg, Krick\)/, t);
+  assert.match(t, /60–70 % gesunder Kinder: 411–480 kcal/);
+  assert.match(t, /gesund entwickelt: 685 kcal \(81\/kg\)/);
+  assert.match(t, /Eiweiß-Ziel 1,5 g\/kg · ✓ über dem Referenzwert/);
+  // Bewegung „geht“, Spannung „erhöht“ → 464,6 × 1,1 × 1,3 + 25 = 689
+  const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
+  const to = $(w, "bd-tonus"); to.value = "erhoeht"; fire(w, to, "change");
+  assert.match($(w, "bd-out").textContent, /ca\. 689 kcal\/Tag/);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
+  // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
+  b.value = iso(34); fire(w, b, "change");
+  assert.match($(w, "bd-out").textContent, /Am 3\. Geburtstag wechselt die Formel/);
+  // sehr niedrige Verordnung → Hinweis zu Vitaminen und Mineralstoffen
+  const k = $(w, "set-kcal"); k.value = "400"; fire(w, k, "input");
+  assert.match($(w, "bd-out").textContent, /unter 70 % des Bedarfs gesunder Kinder/);
+});
+

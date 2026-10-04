@@ -355,6 +355,25 @@ haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
   Ziel-Kalorien gleichzeitig getroffen werden; die übrigen Zutaten werden
   proportional skaliert. Alle Nährwerte stammen aus `foods.js`.
 
+## Bedarf schätzen
+
+Unter **Vorgaben → 📊 Bedarf schätzen** vergleicht die App die Kalorien mit Studienwerten für Kinder mit
+neurologischen Einschränkungen – **zur Orientierung fürs Gespräch mit dem Team, die Verordnung bleibt
+unverändert**. Eingaben: **Geburtsdatum** (das Alter rechnet die App laufend selbst), Geschlecht,
+**Bewegung** (geht · krabbelt · getragen/Rollstuhl · liegt viel) und **Muskelspannung** (schlaff · normal ·
+erhöht); das Gewicht kommt aus der Verordnung. Eine Skala zeigt:
+
+- **Krick-Schätzung**: Grundumsatz nach Schofield × Muskelspannung (0,9/1,0/1,1) × Bewegung
+  (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme (halten/normal/aufholen, unter „ⓘ“),
+- **60–70 %** des Bedarfs gesund entwickelter Kinder (ESPGHAN 2017 für Kinder, die nicht gehen),
+- den **Bedarf gesund entwickelter Kinder** nach Alter (FAO/WHO/UNU 2004, kcal/kg).
+
+Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
+die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
+Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „ⓘ“
+(u. a. Walker 2012, Borsani 2023, Arrowsmith 2012, Kossoff 2018); die Krick-Faktoren und die FAO-Tabelle
+stammen aus Sekundärquellen.
+
 ## Erinnerungen (Push)
 
 Unter **Vorgaben → 🔔 Erinnerungen** lassen sich Push-Nachrichten zu jeder **Mahlzeit** und
@@ -394,6 +413,7 @@ machen und `npm run build` ausführen.
 | `30-ui-list.js` | Rezeptliste, Wischen zwischen Gruppen, Vorgaben-Felder |
 | `31-ui-header-vorgaben.js` | Ansichten, Kopf-Pille, Vorgaben, Backup |
 | `32-ui-tile.js` | Rezept-Kachel |
+| `34-ui-bedarf.js` | Bedarf schätzen (Schofield, Krick, 60–70 %, Referenz) |
 | `40-ui-detail.js` | Detailansicht (4 Blätter), Mahlzeit-Kennzahlen, Wisch-Gesten |
 | `50-ui-heute.js` | Heute: Zeitleiste, Einpassen auf den Bildschirm, Rezeptauswahl, Tagesplan-Ausdruck |
 | `52-zeitplan.js` | Uhrzeiten, Wassergaben, Hinweise zum Zeitplan |

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=4439820a" />
+  <link rel="stylesheet" href="styles.css?v=8d56f736" />
 </head>
 <body>
   <header class="topbar">
@@ -123,6 +123,39 @@
           </div>
         </div>
         <div id="verordnung-summary" class="note tip"></div>
+      </div>
+
+      <div class="card" id="bedarf-card">
+        <h3>📊 Bedarf schätzen <span class="hint">– zur Orientierung</span></h3>
+        <div class="bd-row">
+          <label class="bd-birth">Geboren <input id="bd-birth" type="date" /><small id="bd-age"></small></label>
+          <label>Bewegung
+            <select id="bd-mobil">
+              <option value="geht">🚶 geht</option>
+              <option value="krabbelt">🐾 krabbelt</option>
+              <option value="getragen">🤱 getragen</option>
+              <option value="liegt">🛏️ liegt viel</option>
+            </select>
+          </label>
+          <label>Muskelspannung
+            <select id="bd-tonus">
+              <option value="schlaff">schlaff</option>
+              <option value="normal">normal</option>
+              <option value="erhoeht">erhöht</option>
+            </select>
+          </label>
+        </div>
+        <div class="segmented mini bd-sex" id="bd-sex"><button type="button" data-sex="w">♀ Mädchen</button><button type="button" data-sex="m">♂ Bub</button></div>
+        <div id="bd-out"></div>
+        <details class="collapsible mini">
+          <summary>ⓘ Wie wird gerechnet? Quellen</summary>
+          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme:</span>
+            <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
+          </div>
+          <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
+          <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
+          <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ≈ 31 % weniger als gesunde, Formeln unterschätzten um ≈ 22 %), Borsani 2023 (Ruheverbrauch ≈ 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
+        </details>
       </div>
 
       <div class="card">
@@ -287,7 +320,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=e63fb391"></script>
+  <script src="app.js?v=9b43ea16"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

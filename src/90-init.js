@@ -4,6 +4,7 @@
     applyTheme();
     bindSettingsBar();
     bindPush();
+    bindBedarf();
     bindDetail();
     bindCompose();
     bindHeute();
