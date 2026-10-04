@@ -43,30 +43,22 @@
     const s = state.settings;
     const put = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
     put("bd-birth", s.bdBirth || ""); put("bd-mobil", s.bdMobil || "liegt"); put("bd-tonus", s.bdTonus || "normal");
-    document.querySelectorAll("#bd-sex button").forEach(b => b.classList.toggle("active", b.dataset.sex === (s.bdSex === "m" ? "m" : "w")));
+    put("bd-sex", s.bdSex === "m" ? "m" : "w");
     document.querySelectorAll("#bd-gain button").forEach(b => b.classList.toggle("active", num(b.dataset.gain) === (s.bdGain == null ? 5 : num(s.bdGain))));
     const r = bedarfCalc(d, s);
     const age = document.getElementById("bd-age"); if (age) age.textContent = r ? bdAgeText(r.mo) : "";
     if (!r) { out.innerHTML = '<div class="note info">' + (!(d.weight > 0) ? "Körpergewicht eintragen (oben bei der Verordnung)." : "Geburtsdatum eintragen – das Alter rechnet die App dann selbst mit.") + "</div>"; return; }
-    // Klare Sprache: eine Schätzung für das Kind (Krick), zwei Vergleichswerte, keine feste Empfehlung.
-    const kgTxt = (v) => fmt(v / r.kg, 0) + " kcal/kg";
-    const max = Math.max(r.ref, r.krick, r.hi) * 1.05;
-    const bar = (from, to, cls) => '<span class="bd-bar"><span class="' + cls + '" style="left:' + (from / max * 100).toFixed(1) + "%;width:" + Math.max(1.5, (to - from) / max * 100).toFixed(1) + '%"></span></span>';
+    // Kurz und klar: Schätzung für das Kind (Formel nach Krick), zwei Vergleichswerte, keine feste Empfehlung.
     const prot = d.weight > 0 ? d.eiweiss / d.weight : 0;
     out.innerHTML =
-      '<div class="bd-main"><div class="bd-k">Geschätzter Bedarf</div><div class="bd-v">ca. ' + fmt(r.krick, 0) + ' kcal <small>pro Tag · ' + kgTxt(r.krick) + "</small></div>" +
-        '<div class="bd-s">für ein Kind, das <strong>' + escapeHtml(r.mob[2]) + "</strong>, mit <strong>" + r.ton[1] + " Muskelspannung</strong> – berechnet aus Gewicht, Alter und Geschlecht (Formel nach Krick).</div></div>" +
-      '<div class="bd-cmp"><div class="bd-ct">Zum Vergleich</div>' +
-        '<div class="bd-r"><span class="bd-n">Euer Kind (Schätzung)</span><b>' + fmt(r.krick, 0) + "</b>" + bar(0, r.krick, "me") + "</div>" +
-        '<div class="bd-r"><span class="bd-n">Kinder, die nicht gehen <small>(Leitlinie: 60–70 % von Gleichaltrigen)</small></span><b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b>" + bar(r.lo, r.hi, "nw") + "</div>" +
-        '<div class="bd-r"><span class="bd-n">Gleichaltrige ohne Einschränkung</span><b>' + fmt(r.ref, 0) + "</b>" + bar(0, r.ref, "ref") + "</div>" +
-      "</div>" +
-      '<div class="note info bd-note"><strong>Keine feste Empfehlung:</strong> Solche Formeln liegen im Einzelfall oft 20–40 % daneben. Wie viel euer Kind wirklich braucht, legt das Team fest – entscheidend ist, ob es gut wächst und zunimmt.</div>' +
-      '<p class="bd-one">🥚 Eiweiß-Ziel ' + fmt(prot, 1) + " g pro kg · " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">✓ ausreichend (Richtwert ≈ ' + fmt(r.protRef, 1) + " g/kg)</span>"
-        : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + " g/kg) – mit dem Team besprechen</span>") + "</p>" +
-      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Die verordneten Kalorien liegen unter 70 % von Gleichaltrigen – dann reichen Vitamine und Mineralstoffe aus der Nahrung oft nicht; Ergänzung mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel – die Schätzung springt bei gleichem Gewicht um etwa ' + r.jump + " %.</p>" : "");
+      '<div class="bd-main"><div class="bd-v"><span class="bd-k">Geschätzter Bedarf</span> ca. ' + fmt(r.krick, 0) + ' kcal/Tag <small>(' + fmt(r.krick / r.kg, 0) + " kcal/kg)</small></div>" +
+        '<div class="bd-s">Zum Vergleich: Kinder, die nicht gehen <b>' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + "</b> · Gleichaltrige ohne Einschränkung <b>" + fmt(r.ref, 0) + "</b> kcal</div>" +
+        '<div class="bd-s bd-m">Keine feste Empfehlung – Formeln liegen oft 20–40 % daneben. Wie viel es braucht, legt das Team nach dem Wachstum fest.</div></div>' +
+      '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
+        ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
+        : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
+      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
+      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
@@ -74,6 +66,6 @@
     birth.addEventListener("change", () => set("bdBirth", birth.value));
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));
-    document.querySelectorAll("#bd-sex button").forEach(b => b.addEventListener("click", () => set("bdSex", b.dataset.sex)));
+    document.getElementById("bd-sex").addEventListener("change", (e) => set("bdSex", e.target.value));
     document.querySelectorAll("#bd-gain button").forEach(b => b.addEventListener("click", () => set("bdGain", num(b.dataset.gain))));
   }

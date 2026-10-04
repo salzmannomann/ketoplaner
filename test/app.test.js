@@ -1230,22 +1230,20 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match($(w, "bd-age").textContent, /^2 J [12] M$/, "Alter läuft automatisch: " + $(w, "bd-age").textContent);
   let t = $(w, "bd-out").textContent;
   // Mädchen, 8,5 kg, < 3 J: Grundumsatz 58,317 × 8,5 − 31,1 = 464,6; liegt viel 1,15 · normal 1,0 · Zunahme 5 g/Tag → 559
-  assert.match(t, /Geschätzter Bedarfca\. 559 kcal pro Tag · 66 kcal\/kg/, t);
-  assert.match(t, /für ein Kind, das viel liegt, mit normaler Muskelspannung/);
-  assert.match(t, /Kinder, die nicht gehen.*411–480/);
-  assert.match(t, /Gleichaltrige ohne Einschränkung685/);
+  assert.match(t, /Geschätzter Bedarf ca\. 559 kcal\/Tag \(66 kcal\/kg\)/, t);
+  assert.match(t, /Kinder, die nicht gehen 411–480 · Gleichaltrige ohne Einschränkung 685 kcal/);
   assert.match(t, /Keine feste Empfehlung/);
-  assert.match(t, /Eiweiß-Ziel 1,5 g pro kg · ✓ ausreichend/);
+  assert.match(t, /Eiweiß 1,5 g\/kg ✓ ausreichend/);
   // Bewegung „geht“, Spannung „erhöht“ → 464,6 × 1,1 × 1,3 + 25 = 689
   const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
   const to = $(w, "bd-tonus"); to.value = "erhoeht"; fire(w, to, "change");
-  assert.match($(w, "bd-out").textContent, /ca\. 689 kcal pro Tag/);
+  assert.match($(w, "bd-out").textContent, /ca\. 689 kcal\/Tag/);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
   // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
   b.value = iso(34); fire(w, b, "change");
   assert.match($(w, "bd-out").textContent, /Am 3\. Geburtstag wechselt die Formel/);
   // sehr niedrige Verordnung → Hinweis zu Vitaminen und Mineralstoffen
   const k = $(w, "set-kcal"); k.value = "400"; fire(w, k, "input");
-  assert.match($(w, "bd-out").textContent, /unter 70 % von Gleichaltrigen/);
+  assert.match($(w, "bd-out").textContent, /Verordnung unter 70 % von Gleichaltrigen/);
 });
 

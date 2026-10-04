@@ -361,12 +361,15 @@ Unter **Vorgaben → 📊 Bedarf schätzen** vergleicht die App die Kalorien mit
 neurologischen Einschränkungen – **zur Orientierung fürs Gespräch mit dem Team, die Verordnung bleibt
 unverändert**. Eingaben: **Geburtsdatum** (das Alter rechnet die App laufend selbst), Geschlecht,
 **Bewegung** (geht · krabbelt · getragen/Rollstuhl · liegt viel) und **Muskelspannung** (schlaff · normal ·
-erhöht); das Gewicht kommt aus der Verordnung. Eine Skala zeigt:
+erhöht); das Gewicht kommt aus der Verordnung. Die Eingaben stehen auf zwei Zeilen (am Desktop auf
+einer), das Ergebnis in einem Kasten:
 
-- **Krick-Schätzung**: Grundumsatz nach Schofield × Muskelspannung (0,9/1,0/1,1) × Bewegung
-  (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme (halten/normal/aufholen, unter „ⓘ“),
-- **60–70 %** des Bedarfs gesund entwickelter Kinder (ESPGHAN 2017 für Kinder, die nicht gehen),
-- den **Bedarf gesund entwickelter Kinder** nach Alter (FAO/WHO/UNU 2004, kcal/kg).
+- **Geschätzter Bedarf ca. … kcal/Tag** (Krick): Grundumsatz nach Schofield × Muskelspannung
+  (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme (halten/normal/aufholen,
+  unter „ⓘ“),
+- **Zum Vergleich**: Kinder, die nicht gehen (60–70 % des Referenzwerts, ESPGHAN 2017) und Gleichaltrige
+  ohne Einschränkung (FAO/WHO/UNU 2004, kcal/kg nach Alter),
+- der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
 
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
 die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
