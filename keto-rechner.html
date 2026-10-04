@@ -1277,8 +1277,11 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zp-list.fill .zp-row.meal { flex: 3 1 auto; }
 .zp-list.fill .zp-row.water, .zp-list.fill .zp-row.sleep { flex: 1 1 auto; }
 .zp-list.roomy .zp-row.meal .zp-name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.22; font-size: 15px; }
-.zp-row .zp-txt small.zp-more { display: none; }
-.zp-list.roomy .zp-row .zp-txt small.zp-more { display: block; }
+.zp-row .zp-txt small.zp-more, .zp-row small.zp-ing { display: none; }
+.zp-list.more .zp-row .zp-txt small.zp-more { display: block; }
+.zp-list.ing .zp-row.meal { flex-wrap: wrap; row-gap: 3px; }
+.zp-list.ing .zp-row small.zp-ing { display: block; flex: 0 0 100%; box-sizing: border-box; padding-left: var(--ing-indent, 70px); padding-right: 6px;
+  white-space: normal; overflow: visible; color: var(--ink); opacity: .8; font-size: 12.5px; line-height: 1.3; }
 .zp-list.roomy .zp-time { font-size: 15px; flex-basis: 44px; }
 .zp-list.roomy .zp-ic { font-size: 18px; }
 .zp-list.roomy .zp-vol { font-size: 13px; }
@@ -4548,7 +4551,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         (() => { const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
           return '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' + (big ? '⚠️ ' : '≈ ') + fmt(m.vol, 0) + ' ml<small>' + sondierMin(m.vol) + ' min</small></span>'; })() +
         '<button type="button" class="slot-act" data-pick="' + i + '" title="Rezept ändern" aria-label="Rezept ändern">↻</button>' +
-        '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
+        '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button>' +
+        '<small class="zp-ing">' + ingLine(f) + '</small></div>' });
     });
     zeitplanExtraRows(times, wp).forEach(r => rows.push(r));
     rows.sort((a, b) => a.t - b.t);
@@ -4622,16 +4626,39 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     fitHeute();
   }
   // Am Handy füllt der Tag den Bildschirm bis zur Tab-Leiste: Bleibt Platz (z. B. bei 4 statt 5 Mahlzeiten
-  // oder als installierte App), werden die Zeilen höher – Mahlzeiten mehr als Wasser –, lange
-  // Rezeptnamen dürfen zweizeilig werden und jede Mahlzeit zeigt zusätzlich kcal und Eiweiß. Reicht der Platz nicht, bleibt die kompakte Darstellung.
+  // oder als installierte App), zeigt jede Mahlzeit zusätzlich ihre Zutaten mit Gramm und kcal/Eiweiß,
+  // lange Rezeptnamen dürfen zweizeilig werden, der Rest verteilt sich als Höhe (Mahlzeiten mehr als Wasser). Reicht der Platz nicht, bleibt die kompakte Darstellung.
+  // Zutaten einer Portion in einer Zeile (ohne Öl – das steht in der Öl-Zeile), Namen ohne Klammerzusatz.
+  function ingLine(f) {
+    return f.res.items.filter(it => !/öl|oil/i.test(it.food || "") && num(it.grams) > 0)
+      .map(it => escapeHtml(String(it.food).replace(/\s*\(.*?\)/g, "")) + "&nbsp;" + fmt(num(it.grams), 1) + "&nbsp;g").join("&nbsp;· ");
+  }
   function fitHeute() {
     const box = document.getElementById("heute-content"), list = box && box.querySelector(".zp-list");
     const zp = box && box.querySelector(".zeitplan"), tab = document.querySelector(".tabbar");
     if (!list || !zp || !tab) return;
-    list.classList.remove("roomy", "fill"); list.style.minHeight = "";
-    if (window.innerWidth > 820 || !box.offsetParent || getComputedStyle(tab).position !== "fixed") return;
+    const LV = ["roomy", "ing", "more", "fill"];
+    list.classList.remove.apply(list.classList, LV); list.style.minHeight = "";
+    if (!box.offsetParent) return;
+    // Zutatenzeile über die ganze Breite, eingerückt bis zum Rezeptnamen (nach dem Festlegen der Stufe messen)
+    const indent = () => {
+      const r0 = list.querySelector(".zp-row.meal .zp-txt"); if (!r0) return;
+      const row = r0.parentElement;
+      list.style.setProperty("--ing-indent", Math.round(r0.getBoundingClientRect().left - row.getBoundingClientRect().left - (parseFloat(getComputedStyle(row).paddingLeft) || 0) - (row.clientLeft || 0)) + "px");
+    };
+    // Desktop: Platz genug – Zutaten und kcal/Eiweiß immer zeigen
+    if (window.innerWidth > 820 || getComputedStyle(tab).position !== "fixed") { list.classList.add("ing", "more"); indent(); return; }
     const spare = () => tab.getBoundingClientRect().top - (zp.getBoundingClientRect().bottom + (window.scrollY || 0)) - 12;
-    if (spare() > 70) { list.classList.add("roomy"); if (spare() < 0) list.classList.remove("roomy"); }
+    // Stufen vom ausführlichsten zum kompaktesten; die erste, die ohne Scrollen passt, gilt.
+    if (spare() > 40) {
+      const steps = [["roomy", "ing", "more"], ["roomy", "ing"], ["ing"], ["roomy", "more"], ["roomy"]];
+      for (const st of steps) {
+        list.classList.add.apply(list.classList, st);
+        if (spare() >= 0) break;
+        list.classList.remove.apply(list.classList, st);
+      }
+    }
+    if (list.classList.contains("ing")) indent();
     const s = spare(), n = list.children.length;
     if (s > 4) { list.classList.add("fill"); list.style.minHeight = Math.round(list.offsetHeight + Math.min(s, n * 52)) + "px"; }
   }

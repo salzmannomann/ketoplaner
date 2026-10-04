@@ -662,9 +662,11 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*≈ 125 ml25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-vol").length, 0, "beim Wasser keine Zeitangabe");
   assert.equal(hc.querySelector(".zp-row.meal .zp-txt small:not(.zp-more)"), null, "ohne Öl und mit genug Eiweiß nur eine Zeile");
-  // kcal/Eiweiß je Mahlzeit nur, wenn am Handy Platz ist (Klasse „roomy“ von fitHeute; jsdom misst nicht → kompakt)
+  // Zutaten und kcal/Eiweiß je Mahlzeit nur, wenn Platz ist (Klassen „ing“/„more“ von fitHeute; jsdom misst nicht → kompakt)
   assert.match(hc.querySelector(".zp-row.meal .zp-more").textContent, /^\d+ kcal · Eiweiß [\d,]+ g$/);
-  assert.ok(!hc.querySelector(".zp-list").classList.contains("roomy"), "ohne Messung bleibt es kompakt");
+  const ingTxt = hc.querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
+  assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat Paediatric Nature Mix [\d,]+ g · Wasser [\d,]+ g$/, ingTxt);
+  assert.ok(!/roomy|ing|more/.test(hc.querySelector(".zp-list").className.replace("day-slots", "")), "ohne Messung bleibt es kompakt");
   assert.equal(hc.querySelectorAll(".zp-row.water small").length, 0, "Wassergaben einzeilig");
   const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);

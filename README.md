@@ -233,9 +233,12 @@ Reiter nebeneinander.
 Eine einzige **Zeitleiste** für den ganzen Tag, am Handy auf einem Bildschirm
 ohne Scrollen (4 und 5 Mahlzeiten). Sie **füllt den Bildschirm bis zur
 Tab-Leiste**: Bleibt Platz (weniger Mahlzeiten, größeres Handy, installierte
-App), werden die Zeilen höher (Mahlzeiten mehr als Wasser), die Schrift etwas
-größer, lange Rezeptnamen zweizeilig, und jede Mahlzeit zeigt zusätzlich kcal
-und Eiweiß. Ist es eng, bleibt die kompakte Darstellung. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
+App), zeigt jede Mahlzeit zusätzlich ihre **Zutaten mit Gramm** (eine Zeile über
+die ganze Breite, ohne Öl – das steht darüber) sowie kcal und Eiweiß; die Schrift
+wird etwas größer, lange Rezeptnamen zweizeilig, der Rest verteilt sich als Höhe
+(Mahlzeiten mehr als Wasser). Die App nimmt die ausführlichste Stufe, die ohne
+Scrollen passt; ist es eng (z. B. 5 Mahlzeiten im Browser), bleibt die kompakte
+Darstellung. Am Desktop stehen Zutaten und kcal/Eiweiß immer da. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
 min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
 **letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30, 20:00), **🖨️** druckt,
 **🗑️** leert den Plan (ohne Rückfrage, mit **Rückgängig**). Darunter eine
