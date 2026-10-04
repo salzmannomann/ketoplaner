@@ -157,7 +157,14 @@
 
     list.innerHTML = "";
     if (entries.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Keine Gerichte für diese Auswahl."));
+      // Suche in einer Gruppe ohne Treffer: Hinweis mit Knopf „in allen Gruppen suchen“
+      const box = el("div", { class: "card empty" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe. " : "Keine Gerichte für diese Auswahl.");
+      if (q && filter !== "alle") {
+        const b = el("button", { type: "button", class: "linkbtn" }, "In allen Gruppen suchen");
+        b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
+        box.appendChild(b);
+      }
+      list.appendChild(box);
       return;
     }
 

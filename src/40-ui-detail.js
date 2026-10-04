@@ -332,18 +332,18 @@
       const isWaterRow = /wasser/i.test(it.food);
       const fatRow = isFatCarrier(items, i);
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
-      const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
+      const gTxt = (fatRow ? gR.toFixed(1) : String(gR)).replace(".", ","); // Fettträger immer mit einer Nachkommastelle („21,0“)
       // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
       // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
       const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">⟵ höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Abwiegen: für die Zubereitungsmenge
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
+        '<td class="amt"><input class="amt-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
         "<td>" + fmt(mK.eiweiss) + "</td><td>" + fmt(mK.fett) + "</td><td>" + fmt(mK.kh) + "</td><td>" + fmt(mK.kcal, 0) + "</td></tr>";
       const gP = Math.round(num(it.grams) * 10) / 10;
-      const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
+      const gPTxt = (fatRow ? gP.toFixed(1) : String(gP)).replace(".", ",");
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
+        '<td class="amt"><input class="amt-edit g-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).

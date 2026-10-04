@@ -301,7 +301,8 @@
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
     const kcalMaxAuto = weight > 0 ? r10(weight * 90) : null;
-    const kcalMinAuto = weight > 0 ? r10(weight * 70) : r10(kcal * 0.85);
+    // Automatisches Minimum nie über der Verordnung (sonst wäre jeder Tag „unter dem Minimum“).
+    const kcalMinAuto = Math.min(weight > 0 ? r10(weight * 70) : r10(kcal * 0.85), kcal);
     const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
     // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg);
     // manuell übersteuerbar. Modus: Wasser zwischen den Mahlzeiten sondieren oder in den Mahlzeiten enthalten.
@@ -751,7 +752,14 @@
 
     list.innerHTML = "";
     if (entries.length === 0) {
-      list.appendChild(el("div", { class: "card empty" }, "Keine Gerichte für diese Auswahl."));
+      // Suche in einer Gruppe ohne Treffer: Hinweis mit Knopf „in allen Gruppen suchen“
+      const box = el("div", { class: "card empty" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe. " : "Keine Gerichte für diese Auswahl.");
+      if (q && filter !== "alle") {
+        const b = el("button", { type: "button", class: "linkbtn" }, "In allen Gruppen suchen");
+        b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
+        box.appendChild(b);
+      }
+      list.appendChild(box);
       return;
     }
 
@@ -910,13 +918,13 @@
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
-    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = Fehlmenge laut Tagesplan).
+    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = zu viel auf einmal).
     const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
     let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
     if (d.fluidDay > 0) {
       s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
       if (d.wasserModus === "mahlzeit") s3 = "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit";
-      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + wg.text : "kein Wasser extra"; }
+      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + (wg.est ? "≈ " : "") + wg.text : "kein Wasser extra"; }
       if (/⚠️/.test(l2)) s3 += " ⚠️";
     }
     chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
@@ -1022,10 +1030,10 @@
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
         let v = num(e.target.value);
-        // Vorschlags-Felder: leer oder genau der Vorschlag = wieder automatisch
-        const d0 = derived();
-        const autoOf = { "set-kcal": d0.kcalAuto, "set-kcalmin": d0.kcalMinAuto, "set-fluid": d0.fluidAuto }[id];
-        if (autoOf !== undefined && (e.target.value === "" || Math.abs(v - autoOf) < 1e-9)) v = "";
+        // Vorschlags-Felder: nur ein leeres Feld heißt wieder „automatisch“. Ein eingetippter Wert bleibt fest,
+        // auch wenn er zufällig dem Vorschlag entspricht (sonst würde er sich beim Ändern des Gewichts still mitändern).
+        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid";
+        if (isAutoField && e.target.value.trim() === "") v = "";
         state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();
@@ -1488,18 +1496,18 @@
       const isWaterRow = /wasser/i.test(it.food);
       const fatRow = isFatCarrier(items, i);
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
-      const gTxt = fatRow ? gR.toFixed(1) : String(gR); // Fettträger immer mit einer Nachkommastelle („21.0“)
+      const gTxt = (fatRow ? gR.toFixed(1) : String(gR)).replace(".", ","); // Fettträger immer mit einer Nachkommastelle („21,0“)
       // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
       // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
       const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">⟵ höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Abwiegen: für die Zubereitungsmenge
       kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
+        '<td class="amt"><input class="amt-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
         "<td>" + fmt(mK.eiweiss) + "</td><td>" + fmt(mK.fett) + "</td><td>" + fmt(mK.kh) + "</td><td>" + fmt(mK.kcal, 0) + "</td></tr>";
       const gP = Math.round(num(it.grams) * 10) / 10;
-      const gPTxt = fatRow ? gP.toFixed(1) : String(gP);
+      const gPTxt = (fatRow ? gP.toFixed(1) : String(gP)).replace(".", ",");
       nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit g-edit" type="number" min="0" step="' + (fatRow ? "0.1" : "1") + '" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
+        '<td class="amt"><input class="amt-edit g-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
         "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
     });
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).
@@ -2253,9 +2261,11 @@
     const meals = []; for (let i = 0; i < n; i++) meals.push(i === n - 1 && n > 1 ? letzte : round5(erste + i * step));
     const gifts = [];
     for (let i = 0; i < n - 1; i++) gifts.push({ t: round5((meals[i] + meals[i + 1]) / 2), kind: "pause", after: i });
-    const schlaf = parseHM(z.schlaf), last = meals[n - 1];
+    let schlaf = parseHM(z.schlaf); const last = meals[n - 1];
+    if (schlaf != null && schlaf < erste) schlaf += 1440;          // Schlafen nach Mitternacht (z. B. 0:30)
+    const schlafBad = schlaf != null && schlaf <= last;            // Schlafen vor/zur letzten Mahlzeit → Hinweis
     if (schlaf != null && schlaf - last >= 45) gifts.push({ t: round5(last + (schlaf - last) / 2), kind: "abend", after: n - 1 });
-    return { meals, gifts, schlaf: schlaf != null && schlaf > last ? schlaf : null, interval: n > 1 ? step : null, bad, z };
+    return { meals, gifts, schlaf: schlaf != null && schlaf > last ? schlaf : null, schlafBad, interval: n > 1 ? step : null, bad, z };
   }
   // Wassergaben für eine Tagesmenge aus den Mahlzeiten (Summe der Flüssigkeit aller Mahlzeiten).
   function waterPlan(d, mealFluidSum, times) {
@@ -2306,6 +2316,7 @@
   function zeitplanNotes(d, times, dm, wp) {
     const notes = [];
     const lastMeal = times.meals[times.meals.length - 1];
+    if (times.schlafBad) notes.push('<div class="note warn">⚠️ Schlafen liegt vor der letzten Mahlzeit – bitte die Uhrzeiten unter ⏰ prüfen.</div>');
     if (times.bad) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen.</div>');
     if (times.interval != null && times.interval < 180) notes.push('<div class="note warn" title="Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten.">⚠️ Nur ' + fmtDauer(times.interval) + ' Abstand – Keto-Kost braucht oft 3–4 h.</div>');
     if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn" title="Sonst droht Rückfluss im Liegen.">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – 2 h einplanen.</div>');

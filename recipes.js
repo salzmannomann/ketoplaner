@@ -25,7 +25,7 @@ const RECIPES_SONDE = [
   {
     // Pre Apta liefert Kohlenhydrate: damit kommt die Mahlzeit mit weniger Compleat je Mahlzeit auf die Kalorien,
     // z. B. wenn eine Packung auf mehr Mahlzeiten reichen soll. Das Verhältnis Compleat : Pre Apta ist im Rezept
-    // hinterlegt (50 ml : 5 g) und lässt sich unter Kochen durch Ändern einer Menge anpassen.
+    // hinterlegt (50 ml : 5 g) und lässt sich im ✏️ Editor anpassen.
     name: "Compleat & KetoCal & Pre Apta",
     icon: "🥤",
     ketocal: true,

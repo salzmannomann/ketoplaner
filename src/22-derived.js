@@ -26,7 +26,8 @@
     // Obergrenze 90 kcal/kg. Das Minimum ist manuell übersteuerbar; ohne Gewicht gilt 85 % des Ziels.
     const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
     const kcalMaxAuto = weight > 0 ? r10(weight * 90) : null;
-    const kcalMinAuto = weight > 0 ? r10(weight * 70) : r10(kcal * 0.85);
+    // Automatisches Minimum nie über der Verordnung (sonst wäre jeder Tag „unter dem Minimum“).
+    const kcalMinAuto = Math.min(weight > 0 ? r10(weight * 70) : r10(kcal * 0.85), kcal);
     const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
     // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg);
     // manuell übersteuerbar. Modus: Wasser zwischen den Mahlzeiten sondieren oder in den Mahlzeiten enthalten.

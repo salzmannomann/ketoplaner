@@ -47,7 +47,7 @@ const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=mahlzei
 function kitchenRows(c) {
   const out = {};
   [...c.querySelectorAll("table.kitchen tbody tr:not(.sum)")].forEach(r => {
-    out[r.querySelector(".name").textContent.replace(/⟵.*/, "").trim()] = parseFloat(r.querySelector("input").value);
+    out[r.querySelector(".name").textContent.replace(/⟵.*/, "").trim()] = parseFloat(r.querySelector("input").value.replace(",", "."));
   });
   return out;
 }
@@ -300,9 +300,11 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell/);
   fire(w, $(w, "reset-kcal"));
   assert.equal($(w, "set-kcal").value, "680");
-  // Genau den Vorschlag eintippen = wieder automatisch
+  // Ein getippter Wert bleibt fest – auch wenn er dem Vorschlag entspricht; nur ein leeres Feld ist wieder automatisch
   k.value = "690"; fire(w, k, "input"); assert.ok(!$(w, "reset-kcal").hidden);
-  k.value = "680"; fire(w, k, "input"); assert.ok($(w, "reset-kcal").hidden, "Vorschlag getippt → automatisch");
+  k.value = "680"; fire(w, k, "input"); assert.ok(!$(w, "reset-kcal").hidden, "Vorschlag getippt → bleibt eigener Wert");
+  assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, manuell/);
+  k.value = ""; fire(w, k, "input"); assert.ok($(w, "reset-kcal").hidden, "leeres Feld → automatisch");
   assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, Vorschlag/);
   const fl = $(w, "set-fluid"); fl.value = "900"; fire(w, fl, "input");
   assert.ok(!$(w, "reset-fluid").hidden);
@@ -384,7 +386,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const row = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Hüh/.test(r.textContent));
   const inp = row.querySelector("input.g-edit");
   assert.ok(inp, "Gramm-Feld in Rechnen fehlt");
-  const g0 = parseFloat(inp.value);
+  const g0 = parseFloat(inp.value.replace(",", "."));
   inp.value = String(g0 / 2); fire(w, inp, "change");
   c = $(w, "detail-content");
   // Portion halbiert: kcal 70 statt 140, Verhältnis bleibt, Statuszeile + Zurücksetzen
@@ -396,7 +398,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
   const kochenAfter = kitchenRows(c);
   assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) <= 1.5, "Abwiegen (5 ×) skaliert mit (0,5-g-Rundung)");
-  assert.ok(Math.abs(parseFloat(brok.value) - kochenBefore["Broccoli, gekocht"] / 5 / 2) <= 0.3, "Rechnen (je Portion) skaliert mit (0,5-g-Rundung)");
+  assert.ok(Math.abs(parseFloat(brok.value.replace(",", ".")) - kochenBefore["Broccoli, gekocht"] / 5 / 2) <= 0.3, "Rechnen (je Portion) skaliert mit (0,5-g-Rundung)");
   // Tages-Check (Abwiegen) rechnet mit der angepassten Portion (5 × 70 = 350 kcal, unter dem Minimum → Warnung)
   assert.match(tagStatus(c).textContent, /Portion angepasst: 50 %/);
   assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
@@ -446,7 +448,7 @@ test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf
   assert.ok(on(rows["Hühnerbrust ohne Haut"], 0.5) && on(rows["Broccoli, gekocht"], 0.5), "0,5-g-Raster: " + JSON.stringify(rows));
   assert.ok(on(rows["Wasser"], 1), "Wasser auf 1 ml: " + rows["Wasser"]);
   assert.ok(on(rows["Rapsöl"], 0.1), "Fett auf 0,1 g");
-  assert.match([...c.querySelectorAll("table.kitchen tbody tr")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+\.\d$/, "Fett immer mit einer Nachkommastelle");
+  assert.match([...c.querySelectorAll("table.kitchen tbody tr")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+,\d$/, "Fett immer mit einer Nachkommastelle (deutsches Komma)");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.015, "Verhältnis nach Rundung: " + ratioOf(c));
   // Ganzer Tag ×5: Vielfache bleiben im Raster
   fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
@@ -497,7 +499,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     const mealRows = c.querySelector(".pane[data-pane=mahlzeit] table").querySelectorAll("tbody tr:not(.sum)");
     const dayRows = c.querySelector(".pane[data-pane=abwiegen] table.kitchen").querySelectorAll("tbody tr:not(.sum)");
     assert.equal(dayRows.length, mealRows.length);
-    const gramsOf = (tr) => parseFloat(tr.children[1].querySelector("input").value);
+    const gramsOf = (tr) => parseFloat(tr.children[1].querySelector("input").value.replace(",", "."));
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
@@ -1110,5 +1112,55 @@ test("Detailansicht: nach unten wischen schließt – auf jedem Blatt, nur wenn 
   c = openRecipe(w, "Hendl & Brokkoli");
   drag(c.querySelector(".detail-head") || c.firstElementChild, 0, 40); await wait();
   assert.ok(!ov.hidden, "kurzer, langsamer Zug springt zurück");
+});
+
+test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan markiert, ✕ mit Rückgängig, Pille sofort aktuell", () => {
+  // Rundung: kleine Mengen (Compleat bei 3:1) werden nicht grob gerundet – kcal bleiben beim Ziel
+  let w = boot({ settings: { kcal: 680, weight: 8.5, mctShare: 0, ratio: 3, mahlzeiten: 5 } });
+  let c = openRecipe(w, "Compleat & KetoCal");
+  const kcal = parseFloat(c.querySelector(".pane[data-pane=mahlzeit] .dstat .v").textContent);
+  assert.ok(Math.abs(kcal - 136) <= 5, "kcal je Mahlzeit nahe 136: " + kcal);
+  // Rezept, das die Verordnung nicht erreicht: markiert, nicht in den Summen
+  w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4 }, dayPlan: [{ key: "std:Marille (Obstbrei, mit KetoCal)" }, { key: "std:Compleat & KetoCal" }, { key: null }, { key: null }] });
+  fire(w, $(w, "tab-heute"));
+  const hc = $(w, "heute-content");
+  const bad = hc.querySelector(".bad-slot");
+  assert.ok(bad, "unpassendes Rezept markiert");
+  {
+    assert.match(bad.textContent, /passt nicht zu 1,5:1/);
+    assert.ok(!bad.querySelector(".zp-ing"), "keine (unangepassten) Gramm");
+    assert.match($(w, "day-sums").textContent, /Ziel 188/, "Summen nur für die passende Mahlzeit");
+  }
+  // ✕ entfernt mit „Rückgängig“; die Kopf-Pille rechnet sofort neu
+  w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4 }, dayPlan: [0, 1, 2, 3].map(i => ({ key: i === 1 ? "std:Hendl & Brokkoli" : "std:Compleat & KetoCal" })) });
+  fire(w, $(w, "tab-heute"));
+  const pill0 = $(w, "rx-chip").textContent;
+  fire(w, $(w, "heute-content").querySelectorAll("[data-clear]")[1]);
+  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 1);
+  assert.notEqual($(w, "rx-chip").textContent, pill0, "Pille zeigt die neue Wassermenge");
+  assert.match($(w, "rx-chip").textContent, /Wasser ≈ \d × \d+ ml/, "≈, solange eine Mahlzeit geschätzt ist");
+  assert.match($(w, "toast").textContent, /Mahlzeit 2 entfernt/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 0, "Rückgängig");
+  assert.equal($(w, "rx-chip").textContent, pill0);
+});
+
+test("Audit: Öl-Erkennung, Schlafen vor der letzten Mahlzeit, Suche in einer Gruppe, Service Worker lädt alles vor", () => {
+  const w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4, zpSchlaf: "17:00" } });
+  fire(w, $(w, "tab-heute"));
+  assert.match($(w, "heute-content").textContent, /Schlafen liegt vor der letzten Mahlzeit/);
+  // Suche ohne Treffer in einer Gruppe → Knopf „In allen Gruppen suchen“
+  fire(w, w.document.querySelector('.tabbar button[data-view="rezepte"]'));
+  const chip = [...w.document.querySelectorAll("#filter-bar .chip")].find(b => /Rind/.test(b.textContent));
+  if (chip) {
+    fire(w, chip);
+    const sb = $(w, "recipe-search"); sb.value = "hendl"; fire(w, sb, "input");
+    const btn = [...$(w, "recipe-list").querySelectorAll("button")].find(b => /In allen Gruppen suchen/.test(b.textContent));
+    assert.ok(btn, "Knopf vorhanden"); fire(w, btn); assert.ok($(w, "recipe-list").querySelectorAll(".tile").length > 0, "Treffer in allen Gruppen");
+  }
+  // Service Worker: alle versionierten Dateien in der Vorladeliste, Kopie vor dem asynchronen Cachen
+  const sw = read("sw.js"), html = read("index.html");
+  (html.match(/(?:href|src)="([^"]+\?v=[^"]+)"/g) || []).forEach(m => { const u = m.replace(/^(?:href|src)="/, "").replace(/"$/, ""); assert.ok(sw.indexOf('"./' + u + '"') !== -1, "vorgeladen: " + u); });
+  assert.doesNotMatch(sw, /c\.put\(req, r\.clone\(\)\)/, "clone() nicht erst im then()");
 });
 

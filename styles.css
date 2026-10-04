@@ -10,7 +10,7 @@
   --accent: #3182ce;
   --green: #2f855a;
   --green-bg: #e6f4ec;
-  --yellow: #b7791f;
+  --yellow: #8f5c0a; /* dunkler als früher (#b7791f), damit Warnungen auf Weiß/Creme gut lesbar sind (WCAG AA) */
   --yellow-bg: #fdf6e3;
   --red: #c53030;
   --red-bg: #fdecec;
@@ -1331,3 +1331,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .topbar, .tabbar { padding-left: max(24px, calc((100% - 1040px) / 2 + 24px)); padding-right: max(24px, calc((100% - 1040px) / 2 + 24px)); }
   .tabbar { padding-left: max(10px, calc((100% - 1040px) / 2 + 10px)); }
 }
+
+/* Kopf-Pille darf schrumpfen (sonst ragt sie bei 320 px aus dem Bild); Logo-Schrift auf sehr schmalen Handys kleiner */
+.rx-chip { min-width: 0; }
+@media (max-width: 360px) { .topbar .brand .brand-name { font-size: 22px; } }

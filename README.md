@@ -1,8 +1,8 @@
 # HamHam Keto – Planer für ketogene Sondennahrung
 
 Eine kleine Web-App für die **ketogene Sondennahrung** eines Kindes. Sie
-enthält 41 fertige Gerichte (57 Rezept-Varianten), die automatisch auf die **verordnete
-Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
+enthält 42 fertige Gerichte (58 Rezept-Varianten), die automatisch auf die
+**Verordnung** (Keto-Verhältnis, Kalorien pro Mahlzeit, Eiweiß) umgerechnet
 werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
 vorgekochte Portionen und mit einem **Tagesplan**.
@@ -11,13 +11,15 @@ Die App läuft komplett im Browser – ohne Server, ohne Konto, ohne
 Internetverbindung – und ist für das **Smartphone** gemacht. Über GitHub
 Pages ist sie als **PWA offline-fähig** (Service Worker `sw.js`): Nach dem
 ersten Laden funktioniert sie auch ohne Netz und aktualisiert sich zuverlässig
-(die Service-Worker-Version wird beim Build automatisch erhöht). Alle Eingaben
+(die Service-Worker-Version und die Vorladeliste aller Dateien schreibt der Build
+automatisch; beim Installieren wird alles vorgeladen). Alle Eingaben
 werden **lokal im Browser gespeichert** (localStorage): Vorgaben, Favoriten,
 eigene Rezepte, angepasste Portionen und angepasstes Wasser je Rezept und
 der Tagesplan.
 
-Standardmäßig sind **700 kcal/Tag, 5 Mahlzeiten, 1,8:1 und 8 kg
-Körpergewicht** (Eiweiß automatisch nach Gewicht) eingestellt.
+Standardmäßig sind **5 Mahlzeiten, 1,8:1 und 8 kg Körpergewicht** eingestellt;
+Kalorien (80 kcal/kg, bei 8 kg also 640 kcal/Tag), Minimum, Flüssigkeit und Eiweiß
+folgen automatisch dem Gewicht, bis eigene Werte eingetragen werden.
 
 ## Starten
 
@@ -43,10 +45,10 @@ Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
 | --- | --- |
 | **Heute** | Zeitleiste mit Uhrzeiten, einem Rezept je Mahlzeit, Wassergaben und Tagessummen |
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
-| **Vorgaben** | Verordnung, MCT-Öl, Küche, Daten (Backup) |
+| **Vorgaben** | Verordnung, Flüssigkeit, Öl (MCT), Küche, Darstellung, Daten (Backup) |
 
 Oben rechts zeigt der **Verordnungs-Chip** jederzeit, womit gerade gerechnet
-wird: Zeile 1 die Verordnung (z. B. „1,8:1 · 140 kcal × 5 · 🥄 KetoCal · MCT
+wird: Zeile 1 die Verordnung (z. B. „1,8:1 · 128 kcal × 5 · MCT
 10 % ⚖️"), Zeile 2 die Flüssigkeit (Ziel je Tag, Modus, und laut Tagesplan die
 Menge, die zwischen den Mahlzeiten zu sondieren ist). Ein Tipp darauf öffnet die
 Vorgaben.
@@ -124,8 +126,9 @@ Vorgaben.
   bis zur Ruhelage durch; senkrecht bleibt Scrollen. Rechts
   daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
   mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
-  Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge. Die
-  Eine KetoCal-Vorgabe gibt es nicht mehr.
+  Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge.
+  Findet die Suche in der gewählten Gruppe nichts, führt **„In allen Gruppen
+  suchen“** weiter. Eine KetoCal-Vorgabe gibt es nicht mehr.
 - Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
   Stern markiert Favoriten (immer ganz oben). Eiweiß unter 90 % des Ziels ist
   gelb, über dem **Doppelten des Ziels** gelb mit „↑“ – im Rezept steht dann
@@ -252,9 +255,11 @@ In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondi
 (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser ohne
 Zeitangabe), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
 Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
-Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile, ein Tipp
+Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile (mit **Rückgängig**), ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
-Menge. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
+Menge. Erreicht ein geplantes Rezept die Verordnung nicht mehr (z. B. nach einer Änderung
+des Verhältnisses), ist es durchgestrichen markiert („passt nicht zu 1,5:1 – anderes Rezept
+wählen“) und zählt nicht in die Tagessummen. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
 über 25 ml/kg) und Eiweiß. Die Mahlzeiten liegen gleichmäßig zwischen erster
 und letzter; dazwischen stehen einzeilig die **Wassergaben** (Mitte jeder Pause
 und eine vor dem Schlafen; „🌙 Schlafen 20:00“ steht rechts in deren Zeile). Die Menge je Wassergabe ergibt sich aus dem
@@ -268,8 +273,9 @@ den Oberkörper während der Gabe und 30 Minuten danach hoch zu halten.
 
 ## Fachliche Details
 
-**Zutaten** verwenden österreichische Bezeichnungen (Erdäpfel, Karotten,
-Karfiol, Hendl, Paradeiser, Marille, Schlagobers …). Beim Geflügel wird
+**Rezeptnamen und viele Zutaten** verwenden österreichische Bezeichnungen (Erdäpfel,
+Karfiol, Hendl, Marille, Schlagobers …); einzelne Zutaten heißen wie in der
+Nährwerttabelle (z. B. „Kartoffel gekocht“). Beim Geflügel wird
 stückiges Fleisch ohne Haut verwendet (Hühnerbrust, Putenbrust); beim Rind –
 wie von der Diätologin vorgesehen – **Rinderfaschiertes** (lässt sich feiner
 pürieren und verstopft die Spritze weniger).
@@ -291,7 +297,7 @@ Vorgaben fest:
   Verhältnis mit dem Anteil – die App warnt ab +0,05, denn das ist eine
   Änderung der Verordnung, nicht der Fettart.
 
-Drei Kacheln zeigen den **MCT-Anteil der Energie in %** (Einordnung nach der
+Eine Kennzahlenzeile zeigt den **MCT-Anteil der Energie in %** (Einordnung nach der
 Konsensusempfehlung: modifizierte MCT-Diät 30 %, Arbeitsbereich 40–50 %,
 traditionelle MCT-Diät 60 % – Kossoff 2018, Liu 2013, Neal 2009), die
 **Kalorienabweichung** je Portion und Tag sowie die **MCT-Gramm je Portion**
@@ -311,7 +317,7 @@ ein feines Sieb gestrichen, damit die Spritze nicht verstopft.
 tragen das Schild **„👩‍⚕️ Diätologie"**. Bei Rezepten ohne KetoCal weist die App
 darauf hin, dass Vitamine und Mineralstoffe separat ergänzt werden müssen.
 
-## Rezepte (36 Gerichte, 50 Varianten: 22 mit / 28 ohne KetoCal)
+## Rezepte (42 Gerichte, 58 Varianten: 22 mit / 36 ohne KetoCal)
 
 Ausgewogen über die Gruppen Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel &
 Gemüse sowie Obst & Brei. Die Namen folgen dem Schema **„Hauptzutat &
@@ -324,19 +330,19 @@ Gemüse & Öl"** und **„HiPP Rind & Gemüse & Öl"** (HiPP Bio-Fleischzubereit
 Menü-Gläser mit Reis/Erdäpfeln sind wegen der Kohlenhydrate bewusst nicht dabei)
 sowie die Pulver-Mischungen **„KetoCal & Pre Apta"**, **„Compleat & KetoCal"** und
 **„Compleat & KetoCal & Pre Apta"** (Nestlé Compleat **Paediatric** Nature Mix; für die
-Ausschleich-Phase das verordnete Verhältnis, z. B. 1:1,5, eingeben).
+Ausschleich-Phase das verordnete Verhältnis eingeben, z. B. 1:1 oder 0,67:1).
 
 **Compleat-Packung (500 ml, offen 3 Tage haltbar):** Die Compleat-Rezepte zeigen
-unter Rechnen, für wie viele Mahlzeiten eine Packung bei der aktuellen Rechnung
+auf dem Blatt Tag, für wie viele Mahlzeiten eine Packung bei der aktuellen Rechnung
 reicht und ob nach 3 Tagen etwas verfällt; der Tagesplan zeigt den
 **Packungsstand** (heute verplant, Rest für morgen). Soll eine Packung auf mehr
 Mahlzeiten reichen, hilft das Rezept **„Compleat & KetoCal & Pre Apta"**: Pre
 Apta liefert Kohlenhydrate, damit braucht die Mahlzeit weniger Compleat für
-dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich unter Kochen
+dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich im ✏️ Editor
 ändern. Achtung bei hohen Verhältnissen (z. B. 1,5:1): Viel Compleat je
 Mahlzeit erzwingt viel KetoCal, weil KetoCal selbst Eiweiß und KH mitbringt.
 
-Varianten
+38 Varianten
 haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
 
 ## Berechnungsgrundlage

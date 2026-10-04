@@ -38,13 +38,13 @@
       }
     }
     // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
-    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = Fehlmenge laut Tagesplan).
+    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = zu viel auf einmal).
     const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
     let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
     if (d.fluidDay > 0) {
       s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
       if (d.wasserModus === "mahlzeit") s3 = "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit";
-      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + wg.text : "kein Wasser extra"; }
+      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + (wg.est ? "≈ " : "") + wg.text : "kein Wasser extra"; }
       if (/⚠️/.test(l2)) s3 += " ⚠️";
     }
     chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
@@ -150,10 +150,10 @@
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
         let v = num(e.target.value);
-        // Vorschlags-Felder: leer oder genau der Vorschlag = wieder automatisch
-        const d0 = derived();
-        const autoOf = { "set-kcal": d0.kcalAuto, "set-kcalmin": d0.kcalMinAuto, "set-fluid": d0.fluidAuto }[id];
-        if (autoOf !== undefined && (e.target.value === "" || Math.abs(v - autoOf) < 1e-9)) v = "";
+        // Vorschlags-Felder: nur ein leeres Feld heißt wieder „automatisch“. Ein eingetippter Wert bleibt fest,
+        // auch wenn er zufällig dem Vorschlag entspricht (sonst würde er sich beim Ändern des Gewichts still mitändern).
+        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid";
+        if (isAutoField && e.target.value.trim() === "") v = "";
         state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
         renderRezepte();

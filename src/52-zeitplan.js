@@ -34,9 +34,11 @@
     const meals = []; for (let i = 0; i < n; i++) meals.push(i === n - 1 && n > 1 ? letzte : round5(erste + i * step));
     const gifts = [];
     for (let i = 0; i < n - 1; i++) gifts.push({ t: round5((meals[i] + meals[i + 1]) / 2), kind: "pause", after: i });
-    const schlaf = parseHM(z.schlaf), last = meals[n - 1];
+    let schlaf = parseHM(z.schlaf); const last = meals[n - 1];
+    if (schlaf != null && schlaf < erste) schlaf += 1440;          // Schlafen nach Mitternacht (z. B. 0:30)
+    const schlafBad = schlaf != null && schlaf <= last;            // Schlafen vor/zur letzten Mahlzeit → Hinweis
     if (schlaf != null && schlaf - last >= 45) gifts.push({ t: round5(last + (schlaf - last) / 2), kind: "abend", after: n - 1 });
-    return { meals, gifts, schlaf: schlaf != null && schlaf > last ? schlaf : null, interval: n > 1 ? step : null, bad, z };
+    return { meals, gifts, schlaf: schlaf != null && schlaf > last ? schlaf : null, schlafBad, interval: n > 1 ? step : null, bad, z };
   }
   // Wassergaben für eine Tagesmenge aus den Mahlzeiten (Summe der Flüssigkeit aller Mahlzeiten).
   function waterPlan(d, mealFluidSum, times) {
@@ -87,6 +89,7 @@
   function zeitplanNotes(d, times, dm, wp) {
     const notes = [];
     const lastMeal = times.meals[times.meals.length - 1];
+    if (times.schlafBad) notes.push('<div class="note warn">⚠️ Schlafen liegt vor der letzten Mahlzeit – bitte die Uhrzeiten unter ⏰ prüfen.</div>');
     if (times.bad) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen.</div>');
     if (times.interval != null && times.interval < 180) notes.push('<div class="note warn" title="Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten.">⚠️ Nur ' + fmtDauer(times.interval) + ' Abstand – Keto-Kost braucht oft 3–4 h.</div>');
     if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn" title="Sonst droht Rückfluss im Liegen.">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – 2 h einplanen.</div>');
