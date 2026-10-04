@@ -43,9 +43,11 @@
     return o;
   }
   let state = load();
-  function load() {
+  // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
+  function load(rawOverride) {
+    let raw = null;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      raw = rawOverride != null ? rawOverride : localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
       const settings = Object.assign(d.settings, p.settings || {});
@@ -74,6 +76,11 @@
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
       };
-    } catch (e) { return defaultState(); }
+    } catch (e) {
+      // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.
+      if (raw && rawOverride == null) { try { localStorage.setItem(STORAGE_KEY + ".corrupt", raw); } catch (e2) {} }
+      return defaultState();
+    }
   }
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  // Speichert den Zustand; false, wenn der Speicher nicht beschreibbar ist (privates Fenster, voll).
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch (e) { return false; } }

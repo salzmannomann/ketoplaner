@@ -16,6 +16,7 @@
   function renderHeute() {
     const box = document.getElementById("heute-content"); if (!box) return;
     const d = derived(); ensureDayPlan(d);
+    renderHeader(d); // Kopf-Pille (Wassergaben) passt sich sofort an, z. B. nach ✕ oder neuem Rezept
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, fluid: 0, filled: 0 };
     const facts = [];
@@ -23,6 +24,13 @@
     state.dayPlan.forEach((slot, i) => {
       const t = times.meals[i], m = dm.meals[i], time = '<span class="zp-time">' + fmtHM(t) + '</span>';
       const rec = m.rec;
+      if (m.bad) {
+        facts.push(null);
+        rows.push({ t, html: '<div class="zp-row meal slot empty-slot bad-slot" role="button" tabindex="0" data-pick="' + i + '" title="Dieses Rezept erreicht die Verordnung nicht – anderes Rezept wählen">' + time + '<span class="zp-ic">⚠️</span>' +
+          '<span class="zp-txt"><span class="zp-name">' + escapeHtml(m.bad.name) + '</span><small class="prot-low">passt nicht zu ' + escapeHtml(fmtTarget(d.ratio)) + ' – <span class="zp-open">anderes Rezept wählen</span></small></span>' +
+          '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
+        return;
+      }
       if (!rec) {
         facts.push(null);
         rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Menge geschätzt – Rezept wählen">' + time + '<span class="zp-ic add">＋</span>' +
@@ -109,7 +117,13 @@
       b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     });
     box.querySelectorAll(".empty-slot[data-pick]").forEach(b => b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPicker(num(b.dataset.pick)); } }));
-    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
+    // ✕ leert eine Mahlzeit – mit „Rückgängig“ wie beim Leeren des ganzen Plans
+    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const i = num(b.dataset.clear), prev = state.dayPlan[i] ? state.dayPlan[i].key : null;
+      state.dayPlan[i] = { key: null }; save(); renderHeute();
+      showToast("✕ Mahlzeit " + (i + 1) + " entfernt", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
+    }));
     const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => {
@@ -256,7 +270,7 @@
     const zr = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
+      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : m.bad ? " · <small>" + escapeHtml(m.bad.name) + " passt nicht zur Verordnung – anderes Rezept wählen</small>" : " · <small>Rezept offen</small>") + "</td>" +
         "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
     });
     if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
@@ -285,7 +299,8 @@
       if (g) g.nums.push(i + 1); else groups.push({ sig, f, nums: [i + 1] });
     });
     const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
-    const blocks = groups.map(({ f, nums }) => {
+    // Jeder Block ist ein eigenes <tbody>, damit er beim Drucken nicht über zwei Seiten reißt.
+    const blockList = groups.map(({ f, nums }) => ({ first: nums[0], html: "<tbody>" + (() => {
       const all = f.res.items.filter(it => num(it.grams) > 0);
       const ing = all.filter(it => !isOilName(it.food)).concat(all.filter(it => isOilName(it.food)));
       const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
@@ -298,12 +313,13 @@
         "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
           : f.hasOil ? "Je Portion ca. " + fmt(f.gNoOil, 0) + " g abfüllen und das Öl einrühren – zusammen ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
           : "Je Portion ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml abfüllen") + "</td></tr>";
-    }).join("");
+    })() + "</tbody>" }));
+    // Offene Mahlzeiten an ihrer Stelle einreihen (nicht immer am Ende)
+    if (open.length) blockList.push({ first: open[0], html: "<tbody><tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr></tbody>" });
+    const blocks = blockList.sort((a, b) => a.first - b.first).map(b => b.html).join("");
     const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
     const detail = tot.filled
-      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'><tbody>" + blocks +
-        (open.length ? "<tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr>" : "") +
-        "</tbody></table>" +
+      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'>" + blocks + "</table>" +
         (oilDay ? "<p class='note'><b>Öl für den ganzen Tag:</b> " + oilDay + "</p>" : "")
       : "";
     const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +

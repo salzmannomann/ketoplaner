@@ -88,6 +88,10 @@ def main():
         ver = short_hash(core)
         sw = read("sw.js")
         sw2 = re.sub(r'const VERSION = "hamham-[^"]*";', 'const VERSION = "hamham-%s";' % ver, sw)
+        # Vorladeliste: alle lokalen Dateien aus index.html mit ihrer ?v=-Version
+        assets = re.findall(r'(?:href|src)="((?!https?:|data:|#)[^"]+\?v=[^"]+)"', html)
+        block = "".join('  "./%s",\n' % a for a in dict.fromkeys(assets))
+        sw2 = re.sub(r'(  // ASSETS-START[^\n]*\n)(?:.*\n)*?(  // ASSETS-END)', lambda m: m.group(1) + block + m.group(2), sw2)
         if sw2 != sw:
             with open(sw_path, "w", encoding="utf-8") as fh:
                 fh.write(sw2)

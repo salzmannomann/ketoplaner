@@ -51,9 +51,11 @@
     return o;
   }
   let state = load();
-  function load() {
+  // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
+  function load(rawOverride) {
+    let raw = null;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      raw = rawOverride != null ? rawOverride : localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
       const settings = Object.assign(d.settings, p.settings || {});
@@ -82,9 +84,14 @@
         dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
         basis: p.basis && typeof p.basis === "object" ? p.basis : {},
       };
-    } catch (e) { return defaultState(); }
+    } catch (e) {
+      // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.
+      if (raw && rawOverride == null) { try { localStorage.setItem(STORAGE_KEY + ".corrupt", raw); } catch (e2) {} }
+      return defaultState();
+    }
   }
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  // Speichert den Zustand; false, wenn der Speicher nicht beschreibbar ist (privates Fenster, voll).
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch (e) { return false; } }
 
   /* ---------- Helpers ---------- */
   // Zahl aus Eingabe oder Wert; ein Komma als Dezimaltrenner („8,5") wird akzeptiert.
@@ -338,9 +345,12 @@
     const target = ratioOf(sumMacros(items));
     const fi = fatItemIndex(items);
     const fatG = (i) => i === fi || isOilName(items[i].food);
+    // Kleine Mengen nicht grob runden: ändert die Rundung eine Zutat um mehr als 3 % (z. B. 1,3 g → 1,5 g), bleibt
+    // sie auf 0,1 g genau – sonst müsste das Fett stark nachgestellt werden und die kcal würden spürbar abweichen.
+    const roundSafe = (g, st) => { const r = roundTo(g, st); return (g > 0 && Math.abs(r - g) > g * 0.03) ? roundTo(g, 0.1) : r; };
     const out = items.map((it, i) => {
       if (fatG(i)) return { food: it.food, grams: num(it.grams) };
-      return { food: it.food, grams: roundTo(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
+      return { food: it.food, grams: roundSafe(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
     });
     if (target > 0 && fi >= 0) {
       let fO = 0, pcO = 0, fF = 0, pcF = 0;
@@ -459,8 +469,12 @@
      Öle sind Tabellenwerte (Fett/100 g und kcal/100 g, vom Etikett übersteuerbar,
      siehe rebuildFoodIndex) – "Öl = 100 % Fett" ist nicht hart verdrahtet;
      Emulsionen (Fettanteil « 1) widerlegen das. */
-  // Öl als Zutat (Rapsöl, MCT-Öl, Olivenöl …) – nicht Lebensmittel, die nur in Öl liegen („Thunfisch in Öl“).
-  function isOilName(name) { const n = String(name || ""); return /öl|oil/i.test(n) && !/\bin (öl|oil)\b/i.test(n); }
+  // Öl als Zutat (Rapsöl, MCT-Öl, Olivenöl …) – nicht Lebensmittel, die nur in Öl liegen („Thunfisch in Öl“)
+  // oder entölt sind („Kakaopulver entölt“).
+  function isOilName(name) {
+    const n = String(name || "");
+    return /öl|oil/i.test(n) && !/\bin (öl|oil)\b/i.test(n) && !/entölt/i.test(n);
+  }
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
   function oilSlotIndex(items) {
     const fi = fatItemIndex(items);
@@ -517,6 +531,7 @@
   // traditionelle MCT-Diät 60 %.
   function mctEinordnung(pz) {
     if (pz < 30) return "unter der modifizierten MCT-Diät (30 %)";
+    if (pz < 40) return "zwischen modifizierter MCT-Diät (30 %) und Arbeitsbereich 40–50 %";
     if (pz <= 50) return "im Arbeitsbereich 40–50 %";
     if (pz <= 60) return "über dem Arbeitsbereich 40–50 %";
     return "über der traditionellen MCT-Diät (60 %)";
@@ -545,8 +560,9 @@
     const saved = state.savedRecipes.map(sr => ({
       custom: true, key: sr.key, name: sr.name, icon: sr.icon || "📝",
       ketocal: hasKetoCal(sr.items), items: sr.items,
-      thermomix: sr.thermomix || "Zutaten vorbereiten, gemeinsam fein pürieren und das Fett glatt unterrühren.",
-      zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten, fein pürieren und das Fett untermischen.",
+      // Öl kommt nicht in den Mixer (eigener letzter Schritt „in jede Portion einrühren“); Butter/Obers schon.
+      thermomix: sr.thermomix || "Zutaten vorbereiten und mit dem Wasser gemeinsam fein pürieren; Butter, Obers oder Creme gleich mitpürieren (Öl nicht).",
+      zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten und mit dem Wasser fein pürieren; Butter, Obers oder Creme gleich mitpürieren (Öl nicht).",
     }));
     return saved.concat(RECIPES_SONDE);
   }
@@ -929,9 +945,9 @@
       ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
         (d.wasserModus === "mahlzeit"
           ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
-          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
+          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
               (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + "<strong>" + wg.text + "</strong>" : "derzeit keine nötig") +
-              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Zeitplan."; })())
+              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Uhrzeiten."; })())
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -995,9 +1011,9 @@
     const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
     if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
     if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); } catch (e) {}
-    state = load(); rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
-    alert("Backup importiert.");
+    state = load(JSON.stringify(st)); const stored = save();
+    rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
+    alert(stored ? "Backup importiert." : "Backup übernommen – aber der Speicher dieses Browsers ist nicht beschreibbar (privates Fenster oder voll). Nach dem Schließen ist es wieder weg.");
   }
 
   function bindSettingsBar() {
@@ -1429,7 +1445,7 @@
           '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
           MEATS[k].icon + " " + MEATS[k].label + "</button>"
         ).join("") +
-        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von 30 g / 18 g abweichen; die Kalorien können leicht variieren).</p></details></div>';
+        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von der Menge im Rezept abweichen; die Kalorien können leicht variieren).</p></details></div>';
     }
 
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
@@ -1514,7 +1530,7 @@
       ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
-          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Anrühren') + ', der Rest kommt als Wassergaben') +
+          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
         (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ ' + fmt(volumeMl(items), 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
@@ -1542,8 +1558,8 @@
       '</div>';
     // Tages-Check nur als Warnung (wie die Eiweiß-Warnung auf „Mahlzeit“): Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow
-      ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
-      : (dayHigh ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
+      ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
+      : (dayHigh ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
     // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
     // Gilt nur hier (Abwiegen, Zubereitung, Abfüllen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
     const scaleBtn = (v, label) => '<button type="button" data-scale="' + v + '"' + ((v === "1" ? (!days && mult === 1) : detailScale === v) ? ' class="active"' : "") + ">" + label + "</button>";
@@ -1601,7 +1617,7 @@
       "</div>" +
       (pStateMeal === "low" ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       (pStateMeal === "high" ? '<div class="note warn" title="Viel Eiweiß kann die Ketose schwächen.">↑ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel – mit dem Team abklären.</div>' : "") +
-      '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' +
         nRows +
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG / mult, 0) + "</td><td>" + fmt(sumPer.eiweiss) + "</td><td>" +
         fmt(sumPer.fett) + "</td><td>" + fmt(sumPer.kh) + "</td><td>" + fmt(sumPer.kcal, 0) + "</td></tr>" +
@@ -1615,7 +1631,7 @@
       scaleSeg +
       '<div class="portion-line">' + tagStatus + '</div>' +
       qTiles +
-      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' + kRows +
+      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' + kRows +
         "<tr class='sum'><td class='name'>Summe</td><td class='amt'>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
       "</tbody></table></div>" +
@@ -1889,6 +1905,7 @@
   function renderHeute() {
     const box = document.getElementById("heute-content"); if (!box) return;
     const d = derived(); ensureDayPlan(d);
+    renderHeader(d); // Kopf-Pille (Wassergaben) passt sich sofort an, z. B. nach ✕ oder neuem Rezept
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const tot = { kcal: 0, eiweiss: 0, fett: 0, kh: 0, mct: 0, raps: 0, fluid: 0, filled: 0 };
     const facts = [];
@@ -1896,6 +1913,13 @@
     state.dayPlan.forEach((slot, i) => {
       const t = times.meals[i], m = dm.meals[i], time = '<span class="zp-time">' + fmtHM(t) + '</span>';
       const rec = m.rec;
+      if (m.bad) {
+        facts.push(null);
+        rows.push({ t, html: '<div class="zp-row meal slot empty-slot bad-slot" role="button" tabindex="0" data-pick="' + i + '" title="Dieses Rezept erreicht die Verordnung nicht – anderes Rezept wählen">' + time + '<span class="zp-ic">⚠️</span>' +
+          '<span class="zp-txt"><span class="zp-name">' + escapeHtml(m.bad.name) + '</span><small class="prot-low">passt nicht zu ' + escapeHtml(fmtTarget(d.ratio)) + ' – <span class="zp-open">anderes Rezept wählen</span></small></span>' +
+          '<button type="button" class="slot-act" data-clear="' + i + '" title="Entfernen" aria-label="Entfernen">✕</button></div>' });
+        return;
+      }
       if (!rec) {
         facts.push(null);
         rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Menge geschätzt – Rezept wählen">' + time + '<span class="zp-ic add">＋</span>' +
@@ -1982,7 +2006,13 @@
       b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     });
     box.querySelectorAll(".empty-slot[data-pick]").forEach(b => b.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPicker(num(b.dataset.pick)); } }));
-    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); state.dayPlan[num(b.dataset.clear)] = { key: null }; save(); renderHeute(); }));
+    // ✕ leert eine Mahlzeit – mit „Rückgängig“ wie beim Leeren des ganzen Plans
+    box.querySelectorAll("[data-clear]").forEach(b => b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const i = num(b.dataset.clear), prev = state.dayPlan[i] ? state.dayPlan[i].key : null;
+      state.dayPlan[i] = { key: null }; save(); renderHeute();
+      showToast("✕ Mahlzeit " + (i + 1) + " entfernt", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
+    }));
     const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => {
@@ -2129,7 +2159,7 @@
     const zr = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : " · <small>Rezept offen</small>") + "</td>" +
+      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : m.bad ? " · <small>" + escapeHtml(m.bad.name) + " passt nicht zur Verordnung – anderes Rezept wählen</small>" : " · <small>Rezept offen</small>") + "</td>" +
         "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
     });
     if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
@@ -2158,7 +2188,8 @@
       if (g) g.nums.push(i + 1); else groups.push({ sig, f, nums: [i + 1] });
     });
     const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
-    const blocks = groups.map(({ f, nums }) => {
+    // Jeder Block ist ein eigenes <tbody>, damit er beim Drucken nicht über zwei Seiten reißt.
+    const blockList = groups.map(({ f, nums }) => ({ first: nums[0], html: "<tbody>" + (() => {
       const all = f.res.items.filter(it => num(it.grams) > 0);
       const ing = all.filter(it => !isOilName(it.food)).concat(all.filter(it => isOilName(it.food)));
       const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
@@ -2171,12 +2202,13 @@
         "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
           : f.hasOil ? "Je Portion ca. " + fmt(f.gNoOil, 0) + " g abfüllen und das Öl einrühren – zusammen ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
           : "Je Portion ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml abfüllen") + "</td></tr>";
-    }).join("");
+    })() + "</tbody>" }));
+    // Offene Mahlzeiten an ihrer Stelle einreihen (nicht immer am Ende)
+    if (open.length) blockList.push({ first: open[0], html: "<tbody><tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr></tbody>" });
+    const blocks = blockList.sort((a, b) => a.first - b.first).map(b => b.html).join("");
     const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
     const detail = tot.filled
-      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'><tbody>" + blocks +
-        (open.length ? "<tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr>" : "") +
-        "</tbody></table>" +
+      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'>" + blocks + "</table>" +
         (oilDay ? "<p class='note'><b>Öl für den ganzen Tag:</b> " + oilDay + "</p>" : "")
       : "";
     const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +
@@ -2250,10 +2282,17 @@
   // Mahlzeiten des Tages: gewähltes Rezept oder Schätzung, dazu Flüssigkeit und Volumen.
   function dayMeals(d) {
     ensureDayPlan(d);
-    const list = state.dayPlan.map(sl => { const rec = recipeByKey(sl && sl.key); if (!rec) return null; const f = mealFacts(rec, d); return { rec, f, fluid: f.fluid, vol: volumeMl(f.res.items) }; });
+    // Ein geplantes Rezept, das die Verordnung nicht (mehr) erreicht (z. B. nach Änderung des Verhältnisses),
+    // zählt wie eine offene Mahlzeit und wird markiert – seine unangepassten Gramm dürfen nicht gefüttert werden.
+    const bad = [];
+    const list = state.dayPlan.map((sl, i) => {
+      const rec = recipeByKey(sl && sl.key); if (!rec) return null;
+      const f = mealFacts(rec, d); if (!f.res.ok) { bad[i] = rec; return null; }
+      return { rec, f, fluid: f.fluid, vol: volumeMl(f.res.items) };
+    });
     const known = list.filter(Boolean);
     const est = known.length ? { v: known.reduce((a, x) => a + x.fluid, 0) / known.length, vol: known.reduce((a, x) => a + x.vol, 0) / known.length } : avgMealFluid(d);
-    const meals = list.map(x => x || { rec: null, f: null, fluid: est.v, vol: est.vol, est: true });
+    const meals = list.map((x, i) => x || { rec: null, f: null, fluid: est.v, vol: est.vol, est: true, bad: bad[i] || null });
     return { meals, sum: meals.reduce((a, x) => a + x.fluid, 0), known: known.length };
   }
   // Kurzfassung der Wassergaben (Kopfzeile, Vorgaben): „4 × 130 ml“.
@@ -2403,7 +2442,7 @@
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
   const PRINT_CSS =
-    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}" +
+    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:10.5pt;line-height:1.4}" +
     ".head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2pt solid #2f855a;padding-bottom:2mm;margin-bottom:3mm}" +
     "h1{font-size:17pt;margin:0;line-height:1.15}.meta{color:#555;font-size:9pt;text-align:right;white-space:nowrap}" +
@@ -2424,7 +2463,7 @@
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
     "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
     "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
-    "table.meals tr.grp:first-child td{border-top:none}" +
+    "table.meals tbody:first-child tr.grp td{border-top:none}table.meals tbody{break-inside:avoid}" +
     "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
     "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
     ".note{margin:2mm 0 0;font-size:9.5pt}" +
@@ -2601,15 +2640,18 @@
       y = doc.lastAutoTable.finalY + 2.5;
     };
     const sums = (el) => {
-      const cells = [...el.children].map(c => { const b = c.querySelector("b"), s = c.querySelector("span"); return pdfText(b ? b.textContent : "") + "\n" + pdfText(s ? s.textContent : ""); });
-      pdfAutoTable(doc, {
-        body: [cells], startY: y, margin: { left: M, right: M }, theme: "grid",
-        styles: { font: "helvetica", fontSize: 9, cellPadding: 1.8, textColor: INK, lineColor: [207, 220, 211], lineWidth: 0.2, valign: "top" },
-        didParseCell: (data) => { data.cell.styles.fontStyle = "normal"; },
-        willDrawCell: (data) => { if (data.section === "body") { /* erste Zeile fett */ } },
-        didDrawCell: () => {},
+      // Kennzahlen als Kärtchen nebeneinander: Wert fett, darunter klein die Erläuterung
+      const cells = [...el.children].map(c => { const b = c.querySelector("b"), sp = c.querySelector("span"); return { v: pdfText(b ? b.textContent : ""), l: pdfText(sp ? sp.textContent : "") }; });
+      if (!cells.length) return;
+      const gap = 3, cw = (W - gap * (cells.length - 1)) / cells.length, h = 12.5;
+      ensure(h + 2);
+      cells.forEach((c, k) => {
+        const x = M + k * (cw + gap);
+        doc.setDrawColor(207, 220, 211); doc.setLineWidth(0.25); doc.roundedRect(x, y, cw, h, 1.2, 1.2, "S");
+        font(11, true); doc.text(doc.splitTextToSize(c.v, cw - 4)[0] || "", x + 2, y + 5.3);
+        font(7.8, false, MUTED); doc.text(doc.splitTextToSize(c.l, cw - 4)[0] || "", x + 2, y + 9.8);
       });
-      y = doc.lastAutoTable.finalY + 2.5;
+      y += h + 2.5;
     };
     const dom = new DOMParser().parseFromString(html, "text/html");
     [...dom.body.children].forEach(el => {
@@ -2636,6 +2678,14 @@
           font(8.5, false, MUTED); doc.text(pdfText(sm.textContent), x, y + lh * 0.78);
           y += lh + 1;
         }
+      }
+      else if (tag === "table" && /\bmeals\b/.test(cls) && el.tBodies.length > 1) {
+        // Mahlzeiten im Detail: jeden Block für sich setzen und vorher umbrechen, wenn er nicht mehr ganz passt
+        [...el.tBodies].forEach(tb => {
+          const t = dom.createElement("table"); t.className = el.className; t.appendChild(tb.cloneNode(true));
+          ensure(tb.rows.length * 5.6 + 5);
+          table(t);
+        });
       }
       else if (tag === "table") table(el);
       else if (tag === "ol") {
@@ -2866,7 +2916,7 @@
         "</div>" +
         (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         (pStateC === "high" ? '<div class="note warn">↑ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
-        '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>Kcal</th></tr></thead><tbody>' +
+        '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' +
         rows +
         "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
         fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +

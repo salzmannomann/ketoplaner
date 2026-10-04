@@ -21,8 +21,9 @@
     const saved = state.savedRecipes.map(sr => ({
       custom: true, key: sr.key, name: sr.name, icon: sr.icon || "📝",
       ketocal: hasKetoCal(sr.items), items: sr.items,
-      thermomix: sr.thermomix || "Zutaten vorbereiten, gemeinsam fein pürieren und das Fett glatt unterrühren.",
-      zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten, fein pürieren und das Fett untermischen.",
+      // Öl kommt nicht in den Mixer (eigener letzter Schritt „in jede Portion einrühren“); Butter/Obers schon.
+      thermomix: sr.thermomix || "Zutaten vorbereiten und mit dem Wasser gemeinsam fein pürieren; Butter, Obers oder Creme gleich mitpürieren (Öl nicht).",
+      zubereitung: sr.zubereitung || "Eigenes Rezept – Zutaten vorbereiten und mit dem Wasser fein pürieren; Butter, Obers oder Creme gleich mitpürieren (Öl nicht).",
     }));
     return saved.concat(RECIPES_SONDE);
   }

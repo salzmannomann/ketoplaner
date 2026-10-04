@@ -100,7 +100,7 @@
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
   const PRINT_CSS =
-    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}" +
+    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:10.5pt;line-height:1.4}" +
     ".head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2pt solid #2f855a;padding-bottom:2mm;margin-bottom:3mm}" +
     "h1{font-size:17pt;margin:0;line-height:1.15}.meta{color:#555;font-size:9pt;text-align:right;white-space:nowrap}" +
@@ -121,7 +121,7 @@
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
     "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
     "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
-    "table.meals tr.grp:first-child td{border-top:none}" +
+    "table.meals tbody:first-child tr.grp td{border-top:none}table.meals tbody{break-inside:avoid}" +
     "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
     "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
     ".note{margin:2mm 0 0;font-size:9.5pt}" +

@@ -582,11 +582,11 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal($(w, "set-zwischen"), null, "kein festes Feld je Zwischenzeit mehr – die Menge rechnet der Zeitplan");
   assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge");
   assert.ok(!$(w, "set-dichte").disabled); assert.equal($(w, "set-dichte").value, "1,5");
-  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*Rezept-Wasser zum Anrühren.*Wassergaben zwischen den Mahlzeiten: ≈ 4 × \d+ ml/);
+  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*Rezept-Wasser zum Pürieren bzw. Anrühren.*Wassergaben zwischen den Mahlzeiten: ≈ 4 × \d+ ml/);
   // „zwischen“: die Mahlzeit behält ihr Rezept-Wasser, der Tag nennt die Wassergaben
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Anrühren, der Rest kommt als Wassergaben/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben/);
   assert.match(rechnenText(c), /💧 Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ≈ \d+ ml am Tag/);
   assert.doesNotMatch(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
   assert.match(rechnenText(c), /Flüssigkeit\/Tag in Mahlzeiten|Flüssigkeit\/Tag/);

@@ -73,9 +73,9 @@
       ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
         (d.wasserModus === "mahlzeit"
           ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
-          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
+          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
               (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + "<strong>" + wg.text + "</strong>" : "derzeit keine nötig") +
-              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Zeitplan."; })())
+              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Uhrzeiten."; })())
       : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
@@ -139,9 +139,9 @@
     const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
     if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
     if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); } catch (e) {}
-    state = load(); rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
-    alert("Backup importiert.");
+    state = load(JSON.stringify(st)); const stored = save();
+    rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
+    alert(stored ? "Backup importiert." : "Backup übernommen – aber der Speicher dieses Browsers ist nicht beschreibbar (privates Fenster oder voll). Nach dem Schließen ist es wieder weg.");
   }
 
   function bindSettingsBar() {

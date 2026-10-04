@@ -20,9 +20,12 @@
     const target = ratioOf(sumMacros(items));
     const fi = fatItemIndex(items);
     const fatG = (i) => i === fi || isOilName(items[i].food);
+    // Kleine Mengen nicht grob runden: ändert die Rundung eine Zutat um mehr als 3 % (z. B. 1,3 g → 1,5 g), bleibt
+    // sie auf 0,1 g genau – sonst müsste das Fett stark nachgestellt werden und die kcal würden spürbar abweichen.
+    const roundSafe = (g, st) => { const r = roundTo(g, st); return (g > 0 && Math.abs(r - g) > g * 0.03) ? roundTo(g, 0.1) : r; };
     const out = items.map((it, i) => {
       if (fatG(i)) return { food: it.food, grams: num(it.grams) };
-      return { food: it.food, grams: roundTo(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
+      return { food: it.food, grams: roundSafe(num(it.grams), /wasser/i.test(it.food) ? 1 : step) };
     });
     if (target > 0 && fi >= 0) {
       let fO = 0, pcO = 0, fF = 0, pcF = 0;

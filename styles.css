@@ -1320,3 +1320,14 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .zeitplan .day-head .group-count .dh-range, .zeitplan .day-head .group-count .dh-int { display: block; white-space: nowrap; }
   .zeitplan .day-head .group-count .dh-sep { display: none; }
 }
+
+/* ↻ ✕ in der Zeitleiste: größere Trefferfläche als das sichtbare Symbol (danebentippen öffnet sonst das Rezept) */
+.zp-row .slot-act { position: relative; }
+.zp-row .slot-act::after { content: ""; position: absolute; inset: -8px -4px; }
+.zp-row.bad-slot .zp-name { text-decoration: line-through; opacity: .75; }
+
+/* Desktop: Kopf und Reiterleiste auf dieselbe Breite eingerückt wie der Inhalt (.main: max. 1040 px, 24 px Rand) */
+@media (min-width: 821px) {
+  .topbar, .tabbar { padding-left: max(24px, calc((100% - 1040px) / 2 + 24px)); padding-right: max(24px, calc((100% - 1040px) / 2 + 24px)); }
+  .tabbar { padding-left: max(10px, calc((100% - 1040px) / 2 + 10px)); }
+}

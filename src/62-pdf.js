@@ -99,15 +99,18 @@
       y = doc.lastAutoTable.finalY + 2.5;
     };
     const sums = (el) => {
-      const cells = [...el.children].map(c => { const b = c.querySelector("b"), s = c.querySelector("span"); return pdfText(b ? b.textContent : "") + "\n" + pdfText(s ? s.textContent : ""); });
-      pdfAutoTable(doc, {
-        body: [cells], startY: y, margin: { left: M, right: M }, theme: "grid",
-        styles: { font: "helvetica", fontSize: 9, cellPadding: 1.8, textColor: INK, lineColor: [207, 220, 211], lineWidth: 0.2, valign: "top" },
-        didParseCell: (data) => { data.cell.styles.fontStyle = "normal"; },
-        willDrawCell: (data) => { if (data.section === "body") { /* erste Zeile fett */ } },
-        didDrawCell: () => {},
+      // Kennzahlen als Kärtchen nebeneinander: Wert fett, darunter klein die Erläuterung
+      const cells = [...el.children].map(c => { const b = c.querySelector("b"), sp = c.querySelector("span"); return { v: pdfText(b ? b.textContent : ""), l: pdfText(sp ? sp.textContent : "") }; });
+      if (!cells.length) return;
+      const gap = 3, cw = (W - gap * (cells.length - 1)) / cells.length, h = 12.5;
+      ensure(h + 2);
+      cells.forEach((c, k) => {
+        const x = M + k * (cw + gap);
+        doc.setDrawColor(207, 220, 211); doc.setLineWidth(0.25); doc.roundedRect(x, y, cw, h, 1.2, 1.2, "S");
+        font(11, true); doc.text(doc.splitTextToSize(c.v, cw - 4)[0] || "", x + 2, y + 5.3);
+        font(7.8, false, MUTED); doc.text(doc.splitTextToSize(c.l, cw - 4)[0] || "", x + 2, y + 9.8);
       });
-      y = doc.lastAutoTable.finalY + 2.5;
+      y += h + 2.5;
     };
     const dom = new DOMParser().parseFromString(html, "text/html");
     [...dom.body.children].forEach(el => {
@@ -134,6 +137,14 @@
           font(8.5, false, MUTED); doc.text(pdfText(sm.textContent), x, y + lh * 0.78);
           y += lh + 1;
         }
+      }
+      else if (tag === "table" && /\bmeals\b/.test(cls) && el.tBodies.length > 1) {
+        // Mahlzeiten im Detail: jeden Block für sich setzen und vorher umbrechen, wenn er nicht mehr ganz passt
+        [...el.tBodies].forEach(tb => {
+          const t = dom.createElement("table"); t.className = el.className; t.appendChild(tb.cloneNode(true));
+          ensure(tb.rows.length * 5.6 + 5);
+          table(t);
+        });
       }
       else if (tag === "table") table(el);
       else if (tag === "ol") {

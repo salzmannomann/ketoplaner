@@ -11,8 +11,12 @@
      Öle sind Tabellenwerte (Fett/100 g und kcal/100 g, vom Etikett übersteuerbar,
      siehe rebuildFoodIndex) – "Öl = 100 % Fett" ist nicht hart verdrahtet;
      Emulsionen (Fettanteil « 1) widerlegen das. */
-  // Öl als Zutat (Rapsöl, MCT-Öl, Olivenöl …) – nicht Lebensmittel, die nur in Öl liegen („Thunfisch in Öl“).
-  function isOilName(name) { const n = String(name || ""); return /öl|oil/i.test(n) && !/\bin (öl|oil)\b/i.test(n); }
+  // Öl als Zutat (Rapsöl, MCT-Öl, Olivenöl …) – nicht Lebensmittel, die nur in Öl liegen („Thunfisch in Öl“)
+  // oder entölt sind („Kakaopulver entölt“).
+  function isOilName(name) {
+    const n = String(name || "");
+    return /öl|oil/i.test(n) && !/\bin (öl|oil)\b/i.test(n) && !/entölt/i.test(n);
+  }
   // Index des Öls (fettdominante Zutat, sofern es ein Öl ist) im Zutatensatz.
   function oilSlotIndex(items) {
     const fi = fatItemIndex(items);
@@ -69,6 +73,7 @@
   // traditionelle MCT-Diät 60 %.
   function mctEinordnung(pz) {
     if (pz < 30) return "unter der modifizierten MCT-Diät (30 %)";
+    if (pz < 40) return "zwischen modifizierter MCT-Diät (30 %) und Arbeitsbereich 40–50 %";
     if (pz <= 50) return "im Arbeitsbereich 40–50 %";
     if (pz <= 60) return "über dem Arbeitsbereich 40–50 %";
     return "über der traditionellen MCT-Diät (60 %)";

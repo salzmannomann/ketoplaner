@@ -1,6 +1,6 @@
 /* HamHam Keto – Service Worker für Offline-Betrieb und zuverlässige Updates.
    VERSION wird bei jedem Build (build-single.py) automatisch aktualisiert. */
-const VERSION = "hamham-4b06df4f";
+const VERSION = "hamham-060e4194";
 const CORE = [
   "./",
   "./index.html",
@@ -8,11 +8,22 @@ const CORE = [
   "./icon-192.png",
   "./icon-180.png",
   "./icon-512.png",
+  // ASSETS-START (von build-single.py geschrieben: alle Dateien aus index.html mit ihrer ?v=-Version)
+  "./styles.css?v=a0c578e6",
+  "./foods.js?v=522bcd1a",
+  "./recipes.js?v=0d13c202",
+  "./vendor/jspdf.umd.min.js?v=5224faf1",
+  "./vendor/jspdf.plugin.autotable.min.js?v=a416d9f9",
+  "./app.js?v=4c640430",
+  // ASSETS-END
 ];
 
+// Beim Installieren alles vorladen, damit die App schon nach dem ersten Besuch offline läuft.
+// Jede Datei einzeln: fehlt eine, werden die anderen trotzdem gespeichert.
 self.addEventListener("install", (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE).catch(() => {})));
+  e.waitUntil(caches.open(VERSION).then((c) =>
+    Promise.all(CORE.map((u) => c.add(new Request(u, { cache: "reload" })).catch(() => {})))));
 });
 
 self.addEventListener("activate", (e) => {
@@ -32,7 +43,7 @@ self.addEventListener("fetch", (e) => {
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req)
-        .then((r) => { caches.open(VERSION).then((c) => c.put(req, r.clone())); return r; })
+        .then((r) => { const cp = r.clone(); caches.open(VERSION).then((c) => c.put(req, cp)); return r; })
         .catch(() => caches.match(req).then((m) => m || caches.match("./index.html")))
     );
     return;
@@ -44,7 +55,9 @@ self.addEventListener("fetch", (e) => {
       const net = fetch(req)
         .then((r) => {
           if (r && (r.status === 200 || r.type === "opaque")) {
-            caches.open(VERSION).then((c) => c.put(req, r.clone()));
+            // Kopie sofort ziehen – später ist der Inhalt schon an die Seite gegangen und clone() schlägt fehl
+            const cp = r.clone();
+            caches.open(VERSION).then((c) => c.put(req, cp));
           }
           return r;
         })

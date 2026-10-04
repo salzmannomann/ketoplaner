@@ -63,10 +63,17 @@
   // Mahlzeiten des Tages: gewähltes Rezept oder Schätzung, dazu Flüssigkeit und Volumen.
   function dayMeals(d) {
     ensureDayPlan(d);
-    const list = state.dayPlan.map(sl => { const rec = recipeByKey(sl && sl.key); if (!rec) return null; const f = mealFacts(rec, d); return { rec, f, fluid: f.fluid, vol: volumeMl(f.res.items) }; });
+    // Ein geplantes Rezept, das die Verordnung nicht (mehr) erreicht (z. B. nach Änderung des Verhältnisses),
+    // zählt wie eine offene Mahlzeit und wird markiert – seine unangepassten Gramm dürfen nicht gefüttert werden.
+    const bad = [];
+    const list = state.dayPlan.map((sl, i) => {
+      const rec = recipeByKey(sl && sl.key); if (!rec) return null;
+      const f = mealFacts(rec, d); if (!f.res.ok) { bad[i] = rec; return null; }
+      return { rec, f, fluid: f.fluid, vol: volumeMl(f.res.items) };
+    });
     const known = list.filter(Boolean);
     const est = known.length ? { v: known.reduce((a, x) => a + x.fluid, 0) / known.length, vol: known.reduce((a, x) => a + x.vol, 0) / known.length } : avgMealFluid(d);
-    const meals = list.map(x => x || { rec: null, f: null, fluid: est.v, vol: est.vol, est: true });
+    const meals = list.map((x, i) => x || { rec: null, f: null, fluid: est.v, vol: est.vol, est: true, bad: bad[i] || null });
     return { meals, sum: meals.reduce((a, x) => a + x.fluid, 0), known: known.length };
   }
   // Kurzfassung der Wassergaben (Kopfzeile, Vorgaben): „4 × 130 ml“.

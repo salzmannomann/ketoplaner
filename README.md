@@ -76,7 +76,7 @@ Vorgaben.
   Anrühren – so bleibt sie klein; ist sie damit dichter als erlaubt (z. B.
   Compleat & KetoCal), füllt die App gerade so weit auf. Der Rest des
   Tagesbedarfs kommt als **Wassergaben**, deren Menge die App selbst rechnet
-  (Uhrzeiten unter Heute → ⏰ Zeitplan). Für den Stuhl zählt die Tagesmenge,
+  (Uhrzeiten unter Heute → ⏰ Uhrzeiten). Für den Stuhl zählt die Tagesmenge,
   nicht ob das Wasser in oder zwischen den Mahlzeiten kommt. „In den Mahlzeiten
   dabei" gibt jeder Mahlzeit ihren vollen Anteil. Gemerktes Wasser hat immer
   Vorrang; liegt eine Mahlzeit oder Wassergabe über 25 ml/kg, warnt die App. Gezählt wird das

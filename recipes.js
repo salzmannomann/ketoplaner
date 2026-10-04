@@ -9,7 +9,7 @@ const RECIPES_SONDE = [
     icon: "🥤",
     ketocal: true,
     angeruehrt: true,
-    zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Trinktemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
+    zubereitung: "Das angezeigte Wasser aufteilen: etwa drei Viertel auf ca. 65 °C erhitzen, ein Viertel lauwarm dazugeben (bei 80 ml also 60 ml heiß + 20 ml lauwarm). KetoCal 3:1 und Pre Apta abwiegen, ins Wasser geben und klumpenfrei schütteln bzw. rühren. Auf Körpertemperatur abkühlen lassen und zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
     items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
   },
   {
@@ -31,7 +31,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     angeruehrt: true,
     packung: { food: "Compleat Paediatric Nature Mix (Nestlé)", ml: 500, tage: 3 },
-    zubereitung: "KetoCal 3:1 und Pre Apta abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Pre Apta liefert Kohlenhydrate – so braucht die Mahlzeit weniger Compleat für dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich unter Kochen ändern. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 3 Tagen verbrauchen.",
+    zubereitung: "KetoCal 3:1 und Pre Apta abwiegen und im angezeigten Wasser (lauwarm, ca. 40 °C) klumpenfrei anrühren. Compleat Paediatric abmessen (1 ml entspricht etwa 1 g) und dazugeben, gut mischen bzw. schütteln. Pre Apta liefert Kohlenhydrate – so braucht die Mahlzeit weniger Compleat für dieselben Kalorien; das Verhältnis Compleat zu Pre Apta lässt sich im ✏️ Editor ändern. Angebrochene Packung verschlossen im Kühlschrank aufbewahren und innerhalb von 3 Tagen verbrauchen.",
     items: [ { food: "Ketocal 3:1", grams: 8 }, { food: "Compleat Paediatric Nature Mix (Nestlé)", grams: 50 }, { food: "Aptamil Pre (Pulver)", grams: 5 }, { food: "Wasser", grams: 35 } ],
   },
   {
