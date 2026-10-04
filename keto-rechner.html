@@ -1332,6 +1332,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zeitplan.tight .day-head .head-actions .iconbtn.round { width: 26px; height: 26px; font-size: 12px; }
 .vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }
 
+/* Kopf von Heute: Zeitraum und Abstand am Handy untereinander statt abgeschnitten */
+@media (max-width: 560px) {
+  .zeitplan .day-head .group-count { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+  .zeitplan .day-head .group-count .dh-range, .zeitplan .day-head .group-count .dh-int { display: block; white-space: nowrap; }
+  .zeitplan .day-head .group-count .dh-sep { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -4620,8 +4627,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const kcalLow = tot.kcal < kcalMinZiel - 0.5;
     // Kopf: Mahlzeiten × kcal und der Tagesrahmen; ⏰ klappt die Uhrzeiten auf, dazu Drucken und Leeren.
     // Mahlzeiten × kcal stehen schon in der Kopfzeile (Pille) – hier nur der Rahmen des Tages.
-    const head = '<div class="group-head day-head"><span class="day-title">📅 Heute</span> <span class="group-count">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) +
-        (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span>' +
+    // Rahmen in zwei kurzen Zeilen (Zeitraum · Abstand), damit am Handy nichts abgeschnitten wird („alle 3 h …“).
+    const head = '<div class="group-head day-head"><span class="day-title">📅 Heute</span> <span class="group-count"><span class="dh-range">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) + '</span>' +
+        (times.interval != null ? '<span class="dh-sep"> · </span><span class="dh-int">alle ' + fmtDauer(times.interval) + '</span>' : '') + '</span>' +
       '<span class="head-actions"><button type="button" class="iconbtn round' + (zpEdit ? ' open' : '') + '" id="zp-toggle" title="Uhrzeiten einstellen" aria-label="Uhrzeiten einstellen" aria-expanded="' + (zpEdit ? "true" : "false") + '">⏰</button>' +
       '<button type="button" class="iconbtn round" id="print-day" title="Tagesplan drucken" aria-label="Tagesplan drucken">🖨️</button>' +
       '<button type="button" class="iconbtn round" id="clear-day" title="Plan leeren" aria-label="Plan leeren">🗑️</button></span></div>';

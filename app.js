@@ -1929,8 +1929,9 @@
     const kcalLow = tot.kcal < kcalMinZiel - 0.5;
     // Kopf: Mahlzeiten × kcal und der Tagesrahmen; ⏰ klappt die Uhrzeiten auf, dazu Drucken und Leeren.
     // Mahlzeiten × kcal stehen schon in der Kopfzeile (Pille) – hier nur der Rahmen des Tages.
-    const head = '<div class="group-head day-head"><span class="day-title">📅 Heute</span> <span class="group-count">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) +
-        (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span>' +
+    // Rahmen in zwei kurzen Zeilen (Zeitraum · Abstand), damit am Handy nichts abgeschnitten wird („alle 3 h …“).
+    const head = '<div class="group-head day-head"><span class="day-title">📅 Heute</span> <span class="group-count"><span class="dh-range">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) + '</span>' +
+        (times.interval != null ? '<span class="dh-sep"> · </span><span class="dh-int">alle ' + fmtDauer(times.interval) + '</span>' : '') + '</span>' +
       '<span class="head-actions"><button type="button" class="iconbtn round' + (zpEdit ? ' open' : '') + '" id="zp-toggle" title="Uhrzeiten einstellen" aria-label="Uhrzeiten einstellen" aria-expanded="' + (zpEdit ? "true" : "false") + '">⏰</button>' +
       '<button type="button" class="iconbtn round" id="print-day" title="Tagesplan drucken" aria-label="Tagesplan drucken">🖨️</button>' +
       '<button type="button" class="iconbtn round" id="clear-day" title="Plan leeren" aria-label="Plan leeren">🗑️</button></span></div>';
