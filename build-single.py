@@ -99,6 +99,15 @@ def main():
 
     # 2) Einzeldatei bauen – CSS einbetten (Query-String ?v=... ignorieren)
     css = read("styles.css")
+    # Schriften als data-URI einbetten, damit die Einzeldatei sie auch ohne fonts/-Ordner und ohne Netz hat
+    def embed_font(m):
+        import base64
+        path = os.path.join(HERE, m.group(1))
+        if not os.path.exists(path):
+            return m.group(0)
+        with open(path, "rb") as fh:
+            return 'url(data:font/woff2;base64,' + base64.b64encode(fh.read()).decode("ascii") + ')'
+    css = re.sub(r'url\((fonts/[^)]+\.woff2)\)', embed_font, css)
     html = re.sub(
         r'<link rel="stylesheet" href="styles\.css(?:\?v=[^"]*)?" />',
         "<style>\n" + css + "\n</style>",

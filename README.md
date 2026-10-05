@@ -46,8 +46,8 @@ Uhrzeiten), damit Mengen untereinander stehen. Farbe trägt Bedeutung: **Rot** f
 Ziel. Aktionen sind unterstrichene **Textlinks** („tauschen“, „wählen“, „Leeren“), Eingaben sind
 Felder mit Unterstrich, Umschalter sind Segmentleisten mit Tintenrahmen. Die Oberfläche kommt
 ohne Emojis aus; Symbole (Stern, Drucken, Bearbeiten, Teilen, Löschen) sind schlichte Strichzeichnungen.
-Die Schriften kommen von Google Fonts und werden vom Service Worker zwischengespeichert; ohne
-Netz fällt die Einzeldatei auf Systemschriften zurück.
+Die Schriften liegen in der App (Ordner `fonts/`, SIL Open Font License): keine Anfrage an Google, offline
+verfügbar und in der Einzeldatei eingebettet.
 
 ## Aufbau der App
 
