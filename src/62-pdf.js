@@ -18,10 +18,11 @@
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
-  // Küchenzettel: A6-Karte (105 × 148 mm) mit gestrichelter Schnittlinie oben links auf A4, gleiche Gliederung wie die
-  // Vorschau. Die Schrift beginnt bei 120 % und wird schrittweise kleiner, bis alles auf die Karte passt.
+  // Küchenzettel: A4 quer, linke Hälfte = A5 hochkant (148,5 × 210 mm) mit Teilungslinie in der Mitte, unten 5 cm frei
+  // zum Einstecken; gleiche Gliederung wie die Vorschau. Die Schrift beginnt bei 150 % und wird schrittweise kleiner,
+  // bis alles hineinpasst.
   function kitchenCardPdf(doc, kz) {
-    const X = 16, Y = 18, CW = 105, CH = 148, PX = 5, PY = 4.5, GAP = 1.5;
+    const X = 0, Y = 0, CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5;
     const L = X + PX, R = X + CW - PX;
     const lineH = (size) => size * 0.3528 * 1.2;
     const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || [31, 41, 51]); };
@@ -47,7 +48,7 @@
       const TW = 15.5 * s, IW = R - L - TW - GAP;
       let y = Y + PY;
       font(13 * s, true); const hh = lineH(13 * s);
-      if (draw) { doc.text(txt(head, "b"), L, y + hh * 0.8); font(8.5 * s, false, [85, 85, 85]); doc.text(txt(head, "span"), R, y + hh * 0.8, { align: "right" }); }
+      if (draw) doc.text(txt(head, "b"), L, y + hh * 0.8);
       y += hh + 1.2;
       if (draw) { doc.setDrawColor(47, 133, 90); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
       y += 0.8;
@@ -91,16 +92,20 @@
       });
       return y;
     };
-    let s = 1.2;
-    while (layout(s, false) > Y + CH - PY && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
-    font(8, false, [138, 150, 156]); doc.text("entlang der gestrichelten Linie ausschneiden", X, Y - 2);
+    let s = 1.5;
+    while (layout(s, false) > BOTTOM && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
+    // Teilungslinie in der Mitte der Seite
     doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
-    doc.rect(X, Y, CW, CH, "S"); doc.setLineDashPattern([], 0);
+    doc.line(X + CW, 0, X + CW, 210); doc.setLineDashPattern([], 0);
+    font(8, false, [138, 150, 156]); doc.text("hier teilen", X + CW + 2, 8);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
+    const dom = new DOMParser().parseFromString(html, "text/html");
+    const kz = dom.body.querySelector(".kz");
+    if (kz) { const kd = new J({ unit: "mm", format: "a4", orientation: "landscape", compress: true }); kitchenCardPdf(kd, kz); return kd; }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = [31, 41, 51], MUTED = [102, 102, 102], GREEN = [47, 133, 90];
@@ -148,9 +153,6 @@
       });
       y = doc.lastAutoTable.finalY + 2.5;
     };
-    const dom = new DOMParser().parseFromString(html, "text/html");
-    const kz = dom.body.querySelector(".kz");
-    if (kz) { kitchenCardPdf(doc, kz); return doc; }
     [...dom.body.children].forEach(el => {
       const tag = el.tagName.toLowerCase(), cls = el.className || "";
       if (cls === "head") {

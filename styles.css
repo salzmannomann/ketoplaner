@@ -1015,6 +1015,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .print-bar .btn { padding: 8px 14px; font-size: 14px; white-space: nowrap; }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 .print-sheet { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1f2933; padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+/* Querformat-Vorlage (Tagesplan, A4 quer): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst */
+.print-sheet.landscape { width: 1123px; min-height: 794px; padding: 0; overflow: hidden; }
 @media (max-width: 560px) { .print-scroll { padding: 10px; } }
 @media print {
   @page { size: A4 portrait; margin: 16mm; }

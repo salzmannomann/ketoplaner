@@ -265,9 +265,9 @@
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Rezept und
-  // Menge; darunter die Dauer und die Zutaten je Portion
-  // zum Abwiegen (zwei Spalten, Gramm fett). Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  // Tagesplan-Ausdruck als Küchenzettel: A5 hochkant auf der linken Hälfte einer quer gedruckten A4-Seite, unten 5 cm frei
+  // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Groß Uhrzeit, Rezept und Menge; klein die Dauer, darunter
+  // die Zutaten je Portion zum Abwiegen (zwei Spalten, Gramm fett). Die Schrift passt sich an (fitKitchenCard).
   function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const rows = [];
@@ -286,7 +286,7 @@
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'>Schlafen</span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<p class='kz-cut'>✂ entlang der gestrichelten Linie ausschneiden</p>" +
-      "<div class='kz'><div class='kz-h'><b>Tagesplan</b><span>" + escapeHtml(printDateLong()) + "</span></div>" + rows.map(r => r.h).join("") + "</div></body></html>";
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") + "</div>" +
+      "<div class='kz-cut'><span>✂ hier teilen</span></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }

@@ -5,8 +5,13 @@
      „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
   function openPrintView(html, file) {
-    const css = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "")
-      .replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
+    const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
+    const pageRule = (rawCss.match(/@page\s*\{[^}]*\}/) || [""])[0];
+    const css = rawCss.replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
+    // Seitenformat der Vorlage (z. B. A4 quer beim Tagesplan) gilt beim Drucken; die Vorschau zeigt die Seite so
+    let ps = document.getElementById("print-page-style");
+    if (!ps) { ps = document.createElement("style"); ps.id = "print-page-style"; document.head.appendChild(ps); }
+    ps.textContent = pageRule ? "@media print{" + pageRule + "}" : "";
     const body = (html.match(/<body>([\s\S]*?)<\/body>/) || [])[1] || html;
     const title = ((html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "Drucken").replace(/&amp;/g, "&");
     printCurrent = { html, title, file: file || title };
@@ -22,7 +27,7 @@
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
-        if (iosHomeScreenApp()) { sharePrintPdf(true); return; }
+        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("landscape"))) { sharePrintPdf(true); return; }
         try { window.print(); } catch (e) {}
       });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
@@ -30,6 +35,7 @@
     }
     ov.querySelector(".print-title").textContent = title;
     const sheet = ov.querySelector("#print-sheet");
+    sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
@@ -40,9 +46,14 @@
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
   // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
+  // Querformat (Tagesplan) geht am iPhone auch in Safari über das PDF, weil Safari das Seitenformat nicht sicher übernimmt.
+  function isIOS() {
+    const nav = window.navigator || {};
+    return /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+  }
   function iosHomeScreenApp() {
     const nav = window.navigator || {};
-    const ios = /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+    const ios = isIOS();
     const standalone = nav.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
     return ios && standalone;
   }
@@ -55,7 +66,8 @@
   function printFitZoom() {
     const ov = document.getElementById("print-overlay"); if (!ov) return 1;
     const sc = ov.querySelector(".print-scroll");
-    const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = 794; // 210 mm bei 96 dpi
+    const land = ov.querySelector("#print-sheet").classList.contains("landscape");
+    const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = land ? 1123 : 794; // 297 bzw. 210 mm bei 96 dpi
     return avail > 0 ? Math.min(1, avail / full) : 1;
   }
   function fitPrintSheet() {
@@ -111,15 +123,18 @@
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
-  // Küchenzettel (Tagesplan): A6-Karte mit Schnittlinie. Alle Schriftgrößen in em, damit fitKitchenCard die ganze
-  // Karte über --s verkleinern kann, bis sie passt.
+  // Küchenzettel (Tagesplan): A5 hochkant = linke Hälfte einer quer gedruckten A4-Seite (Teilungslinie in der Mitte),
+  // unten 5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
+  // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
-    ".kz-cut{margin:0 0 1.5mm;font-size:8pt;color:#8a969c}" +
-    ".kz{width:105mm;height:148mm;border:.3mm dashed #8a969c;padding:4.5mm 5mm;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}" +
-    ".kz-h b{font-size:1.3em}.kz-h span{font-size:.85em;color:#555;white-space:nowrap}" +
+    "@page{size:A4 landscape;margin:0}" +
+    ".kz-page{position:relative;width:297mm;height:209mm;overflow:hidden}" +
+    ".kz{position:absolute;left:0;top:0;width:148.5mm;height:160mm;padding:10mm 10mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
+    ".kz-cut span{position:absolute;top:5mm;left:2mm;font-size:8pt;color:#8a969c;white-space:nowrap}" +
+    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1.2mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.45em}.r .w{font-weight:bold;font-size:1.3em}" +
     ".r .m{font-weight:bold;font-size:1.45em;text-align:right;white-space:nowrap}" +
@@ -129,10 +144,11 @@
     ".r .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.r .z .i b{white-space:nowrap}" +
     ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.25em}.r.wa .w{font-size:1.1em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w{font-size:1em;font-weight:normal}";
-  // Schrift der Karte so groß wie möglich: von 120 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
-    let sc = 1.2; kz.style.setProperty("--s", "1.2");
+    let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
     while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
   }
 

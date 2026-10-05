@@ -1033,6 +1033,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .print-bar .btn { padding: 8px 14px; font-size: 14px; white-space: nowrap; }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 .print-sheet { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1f2933; padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+/* Querformat-Vorlage (Tagesplan, A4 quer): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst */
+.print-sheet.landscape { width: 1123px; min-height: 794px; padding: 0; overflow: hidden; }
 @media (max-width: 560px) { .print-scroll { padding: 10px; } }
 @media print {
   @page { size: A4 portrait; margin: 16mm; }
@@ -4856,9 +4858,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Rezept und
-  // Menge; darunter die Dauer und die Zutaten je Portion
-  // zum Abwiegen (zwei Spalten, Gramm fett). Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  // Tagesplan-Ausdruck als Küchenzettel: A5 hochkant auf der linken Hälfte einer quer gedruckten A4-Seite, unten 5 cm frei
+  // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Groß Uhrzeit, Rezept und Menge; klein die Dauer, darunter
+  // die Zutaten je Portion zum Abwiegen (zwei Spalten, Gramm fett). Die Schrift passt sich an (fitKitchenCard).
   function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const rows = [];
@@ -4877,8 +4879,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'>Schlafen</span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<p class='kz-cut'>✂ entlang der gestrichelten Linie ausschneiden</p>" +
-      "<div class='kz'><div class='kz-h'><b>Tagesplan</b><span>" + escapeHtml(printDateLong()) + "</span></div>" + rows.map(r => r.h).join("") + "</div></body></html>";
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") + "</div>" +
+      "<div class='kz-cut'><span>✂ hier teilen</span></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }
 
@@ -5136,8 +5138,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
   function openPrintView(html, file) {
-    const css = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "")
-      .replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
+    const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
+    const pageRule = (rawCss.match(/@page\s*\{[^}]*\}/) || [""])[0];
+    const css = rawCss.replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
+    // Seitenformat der Vorlage (z. B. A4 quer beim Tagesplan) gilt beim Drucken; die Vorschau zeigt die Seite so
+    let ps = document.getElementById("print-page-style");
+    if (!ps) { ps = document.createElement("style"); ps.id = "print-page-style"; document.head.appendChild(ps); }
+    ps.textContent = pageRule ? "@media print{" + pageRule + "}" : "";
     const body = (html.match(/<body>([\s\S]*?)<\/body>/) || [])[1] || html;
     const title = ((html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "Drucken").replace(/&amp;/g, "&");
     printCurrent = { html, title, file: file || title };
@@ -5153,7 +5160,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
-        if (iosHomeScreenApp()) { sharePrintPdf(true); return; }
+        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("landscape"))) { sharePrintPdf(true); return; }
         try { window.print(); } catch (e) {}
       });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
@@ -5161,6 +5168,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     ov.querySelector(".print-title").textContent = title;
     const sheet = ov.querySelector("#print-sheet");
+    sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
@@ -5171,9 +5179,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
   // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
+  // Querformat (Tagesplan) geht am iPhone auch in Safari über das PDF, weil Safari das Seitenformat nicht sicher übernimmt.
+  function isIOS() {
+    const nav = window.navigator || {};
+    return /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+  }
   function iosHomeScreenApp() {
     const nav = window.navigator || {};
-    const ios = /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+    const ios = isIOS();
     const standalone = nav.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
     return ios && standalone;
   }
@@ -5186,7 +5199,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function printFitZoom() {
     const ov = document.getElementById("print-overlay"); if (!ov) return 1;
     const sc = ov.querySelector(".print-scroll");
-    const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = 794; // 210 mm bei 96 dpi
+    const land = ov.querySelector("#print-sheet").classList.contains("landscape");
+    const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = land ? 1123 : 794; // 297 bzw. 210 mm bei 96 dpi
     return avail > 0 ? Math.min(1, avail / full) : 1;
   }
   function fitPrintSheet() {
@@ -5242,15 +5256,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
-  // Küchenzettel (Tagesplan): A6-Karte mit Schnittlinie. Alle Schriftgrößen in em, damit fitKitchenCard die ganze
-  // Karte über --s verkleinern kann, bis sie passt.
+  // Küchenzettel (Tagesplan): A5 hochkant = linke Hälfte einer quer gedruckten A4-Seite (Teilungslinie in der Mitte),
+  // unten 5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
+  // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
-    ".kz-cut{margin:0 0 1.5mm;font-size:8pt;color:#8a969c}" +
-    ".kz{width:105mm;height:148mm;border:.3mm dashed #8a969c;padding:4.5mm 5mm;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}" +
-    ".kz-h b{font-size:1.3em}.kz-h span{font-size:.85em;color:#555;white-space:nowrap}" +
+    "@page{size:A4 landscape;margin:0}" +
+    ".kz-page{position:relative;width:297mm;height:209mm;overflow:hidden}" +
+    ".kz{position:absolute;left:0;top:0;width:148.5mm;height:160mm;padding:10mm 10mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
+    ".kz-cut span{position:absolute;top:5mm;left:2mm;font-size:8pt;color:#8a969c;white-space:nowrap}" +
+    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1.2mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.45em}.r .w{font-weight:bold;font-size:1.3em}" +
     ".r .m{font-weight:bold;font-size:1.45em;text-align:right;white-space:nowrap}" +
@@ -5260,10 +5277,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ".r .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.r .z .i b{white-space:nowrap}" +
     ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.25em}.r.wa .w{font-size:1.1em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w{font-size:1em;font-weight:normal}";
-  // Schrift der Karte so groß wie möglich: von 120 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
-    let sc = 1.2; kz.style.setProperty("--s", "1.2");
+    let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
     while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
   }
 
@@ -5375,10 +5393,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
-  // Küchenzettel: A6-Karte (105 × 148 mm) mit gestrichelter Schnittlinie oben links auf A4, gleiche Gliederung wie die
-  // Vorschau. Die Schrift beginnt bei 120 % und wird schrittweise kleiner, bis alles auf die Karte passt.
+  // Küchenzettel: A4 quer, linke Hälfte = A5 hochkant (148,5 × 210 mm) mit Teilungslinie in der Mitte, unten 5 cm frei
+  // zum Einstecken; gleiche Gliederung wie die Vorschau. Die Schrift beginnt bei 150 % und wird schrittweise kleiner,
+  // bis alles hineinpasst.
   function kitchenCardPdf(doc, kz) {
-    const X = 16, Y = 18, CW = 105, CH = 148, PX = 5, PY = 4.5, GAP = 1.5;
+    const X = 0, Y = 0, CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5;
     const L = X + PX, R = X + CW - PX;
     const lineH = (size) => size * 0.3528 * 1.2;
     const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || [31, 41, 51]); };
@@ -5404,7 +5423,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const TW = 15.5 * s, IW = R - L - TW - GAP;
       let y = Y + PY;
       font(13 * s, true); const hh = lineH(13 * s);
-      if (draw) { doc.text(txt(head, "b"), L, y + hh * 0.8); font(8.5 * s, false, [85, 85, 85]); doc.text(txt(head, "span"), R, y + hh * 0.8, { align: "right" }); }
+      if (draw) doc.text(txt(head, "b"), L, y + hh * 0.8);
       y += hh + 1.2;
       if (draw) { doc.setDrawColor(47, 133, 90); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
       y += 0.8;
@@ -5448,16 +5467,20 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       });
       return y;
     };
-    let s = 1.2;
-    while (layout(s, false) > Y + CH - PY && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
-    font(8, false, [138, 150, 156]); doc.text("entlang der gestrichelten Linie ausschneiden", X, Y - 2);
+    let s = 1.5;
+    while (layout(s, false) > BOTTOM && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
+    // Teilungslinie in der Mitte der Seite
     doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
-    doc.rect(X, Y, CW, CH, "S"); doc.setLineDashPattern([], 0);
+    doc.line(X + CW, 0, X + CW, 210); doc.setLineDashPattern([], 0);
+    font(8, false, [138, 150, 156]); doc.text("hier teilen", X + CW + 2, 8);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
+    const dom = new DOMParser().parseFromString(html, "text/html");
+    const kz = dom.body.querySelector(".kz");
+    if (kz) { const kd = new J({ unit: "mm", format: "a4", orientation: "landscape", compress: true }); kitchenCardPdf(kd, kz); return kd; }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = [31, 41, 51], MUTED = [102, 102, 102], GREEN = [47, 133, 90];
@@ -5505,9 +5528,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       });
       y = doc.lastAutoTable.finalY + 2.5;
     };
-    const dom = new DOMParser().parseFromString(html, "text/html");
-    const kz = dom.body.querySelector(".kz");
-    if (kz) { kitchenCardPdf(doc, kz); return doc; }
     [...dom.body.children].forEach(el => {
       const tag = el.tagName.toLowerCase(), cls = el.className || "";
       if (cls === "head") {

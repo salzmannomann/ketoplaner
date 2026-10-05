@@ -983,7 +983,12 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const root = $(w, "print-sheet").shadowRoot;
   // Küchenzettel: A6-Karte, groß Uhrzeit · Mahlzeit · ml, darunter Rezept, Dauer und Zutaten
   const kz = root.querySelector(".kz"); assert.ok(kz, "Küchenzettel");
-  assert.match(root.querySelector("style").textContent, /\.kz\{width:105mm;height:148mm/);
+  // A5 hochkant auf A4 quer: Karte 148,5 mm breit, endet 5 cm über dem unteren Rand; ohne Datum
+  assert.match(root.querySelector("style").textContent, /\.kz\{position:absolute;left:0;top:0;width:148\.5mm;height:160mm/);
+  assert.ok($(w, "print-sheet").classList.contains("landscape"), "Vorschau im Querformat");
+  assert.match(w.document.getElementById("print-page-style").textContent, /@page\{size:A4 landscape;margin:0\}/, "Druck im Querformat");
+  assert.equal(kz.querySelector(".kz-h").textContent, "Tagesplan", "kein Datum");
+  assert.ok(root.querySelector(".kz-cut"), "Teilungslinie");
   const first = kz.querySelector(".r.me");
   assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
   assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
@@ -1002,6 +1007,8 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const c = openRecipe(w, "Compleat & KetoCal");
   fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
   assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal.*KetoCal.*Zutaten/);
+  assert.ok(!$(w, "print-sheet").classList.contains("landscape"), "Rezept wieder im Hochformat");
+  assert.match(w.document.getElementById("print-page-style").textContent, /size:A4 portrait/);
   fire(w, $(w, "print-back"));
   assert.ok(ov.hidden); assert.ok(!$(w, "detail-overlay").hidden, "Rezept bleibt offen");
 });
