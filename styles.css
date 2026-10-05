@@ -628,6 +628,9 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .sync-join-in { display: flex; align-items: center; gap: 10px; }
 .sync-join-in .line-input { flex: 1; min-width: 0; font: 600 16px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
 .btn-row [hidden] { display: none; }
+/* „Ausschalten“ (Erinnerungen und Abgleich): schlichter Textlink in Tinte hinter den Knöpfen – nichts geht dabei verloren */
+.btn-row .tlink { align-self: center; }
+.btn-row #push-toggle.push-off { order: 1; }
 /* Knöpfe einer Reihe gleich hoch (Primär 48 px, Sekundär sonst 44 px) */
 .vg-sec .btn-row .btn { min-height: 48px; }
 /* Backup als Text: Unterstrich-Feld wie die übrigen Eingaben statt Rahmen-Kasten */

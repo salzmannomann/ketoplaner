@@ -639,6 +639,9 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .sync-join-in { display: flex; align-items: center; gap: 10px; }
 .sync-join-in .line-input { flex: 1; min-width: 0; font: 600 16px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
 .btn-row [hidden] { display: none; }
+/* „Ausschalten“ (Erinnerungen und Abgleich): schlichter Textlink in Tinte hinter den Knöpfen – nichts geht dabei verloren */
+.btn-row .tlink { align-self: center; }
+.btn-row #push-toggle.push-off { order: 1; }
 /* Knöpfe einer Reihe gleich hoch (Primär 48 px, Sekundär sonst 44 px) */
 .vg-sec .btn-row .btn { min-height: 48px; }
 /* Backup als Text: Unterstrich-Feld wie die übrigen Eingaben statt Rahmen-Kasten */
@@ -1096,7 +1099,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <button id="sync-enable" class="btn primary" type="button">Abgleich einschalten</button>
             <button id="sync-code-btn" class="btn primary" type="button" hidden>Weiteres Gerät verbinden</button>
             <button id="sync-now" class="btn outline" type="button" hidden>Jetzt abgleichen</button>
-            <button id="sync-off" class="tlink danger" type="button" hidden>Ausschalten</button>
+            <button id="sync-off" class="tlink" type="button" hidden>Ausschalten</button>
           </div>
           <div class="sync-join" id="sync-join-row">
             <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
@@ -5196,7 +5199,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet.";
-    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.classList.toggle("outline", on); t.classList.toggle("primary", !on); t.disabled = !sup.ok; }
+    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.className = on ? "tlink push-off" : "btn primary"; t.disabled = !sup.ok; }
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;

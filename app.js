@@ -2904,7 +2904,7 @@
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet.";
-    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.classList.toggle("outline", on); t.classList.toggle("primary", !on); t.disabled = !sup.ok; }
+    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.className = on ? "tlink push-off" : "btn primary"; t.disabled = !sup.ok; }
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;
