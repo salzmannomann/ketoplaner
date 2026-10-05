@@ -1199,6 +1199,16 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .bd-main .bd-s.bd-m { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .bd-one small { color: var(--muted); }
 
+/* Vorgaben am Desktop: Verordnung über die ganze Breite, darunter zwei Spalten (links Ernährung, rechts Küche und App).
+   In den halb so breiten Karten stehen Eingabefelder zu zweit nebeneinander. */
+@media (min-width: 1080px) {
+  .vg-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
+  .vg-col > .card:last-child { margin-bottom: 0; }
+  .vg-col .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vg-col .bd-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+
 </style>
 </head>
 <body>
@@ -1309,6 +1319,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <div id="verordnung-summary" class="note tip"></div>
       </div>
 
+      <!-- Desktop: zwei Spalten – links Ernährung (Bedarf, Flüssigkeit, Öl), rechts Küche und App; am Handy untereinander -->
+      <div class="vg-cols"><div class="vg-col">
       <div class="card" id="bedarf-card">
         <h3>📊 Bedarf schätzen <span class="hint">– zur Orientierung</span></h3>
         <div class="bd-row">
@@ -1401,6 +1413,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         </div>
       </div>
 
+      </div><div class="vg-col">
       <div class="card">
         <h3>🍳 Küche</h3>
         <div class="settings-grid">
@@ -1493,6 +1506,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
           <div id="werte-list" class="tbl-wrap"></div>
         </details>
       </div>
+      </div></div>
     </section>
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>

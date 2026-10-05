@@ -1180,3 +1180,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .bd-legend .sw.ref { width: 3px; left: 4px; height: 11px; top: 3px; border-radius: 1px; }
 .bd-main .bd-s.bd-m { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .bd-one small { color: var(--muted); }
+
+/* Vorgaben am Desktop: Verordnung über die ganze Breite, darunter zwei Spalten (links Ernährung, rechts Küche und App).
+   In den halb so breiten Karten stehen Eingabefelder zu zweit nebeneinander. */
+@media (min-width: 1080px) {
+  .vg-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
+  .vg-col > .card:last-child { margin-bottom: 0; }
+  .vg-col .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vg-col .bd-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
