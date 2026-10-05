@@ -1083,7 +1083,7 @@
   function renderSideRx(d) {
     const box = document.getElementById("side-rx"); if (!box) return;
     const row = (l, v) => '<div class="side-row"><span>' + l + '</span><b>' + escapeHtml(v) + '</b></div>';
-    box.innerHTML = '<div class="side-rx-head"><span class="overline">Verordnung vom Team</span>' +
+    box.innerHTML = '<div class="side-rx-head"><span class="overline">Verordnung</span>' +
       '<button type="button" class="tlink" id="side-rx-edit" title="Verordnung in den Vorgaben ändern">Ändern</button></div>' +
       '<div class="side-ratio"><b>' + escapeHtml(fmtRx(d.ratio)) + '</b><span>Fett : Eiweiß + KH</span></div>' +
       row("Kalorien am Tag", fmt(d.kcal, 0) + " kcal") + row("je Mahlzeit", d.mahl + " × " + fmt(d.kcalMahl, 0)) +
