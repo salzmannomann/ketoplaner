@@ -2696,7 +2696,8 @@
     ".r .t{font-weight:bold;font-size:1.3em}.r .n{font-weight:bold;font-size:1.18em}.r i{font-style:normal}.r .d{color:#7b8794;font-size:.9em;margin-left:.4em}" +
     ".r .m{font-weight:bold;font-size:1.3em;text-align:right;white-space:nowrap}" +
     ".r.wa{padding:.1em 0 .32em;color:#2b6cb0}.r.wa .t,.r.wa .m{font-size:1em;font-weight:600}.r.wa .n{font-weight:normal;font-size:1em}.r.wa .d{color:#6b9bd1}" +
-    ".r.wa .n:before{content:'';display:inline-block;width:.55em;height:.55em;border-radius:50%;background:#63a4e8;margin-right:.45em;vertical-align:.05em}" +
+    // Wassertropfen vor „Wasser“ (SVG, druckt mit)
+    ".r.wa .n:before{content:'';display:inline-block;width:.6em;height:.9em;margin-right:.4em;vertical-align:-.08em;background:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 12 18%22%3E%3Cpath d=%22M6 0L11.196 9A6 6 0 1 1 .804 9Z%22 fill=%22%2363a4e8%22/%3E%3C/svg%3E') no-repeat center/contain}" +
     ".r.sl{color:#9aa5b1;padding-top:.32em}.r.sl .t,.r.sl .n{font-weight:normal;font-size:1em}" +
     // Zutaten: jedes Rezept als hellgraue Karte, Uhrzeiten grün rechts, Gramm fett
     ".rb{background:#f5f7f6;border-radius:2mm;padding:.55em .8em .6em;margin-top:.55em;break-inside:avoid}" +
@@ -2870,7 +2871,7 @@
         const big = (r.kind === "me" ? 13 : 10) * s, nm = (r.kind === "me" ? 11.8 : 10) * s, ds = 9 * s;
         const col = r.kind === "wa" ? BLUE : r.kind === "sl" ? GREY : INK;
         const padT = (r.kind === "wa" ? 0.1 : r.kind === "sl" ? 0.32 : 0.38) * em, padB = (r.kind === "wa" ? 0.32 : 0.38) * em;
-        const dotW = r.kind === "wa" ? 0.55 * em + 0.45 * em : 0;
+        const dotW = r.kind === "wa" ? 0.6 * em + 0.4 * em : 0;
         font(big, r.kind !== "sl"); const mw = r.m ? doc.getTextWidth(r.m) + GAP : 0;
         const x0 = L + TW + GAP, avail = R - x0 - mw - dotW;
         font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail), nW = doc.getTextWidth(nl[nl.length - 1] || "");
@@ -2881,7 +2882,12 @@
           if ((r.kind === "me" || r.kind === "sl") && k > 0) { doc.setDrawColor.apply(doc, LINE); doc.setLineWidth(0.2); doc.line(L, y, R, y); }
           const base = y + padT + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
-          if (r.kind === "wa") { doc.setFillColor.apply(doc, DOT); doc.circle(x0 + 0.275 * em, base - nm * PT * 0.33, 0.275 * em, "F"); }
+          if (r.kind === "wa") {
+            // Wassertropfen: Kreis unten, Spitze oben (Tangenten bei 60°)
+            const rr = 0.3 * em, cx = x0 + rr, cy = base - rr * 0.95;
+            doc.setFillColor.apply(doc, DOT); doc.circle(cx, cy, rr, "F");
+            doc.triangle(cx, cy - 2 * rr, cx - rr * 0.866, cy - rr * 0.5, cx + rr * 0.866, cy - rr * 0.5, "F");
+          }
           font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, x0 + dotW, base + i * lineH(nm)));
           if (r.d) {
             font(ds, false, r.kind === "wa" ? BLUE_SOFT : MUTED);

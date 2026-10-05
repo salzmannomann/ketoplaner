@@ -148,7 +148,8 @@
     ".r .t{font-weight:bold;font-size:1.3em}.r .n{font-weight:bold;font-size:1.18em}.r i{font-style:normal}.r .d{color:#7b8794;font-size:.9em;margin-left:.4em}" +
     ".r .m{font-weight:bold;font-size:1.3em;text-align:right;white-space:nowrap}" +
     ".r.wa{padding:.1em 0 .32em;color:#2b6cb0}.r.wa .t,.r.wa .m{font-size:1em;font-weight:600}.r.wa .n{font-weight:normal;font-size:1em}.r.wa .d{color:#6b9bd1}" +
-    ".r.wa .n:before{content:'';display:inline-block;width:.55em;height:.55em;border-radius:50%;background:#63a4e8;margin-right:.45em;vertical-align:.05em}" +
+    // Wassertropfen vor „Wasser“ (SVG, druckt mit)
+    ".r.wa .n:before{content:'';display:inline-block;width:.6em;height:.9em;margin-right:.4em;vertical-align:-.08em;background:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 12 18%22%3E%3Cpath d=%22M6 0L11.196 9A6 6 0 1 1 .804 9Z%22 fill=%22%2363a4e8%22/%3E%3C/svg%3E') no-repeat center/contain}" +
     ".r.sl{color:#9aa5b1;padding-top:.32em}.r.sl .t,.r.sl .n{font-weight:normal;font-size:1em}" +
     // Zutaten: jedes Rezept als hellgraue Karte, Uhrzeiten grün rechts, Gramm fett
     ".rb{background:#f5f7f6;border-radius:2mm;padding:.55em .8em .6em;margin-top:.55em;break-inside:avoid}" +

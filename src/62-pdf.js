@@ -67,7 +67,7 @@
         const big = (r.kind === "me" ? 13 : 10) * s, nm = (r.kind === "me" ? 11.8 : 10) * s, ds = 9 * s;
         const col = r.kind === "wa" ? BLUE : r.kind === "sl" ? GREY : INK;
         const padT = (r.kind === "wa" ? 0.1 : r.kind === "sl" ? 0.32 : 0.38) * em, padB = (r.kind === "wa" ? 0.32 : 0.38) * em;
-        const dotW = r.kind === "wa" ? 0.55 * em + 0.45 * em : 0;
+        const dotW = r.kind === "wa" ? 0.6 * em + 0.4 * em : 0;
         font(big, r.kind !== "sl"); const mw = r.m ? doc.getTextWidth(r.m) + GAP : 0;
         const x0 = L + TW + GAP, avail = R - x0 - mw - dotW;
         font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail), nW = doc.getTextWidth(nl[nl.length - 1] || "");
@@ -78,7 +78,12 @@
           if ((r.kind === "me" || r.kind === "sl") && k > 0) { doc.setDrawColor.apply(doc, LINE); doc.setLineWidth(0.2); doc.line(L, y, R, y); }
           const base = y + padT + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
-          if (r.kind === "wa") { doc.setFillColor.apply(doc, DOT); doc.circle(x0 + 0.275 * em, base - nm * PT * 0.33, 0.275 * em, "F"); }
+          if (r.kind === "wa") {
+            // Wassertropfen: Kreis unten, Spitze oben (Tangenten bei 60°)
+            const rr = 0.3 * em, cx = x0 + rr, cy = base - rr * 0.95;
+            doc.setFillColor.apply(doc, DOT); doc.circle(cx, cy, rr, "F");
+            doc.triangle(cx, cy - 2 * rr, cx - rr * 0.866, cy - rr * 0.5, cx + rr * 0.866, cy - rr * 0.5, "F");
+          }
           font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, x0 + dotW, base + i * lineH(nm)));
           if (r.d) {
             font(ds, false, r.kind === "wa" ? BLUE_SOFT : MUTED);
