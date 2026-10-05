@@ -84,31 +84,9 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .tbl-wrap { overflow-x: auto; }
 .empty { color: var(--grey); font-style: italic; padding: 8px 0; }
 @media (max-width: 560px) { html, body { overflow-x: hidden; } }
-/* Rezept-Zeilen statt Karten: eine Zeile je Gericht, am Desktop zwei Spalten */
-/* Detailansicht als sechs Blätter: Desktop = Reiter; Handy = Blätter nebeneinander, seitlich wischen, feste Kopf- und Fußzeile */
-/* Kopf der Detailansicht kompakt (zwei Zeilen); Seiten wie im Rezeptbuch: Punkte + Seitenzahl, nächste Seite schaut rechts herein */
-/* Seiten am Handy dichter: Tabellen, Kacheln, Hinweise und Überschriften mit weniger Luft */
-/* Handy: keine Reiterleiste – Punkte + Seitenname reichen (am Desktop bleiben die Reiter) */
-/* Detailseiten einheitlich: gleiche Tabellen (Kopfzeile, Schrift, Fettzeile), gleiche Eingabefelder, Öl-Liste wie Tabelle */
-/* Rezeptbuch-Optik am Handy: hinter der Seite schauen unten rechts zwei weitere Kartenränder hervor (Stapel);
-   auf der letzten Seite ist der Stapel weg. Dazu „Seite 3 von 6“ in normaler Schrift. */
-/* Quelle des Werts unter Vorschlags-Feldern: grün mit Haken = Vorschlag aktiv, grau = eigener Wert */
-/* Vorgaben kompakt: am Handy zwei Felder je Reihe, dichtere Karten, kürzere Statuszeilen */
-/* Eingabe und Auswahl gleich hoch (select ist sonst 1 px höher) */
-/* Rezeptleiste am Desktop: alle Gruppen in einer Zeile (schmalere Chips), Knöpfe oben ausgerichtet */
-/* Blatt „Zubereiten & Abfüllen“: Abfüll-Block kompakt unter den Schritten, Öl-Zeilen mit eigener Kopfzeile */
+
 /* „Eigenes Rezept“: klares Plus statt Reagenzglas (sah wie ein Stift/Bearbeiten aus) */
 #compose-btn { font-size: 22px; font-weight: 700; line-height: 1; }
-/* Abwiegen: Schnellwahl (1 Portion · 1 Tag · 2 Tage · 3 Tage) und Stepper in einer Zeile; Waage-Tabelle dichter */
-/* Kochen: Abfüll-Kacheln oben, Schritte darunter (bei langen Anleitungen scrollt das Blatt) */
-/* Abwiegen: Tages-Zeile unter der Tabelle ohne zusätzliche Luft */
-/* Handy: Zutatennamen etwas kleiner (weniger Zeilenumbrüche), Notizen dichter */
-
-/* Editor im Detail-Layout: Name als Titel-Eingabe im Kopf, Zutatenzeilen dichter, Blätter wie im Detail */
-
-/* Kopfleiste: weiß, Schriftzug in Grün, Verordnung als Pille rechts – eine Zeile, auch am Handy.
-   Am Handy zeigt die Pille eine Kurzfassung (rx-short, drei Zeilen), am Desktop den vollen Text (rx-long). */
-/* Pille in den Vorgaben: „zurück“-Zustand (ein Tipp führt dorthin, wo man herkam) */
 
 /* ===== Dunkelmodus: folgt dem System (prefers-color-scheme); zusätzlich per <html data-theme="dark"> erzwingbar,
    per data-theme="light" abschaltbar. Die Regeln stehen zweimal (Medienabfrage und Attribut), erzeugt aus einer Liste. ===== */
@@ -118,58 +96,12 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
   --red: #f0a090; --red-bg: #3e231d; --blue: #8fb3e6; --green: #9cc69a; --yellow: #e4bc68; --yellow-bg: #3a3018; --overlay: rgba(0,0,0,.55);
   color-scheme: dark;
   }
-  :root:not([data-theme="light"]) body { background: var(--bg); }
-   :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea { background: var(--panel); color: var(--ink); }
-   :root:not([data-theme="light"]) .btn { color: #fff; }
-  :root:not([data-theme="light"]) .btn:hover { background: #3a9a68; }
-  :root:not([data-theme="light"]) .btn.secondary { background: #26322c; color: var(--ink); }
-  :root:not([data-theme="light"]) .btn.secondary:hover { background: #30403a; }
-  :root:not([data-theme="light"]) .note.info { border-left-color: #4a5a52; color: var(--muted); }
-  :root:not([data-theme="light"]) .note.warn { color: #f0cf8a; }
-  :root:not([data-theme="light"]) .status.idle { background: #26322c; color: var(--muted); }
-  :root:not([data-theme="light"]) .overlay { background: rgba(0,0,0,.6); }
-  /* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
-  :root:not([data-theme="light"]) input:disabled { background: var(--bg); color: var(--muted); }
-   :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
 }
 :root[data-theme="dark"] {
   --paper: #1c1a16; --paper-2: #24211c; --ink: #ece5d8; --ink-2: #cfc7b8; --grey: #a89f90; --rule: #3d382f; --dot: #6b6458;
   --red: #f0a090; --red-bg: #3e231d; --blue: #8fb3e6; --green: #9cc69a; --yellow: #e4bc68; --yellow-bg: #3a3018; --overlay: rgba(0,0,0,.55);
   color-scheme: dark;
 }
-[data-theme="dark"] body { background: var(--bg); }
- [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { background: var(--panel); color: var(--ink); }
- [data-theme="dark"] .btn { color: #fff; }
-[data-theme="dark"] .btn:hover { background: #3a9a68; }
-[data-theme="dark"] .btn.secondary { background: #26322c; color: var(--ink); }
-[data-theme="dark"] .btn.secondary:hover { background: #30403a; }
-[data-theme="dark"] .note.info { border-left-color: #4a5a52; color: var(--muted); }
-[data-theme="dark"] .note.warn { color: #f0cf8a; }
-[data-theme="dark"] .status.idle { background: #26322c; color: var(--muted); }
-[data-theme="dark"] .overlay { background: rgba(0,0,0,.6); }
-/* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
-[data-theme="dark"] input:disabled { background: var(--bg); color: var(--muted); }
- [data-theme="dark"] .slot.empty-slot { background: var(--bg); }
-/* Wisch-Schließen am Handy: der Kopf des Overlays ist die Griff-Fläche (kein Seitenscroll dahinter) */
-/* Heute: gleiche Optik wie Rezeptliste und Detail – Kopfzeile mit Aktionen, Kacheln, Mahlzeiten als Zeilen */
-
-/* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert.
-   Die Bühne schneidet seitlich ab; die Nachbargruppe (#recipe-peek) liegt als zweite Fläche daneben und
-   zieht mit der Liste 1:1 mit. */
-
-/* Heute → Zeitplan: Uhrzeiten oben einstellbar, darunter eine Zeile je Mahlzeit / Wassergabe / Schlafen */
-
-/* Heute kompakt: eine Zeitleiste – Mahlzeiten (mit Rezept, ↻/✕) und Wasser einzeilig, Uhrzeiten hinter ⏰ */
-/* Dauer der Wassergabe rechts in der Spalte der Mahlzeiten-Dauer (--wmin-r misst fitHeute), Zeile bleibt einzeilig */
-/* Mahlzeiten-Zeilen der Zeitleiste ohne eigenen Kartenrahmen (die Liste ist die Karte); leere Zeile leicht abgesetzt */
-/* Kopf von Heute einzeilig: Titel nicht umbrechen, Rahmenzeit kürzen statt umbrechen */
-
-/* Detail → „📅 Für heute“: Auswahl über der Aktionsleiste und Meldung mit Rückgängig */
-
-/* Heute auf einen Bildschirm: niedrige Kachelreihe, dichte Zeitleiste, kurze Hinweise; Haftungstext am Handy nur
-   auf den anderen Reitern (er steht auch im Ausdruck und unter Rezepte/Vorgaben). */
-/* Zweite Zeile einer Mahlzeit (Öl, Eiweiß) darf umbrechen statt abgeschnitten zu werden – Mengen nie verstecken */
-/* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
 
 /* Druckvorschau in der App: Leiste mit Zurück und Drucken, darunter das weiße Blatt. Beim Drucken nur das Blatt. */
 .print-overlay[hidden] { display: none; }
@@ -188,60 +120,19 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
   body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; zoom: 1 !important; }
 }
-/* Vorschau-Leiste: am Handy ohne Titel, damit Zurück, Teilen und Drucken Platz haben */
+
 /* Vorschau zoombar: mit einem Finger verschieben, das Zwei-Finger-Zoomen übernimmt die App (Seite selbst bleibt fix) */
 .print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
 .print-overlay.zoomed .print-sheet { margin: 0; }
 
-/* Heute füllt am Handy den Bildschirm: freie Höhe verteilt sich auf die Zeilen (Mahlzeiten 3 : Wasser 1),
-   bei genug Platz („roomy“) etwas größere Schrift und Rezeptnamen bis zu zwei Zeilen (fitHeute). */
-/* Zutaten (+ Öl) je Mahlzeit: immer, als eigene Zeile über die ganze Breite, eingerückt bis zum Rezeptnamen */
-
-/* Mahlzeiten pro Tag: Auswahl 3 · 4 · 5, so hoch wie die Eingabefelder daneben */
-
-/* Knappste Stufe (5 Mahlzeiten im Browser u. ä.): alles etwas enger, damit die Zutaten ohne Scrollen Platz haben */
 /* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
 .vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }
 
-/* Kopf von Heute: Zeitraum und Abstand am Handy untereinander statt abgeschnitten */
-
-/* ↻ ✕ in der Zeitleiste: größere Trefferfläche als das sichtbare Symbol (danebentippen öffnet sonst das Rezept) */
-
-/* Desktop: Kopf und Reiterleiste auf dieselbe Breite eingerückt wie der Inhalt (.main: max. 1040 px, 24 px Rand) */
-
-/* Kopf-Pille darf schrumpfen (sonst ragt sie bei 320 px aus dem Bild); Logo-Schrift auf sehr schmalen Handys kleiner */
-
-/* Erinnerungen (Vorgaben) */
-#push-toggle:disabled { opacity: .45; cursor: not-allowed; }
-/* Geräte abgleichen (Vorgaben) */
-
-/* Bedarf schätzen (Vorgaben) */
-/* iOS: Datumsfeld hat sonst eine eigene Mindestbreite, ragt aus der Spalte und zentriert den Text */
-
-/* Vorgaben am Desktop: Verordnung über die ganze Breite, darunter zwei Spalten (links Ernährung, rechts Küche und App).
-   In den halb so breiten Karten stehen Eingabefelder zu zweit nebeneinander. */
-
-/* Vorgaben in der Sprache von Heute und Rezepte: grüne Abschnitts-Überschrift mit feiner Linie auf dem grauen Grund
-   (wie „🍗 Geflügel“), darunter der Inhalt in einem schlanken weißen Feld (wie Zeitleiste und Rezept-Kacheln). */
-/* Vorgaben: alle Bedienelemente gleich groß – Felder, Auswahllisten, Umschalter und Knöpfe 40 px hoch.
-   Eingaben 16 px (am iPhone kein Hineinzoomen), Knöpfe 14,5 px, Umschalter 13,5 px. */
-/* Vorgaben neu gegliedert ------------------------------------------------ */
-/* Verordnung am Desktop: 3 × 2 statt 4 + 2 Felder – oben Verhältnis, Mahlzeiten, Gewicht; unten Kalorien, mindestens, Eiweiß */
-@media (min-width: 821px) {
-  #verordnung-grid { grid-template-columns: repeat(3, 1fr); }
-  #vo-ratio { order: 1; } #vo-mahl { order: 2; } #vo-weight { order: 3; }
-  #vo-kcal { order: 4; } #vo-kcalmin { order: 5; } #vo-protein { order: 6; }
-  #verordnung-grid #eiweiss-manual { order: 7; grid-column: 3; }
-}
-/* Kennzahl-Kacheln statt langer Zusammenfassungs-Sätze */
-/* Umschalter wie Eingabefelder beschriften: Bezeichnung grau darüber, Gruppe über die ganze Breite */
-/* Küche: Erklärung neben dem Feld statt leerer Fläche */
 /* Abgleich: „Code von einem anderen Gerät“ abgesetzt */
 
 @media (max-width: 560px) {
   #wasser-modus-ctl button { flex-basis: 50%; text-align: center; }
 }
-/* Erinnerungen: Zeitpunkt und Knöpfe nebeneinander */
 
 /* ======================================================================
    Küchenzettel – Grundbausteine (Textlink, Hinweiszeile, Fokus)
