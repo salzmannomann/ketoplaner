@@ -194,10 +194,10 @@
       if (!nm) { alert("Bitte oben einen Namen für das Rezept eingeben."); nameInp.focus(); return; }
       if (!lastOk || !lastItems.length) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
       const items = lastItems.map(it => ({ food: it.food, grams: it.grams }));
-      if (compose.editKey) {
-        const sr = state.savedRecipes.find(s => s.key === compose.editKey);
-        if (sr) { sr.name = nm; sr.items = items; }
-      } else {
+      // Bearbeitetes Rezept überschreiben – gibt es es nicht mehr (inzwischen gelöscht), als neues Rezept anlegen
+      const sr = compose.editKey ? state.savedRecipes.find(s => s.key === compose.editKey) : null;
+      if (sr) { sr.name = nm; sr.items = items; }
+      else {
         const key = "custom:" + Date.now();
         state.savedRecipes.unshift({ key, name: nm, icon: "📝", items });
         compose.editKey = key; compose.fromRecipe = nm;

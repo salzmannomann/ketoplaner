@@ -50,6 +50,23 @@
     Object.keys(obj || {}).forEach(k => { const nk = toFamilyKey(k); if (!(nk in o)) o[nk] = obj[k]; });
     return o;
   }
+  // Teile des Zustands prüfen (Backup-Import, Geräte-Abgleich, alte Daten): falsche Formen werden einzeln verworfen,
+  // statt alles zurückzusetzen oder die App beim Start abstürzen zu lassen.
+  const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  function cleanNumMap(m) { const o = {}; if (isObj(m)) Object.keys(m).forEach(k => { const v = Number(m[k]); if (isFinite(v)) o[k] = v; }); return o; }
+  function cleanItems(arr, field) {
+    return (Array.isArray(arr) ? arr : []).filter(isObj).map(it => {
+      const o = { food: typeof it.food === "string" ? it.food : "" };
+      o[field] = isFinite(Number(it[field])) ? Number(it[field]) : 0;
+      return o;
+    });
+  }
+  function cleanSavedRecipes(list) {
+    return (Array.isArray(list) ? list : []).filter(r => isObj(r) && typeof r.key === "string" && typeof r.name === "string" && Array.isArray(r.items))
+      .map(r => Object.assign({}, r, { items: cleanItems(r.items, "grams").filter(it => it.food) })).filter(r => r.items.length);
+  }
+  function cleanFavorites(list) { return (Array.isArray(list) ? list : []).filter(k => typeof k === "string"); }
+  function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
   function load(rawOverride) {
@@ -58,7 +75,16 @@
       raw = rawOverride != null ? rawOverride : localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
-      const settings = Object.assign(d.settings, p.settings || {});
+      if (!isObj(p)) return defaultState();
+      const defaults = defaultState().settings;
+      const settings = Object.assign(d.settings, isObj(p.settings) ? p.settings : {});
+      // Zahl-Einstellungen: unbrauchbare Werte (null, Text) → Standard; leer ("") bleibt erlaubt (= Vorschlag verwenden)
+      Object.keys(defaults).forEach(k => {
+        const dv = defaults[k], v = settings[k];
+        if (typeof dv !== "number" || v === "" || (typeof v === "number" && isFinite(v))) return;
+        const n = typeof v === "string" ? Number(v.replace(",", ".")) : NaN;
+        settings[k] = isFinite(n) ? n : dv;
+      });
       // Einstellungen früherer Versionen, die nichts mehr steuern (KetoCal-Schalter, feste Wassermengen, Spülen)
       ["withKeto", "showMitKeto", "showOhneKeto", "ketocal", "ketoFilter", "zwischenMl", "spuelMl", "maxMahlMl", "rundung"].forEach(k => { delete settings[k]; });
       // Alte Gruppen-Filter
@@ -66,17 +92,19 @@
       // Favoriten gelten je Rezept: Schlüssel nur umbenennen (alte Namen), nicht mehr auf das Gericht zusammenfassen.
       // Ältere Familien-Favoriten („fam:…“) bleiben erhalten und zählen für beide Varianten.
       const favorites = [];
-      (p.favorites || []).forEach(k => { const nk = (typeof k === "string" && k.indexOf("fam:") === 0) ? toFamilyKey(k) : renameKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
+      cleanFavorites(p.favorites).forEach(k => { const nk = (typeof k === "string" && k.indexOf("fam:") === 0) ? toFamilyKey(k) : renameKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
       return {
         settings: settings,
-        compose: Object.assign(d.compose, p.compose || {}),
+        compose: isObj(p.compose) ? Object.assign(d.compose, p.compose, {
+          items: Array.isArray(p.compose.items) ? cleanItems(p.compose.items, "grams") : d.compose.items,
+          fats: Array.isArray(p.compose.fats) ? cleanItems(p.compose.fats, "share") : d.compose.fats }) : d.compose,
         favorites: favorites,
-        savedRecipes: p.savedRecipes || [],
-        scales: remapKeys(p.scales),
-        water: remapKeys(p.water),
-        portion: remapKeys(p.portion),
-        dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
-        basis: p.basis && typeof p.basis === "object" ? p.basis : {},
+        savedRecipes: cleanSavedRecipes(p.savedRecipes),
+        scales: remapKeys(cleanNumMap(p.scales)),
+        water: remapKeys(cleanNumMap(p.water)),
+        portion: remapKeys(cleanNumMap(p.portion)),
+        dayPlan: cleanDayPlan(p.dayPlan).map(sl => ({ key: renameKey(sl.key) || null })),
+        basis: isObj(p.basis) ? p.basis : {},
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.
@@ -1177,7 +1205,11 @@
     const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
     if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
     if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
-    state = load(JSON.stringify(st)); const stored = save();
+    // Was nur zu diesem Gerät gehört (Erinnerungen und deren Dienst-Adresse), nicht aus dem Backup übernehmen
+    const keep = {}; ["pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"].forEach(k => { keep[k] = state.settings[k]; });
+    state = load(JSON.stringify(st));
+    Object.keys(keep).forEach(k => { if (keep[k] === undefined) delete state.settings[k]; else state.settings[k] = keep[k]; });
+    const stored = save();
     rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
     alert(stored ? "Backup importiert." : "Backup übernommen – aber der Speicher dieses Browsers ist nicht beschreibbar (privates Fenster oder voll). Nach dem Schließen ist es wieder weg.");
   }
@@ -1512,12 +1544,14 @@
       const isW = (it) => /wasser/i.test(it.food);
       const sumW = res.items.filter(isW).reduce((a, it) => a + num(it.grams), 0);
       let first = true;
-      const items2 = res.items.map(it => {
+      let items2 = res.items.map(it => {
         if (!isW(it)) return it;
         let g;
         if (sumW > 0) g = num(it.grams) * target / sumW; else { g = first ? target : 0; first = false; }
         return { food: it.food, grams: round1(g) };
       });
+      // Rezept ohne eigene Wasser-Zutat (z. B. HiPP-Gläschen): gemerktes Wasser als eigene Zeile anhängen
+      if (!res.items.some(isW) && target > 0) items2 = items2.concat([{ food: "Wasser", grams: round1(target) }]);
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
@@ -1672,10 +1706,30 @@
     pages.addEventListener("pointerup", end);
     pages.addEventListener("pointerleave", end);
   }
+  // Lässt sich das Fleisch bei dieser Verordnung tauschen? (Bei sehr niedrigem Verhältnis bringt z. B. Rind schon zu viel
+  // Fett mit – dann gibt es keine Fleischmenge, die das Verhältnis trifft.)
+  function meatSwapPossible(rec, d, k) {
+    const slot = recipeMeatSlot(rec); if (!slot || !k || k === slot.baseKey) return true;
+    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio); if (!base.ok) return false;
+    const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
+    return !!solveMeatForRatio(swapped, slot.index, d.ratio);
+  }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
+    // Nicht mögliche Fleischwahl (z. B. nach geänderter Verordnung) zurücksetzen, statt still beim Original zu bleiben
+    if (detailMeat && !meatSwapPossible(rec, d, detailMeat)) detailMeat = null;
     const mv = computeMealView(rec, d, detailMeat);
+    // Lässt sich das Rezept nicht auf die Verordnung einstellen, sind seine Gramm unbrauchbar: keine Mengen, kein
+    // Einplanen und kein Drucken – nur der Hinweis (z. B. nach geänderter Verordnung oder über einen alten Link).
+    if (!mv.res.ok) {
+      const cc = document.getElementById("detail-content");
+      cc.innerHTML = '<div class="sheet-grip" aria-hidden="true"></div><div class="detail-head"><div class="dh-tags"><span class="ratio-pill bad">' +
+        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + escapeHtml(familyOf(rec)) + '</h2></div>' +
+        '<div class="pages"><section class="pane"><div class="pane-in"><div class="note warn">▲ Dieses Rezept lässt sich nicht auf die Verordnung (' +
+        escapeHtml(fmtRx(d.ratio)) + ', ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) einstellen. Bitte ein anderes Rezept wählen – die Mengen dieses Rezepts dürfen so nicht verwendet werden.</div></div></section></div>';
+      return;
+    }
     const res = mv.res, adjIndex = mv.adjIndex, adjLabel = mv.adjLabel;
     const baseOilIndex = mv.baseOilIndex, waterKey = mv.waterKey, hasWaterOverride = mv.hasWaterOverride;
     const mult = scaleMult(d); // gilt für die Blätter Tag und Kochen; das Blatt Mahlzeit zeigt immer eine Portion
@@ -1716,7 +1770,8 @@
     };
 
     // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept (Blatt Anpassen).
-    const sibs = siblingVariants(rec);
+    // Nur Geschwister, die sich auf die Verordnung einstellen lassen (sonst wären ihre Mengen unbrauchbar)
+    const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
     // Kopf: Verhältnis-Pille, grau Diätologie · Fettbasis · eigenes Rezept
     const headTags = [rec.quelle ? "Diätologie" : "", (rec.ketocal || sibs.length) ? escapeHtml(basisLabel(rec)) : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
@@ -1743,7 +1798,9 @@
     if (meatSlot) {
       const cur = detailMeat || meatSlot.baseKey;
       meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
-        ["huhn", "rind", "pute"].map(k => '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" + MEATS[k].label + "</button>").join("") +
+        ["huhn", "rind", "pute"].map(k => { const ok = meatSwapPossible(rec, d, k);
+          return '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
+            (ok ? "" : ' disabled title="Bei diesem Verhältnis nicht möglich – ' + MEATS[k].label + ' bringt zu viel Fett mit"') + ">" + MEATS[k].label + "</button>"; }).join("") +
         '</div><div class="adj-text">Gilt nur für diese Ansicht. Nur das Fleisch wird getauscht – Gemüse, Wasser und Öl bleiben; die Fleischmenge wird neu berechnet, damit das Verhältnis genau stimmt.</div></div>';
     }
 
@@ -2045,6 +2102,11 @@
       if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
         state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
         const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
+        // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
+        const fk = familyKey(rec);
+        [state.portion, state.water, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
+        state.dayPlan.forEach(sl => { if (sl && sl.key === rec.key) sl.key = null; });
+        if (state.compose && state.compose.editKey === rec.key) state.compose.editKey = null;
         save(); closeDetail(); renderRezepte();
       }
     });
@@ -2190,10 +2252,19 @@
   }
 
   /* ---------- Heute: Tagesplan ---------- */
+  // Weniger Mahlzeiten: die hinteren Plätze werden für diese Sitzung gemerkt und kommen zurück, wenn die Zahl wieder
+  // steigt (z. B. nach „Abbrechen“ oder „Rückgängig“ in der Verordnung).
+  let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
-    while (state.dayPlan.length < d.mahl) state.dayPlan.push({ key: null });
-    if (state.dayPlan.length > d.mahl) state.dayPlan.length = d.mahl;
+    while (state.dayPlan.length < d.mahl) {
+      const i = state.dayPlan.length;
+      state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
+    }
+    if (state.dayPlan.length > d.mahl) {
+      state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
+      state.dayPlan.length = d.mahl;
+    }
   }
   function recipeByKey(key) {
     if (!key) return null;
@@ -2794,7 +2865,12 @@
     if (name.indexOf("s:") === 0) {
       const k = name.slice(2); if (SYNC_LOCAL_SETTINGS.indexOf(k) !== -1) return;
       if (unit.del) delete state.settings[k]; else state.settings[k] = unit.v;
-    } else if (SYNC_PARTS.indexOf(name) !== -1 && !unit.del) state[name] = unit.v;
+    } else if (SYNC_PARTS.indexOf(name) !== -1 && !unit.del) {
+      // Stand eines anderen Geräts prüfen wie ein Backup: falsche Formen verwerfen statt übernehmen
+      const v = unit.v, clean = { favorites: cleanFavorites, savedRecipes: cleanSavedRecipes, dayPlan: cleanDayPlan,
+        scales: cleanNumMap, water: cleanNumMap, portion: cleanNumMap, basis: (b) => isObj(b) ? b : {} }[name];
+      state[name] = clean ? clean(v) : v;
+    }
   }
   // Geänderte Einheiten mit Zeitstempel versehen (Vergleich mit dem zuletzt bekannten Stand)
   function syncMarkChanges(now) {
@@ -2872,6 +2948,7 @@
         if (applied) {
           // übernommenen Stand speichern, ohne ihn als eigene Änderung zu werten
           save(true);
+          if (typeof rebuildFoodIndex === "function") rebuildFoodIndex(); // z. B. übernommene MCT-Etikettwerte sofort verwenden
           syncLastJson = null; const u = syncUnits(); m.last = {}; Object.keys(u).forEach(k => { m.last[k] = JSON.stringify(u[k]); }); syncLastJson = m.last;
           if (typeof renderRezepte === "function") renderRezepte();
         }
@@ -3712,10 +3789,10 @@
       if (!nm) { alert("Bitte oben einen Namen für das Rezept eingeben."); nameInp.focus(); return; }
       if (!lastOk || !lastItems.length) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
       const items = lastItems.map(it => ({ food: it.food, grams: it.grams }));
-      if (compose.editKey) {
-        const sr = state.savedRecipes.find(s => s.key === compose.editKey);
-        if (sr) { sr.name = nm; sr.items = items; }
-      } else {
+      // Bearbeitetes Rezept überschreiben – gibt es es nicht mehr (inzwischen gelöscht), als neues Rezept anlegen
+      const sr = compose.editKey ? state.savedRecipes.find(s => s.key === compose.editKey) : null;
+      if (sr) { sr.name = nm; sr.items = items; }
+      else {
         const key = "custom:" + Date.now();
         state.savedRecipes.unshift({ key, name: nm, icon: "📝", items });
         compose.editKey = key; compose.fromRecipe = nm;

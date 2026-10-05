@@ -42,6 +42,23 @@
     Object.keys(obj || {}).forEach(k => { const nk = toFamilyKey(k); if (!(nk in o)) o[nk] = obj[k]; });
     return o;
   }
+  // Teile des Zustands prüfen (Backup-Import, Geräte-Abgleich, alte Daten): falsche Formen werden einzeln verworfen,
+  // statt alles zurückzusetzen oder die App beim Start abstürzen zu lassen.
+  const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  function cleanNumMap(m) { const o = {}; if (isObj(m)) Object.keys(m).forEach(k => { const v = Number(m[k]); if (isFinite(v)) o[k] = v; }); return o; }
+  function cleanItems(arr, field) {
+    return (Array.isArray(arr) ? arr : []).filter(isObj).map(it => {
+      const o = { food: typeof it.food === "string" ? it.food : "" };
+      o[field] = isFinite(Number(it[field])) ? Number(it[field]) : 0;
+      return o;
+    });
+  }
+  function cleanSavedRecipes(list) {
+    return (Array.isArray(list) ? list : []).filter(r => isObj(r) && typeof r.key === "string" && typeof r.name === "string" && Array.isArray(r.items))
+      .map(r => Object.assign({}, r, { items: cleanItems(r.items, "grams").filter(it => it.food) })).filter(r => r.items.length);
+  }
+  function cleanFavorites(list) { return (Array.isArray(list) ? list : []).filter(k => typeof k === "string"); }
+  function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
   function load(rawOverride) {
@@ -50,7 +67,16 @@
       raw = rawOverride != null ? rawOverride : localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const p = JSON.parse(raw), d = defaultState();
-      const settings = Object.assign(d.settings, p.settings || {});
+      if (!isObj(p)) return defaultState();
+      const defaults = defaultState().settings;
+      const settings = Object.assign(d.settings, isObj(p.settings) ? p.settings : {});
+      // Zahl-Einstellungen: unbrauchbare Werte (null, Text) → Standard; leer ("") bleibt erlaubt (= Vorschlag verwenden)
+      Object.keys(defaults).forEach(k => {
+        const dv = defaults[k], v = settings[k];
+        if (typeof dv !== "number" || v === "" || (typeof v === "number" && isFinite(v))) return;
+        const n = typeof v === "string" ? Number(v.replace(",", ".")) : NaN;
+        settings[k] = isFinite(n) ? n : dv;
+      });
       // Einstellungen früherer Versionen, die nichts mehr steuern (KetoCal-Schalter, feste Wassermengen, Spülen)
       ["withKeto", "showMitKeto", "showOhneKeto", "ketocal", "ketoFilter", "zwischenMl", "spuelMl", "maxMahlMl", "rundung"].forEach(k => { delete settings[k]; });
       // Alte Gruppen-Filter
@@ -58,17 +84,19 @@
       // Favoriten gelten je Rezept: Schlüssel nur umbenennen (alte Namen), nicht mehr auf das Gericht zusammenfassen.
       // Ältere Familien-Favoriten („fam:…“) bleiben erhalten und zählen für beide Varianten.
       const favorites = [];
-      (p.favorites || []).forEach(k => { const nk = (typeof k === "string" && k.indexOf("fam:") === 0) ? toFamilyKey(k) : renameKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
+      cleanFavorites(p.favorites).forEach(k => { const nk = (typeof k === "string" && k.indexOf("fam:") === 0) ? toFamilyKey(k) : renameKey(k); if (favorites.indexOf(nk) === -1) favorites.push(nk); });
       return {
         settings: settings,
-        compose: Object.assign(d.compose, p.compose || {}),
+        compose: isObj(p.compose) ? Object.assign(d.compose, p.compose, {
+          items: Array.isArray(p.compose.items) ? cleanItems(p.compose.items, "grams") : d.compose.items,
+          fats: Array.isArray(p.compose.fats) ? cleanItems(p.compose.fats, "share") : d.compose.fats }) : d.compose,
         favorites: favorites,
-        savedRecipes: p.savedRecipes || [],
-        scales: remapKeys(p.scales),
-        water: remapKeys(p.water),
-        portion: remapKeys(p.portion),
-        dayPlan: (Array.isArray(p.dayPlan) ? p.dayPlan : []).map(sl => ({ key: renameKey(sl && sl.key) || null })),
-        basis: p.basis && typeof p.basis === "object" ? p.basis : {},
+        savedRecipes: cleanSavedRecipes(p.savedRecipes),
+        scales: remapKeys(cleanNumMap(p.scales)),
+        water: remapKeys(cleanNumMap(p.water)),
+        portion: remapKeys(cleanNumMap(p.portion)),
+        dayPlan: cleanDayPlan(p.dayPlan).map(sl => ({ key: renameKey(sl.key) || null })),
+        basis: isObj(p.basis) ? p.basis : {},
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.

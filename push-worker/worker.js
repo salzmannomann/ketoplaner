@@ -108,8 +108,14 @@ async function sendPush(env, subscription, message) {
 async function readIndex(env) { return (await env.PUSH_KV.get("index", "json")) || []; }
 async function writeIndex(env, ids) { await env.PUSH_KV.put("index", JSON.stringify([...new Set(ids)])); }
 function cleanText(t) { return String(t == null ? "" : t).slice(0, MAX_TEXT); }
+// Nur echte Push-Dienste der Browser als Ziel (sonst ließe sich der Dienst als Weiterleitung an beliebige Adressen nutzen)
+const PUSH_HOSTS = [/(^|\.)fcm\.googleapis\.com$/, /(^|\.)android\.googleapis\.com$/, /(^|\.)push\.apple\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/];
+function pushHostOk(endpoint) {
+  try { const u = new URL(endpoint); return u.protocol === "https:" && !u.port && PUSH_HOSTS.some(re => re.test(u.hostname)); } catch (e) { return false; }
+}
 function validSub(s) {
-  return s && typeof s.endpoint === "string" && /^https:\/\//.test(s.endpoint) && s.keys && typeof s.keys.p256dh === "string" && typeof s.keys.auth === "string";
+  return s && typeof s.endpoint === "string" && pushHostOk(s.endpoint) && s.keys && typeof s.keys.p256dh === "string" && typeof s.keys.auth === "string";
 }
 // Ortszeit „HH:MM“ und Datum „JJJJ-MM-TT“ in der Zeitzone des Geräts
 function localNow(tz, date) {
@@ -117,12 +123,16 @@ function localNow(tz, date) {
   const g = (t) => (parts.find(p => p.type === t) || {}).value;
   return { day: g("year") + "-" + g("month") + "-" + g("day"), min: (+g("hour")) * 60 + (+g("minute")) };
 }
+// Gültige IANA-Zeitzone? Sonst Europe/Vienna (eine ungültige würde jede Minute einen Fehler werfen)
+function validTz(tz) { try { new Intl.DateTimeFormat("en", { timeZone: tz }); return tz; } catch (e) { return "Europe/Vienna"; } }
 const toMin = (hm) => { const m = /^(\d{1,2}):(\d{2})$/.exec(hm || ""); return m ? (+m[1]) * 60 + (+m[2]) : null; };
 
 // ---------- Minütliche Runde: fällige Erinnerungen verschicken ----------
 async function tick(env, now) {
   const ids = await readIndex(env); let changed = false; const keep = [];
   for (const id of ids) {
+    // Jedes Gerät für sich: ein fehlerhafter Eintrag (kaputte Schlüssel, Netzfehler) darf die anderen nicht aufhalten
+    try {
     const rec = await env.PUSH_KV.get("sub:" + id, "json");
     if (!rec) { changed = true; continue; }
     const { day, min } = localNow(rec.tz, now);
@@ -140,6 +150,7 @@ async function tick(env, now) {
     if (gone) { await env.PUSH_KV.delete("sub:" + id); changed = true; continue; }
     keep.push(id);
     if (sentNew) { rec.sent = { day, keys: sent }; await env.PUSH_KV.put("sub:" + id, JSON.stringify(rec)); }
+    } catch (e) { keep.push(id); console.log("Erinnerung für " + id + " fehlgeschlagen: " + (e && e.message)); }
   }
   if (changed) await writeIndex(env, keep);
 }
@@ -165,7 +176,7 @@ async function handle(request, env) {
     const id = await sha256hex(data.subscription.endpoint);
     const old = await env.PUSH_KV.get("sub:" + id, "json");
     const rec = { subscription: { endpoint: data.subscription.endpoint, keys: { p256dh: data.subscription.keys.p256dh, auth: data.subscription.keys.auth } },
-      tz: cleanText(data.tz || "Europe/Vienna").slice(0, 64), items, sent: old && old.sent ? old.sent : null, updated: Date.now() };
+      tz: validTz(cleanText(data.tz || "Europe/Vienna").slice(0, 64)), items, sent: old && old.sent ? old.sent : null, updated: Date.now() };
     await env.PUSH_KV.put("sub:" + id, JSON.stringify(rec));
     const ids = await readIndex(env); if (ids.indexOf(id) === -1) { ids.push(id); await writeIndex(env, ids); }
     return json(env, { ok: true, items: items.length });

@@ -116,12 +116,14 @@
       const isW = (it) => /wasser/i.test(it.food);
       const sumW = res.items.filter(isW).reduce((a, it) => a + num(it.grams), 0);
       let first = true;
-      const items2 = res.items.map(it => {
+      let items2 = res.items.map(it => {
         if (!isW(it)) return it;
         let g;
         if (sumW > 0) g = num(it.grams) * target / sumW; else { g = first ? target : 0; first = false; }
         return { food: it.food, grams: round1(g) };
       });
+      // Rezept ohne eigene Wasser-Zutat (z. B. HiPP-Gläschen): gemerktes Wasser als eigene Zeile anhängen
+      if (!res.items.some(isW) && target > 0) items2 = items2.concat([{ food: "Wasser", grams: round1(target) }]);
       const sm2 = sumMacros(items2);
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
@@ -276,10 +278,30 @@
     pages.addEventListener("pointerup", end);
     pages.addEventListener("pointerleave", end);
   }
+  // Lässt sich das Fleisch bei dieser Verordnung tauschen? (Bei sehr niedrigem Verhältnis bringt z. B. Rind schon zu viel
+  // Fett mit – dann gibt es keine Fleischmenge, die das Verhältnis trifft.)
+  function meatSwapPossible(rec, d, k) {
+    const slot = recipeMeatSlot(rec); if (!slot || !k || k === slot.baseKey) return true;
+    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio); if (!base.ok) return false;
+    const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
+    return !!solveMeatForRatio(swapped, slot.index, d.ratio);
+  }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
+    // Nicht mögliche Fleischwahl (z. B. nach geänderter Verordnung) zurücksetzen, statt still beim Original zu bleiben
+    if (detailMeat && !meatSwapPossible(rec, d, detailMeat)) detailMeat = null;
     const mv = computeMealView(rec, d, detailMeat);
+    // Lässt sich das Rezept nicht auf die Verordnung einstellen, sind seine Gramm unbrauchbar: keine Mengen, kein
+    // Einplanen und kein Drucken – nur der Hinweis (z. B. nach geänderter Verordnung oder über einen alten Link).
+    if (!mv.res.ok) {
+      const cc = document.getElementById("detail-content");
+      cc.innerHTML = '<div class="sheet-grip" aria-hidden="true"></div><div class="detail-head"><div class="dh-tags"><span class="ratio-pill bad">' +
+        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + escapeHtml(familyOf(rec)) + '</h2></div>' +
+        '<div class="pages"><section class="pane"><div class="pane-in"><div class="note warn">▲ Dieses Rezept lässt sich nicht auf die Verordnung (' +
+        escapeHtml(fmtRx(d.ratio)) + ', ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) einstellen. Bitte ein anderes Rezept wählen – die Mengen dieses Rezepts dürfen so nicht verwendet werden.</div></div></section></div>';
+      return;
+    }
     const res = mv.res, adjIndex = mv.adjIndex, adjLabel = mv.adjLabel;
     const baseOilIndex = mv.baseOilIndex, waterKey = mv.waterKey, hasWaterOverride = mv.hasWaterOverride;
     const mult = scaleMult(d); // gilt für die Blätter Tag und Kochen; das Blatt Mahlzeit zeigt immer eine Portion
@@ -320,7 +342,8 @@
     };
 
     // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept (Blatt Anpassen).
-    const sibs = siblingVariants(rec);
+    // Nur Geschwister, die sich auf die Verordnung einstellen lassen (sonst wären ihre Mengen unbrauchbar)
+    const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
     // Kopf: Verhältnis-Pille, grau Diätologie · Fettbasis · eigenes Rezept
     const headTags = [rec.quelle ? "Diätologie" : "", (rec.ketocal || sibs.length) ? escapeHtml(basisLabel(rec)) : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
@@ -347,7 +370,9 @@
     if (meatSlot) {
       const cur = detailMeat || meatSlot.baseKey;
       meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
-        ["huhn", "rind", "pute"].map(k => '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" + MEATS[k].label + "</button>").join("") +
+        ["huhn", "rind", "pute"].map(k => { const ok = meatSwapPossible(rec, d, k);
+          return '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
+            (ok ? "" : ' disabled title="Bei diesem Verhältnis nicht möglich – ' + MEATS[k].label + ' bringt zu viel Fett mit"') + ">" + MEATS[k].label + "</button>"; }).join("") +
         '</div><div class="adj-text">Gilt nur für diese Ansicht. Nur das Fleisch wird getauscht – Gemüse, Wasser und Öl bleiben; die Fleischmenge wird neu berechnet, damit das Verhältnis genau stimmt.</div></div>';
     }
 
@@ -649,6 +674,11 @@
       if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
         state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
         const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
+        // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
+        const fk = familyKey(rec);
+        [state.portion, state.water, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
+        state.dayPlan.forEach(sl => { if (sl && sl.key === rec.key) sl.key = null; });
+        if (state.compose && state.compose.editKey === rec.key) state.compose.editKey = null;
         save(); closeDetail(); renderRezepte();
       }
     });

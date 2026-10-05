@@ -235,7 +235,11 @@
     const st = p && p.state && p.state.settings ? p.state : (p && p.settings ? p : null);
     if (!st) { alert("Das Backup enthält keine HamHam-Keto-Daten."); return; }
     if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
-    state = load(JSON.stringify(st)); const stored = save();
+    // Was nur zu diesem Gerät gehört (Erinnerungen und deren Dienst-Adresse), nicht aus dem Backup übernehmen
+    const keep = {}; ["pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"].forEach(k => { keep[k] = state.settings[k]; });
+    state = load(JSON.stringify(st));
+    Object.keys(keep).forEach(k => { if (keep[k] === undefined) delete state.settings[k]; else state.settings[k] = keep[k]; });
+    const stored = save();
     rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
     alert(stored ? "Backup importiert." : "Backup übernommen – aber der Speicher dieses Browsers ist nicht beschreibbar (privates Fenster oder voll). Nach dem Schließen ist es wieder weg.");
   }

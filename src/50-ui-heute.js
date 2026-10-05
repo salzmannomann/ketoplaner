@@ -1,8 +1,17 @@
   /* ---------- Heute: Tagesplan ---------- */
+  // Weniger Mahlzeiten: die hinteren Plätze werden für diese Sitzung gemerkt und kommen zurück, wenn die Zahl wieder
+  // steigt (z. B. nach „Abbrechen“ oder „Rückgängig“ in der Verordnung).
+  let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
-    while (state.dayPlan.length < d.mahl) state.dayPlan.push({ key: null });
-    if (state.dayPlan.length > d.mahl) state.dayPlan.length = d.mahl;
+    while (state.dayPlan.length < d.mahl) {
+      const i = state.dayPlan.length;
+      state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
+    }
+    if (state.dayPlan.length > d.mahl) {
+      state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
+      state.dayPlan.length = d.mahl;
+    }
   }
   function recipeByKey(key) {
     if (!key) return null;

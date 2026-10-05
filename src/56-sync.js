@@ -32,7 +32,12 @@
     if (name.indexOf("s:") === 0) {
       const k = name.slice(2); if (SYNC_LOCAL_SETTINGS.indexOf(k) !== -1) return;
       if (unit.del) delete state.settings[k]; else state.settings[k] = unit.v;
-    } else if (SYNC_PARTS.indexOf(name) !== -1 && !unit.del) state[name] = unit.v;
+    } else if (SYNC_PARTS.indexOf(name) !== -1 && !unit.del) {
+      // Stand eines anderen Geräts prüfen wie ein Backup: falsche Formen verwerfen statt übernehmen
+      const v = unit.v, clean = { favorites: cleanFavorites, savedRecipes: cleanSavedRecipes, dayPlan: cleanDayPlan,
+        scales: cleanNumMap, water: cleanNumMap, portion: cleanNumMap, basis: (b) => isObj(b) ? b : {} }[name];
+      state[name] = clean ? clean(v) : v;
+    }
   }
   // Geänderte Einheiten mit Zeitstempel versehen (Vergleich mit dem zuletzt bekannten Stand)
   function syncMarkChanges(now) {
@@ -110,6 +115,7 @@
         if (applied) {
           // übernommenen Stand speichern, ohne ihn als eigene Änderung zu werten
           save(true);
+          if (typeof rebuildFoodIndex === "function") rebuildFoodIndex(); // z. B. übernommene MCT-Etikettwerte sofort verwenden
           syncLastJson = null; const u = syncUnits(); m.last = {}; Object.keys(u).forEach(k => { m.last[k] = JSON.stringify(u[k]); }); syncLastJson = m.last;
           if (typeof renderRezepte === "function") renderRezepte();
         }
