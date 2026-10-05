@@ -895,7 +895,9 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   const peek = $(w, "recipe-peek");
   assert.ok(peek, "Nachbargruppe wird beim Ziehen gerendert");
   const heads = [...peek.querySelectorAll(".group-head")].map(h => h.textContent);
-  assert.ok(heads.length >= 1 && heads.every(h => /Geflügel/.test(h)), "zweite Fläche zeigt nur die Nachbargruppe: " + heads.join(", "));
+  // Favoriten stehen bei jeder Gruppe oben; daneben nur die Nachbargruppe
+  const groupHeads = heads.filter(h => !/Favoriten/.test(h));
+  assert.ok(groupHeads.length >= 1 && groupHeads.every(h => /Geflügel/.test(h)), "zweite Fläche zeigt nur die Nachbargruppe (und die Favoriten): " + heads.join(", "));
   assert.ok(peek.querySelectorAll(".tile").length >= 5, "Kacheln in der zweiten Fläche");
   assert.equal(list.style.transform, "translateX(-60px)");
   assert.equal(peek.style.transform, "translateX(284px)", "Nachbarfläche eine Seitenbreite (320 + 24 Spalt) daneben");

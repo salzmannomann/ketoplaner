@@ -764,25 +764,29 @@
   function fillRecipeList(list, filter, ctx) {
     const { d, q, onlyQuelle, hideKeto, sort } = ctx;
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
+    // Favoriten stehen immer oben – auch wenn eine Gruppe (Geflügel, Fisch …) gewählt ist. Suche und die Schalter
+    // „nur Diätologie“ / „ohne KetoCal“ gelten für sie wie für alle anderen Rezepte.
     const entries = [];
     allRecipes().forEach(rec => {
       const name = familyOf(rec);
       if (onlyQuelle && !rec.quelle) return;
       if (hideKeto && rec.ketocal) return;
-      if (!matchesFilter(rec, filter)) return;
+      const fav = isFav(rec);
+      if (!fav && !matchesFilter(rec, filter)) return;
       if (q && name.toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
       const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       if (!res.ok) return;
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
-      entries.push({ fam: { name: name }, rec, res: computeMealView(rec, d, null).res });
+      entries.push({ fam: { name: name }, rec, res: computeMealView(rec, d, null).res, fav });
     });
     // Innerhalb einer Gruppe: nach Name, gleiche Namen ohne KetoCal zuerst
     const byName = (a, b) => a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0));
+    const favs = entries.filter(x => x.fav), rest = entries.filter(x => !x.fav);
 
     list.innerHTML = "";
     list.dataset.count = entries.length;
-    if (entries.length === 0) {
-      // Keine Treffer: Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+    // Keine Treffer (in der Gruppe): Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+    const emptyLine = () => {
       const box = el("div", { class: "empty-line" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe." : filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
       if (q && filter !== "alle") {
         const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
@@ -793,9 +797,9 @@
         b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
       }
-      list.appendChild(box);
-      return;
-    }
+      return box;
+    };
+    if (entries.length === 0) { list.appendChild(emptyLine()); return; }
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
@@ -810,12 +814,11 @@
     }
 
     if (sort === "kategorie") {
-      // Favoriten oben als eigene Gruppe – unter „Alle“ und im Chip „Favoriten“; in einer Gruppe stehen sie normal mit.
-      const favTop = filter === "alle" || filter === "favoriten";
-      const favs = favTop ? entries.filter(x => isFav(x.rec)) : [];
-      const rest = favTop ? entries.filter(x => !isFav(x.rec)) : entries;
+      // Favoriten oben als eigene Gruppe (bei jedem Gruppen-Chip), darunter die Gruppen ohne die Favoriten (nichts doppelt)
       appendGroup("Favoriten", favs);
       FILTERS.filter(f => f.id !== "alle" && f.id !== "favoriten").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
+      // Gruppe gewählt, aber außer den Favoriten nichts darin: Hinweis unter den Favoriten
+      if (!rest.length && filter !== "alle" && filter !== "favoriten") list.appendChild(emptyLine());
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss

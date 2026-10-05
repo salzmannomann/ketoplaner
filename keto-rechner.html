@@ -719,13 +719,17 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #view-rezepte { display: block; }
   .rz-layout { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; max-width: 1240px; }
   .rz-main { flex: 2 1 420px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
-  .rz-head { grid-column: 1 / -1; }
-  .rz-search-slot { flex: 1 1 200px; max-width: 280px; min-width: 0; display: flex; }
+  /* Kopf mit festem Raster, damit er beim Wechsel der Filter nicht springt: oben Anzahl + Titel und die Suche,
+     darunter die Häkchen und „+ Eigenes Rezept“; eine lange Anzahl wird gekürzt statt umzubrechen */
+  .dk-head.rz-head { grid-column: 1 / -1; display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(220px, 300px); align-items: end; gap: 6px 16px; }
+  .rz-head .dk-title { grid-column: 1 / 4; grid-row: 1; margin: 0; }
+  .rz-head .dk-title .overline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rz-search-slot { grid-column: 4; grid-row: 1; min-width: 0; display: flex; }
   .rz-search-slot .line-input { width: 100%; min-height: 40px; font-size: 15px; }
-  .rz-toggles { display: flex; gap: 12px; align-items: center; padding-bottom: 10px; }
+  .rz-toggles { grid-column: 1; grid-row: 2; align-self: center; display: flex; gap: 12px; align-items: center; }
   .dk-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; cursor: pointer; }
   .dk-check input { margin: 0; accent-color: var(--ink); }
-  #compose-link { min-width: 0; min-height: 40px; font-size: 13px; }
+  #compose-link { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; min-width: 0; min-height: 40px; margin-left: 12px; font-size: 13px; }
   .search-row { display: none; }
   .listbar { grid-column: 1; grid-row: 2; min-width: 0; margin: -4px 0 0; }
   .list-meta { grid-column: 2; grid-row: 2; margin: -4px 0 0; }
@@ -3011,25 +3015,29 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function fillRecipeList(list, filter, ctx) {
     const { d, q, onlyQuelle, hideKeto, sort } = ctx;
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
+    // Favoriten stehen immer oben – auch wenn eine Gruppe (Geflügel, Fisch …) gewählt ist. Suche und die Schalter
+    // „nur Diätologie“ / „ohne KetoCal“ gelten für sie wie für alle anderen Rezepte.
     const entries = [];
     allRecipes().forEach(rec => {
       const name = familyOf(rec);
       if (onlyQuelle && !rec.quelle) return;
       if (hideKeto && rec.ketocal) return;
-      if (!matchesFilter(rec, filter)) return;
+      const fav = isFav(rec);
+      if (!fav && !matchesFilter(rec, filter)) return;
       if (q && name.toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
       const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       if (!res.ok) return;
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
-      entries.push({ fam: { name: name }, rec, res: computeMealView(rec, d, null).res });
+      entries.push({ fam: { name: name }, rec, res: computeMealView(rec, d, null).res, fav });
     });
     // Innerhalb einer Gruppe: nach Name, gleiche Namen ohne KetoCal zuerst
     const byName = (a, b) => a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0));
+    const favs = entries.filter(x => x.fav), rest = entries.filter(x => !x.fav);
 
     list.innerHTML = "";
     list.dataset.count = entries.length;
-    if (entries.length === 0) {
-      // Keine Treffer: Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+    // Keine Treffer (in der Gruppe): Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+    const emptyLine = () => {
       const box = el("div", { class: "empty-line" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe." : filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
       if (q && filter !== "alle") {
         const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
@@ -3040,9 +3048,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
       }
-      list.appendChild(box);
-      return;
-    }
+      return box;
+    };
+    if (entries.length === 0) { list.appendChild(emptyLine()); return; }
 
     function appendGroup(title, arr) {
       if (!arr.length) return;
@@ -3057,12 +3065,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
 
     if (sort === "kategorie") {
-      // Favoriten oben als eigene Gruppe – unter „Alle“ und im Chip „Favoriten“; in einer Gruppe stehen sie normal mit.
-      const favTop = filter === "alle" || filter === "favoriten";
-      const favs = favTop ? entries.filter(x => isFav(x.rec)) : [];
-      const rest = favTop ? entries.filter(x => !isFav(x.rec)) : entries;
+      // Favoriten oben als eigene Gruppe (bei jedem Gruppen-Chip), darunter die Gruppen ohne die Favoriten (nichts doppelt)
       appendGroup("Favoriten", favs);
       FILTERS.filter(f => f.id !== "alle" && f.id !== "favoriten").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
+      // Gruppe gewählt, aber außer den Favoriten nichts darin: Hinweis unter den Favoriten
+      if (!rest.length && filter !== "alle" && filter !== "favoriten") list.appendChild(emptyLine());
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
