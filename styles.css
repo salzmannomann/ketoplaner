@@ -330,10 +330,11 @@ body.heute-tight .page-title { font-size: 28px; }
 .list-meta { display: flex; align-items: center; gap: 10px; margin-top: -4px; font-size: 13px; color: var(--grey); }
 .list-count { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sort-wrap { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 13px; color: var(--grey); white-space: nowrap; }
-:root .sort-wrap select { width: auto; height: auto; min-height: 32px; padding: 0 16px 0 2px; border: 0; border-radius: 0; background: transparent;
-  color: var(--ink); font: 600 13px var(--f-sans); text-decoration: underline; text-underline-offset: 3px; -webkit-appearance: none; appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: right 6px top 55%, right 2px top 55%; background-size: 4px 4px; background-repeat: no-repeat; cursor: pointer; }
+/* Sortierung: echtes Auswahlfeld (vier Möglichkeiten), aber als Textlink – unterstrichen, ohne Rahmen und ohne Pfeil */
+:root .sort-wrap select { width: auto; height: auto; min-height: 32px; padding: 0 2px; border: 0; border-radius: 0; background: transparent;
+  color: var(--ink); font: 600 13px var(--f-sans); text-decoration: underline; text-underline-offset: 3px;
+  -webkit-appearance: none; appearance: none; background-image: none; text-align: right; cursor: pointer; }
+:root .sort-wrap select::-ms-expand { display: none; }
 .search-row { display: flex; align-items: center; gap: 10px; }
 .search-row .line-input { flex: 1; min-width: 0; }
 .round-btn.plus { font: 600 22px var(--f-sans); }
