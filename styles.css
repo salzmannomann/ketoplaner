@@ -131,7 +131,9 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 /* Druckvorschau in der App: Leiste mit Zurück und Drucken, darunter das weiße Blatt. Beim Drucken nur das Blatt. */
 .print-overlay[hidden] { display: none; }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-.print-sheet { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1f2933; padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+/* Das Blatt ist immer weißes Papier: Tinte, Grau und Punktlinie hier fest hell definiert (gilt auch im Dunkelmodus und erbt
+   ins Shadow-DOM der Vorschau) */
+.print-sheet { --ink: #2a2621; --grey: #645d53; --dot: #a99f8f; width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: var(--ink); padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
 /* Randlose Vorlage (Küchenzettel): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst; Querformat breiter */
 .print-sheet.bleed { padding: 0; overflow: hidden; }
 .print-sheet.landscape { width: 1123px; min-height: 794px; }

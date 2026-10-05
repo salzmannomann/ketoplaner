@@ -1090,11 +1090,21 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   // Rezept-Ausdruck aus der Detailansicht: Vorschau liegt über dem Rezept, Zurück führt ins Rezept
   const c = openRecipe(w, "Compleat & KetoCal");
   fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
-  assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal.*KetoCal.*Zutaten/);
+  assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal.*Verhältnis.*Zutaten/);
+  assert.match($(w, "print-sheet").shadowRoot.querySelector(".rx").textContent, /^Verhältnis [\d,]+:1 · /, "Kennzeile ohne Fettbasis, beginnt mit dem Verhältnis");
+  assert.equal($(w, "print-sheet").shadowRoot.querySelector("h1 .name-suffix"), null, "Sondennahrung ohne Zusatz");
   assert.ok(!$(w, "print-sheet").classList.contains("bleed"), "Rezept wieder mit Seitenrand");
   assert.match(w.document.getElementById("print-page-style").textContent, /size:A4 portrait/);
   fire(w, $(w, "print-back"));
   assert.ok(ov.hidden); assert.ok(!$(w, "detail-overlay").hidden, "Rezept bleibt offen");
+  // Titel wie in der App: Name groß, „· mit KetoCal“ klein in .name-suffix
+  fire(w, $(w, "detail-close"));
+  const c2 = openRecipe(w, "Hendl & Karfiol · mit KetoCal");
+  fire(w, [...c2.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
+  const h1 = $(w, "print-sheet").shadowRoot.querySelector("h1");
+  assert.equal(h1.firstChild.textContent, "Hendl & Karfiol");
+  assert.equal(h1.querySelector(".name-suffix").textContent, " · mit KetoCal");
+  fire(w, $(w, "print-back"));
 });
 
 test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü übergeben (Fallback: Download)", async () => {

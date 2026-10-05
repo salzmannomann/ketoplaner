@@ -47,7 +47,7 @@
       t: txt(r, ".t"), n: txt(r, ".n"), d: txt(r, ".d"), m: txt(r, ".m"),
     }));
     const recs = [...kz.querySelectorAll(".rb")].map(b => ({
-      n: txt(b, ".rn b"), times: txt(b, ".rn i"),
+      n: txt(b, ".rn b"), sx: txt(b, ".rn .name-suffix").trim(), times: txt(b, ".rn i"),
       z: [...b.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
     }));
     const labels = [...kz.querySelectorAll(".lbl")].map(l => pdfText(l.textContent));
@@ -113,12 +113,19 @@
           const cells = rc.z.slice(i, i + 2).map(it => { font("mono", ZS, true); const gw = doc.getTextWidth(it.g); font("sans", ZS, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
           pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
         }
-        const head = 0.45 * em + lineH(tn) + 0.3 * em;
+        // Zusatz „· mit KetoCal“ klein und grau hinter dem Namen; passt er nicht neben Name und Uhrzeiten, darunter
+        const sxs = tn * 0.62;
+        font("serif", tn, true); const nW = doc.getTextWidth(rc.n);
+        font("mono", ti, false); const tW = doc.getTextWidth(rc.times) + 2;
+        font("sans", sxs, false); const sW = rc.sx ? doc.getTextWidth(rc.sx) : 0;
+        const sxInline = !rc.sx || nW + 1 + sW <= R - L - tW;
+        const head = 0.45 * em + lineH(tn) + (sxInline ? 0 : lineH(sxs)) + 0.3 * em;
         const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + 0.5 * em;
         if (draw) {
           pdfRule(doc, L, y, R, y, 0.25);
           let yy = y + 0.45 * em + lineH(tn) * 0.8;
           font("serif", tn, true); doc.text(rc.n, L, yy);
+          if (rc.sx) { font("sans", sxs, false, GREY); if (sxInline) doc.text(rc.sx, L + nW + 1, yy); else doc.text(rc.sx.replace(/^·\s*/, ""), L, yy + lineH(sxs)); }
           font("mono", ti, false, GREY); doc.text(rc.times, R, yy, { align: "right" });
           yy = y + head;
           pairs.forEach(q => {
@@ -164,7 +171,7 @@
       doc.splitTextToSize(t, W - indent).forEach(l => { ensure(lh); doc.text(l, M + indent, y + lh * 0.78); y += lh; });
       y += o.gap == null ? 1.5 : o.gap;
     };
-    // Kennzeile unter dem Kopf: Fettbasis fett in Tinte, der Rest grau
+    // Kennzeile unter dem Kopf: grau (ein fetter Anfang in <b> stünde in Tinte)
     const rxLine = (el) => {
       const size = 9, lh = lineH(size), b = el.querySelector("b");
       const all = pdfText(el.textContent), lead = b ? pdfText(b.textContent) : "";
@@ -231,10 +238,24 @@
       if (cls === "head") {
         const h1 = el.querySelector("h1"), meta = el.querySelector(".meta");
         const metaLines = meta ? meta.innerHTML.split(/<br\s*\/?>/i).map(s => pdfText(s.replace(/<[^>]+>/g, ""))) : [];
-        font(22, true, INK, "times"); const titleLines = doc.splitTextToSize(pdfText(h1 ? h1.textContent : ""), W - 60);
-        const lh = 22 * 0.3528 * 1.08, mlh = 3.6;
-        const th = titleLines.length * lh, mh = metaLines.length * mlh, hh = Math.max(th, mh);
-        titleLines.forEach((l, i) => doc.text(l, M, y + hh - th + lh * 0.8 + i * lh));
+        // Titel: Name in Times fett 22 pt, Zusatz („· mit KetoCal“) in Helvetica 12 pt grau auf derselben Grundlinie –
+        // passt er nicht mehr in die Zeile, steht er darunter. Rechts bleiben 60 mm für Datum und Menge frei.
+        const sxEl = h1 && h1.querySelector(".name-suffix"), nameEl = h1 ? h1.cloneNode(true) : null;
+        if (nameEl) [...nameEl.querySelectorAll(".name-suffix")].forEach(n => n.remove());
+        const suffix = sxEl ? pdfText(sxEl.textContent).trim() : "", TW = W - 60;
+        font(22, true, INK, "times"); const titleLines = doc.splitTextToSize(pdfText(nameEl ? nameEl.textContent : "").trim(), TW);
+        const lastW = doc.getTextWidth(titleLines[titleLines.length - 1] || "");
+        font(12, false, GREY); const sxW = suffix ? doc.getTextWidth(suffix) : 0, gap = 1.6;
+        const sxInline = !suffix || lastW + gap + sxW <= TW;
+        const lh = 22 * 0.3528 * 1.08, slh = 12 * 0.3528 * 1.3, mlh = 3.6;
+        const th = titleLines.length * lh + (sxInline ? 0 : slh), mh = metaLines.length * mlh, hh = Math.max(th, mh);
+        const ty = y + hh - th + lh * 0.8;
+        font(22, true, INK, "times"); titleLines.forEach((l, i) => doc.text(l, M, ty + i * lh));
+        if (suffix) {
+          font(12, false, GREY);
+          if (sxInline) doc.text(suffix, M + lastW + gap, ty + (titleLines.length - 1) * lh);
+          else doc.text(suffix.replace(/^·\s*/, ""), M, ty + (titleLines.length - 1) * lh + slh); // allein in der Zeile ohne „·“
+        }
         font(8.5, false, GREY, "courier"); metaLines.forEach((l, i) => doc.text(l, PW - M, y + hh - mh + mlh * 0.8 + i * mlh, { align: "right" }));
         y += hh + 2.5;
         pdfRule(doc, M, y, PW - M, y, 0.45); y += 3.5;

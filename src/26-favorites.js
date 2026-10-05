@@ -38,13 +38,6 @@
     }));
     return saved.concat(RECIPES_SONDE);
   }
-  // Fettbasis einer Variante als Kurztext für den Ausdruck: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
-  function basisLabel(rec) {
-    const fi = fatItemIndex(rec.items);
-    const lever = fi >= 0 ? String(rec.items[fi].food).replace(/ NÖM$/, "") : "";
-    if (hasKetoCal(rec.items)) return lever && !/ketocal/i.test(lever) ? "KetoCal + " + lever : "KetoCal";
-    return lever || "ohne Fett";
-  }
   // Alle Gerichte in Reihenfolge des ersten Auftretens: { key, name, icon, variants: [rec …] }
   function allFamilies() {
     const map = {}, order = [];
