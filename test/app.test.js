@@ -47,7 +47,7 @@ const ratioOf = (c) => {
 const kcalOf = (c) => parseFloat([...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat .v, .pane[data-pane=abwiegen] .dstat .v, .pane[data-pane=anpassen] .dstat .v")][0].textContent.replace(".", ""));
 function kitchenRows(c) {
   const out = {};
-  [...c.querySelectorAll("table.kitchen tbody tr:not(.sum)")].forEach(r => {
+  [...c.querySelectorAll(".ing-list.kitchen .ing-row:not(.sum)")].forEach(r => {
     out[r.querySelector(".name").textContent.replace(/⟵.*/, "").trim()] = parseFloat(r.querySelector("input").value.replace(",", "."));
   });
   return out;
@@ -125,7 +125,7 @@ test("Wasser wird unabhängig geändert und je Rezept gemerkt; andere Zutaten sk
   const w = boot({ settings: { mctShare: 0 } });
   let c = openRecipe(w, "Hendl & Brokkoli");
   const before = kitchenRows(c);
-  const win = [...c.querySelectorAll("table.kitchen tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
+  const win = [...c.querySelectorAll(".ing-list.kitchen .ing-row")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
   win.value = "100"; fire(w, win, "change");
   c = $(w, "detail-content");
   const after = kitchenRows(c);
@@ -138,13 +138,13 @@ test("Wasser wird unabhängig geändert und je Rezept gemerkt; andere Zutaten sk
   assert.equal(kitchenRows(openRecipe(w2, "Hendl & Brokkoli"))["Wasser"], 100);
   // Andere Zutat: alles skaliert mit, Wasser folgt je Portion
   let c2 = $(w2, "detail-content");
-  const hin = [...c2.querySelectorAll("table.kitchen tr")].find(r => /Hüh/.test(r.textContent)).querySelector("input");
+  const hin = [...c2.querySelectorAll(".ing-list.kitchen .ing-row")].find(r => /Hüh/.test(r.textContent)).querySelector("input");
   hin.value = String(before["Hühnerbrust ohne Haut"] * 2); fire(w2, hin, "change");
   c2 = $(w2, "detail-content");
   const r2 = kitchenRows(c2);
   assert.ok(Math.abs(r2["Broccoli, gekocht"] - before["Broccoli, gekocht"] * 2) < 0.6, "Portion angepasst (0,5-g-Rundung × 5)");
   assert.equal(r2["Wasser"], 100, "gemerktes Wasser bleibt");
-  assert.match(tagStatus(c2).textContent, /Portion angepasst: 200 %.*↺ wie berechnet.*Wasser angepasst \(100 statt \d+ ml\) · ↺ wie berechnet/);
+  assert.match(tagStatus(c2).textContent, /Portion angepasst: 200 %.*wie berechnet · Wasser angepasst \(100 statt \d+ ml\) wie berechnet$/);
   fire(w2, tagStatus(c2).querySelector(".portion-reset")); c2 = $(w2, "detail-content");
   assert.ok(Math.abs(kitchenRows(c2)["Broccoli, gekocht"] - before["Broccoli, gekocht"]) < 0.2, "Portion zurückgesetzt");
   assert.match(tagStatus(c2).textContent, /^Wasser angepasst/);
@@ -211,7 +211,7 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   const favB = [...c.querySelectorAll(".btn")].find(b => /Favorit/.test(b.textContent));
   favB.click();
   // Stern sofort gefüllt, Ansicht bleibt (Menge nicht zurückgesetzt), Liste dahinter zeigt den Favoriten schon
-  assert.match(favB.textContent, /★/);
+  assert.ok(favB.classList.contains("on") && favB.getAttribute("aria-pressed") === "true", "Stern gefüllt");
   assert.equal($(w, "detail-content").querySelector("#portion-input").value, "4", "Stern setzt die Ansicht nicht zurück");
   assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini" && /KetoCal/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
   fire(w, $(w, "detail-close"));
@@ -231,7 +231,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   let c = openRecipe(w, "Compleat & KetoCal");
   const rK = kitchenRows(c); // Tag = 4 Portionen (alle Vergleiche relativ)
   assert.equal(rK["Aptamil Pre (Pulver)"], undefined); assert.ok(rK["Ketocal 3:1"] > 0);
-  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67] : 1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1, "kcal " + kcalOf(c));
   const mlK = rK["Compleat Paediatric Nature Mix (Nestlé)"];
   const info = c.querySelector(".note.pack").textContent;
   assert.match(info, /reicht für \d+ Mahlzeiten/); assert.ok(!/aufteilen|aufbrauchen in/i.test(info), "keine Aufteilungs-Steuerung mehr");
@@ -240,7 +240,7 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   c = openRecipe(w, "Compleat & KetoCal & Pre Apta");
   const rP = kitchenRows(c);
   assert.ok(rP["Aptamil Pre (Pulver)"] > 0, "Pre Apta enthalten");
-  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1);
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67] : 1$/); assert.ok(Math.abs(kcalOf(c) - 188) <= 1);
   assert.ok(rP["Compleat Paediatric Nature Mix (Nestlé)"] < mlK, "mit Pre Apta weniger Compleat je Mahlzeit");
   fire(w, $(w, "detail-close"));
   // Tagesplan: 4 × Compleat & KetoCal → Packungsstand (heute verplant, Rest)
@@ -344,7 +344,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.match(tagBtn.textContent, /^1 Tag$/); fire(w, tagBtn);
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 1 Tag = 5 Portionen$/);
   // Mehrere Tage vorkochen: 2 Tage = 10 Portionen, Waage-Tabelle ×10, Tages-Check bleibt je Tag
   const g1 = kitchenRows(c)["Broccoli, gekocht"] / 5, kcal1 = numDe(dayTiles(c).querySelector(".dstat .v").textContent);
   assert.match(dayTiles(c).textContent, /kcal\/Tag · Ziel 700/);
@@ -352,7 +352,7 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   fire(w, c.querySelector('.seg-portion button[data-scale="tag:2"]'));
   c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag 2 Tage = 10 Portionen$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 2 Tage = 10 Portionen$/);
   assert.equal(c.querySelector("#portion-input").value, "10");
   assert.ok(Math.abs(kitchenRows(c)["Broccoli, gekocht"] - g1 * 10) <= 0.6, "Waage ×10");
   assert.ok(Math.abs(numDe(dayTiles(c).querySelector(".dstat .v").textContent) - 2 * kcal1) <= 2, "Kacheln für 2 Tage");
@@ -367,36 +367,36 @@ test("Zubereitungsmenge: „1 Tag“ / „2 Tage“ folgen der Mahlzeitenzahl; R
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag:2"]').classList.contains("active"), "10 Portionen = 2 Tage");
   { const pin5 = c.querySelector("#portion-input"); pin5.value = "5"; fire(w, pin5, "change"); } c = $(w, "detail-content");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"), "5 Portionen = 1 Tag");
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 1 Tag = 5 Portionen$/);
   // Neu öffnen: immer wieder „1 Tag“ (die Menge wird nicht gemerkt)
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"), "öffnet mit 1 Tag");
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 5 Portionen$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 1 Tag = 5 Portionen$/);
   // Rechnen: Mahlzeit-Kacheln und Tabelle je Portion, obwohl 5 Portionen zubereitet werden
   const kcalTile = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcalTile.querySelector(".v").textContent) - 140) <= 1, kcalTile.textContent);
-  assert.match(rechnenText(c), /Mahlzeit eine Portion/);
+  assert.match(rechnenText(c), /Zum Abwiegen · eine Portion/);
   assert.match(rechnenText(c), /Summe je Portion/);
   fire(w, $(w, "detail-close"));
   // Mahlzeiten auf 4 → Ganzer Tag ist jetzt ×4, nicht mehr 5
   fire(w, w.document.querySelector('#mahlzeiten-ctl button[data-mahl="4"]'));
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(c.querySelector('.seg-portion button[data-scale="tag"]').classList.contains("active"));
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag = 4 Portionen$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 1 Tag = 4 Portionen$/);
   const kcal4 = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat, .pane[data-pane=abwiegen] .dstat, .pane[data-pane=anpassen] .dstat")][0];
   assert.ok(Math.abs(parseFloat(kcal4.querySelector(".v").textContent) - 175) <= 1, kcal4.textContent);
   // Zurück auf 1 Portion
   assert.equal(c.querySelector('.seg-portion button[data-scale="1"]'), null, "kein Knopf „1 Portion“ – dafür gibt es das Blatt Mahlzeit");
   { const pin1 = c.querySelector("#portion-input"); pin1.value = "1"; fire(w, pin1, "change"); }
   c = $(w, "detail-content");
-  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag eine Portion$/);
+  assert.match(c.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 1 Portion$/);
 });
 
 test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wirkt im Tagesplan, lässt sich zurücksetzen", () => {
   const w = boot({ settings: { mctShare: 0, mahlzeiten: 5, weight: 8.5 } });
   let c = openRecipe(w, "Hendl & Brokkoli");
   const kochenBefore = kitchenRows(c);
-  const row = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Hüh/.test(r.textContent));
+  const row = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row, .pane[data-pane=abwiegen] .ing-row, .pane[data-pane=anpassen] .ing-row")].find(r => /Hüh/.test(r.textContent));
   const inp = row.querySelector("input.g-edit");
   assert.ok(inp, "Gramm-Feld in Rechnen fehlt");
   const g0 = parseFloat(inp.value.replace(",", "."));
@@ -408,7 +408,7 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   assert.match(kcalTile.textContent, /Ziel 140/);
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.03, "halbe Portion: Fett auf 0,1 g gerundet → " + ratioOf(c));
   assert.match(c.querySelector(".portion-line").textContent, /Portion angepasst: 50 %/);
-  const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
+  const brok = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row, .pane[data-pane=abwiegen] .ing-row, .pane[data-pane=anpassen] .ing-row")].find(r => /Broccoli/.test(r.textContent)).querySelector("input.g-edit");
   const kochenAfter = kitchenRows(c);
   assert.ok(Math.abs(kochenAfter["Broccoli, gekocht"] - kochenBefore["Broccoli, gekocht"] / 2) <= 1.5, "Abwiegen (5 ×) skaliert mit (0,5-g-Rundung)");
   assert.ok(Math.abs(parseFloat(brok.value.replace(",", ".")) - kochenBefore["Broccoli, gekocht"] / 5 / 2) <= 0.3, "Rechnen (je Portion) skaliert mit (0,5-g-Rundung)");
@@ -434,15 +434,15 @@ test("Rechnen: Gramm je Portion ändern skaliert alle Zutaten, wird gemerkt, wir
   assert.match(c.querySelector(".portion-line").textContent, /Wie berechnet/);
   assert.equal(JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).portion["fam:Hendl & Brokkoli"], undefined);
   // Wasser in Rechnen ändern → gemerktes Wasser, keine Skalierung
-  const wrow = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr, .pane[data-pane=abwiegen] table tr, .pane[data-pane=anpassen] table tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
+  const wrow = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row, .pane[data-pane=abwiegen] .ing-row, .pane[data-pane=anpassen] .ing-row")].find(r => /Wasser/.test(r.textContent)).querySelector("input.g-edit");
   wrow.value = "80"; fire(w2, wrow, "change");
   c = $(w2, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 80 * 5, "Abwiegen zeigt den Tag (5 ×)");
   // Statuszeile wie bei der Portion: „Wasser angepasst (80 statt … ml) · ↺ wie berechnet“; in der Zeile nur „⟵ eigener Wert“
   const line = c.querySelector(".pane[data-pane=mahlzeit] .portion-line");
-  assert.match(line.textContent, /Wasser angepasst \(80 statt \d+ ml\) · ↺ wie berechnet/);
+  assert.match(line.textContent, /Wasser angepasst \(80 statt \d+ ml\) wie berechnet/);
   assert.doesNotMatch(line.textContent, /Wie berechnet/);
-  const wrowTxt = [...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr")].find(r => /Wasser/.test(r.textContent)).textContent;
+  const wrowTxt = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].find(r => /Wasser/.test(r.textContent)).textContent;
   assert.match(wrowTxt, /eigener Wert/); assert.doesNotMatch(wrowTxt, /↺/);
   // Zurücksetzen aus der Statuszeile (Seite Mahlzeit)
   const wr = line.querySelector(".water-reset");
@@ -461,7 +461,7 @@ test("Rundung beim Abwiegen: Zutaten auf 0,5 g, Wasser auf 1 ml, Fettträger auf
   assert.ok(on(rows["Hühnerbrust ohne Haut"], 0.5) && on(rows["Broccoli, gekocht"], 0.5), "0,5-g-Raster: " + JSON.stringify(rows));
   assert.ok(on(rows["Wasser"], 1), "Wasser auf 1 ml: " + rows["Wasser"]);
   assert.ok(on(rows["Rapsöl"], 0.1), "Fett auf 0,1 g");
-  assert.match([...c.querySelectorAll("table.kitchen tbody tr")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+,\d$/, "Fett immer mit einer Nachkommastelle (deutsches Komma)");
+  assert.match([...c.querySelectorAll(".ing-list.kitchen .ing-row")].find(r => /Rapsöl/.test(r.textContent)).querySelector("input").value, /^\d+,\d$/, "Fett immer mit einer Nachkommastelle (deutsches Komma)");
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.015, "Verhältnis nach Rundung: " + ratioOf(c));
   // Ganzer Tag ×5: Vielfache bleiben im Raster
   fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
@@ -509,15 +509,15 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
     // „1 Tag“: jede Zeile der Waage-Tabelle = 5 × Mahlzeit
     fire(w, c.querySelector('.seg-portion button[data-scale="tag"]'));
     c = $(w, "detail-content");
-    const mealRows = c.querySelector(".pane[data-pane=mahlzeit] table").querySelectorAll("tbody tr:not(.sum)");
-    const dayRows = c.querySelector(".pane[data-pane=abwiegen] table.kitchen").querySelectorAll("tbody tr:not(.sum)");
+    const mealRows = c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row:not(.sum)");
+    const dayRows = c.querySelectorAll(".pane[data-pane=abwiegen] .ing-list.kitchen .ing-row:not(.sum)");
     assert.equal(dayRows.length, mealRows.length);
-    const gramsOf = (tr) => parseFloat(tr.children[1].querySelector("input").value.replace(",", "."));
+    const gramsOf = (tr) => parseFloat(tr.querySelector("input").value.replace(",", "."));
     for (let i = 0; i < mealRows.length; i++) assert.ok(Math.abs(gramsOf(dayRows[i]) - 5 * gramsOf(mealRows[i])) <= 0.3, "Zeile " + i);
     const pin = c.querySelector("#portion-input"); pin.value = "3"; fire(w, pin, "change");
     const c2 = $(w, "detail-content");
     assert.match(tagStatus(c2).textContent, /^Wie berechnet · 420 kcal für 3 Portionen/);
-    assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^📅 Tag 3 Portionen$/);
+    assert.match(c2.querySelector(".pane[data-pane=abwiegen] .ph").textContent, /^Zum Abwiegen für 3 Portionen$/);
     fire(w, $(w, "detail-close"));
   }
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
@@ -538,7 +538,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.match($(w, "rx-chip").getAttribute("aria-label"), /^0,67:1 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
   c = openRecipe(w, "Compleat");
-  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/);
+  assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67] : 1$/);
   fire(w, $(w, "detail-close"));
   ri.value = "1"; fire(w, ri, "input");
   fire(w, $(w, "export-btn"));
@@ -618,8 +618,8 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
   assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben/);
-  assert.match(rechnenText(c), /💧 Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ≈ \d+ ml am Tag/);
-  assert.doesNotMatch(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
+  assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ≈ \d+ ml am Tag/);
+  assert.doesNotMatch(c.querySelector(".ing-list.kitchen").textContent, /Flüssigkeitsziel/);
   assert.match(rechnenText(c), /Flüssigkeit\/Tag in Mahlzeiten|Flüssigkeit\/Tag/);
   fire(w, $(w, "detail-close"));
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit ≈ 850 ÷ 4 ≈ 213 ml; Dichte-Feld ausgegraut
@@ -629,14 +629,14 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.match($(w, "rx-chip").getAttribute("aria-label"), /alles in den Mahlzeiten \(je 21[23] ml\)/);
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
-  assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
+  assert.match(c.querySelector(".ing-list.kitchen").textContent, /Flüssigkeitsziel/);
   assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit ≈ 21[234] ml/);
   const tile = [...c.querySelectorAll(".pane .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(numDe(tile.querySelector(".v").textContent) - 850) <= 4, tile.textContent);
   assert.match(rechnenText(c), /in den Mahlzeiten dabei/);
   assert.equal(ratioOf(c), 1.8);
   // Gemerktes Wasser hat Vorrang
-  const win = [...c.querySelectorAll("table.kitchen tr")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
+  const win = [...c.querySelectorAll(".ing-list.kitchen .ing-row")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
   win.value = "40"; fire(w, win, "change"); // 4 Mahlzeiten → 10 ml je Portion
   c = $(w, "detail-content");
   assert.equal(kitchenRows(c)["Wasser"], 40);
@@ -661,13 +661,13 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
   let c3 = openRecipe(w3, "Compleat & KetoCal");
   assert.ok(Math.abs(volOf(c3) - 188 / 1.5) <= 2, "Volumen ≈ 125 ml: " + volOf(c3));
-  assert.match(c3.querySelector(".pane[data-pane=mahlzeit] table").textContent, /höchstens 1,5 kcal\/ml/);
+  assert.match(c3.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /höchstens 1,5 kcal\/ml/);
   assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser so weit erhöht, dass die Mahlzeit höchstens 1,5 kcal\/ml hat/);
   fire(w3, $(w3, "detail-close"));
   const di = $(w3, "set-dichte"); di.value = "2"; fire(w3, di, "input");
   c3 = openRecipe(w3, "Compleat & KetoCal");
   assert.ok(volOf(c3) >= 90 && volOf(c3) <= 100, "bei 2 kcal/ml ≈ 94 ml: " + volOf(c3));
-  assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50:1");
+  assert.equal(c3.querySelector(".ratio-pill").textContent, "1,50 : 1");
   fire(w3, $(w3, "detail-close"));
   di.value = ""; fire(w3, di, "input");
   assert.equal($(w3, "set-dichte").value, "1,5");
@@ -741,17 +741,19 @@ test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MC
   let c = openRecipe(w, "Hendl & Brokkoli");
   const st = () => c.querySelector(".pane[data-pane=anpassen] .portion-line").textContent;
   assert.match(st(), /^Wie im Rezept · Fleisch gilt nur in dieser Ansicht · der MCT-Anteil ist die Vorgabe für alle Rezepte$/);
-  assert.match(c.querySelector(".pane[data-pane=anpassen] .ph").textContent, /Fleisch nur hier · Öl für alle Rezepte/);
+  assert.deepEqual([...c.querySelectorAll(".pane[data-pane=anpassen] .overline")].map(o => o.textContent), ["Fleisch", "MCT-Anteil am Öl"]);
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent, /^Gilt nur für diese Ansicht/);
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap.oil .adj-text").textContent, /^Gilt für alle Rezepte mit Öl, wie unter Vorgaben/);
   // Fleisch tauschen → Statuszeile + ↺ wie im Rezept
   fire(w, c.querySelector('.meat-swap button[data-meat="rind"]')); c = $(w, "detail-content");
-  assert.match(st(), /^Fleisch getauscht: 🥩 Rind \(nur in dieser Ansicht\) · ↺ wie im Rezept$/);
-  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr")].some(r => /Rind/.test(r.textContent)), "Rind in der Tabelle");
+  assert.match(st(), /^Fleisch getauscht: Rind \(nur in dieser Ansicht\) · wie im Rezept$/);
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].some(r => /Rind/.test(r.textContent)), "Rind in der Tabelle");
   fire(w, c.querySelector(".meat-reset")); c = $(w, "detail-content");
   assert.match(st(), /^Wie im Rezept/);
-  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] table tr")].some(r => /Hüh/.test(r.textContent)), "wieder Huhn");
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].some(r => /Hüh/.test(r.textContent)), "wieder Huhn");
   // MCT-Anteil ändern → gilt global (Vorgaben), Statuszeile nennt den Wert beim Öffnen, ↺ stellt ihn wieder her
   fire(w, c.querySelector('.meat-swap button[data-mcts="30"]')); c = $(w, "detail-content");
-  assert.match(st(), /^MCT-Anteil 30 % statt 10 % – gilt für alle Rezepte \(Vorgaben\) · ↺ 10 %$/);
+  assert.match(st(), /^MCT-Anteil 30 % statt 10 % – gilt für alle Rezepte \(Vorgaben\) · zurück auf 10 %$/);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.mctShare, 0.3);
   fire(w, c.querySelector(".mct-reset")); c = $(w, "detail-content");
   assert.match(st(), /^Wie im Rezept/);
@@ -872,7 +874,7 @@ test("Detail: nach unten wischen schließt die Ansicht (nicht bei kurzem oder se
   assert.ok($(w, "detail-overlay").hidden, "langer Wisch nach unten schließt");
   // Wisch auf der Tabelle (nicht am Kopf) schließt ebenfalls – überall auf der Karte
   c = openRecipe(w, "Hendl & Brokkoli");
-  const tbl = c.querySelector(".pane[data-pane=mahlzeit] table");
+  const tbl = c.querySelector(".pane[data-pane=mahlzeit] .ing-list");
   touch(tbl, "touchstart", 100, 300); touch(tbl, "touchmove", 100, 500); touch(tbl, "touchend", 100, 500); await wait(220);
   assert.ok($(w, "detail-overlay").hidden, "Wisch auf dem Inhalt schließt auch");
 });
@@ -941,9 +943,10 @@ test("Detail → „Für heute“: Rezept für alle, nur freie oder eine Mahlzei
   const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 }, dayPlan: [{ key: "std:KetoCal & Pre Apta" }, { key: null }, { key: null }, { key: null }] });
   const plan = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5")).dayPlan.map(s => s.key);
   let c = openRecipe(w, "Compleat & KetoCal");
-  // Aktionsleiste: Favorit und Drucken mit Symbol + Beschriftung (am Handy nur Symbol), „Für heute“, Editor
+  // Fußleiste: „Für heute einplanen“ und runde Knöpfe Editor · Drucken · Favorit (Beschriftung für Screenreader)
   assert.ok($(w, "today-btn") && $(w, "edit-btn"));
-  assert.ok([...c.querySelectorAll("#detail-actions .btn.icon-lbl .lbl")].map(e => e.textContent).join() === "Favorit,Drucken");
+  assert.equal($(w, "today-btn").textContent, "Für heute einplanen");
+  assert.deepEqual([...c.querySelectorAll("#detail-actions .round-btn .vh")].map(e => e.textContent), ["Editor", "Drucken", "Favorit"]);
   fire(w, $(w, "today-btn"));
   let sh = $(w, "today-sheet");
   assert.ok(sh, "Auswahl klappt auf");
@@ -992,9 +995,9 @@ test("Kochen: Öl wird nicht mitpüriert, letzter Schritt rührt das Öl in jede
   assert.match(steps[steps.length - 1], /^Abfüllen und in jede Portion Rapsöl [\d,]+ g \+ MCT-Öl [\d,]+ g gründlich einrühren\.$/);
   assert.ok(steps.some(s => /Dämpfwasser NICHT abgießen.*zusammen mit den gedämpften Zutaten 30–40 Sek/.test(s)), steps.join(" | "));
   assert.match(c.querySelector(".pane[data-pane=zubereitung] .portion-line").textContent, /Öl gesamt Raps \d+ g \+ MCT \d+ g/);
-  // Mahlzeit: Eiweiß ~3× Ziel → ↑ und Hinweis; Volumen mit Öl wie im Zeitplan
+  // Mahlzeit: Eiweiß ~3× Ziel → ▲ im Warnkasten; Volumen mit Öl wie im Zeitplan
   const mz = c.querySelector(".pane[data-pane=mahlzeit]");
-  assert.match(mz.textContent, /↑ Eiweiß [\d,]+-mal so hoch wie das Ziel/);
+  assert.match(mz.querySelector(".note.warn").textContent, /^▲ Eiweiß [\d,]+-mal so hoch wie das Ziel/);
   assert.doesNotMatch(mz.textContent, /ohne Öl/);
   fire(w, $(w, "detail-close"));
   // Rezeptliste: ↑ am Eiweiß

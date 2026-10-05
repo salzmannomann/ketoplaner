@@ -8,7 +8,7 @@
      Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
   const SYNC_KEY = "ketoplaner.sync";
   const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis"];
-  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
+  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
 

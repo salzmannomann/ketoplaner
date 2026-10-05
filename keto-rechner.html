@@ -123,7 +123,6 @@ th:first-child, td:first-child { text-align: left; }
 th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
 tr.sum td { font-weight: 700; border-top: 2px solid var(--line); border-bottom: none; }
 tr.target td { color: var(--muted); }
-td.name { text-align: left; }
 td select, td input { padding: 7px 9px; font-size: 14px; }
 .tbl-wrap { overflow-x: auto; }
 
@@ -136,12 +135,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .status.warn { background: var(--yellow-bg); color: var(--yellow); }
 .status.bad { background: var(--red-bg); color: var(--red); }
 .status.idle { background: #edf2f7; color: var(--muted); }
-
-.ratio-pill { display:inline-block; padding: 2px 9px; border-radius: 999px; font-weight: 600; font-size: 13px; }
-.ratio-pill.ok { background: var(--green-bg); color: var(--green); }
-.ratio-pill.warn { background: var(--yellow-bg); color: var(--yellow); }
-.ratio-pill.bad { background: var(--red-bg); color: var(--red); }
-.ratio-pill.idle { background: #edf2f7; color: var(--muted); }
 
 /* Stat tiles */
 
@@ -156,7 +149,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   h1 { font-size: 22px; }
   .card { padding: 16px; }
   .overlay { padding: 0; }
-  .overlay-card { border-radius: 0; min-height: 100vh; padding: 18px 14px 28px; }
 }
 @media (max-width: 560px) {
   .iconbtn .lbl { display: none; }
@@ -197,29 +189,12 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .iconbtn.round.open { background: var(--brand-soft); border-color: var(--brand-soft); }
 
 /* Portions-Umschalter im Detail */
-.seg-portion { margin: 0 0 14px; }
-.seg-portion.batch { display: flex; align-items: center; }
-.seg-portion.batch .seg-label { font-size: 13px; font-weight: 600; color: var(--ink); }
-.portion-step { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
-.portion-step input { width: 60px; padding: 6px 8px; text-align: center; font-size: 16px; }
-.stepbtn { width: 32px; height: 32px; border: 1px solid var(--line); background: #fff; border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; color: var(--ink); }
-.stepbtn:hover { background: var(--brand-soft); }
-.amt-edit { width: 66px; padding: 5px 6px; font-size: 16px; border: 1px solid var(--line); border-radius: 6px; text-align: right; }
-.amt-edit:focus { outline: 2px solid var(--brand-soft); border-color: var(--brand); }
 .segmented.mini { display: inline-flex; width: auto; }
 .segmented.mini button { padding: 7px 14px; font-size: 13px; flex: 0 0 auto; }
 
 /* Fleisch-Tausch im Rezept */
-.meat-swap { margin: 0 0 16px; padding: 12px 14px; background: var(--green-bg); border-radius: 9px; }
-.meat-swap .seg-label { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
-.meat-swap .segmented.mini { display: flex; width: 100%; }
-.meat-swap .segmented.mini button { flex: 1; padding: 8px 6px; }
-.meat-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
-.badge.meat { background: #f0e7da; color: #8a5a1c; }
 
 /* Rezept-Kacheln (Übersicht) */
-.badge.custom { background: #e6effb; color: var(--accent); }
-.badge.quelle { background: #ede9fe; color: #6d28d9; }
 .compose-save { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .compose-save input { flex: 1; min-width: 160px; }
 
@@ -230,52 +205,13 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
   padding: 24px 16px; overflow-y: auto; z-index: 100;
 }
 .overlay[hidden] { display: none; }
-.overlay-card {
-  position: relative; background: var(--panel); border-radius: 14px;
-  width: 100%; max-width: 720px; padding: 24px; box-shadow: 0 12px 40px rgba(16,24,40,.3);
-}
-.overlay-close {
-  position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
-  border: 0; border-radius: 8px; background: var(--bg); cursor: pointer; font-size: 16px; color: var(--ink);
-}
-.overlay-close:hover { background: var(--line); }
 /* Overlay offen: Seite dahinter einfrieren (position: fixed wirkt auch auf iOS; top setzt das Skript auf −scrollY) */
 body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
 .overlay { overscroll-behavior: contain; }
-.detail-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 40px; margin-bottom: 14px; }
-.detail-icon { font-size: 40px; line-height: 1; }
-#detail-content .title, #compose-content .title { font-weight: 700; font-size: 20px; }
-#detail-content .meta, #compose-content .meta { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
-.detail-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
-.dstat { background: var(--bg); border-radius: 10px; padding: 12px; text-align: center; }
-.dstat .v { font-size: 18px; font-weight: 700; color: var(--brand-dark); }
-.dstat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.dstat .l small { display: inline-block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--brand-dark); }
-.dstat.warn { background: var(--yellow-bg); }
-.dstat.warn .v { color: var(--yellow); }
-@media (max-width: 560px) {
-  .detail-tiles { grid-template-columns: 1fr 1fr; }
-  /* Zutaten-Tabelle entschlacken: Fett & KH am Handy ausblenden (Eiweiß/Kcal bleiben) */
-  #detail-content table th:nth-child(4), #detail-content table td:nth-child(4),
-  #detail-content table th:nth-child(5), #detail-content table td:nth-child(5),
-  #compose-content table th:nth-child(4), #compose-content table td:nth-child(4),
-  #compose-content table th:nth-child(5), #compose-content table td:nth-child(5) { display: none; }
-  .overlay-card th, .overlay-card td { padding: 8px 5px; }
-  .amt-edit { width: 60px; }
-  /* Aktions-Buttons als volle Breite, leichter zu tippen */
-  #detail-content .btn-row, #compose-content .btn-row { flex-direction: column; }
-  #detail-content .btn-row .btn, #compose-content .btn-row .btn { width: 100%; }
-}
-
-.prep.thermomix { background: #eef4fb; }
-.prep.varoma { background: #eef7ef; }
 
 /* Koch-Modus: ✕ über dem Timer-Balken, Tabs volle Breite, Safe-Area unten */
-.overlay-close { z-index: 10; }
 
 @keyframes ctflash { 0%,100% { filter: none; } 50% { filter: brightness(1.25); } }
-.prep.varoma strong { color: var(--brand-dark); }
-.prep.thermomix strong { color: var(--accent); }
 
 @media (max-width: 820px) {
   .settings-grid { grid-template-columns: 1fr 1fr; }
@@ -284,22 +220,6 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
   .settings-grid { grid-template-columns: 1fr; }
   .segmented button { padding: 9px 4px; font-size: 13px; }
 }
-
-.badge {
-  display: inline-block; vertical-align: middle;
-  background: var(--brand-soft); color: var(--brand-dark);
-  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-  padding: 2px 8px; border-radius: 999px; margin-left: 6px;
-}
-.badge.keto { background: var(--yellow-bg); color: var(--yellow); }
-.badge.noketo { background: var(--green-bg); color: var(--green); }
-.badge.adj { background: #e6effb; color: var(--accent); }
-tr.fatrow td { background: #fdf6e3; }
-.prep {
-  background: var(--bg); border-radius: 9px; padding: 12px 14px;
-  font-size: 14px; color: var(--ink); margin-top: 12px; line-height: 1.55;
-}
-.prep strong { color: var(--brand-dark); }
 .checkrow { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 .checkrow input[type=checkbox] { width: 18px; height: 18px; }
 label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
@@ -307,17 +227,12 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 /* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
 .view[hidden] { display: none; }
 .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
-.preset-row .seg-label { font-size: 13px; font-weight: 600; }
 .settings-grid { border: 0; margin-bottom: 8px; }
 .card h3 .hint { font-weight: 400; font-size: 13px; }
 .file-btn { display: inline-flex; align-items: center; cursor: pointer; }
 textarea { width: 100%; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 9px; }
 
 /* Hinweis-Hierarchie: info (grau) · tip (grün) · warn (gelb) · stop (rot) */
-.note { border-radius: 9px; padding: 10px 14px; font-size: 14px; margin: 10px 0; border-left: 4px solid var(--line); background: var(--bg); color: var(--ink); }
-.note.info { background: var(--bg); border-left-color: #cbd5e1; color: var(--muted); }
-.note.tip { background: var(--green-bg); border-left-color: var(--green); color: var(--brand-dark); }
-.note.warn { background: var(--yellow-bg); border-left-color: var(--yellow); color: #7a5410; }
 .note p { margin: 8px 0 0; }
 .collapsible summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
 .collapsible summary::-webkit-details-marker { display: none; }
@@ -328,34 +243,17 @@ details.note.collapsible { margin: 0 0 14px; }
 details.collapsible { margin: 8px 0; }
 
 /* Kacheln: schlanker */
-.badge.keto-mini { background: #ede9fe; color: #5b21b6; }
-.badge.basis { background: #fff4e0; color: #9a5b00; }
 #ratio-hint { margin-top: 6px; font-size: 13px; }
 .inline-row { display: flex; align-items: center; gap: 10px; }
 .inline-row select { flex: 1; min-width: 0; }
 .inline-row .calc { white-space: nowrap; font-weight: 600; color: var(--green); }
 .inline-row input { flex: 1; min-width: 0; }
 .inline-row .ratio-suffix { font-size: 18px; color: var(--ink); }
-.meat-swap.basis .segmented.mini button { white-space: normal; line-height: 1.25; }
 .werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
 .werte-table td:first-child, .werte-table th:first-child { text-align: left; }
 .werte-table .ovr { color: var(--yellow); font-weight: 600; }
 
 /* ===== Detailansicht mit drei Reitern: Kochen / Abfüllen / Rechnen ===== */
-.detail-tabs { margin: 0 0 14px; }
-.detail-tabs button { font-weight: 600; }
-.pane[hidden] { display: none; }
-.ph { font-size: 15px; font-weight: 700; margin: 16px 0 8px; color: var(--ink); }
-.ph .hint { font-weight: 400; font-size: 13px; }
-table.kitchen { width: 100%; border-collapse: collapse; }
-table.kitchen td { padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; }
-table.kitchen td.amt { text-align: right; white-space: nowrap; width: 1%; }
-table.kitchen td.amt .unit { color: var(--muted); font-size: 13px; }
-table.kitchen .amt-edit { width: 84px; font-size: 17px; }
-table.kitchen tr.fatrow td { background: var(--green-bg); }
-.steps { margin: 0; padding-left: 22px; }
-.steps li { margin: 0 0 8px; line-height: 1.5; }
-.fill-big { font-size: 44px; font-weight: 800; color: var(--brand-dark); line-height: 1; }
 .linkbtn { background: none; border: 0; color: var(--brand-dark); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0 4px; }
 .btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
 
@@ -383,120 +281,17 @@ input:disabled { background: var(--bg); color: var(--muted); }
 #verordnung-summary #ratio-hint { margin: 0 0 8px; }
 /* Rechnen: Gramm je Portion editierbar (kompakt, damit die Tabelle am Handy nicht breiter wird); feste Statuszeile */
 .g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
-.portion-line { font-size: 13px; color: var(--muted); margin: -4px 0 10px; min-height: 20px; line-height: 1.4; }
-.portion-line strong { color: var(--yellow); }
 /* Detailansicht kompakter: Kopfzeile in einer Reihe, klebende Reiter, dichte Kacheln, kleine Hinweise in Tabellen */
-#detail-content .meta, #compose-content .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-#detail-content .meta .badge, #compose-content .meta .badge { margin-left: 0; }
-#detail-content .detail-tabs, #compose-content .detail-tabs { background: var(--panel); }
-.detail-tiles.strip { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
-.detail-tiles.strip .dstat { padding: 8px 4px; }
-.detail-tiles.strip .dstat .v { font-size: 15px; }
-.detail-tiles.strip .dstat .l { font-size: 11px; line-height: 1.25; }
-.detail-tiles.strip .dstat .l small { font-size: 10px; }
-@media (max-width: 560px) { .detail-tiles.strip { grid-template-columns: repeat(4, 1fr); } .detail-tiles.strip .dstat .v { font-size: 14px; } }
-td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
 .collapsible.mini summary { font-size: 12px; color: var(--muted); font-weight: 500; }
 .collapsible.mini p { font-size: 12px; }
-.meat-swap details.collapsible { margin: 8px 0 0; }
-.meat-note.stat-line { color: var(--ink); }
-@media (max-width: 360px) { .detail-tiles.strip { grid-template-columns: 1fr 1fr; } }
 /* Rezept-Zeilen statt Karten: eine Zeile je Gericht, am Desktop zwei Spalten */
 /* Detailansicht als sechs Blätter: Desktop = Reiter; Handy = Blätter nebeneinander, seitlich wischen, feste Kopf- und Fußzeile */
-.detail-tabs-wrap { margin: 0 0 12px; }
-.detail-tabs button { padding: 9px 6px; font-size: 13px; }
-.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
-.detail-actions .btn { padding: 9px 14px; font-size: 14px; }
-@media (max-width: 820px) {
-  /* Karte füllt das (fixe) Overlay komplett – Höhe = sichtbarer Bereich, auch mit Browserleisten (kein 100vh) */
-  #detail-overlay, #compose-overlay { overflow: hidden; padding: 0; align-items: stretch; }
-  #detail-overlay .overlay-card, #compose-overlay .overlay-card { display: flex; flex-direction: column; height: 100%; max-height: 100%; min-height: 0; padding: 10px 0 0; border-radius: 0; overflow: hidden; }
-  #detail-content, #compose-content { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-  #detail-content .detail-head, #compose-content .detail-head { padding: 0 54px 0 14px; }
-  .detail-tabs-wrap { padding: 0 14px; }
-  .detail-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; width: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .detail-tabs::-webkit-scrollbar { display: none; }
-  .detail-tabs button { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; }
-  .pages { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .pages::-webkit-scrollbar { display: none; }
-  .pages .pane { scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto; }
-  .pages .pane[hidden] { display: block; }
-  .detail-actions { margin: 0; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); background: var(--panel); flex-wrap: nowrap; }
-  .detail-actions .btn { flex: 1; padding: 9px 6px; font-size: 13px; white-space: nowrap; }
-  .detail-actions .btn.ghost { flex: 0 0 auto; }
-  #detail-content .steps li, #compose-content .steps li { font-size: 15px; }
-}
 /* Kopf der Detailansicht kompakt (zwei Zeilen); Seiten wie im Rezeptbuch: Punkte + Seitenzahl, nächste Seite schaut rechts herein */
-.page-dots { display: none; }
-@media (max-width: 820px) {
-  #detail-content .detail-head, #compose-content .detail-head { gap: 10px; margin-bottom: 6px; padding-right: 50px; align-items: center; }
-  #detail-content .detail-icon, #compose-content .detail-icon { font-size: 26px; }
-  #detail-content .detail-head .title, #compose-content .detail-head .title { font-size: 17px; line-height: 1.2; }
-  #detail-content .meta, #compose-content .meta { font-size: 12px; gap: 3px 6px; margin-top: 2px; }
-  #detail-content .meta .badge, #compose-content .meta .badge { font-size: 9.5px; padding: 1px 6px; }
-  #detail-content .meta .ratio-pill, #compose-content .meta .ratio-pill { font-size: 12px; padding: 1px 7px; }
-  #detail-overlay .overlay-close, #compose-overlay .overlay-close { top: 10px; right: 12px; width: 30px; height: 30px; font-size: 14px; }
-  .detail-tabs-wrap { margin: 0; }
-  .page-dots { display: flex; align-items: center; justify-content: center; }
-  .page-dots .dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; }
-  .page-dots .dot.active { width: 18px; border-radius: 4px; background: var(--brand); }
-  /* Seiten: volle Breite, kein Hereinschauen der nächsten Seite – Orientierung geben Punkte und Seitenzahl */
-  .pages { background: var(--bg); gap: 10px; scroll-padding-left: 10px; }
-  .pages .pane { flex: 0 0 100%; width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
-  .pages .pane > .ph:first-child { margin-top: 2px; }
-  .detail-actions { border-top: 1px solid var(--line); }
-}
 /* Seiten am Handy dichter: Tabellen, Kacheln, Hinweise und Überschriften mit weniger Luft */
-@media (max-width: 820px) {
-  .pages .pane .ph { font-size: 14px; margin: 3px 0 5px; }
-  .pages .pane .portion-line { margin: -2px 0 6px; font-size: 12px; }
-  .pages .pane .detail-tiles.strip { gap: 5px; margin-bottom: 6px; }
-  .pages .pane .detail-tiles.strip .dstat { padding: 5px 3px; }
-  .pages .pane .detail-tiles.strip .dstat .v { font-size: 14px; }
-  .pages .pane .detail-tiles.strip .dstat .l { font-size: 10.5px; line-height: 1.2; }
-  .pages .pane td.name small.adj { font-size: 10px; }
-  .pages .pane .note { line-height: 1.4; }
-  .pages .pane .meat-swap { padding: 8px 10px; margin: 0 0 10px; }
-  .pages .pane .meat-swap.pack .meat-note { font-size: 12px; }
-}
-@media (max-width: 820px) {
-  .pages .pane { padding: 6px 10px 10px; }
-  .pages .pane .steps { padding-left: 20px; }
-  .pages .pane .steps li { font-size: 13.5px; margin-bottom: 4px; line-height: 1.4; }
-  .pages .pane .ph .hint { font-size: 12px; }
-  .pages .pane .hint { font-size: 12px; }
-  .pages .pane .seg-portion { margin-bottom: 8px; }
-  .pages .pane .fill-big { font-size: 38px; }
-}
 /* Handy: keine Reiterleiste – Punkte + Seitenname reichen (am Desktop bleiben die Reiter) */
-@media (max-width: 820px) {
-  #detail-content .detail-tabs, #compose-content .detail-tabs { display: none; }
-  .page-dots { height: 24px; margin: 2px 0 4px; gap: 7px; }
-}
 /* Detailseiten einheitlich: gleiche Tabellen (Kopfzeile, Schrift, Fettzeile), gleiche Eingabefelder, Öl-Liste wie Tabelle */
-#detail-content table.kitchen td, #compose-content table.kitchen td { padding: 6px 6px; font-size: 14px; }
-#detail-content table.kitchen th, #compose-content table.kitchen th { text-align: left; }
-#detail-content table.kitchen th:last-child, #compose-content table.kitchen th:last-child { text-align: right; }
-#detail-content table.kitchen tr.fatrow td, #compose-content table.kitchen tr.fatrow td { background: #fdf6e3; }
-#detail-content table td, #compose-content table td { font-size: 14px; }
-#detail-content table td.name, #compose-content table td.name { font-size: 14px; }
-#detail-content .amt-edit, #compose-content .amt-edit, #detail-content .g-edit, #compose-content .g-edit { width: 66px; font-size: 15px; padding: 4px 6px; }
-@media (max-width: 820px) {
-  .pages .pane table th, .pages .pane table td, .pages .pane table.kitchen td { padding: 3px 4px; font-size: 14px; }
-  .pages .pane table th { font-size: 11px; }
-  .pages .pane .amt-edit, .pages .pane .g-edit { width: 62px; font-size: 14px; padding: 3px 5px; }
-  }
 /* Rezeptbuch-Optik am Handy: hinter der Seite schauen unten rechts zwei weitere Kartenränder hervor (Stapel);
    auf der letzten Seite ist der Stapel weg. Dazu „Seite 3 von 6“ in normaler Schrift. */
-@media (max-width: 820px) {
-  .page-dots .page-no { font-size: 13px; font-weight: 600; color: var(--ink); margin-left: 8px; }
-  .pages { padding: 4px 14px 14px 10px; }
-  .pages .pane {
-    box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line);
-  }
-  .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
-  .pages .pane:last-child { box-shadow: 0 1px 3px rgba(16,24,40,.06); }
-}
 /* Quelle des Werts unter Vorschlags-Feldern: grün mit Haken = Vorschlag aktiv, grau = eigener Wert */
 .reset-line { display: flex; align-items: center; gap: 8px; }
 .reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -529,57 +324,15 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 @media (min-width: 821px) {
   .iconbtn.round { width: 34px; height: 34px; font-size: 15px; }
 }
-td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseline; }
 /* Blatt „Zubereiten & Abfüllen“: Abfüll-Block kompakt unter den Schritten, Öl-Zeilen mit eigener Kopfzeile */
-@media (max-width: 820px) {
-  .pages .pane .seg-portion.batch { gap: 6px 10px; }
-  .pages .pane .seg-portion.batch .seg-label { font-size: 12.5px; }
-  .pages .pane .portion-step { font-size: 12.5px; }
-  .pages .pane .portion-step input { width: 52px; padding: 5px 6px; font-size: 15px; }
-}
 /* „Eigenes Rezept“: klares Plus statt Reagenzglas (sah wie ein Stift/Bearbeiten aus) */
 #compose-btn { font-size: 22px; font-weight: 700; line-height: 1; }
 /* Abwiegen: Schnellwahl (1 Portion · 1 Tag · 2 Tage · 3 Tage) und Stepper in einer Zeile; Waage-Tabelle dichter */
-.seg-portion.batch { flex-wrap: nowrap; gap: 8px; }
-.seg-portion.batch .segmented.mini { display: flex; flex: 1 1 auto; width: auto; min-width: 0; }
-.seg-portion.batch .segmented.mini button { flex: 1 1 auto; padding: 7px 4px; font-size: 12.5px; white-space: nowrap; }
-.seg-portion.batch .portion-step { flex: 0 0 auto; gap: 3px; }
-.seg-portion.batch .portion-step input { width: 44px; padding: 5px 4px; }
-.seg-portion.batch .stepbtn { width: 28px; height: 30px; font-size: 16px; }
-.pages .pane .seg-portion.batch { margin: -2px 0 5px; }
 /* Kochen: Abfüll-Kacheln oben, Schritte darunter (bei langen Anleitungen scrollt das Blatt) */
-.fill-tiles .dstat.oil .v { color: var(--brand-dark); }
-.steps-ph { margin-top: 10px; }
-@media (max-width: 820px) {
-  .pages .pane table.kitchen td { padding: 4px 4px; }
-  .pages .pane .seg-portion.batch { margin-bottom: 6px; }
-  .pages .pane .steps-ph { margin-top: 6px; }
-}
 /* Abwiegen: Tages-Zeile unter der Tabelle ohne zusätzliche Luft */
-@media (max-width: 820px) { .pages .pane table tr.sum td { padding: 3px 4px; } }
 /* Handy: Zutatennamen etwas kleiner (weniger Zeilenumbrüche), Notizen dichter */
-@media (max-width: 820px) {
-  .pages .pane table td.name { font-size: 13px; line-height: 1.25; }
-  .pages .pane table td.name small.adj { display: block; }
-  .pages .pane .note { padding: 6px 9px; font-size: 12px; margin: 5px 0; }
-  .pages .pane .portion-line { line-height: 1.3; }
-}
 
 /* Editor im Detail-Layout: Name als Titel-Eingabe im Kopf, Zutatenzeilen dichter, Blätter wie im Detail */
-.detail-head-body { flex: 1; min-width: 0; }
-#compose-content .title-input { width: 100%; font-weight: 700; font-size: 20px; padding: 4px 8px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); margin-left: -8px; }
-#compose-content .title-input:focus { border-color: var(--line); background: #fff; outline: none; }
-#compose-content .title-input::placeholder { color: var(--muted); font-weight: 500; }
-#compose-content .compose-rows { gap: 6px; margin: 6px 0; }
-#compose-content .compose-fat { margin: 12px 0 4px; }
-#compose-content .compose-fat > label { font-weight: 600; font-size: 14px; }
-#compose-content .compose-fat > label .hint { font-weight: 400; }
-#compose-content .checkrow { margin-top: 10px; }
-@media (max-width: 820px) {
-  #compose-content .title-input { font-size: 17px; padding: 2px 6px; margin-left: -6px; }
-  #compose-content .compose-row .compose-grams { width: 70px; }
-  #compose-content .compose-row .btn.ghost { padding: 6px 8px; }
-}
 
 /* Kopfleiste: weiß, Schriftzug in Grün, Verordnung als Pille rechts – eine Zeile, auch am Handy.
    Am Handy zeigt die Pille eine Kurzfassung (rx-short, drei Zeilen), am Desktop den vollen Text (rx-long). */
@@ -594,7 +347,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   color-scheme: dark;
   }
   :root:not([data-theme="light"]) body { background: var(--bg); }
-  :root:not([data-theme="light"]) .iconbtn, :root:not([data-theme="light"]) .stepbtn, :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea, :root:not([data-theme="light"]) .segmented button { background: var(--panel); color: var(--ink); }
+  :root:not([data-theme="light"]) .iconbtn, :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea, :root:not([data-theme="light"]) .segmented button { background: var(--panel); color: var(--ink); }
   :root:not([data-theme="light"]) .iconbtn.primary, :root:not([data-theme="light"]) .btn { color: #fff; }
   :root:not([data-theme="light"]) .btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
   :root:not([data-theme="light"]) .btn.secondary { background: #26322c; color: var(--ink); }
@@ -603,30 +356,13 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .iconbtn.round.open, :root:not([data-theme="light"]) .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
   :root:not([data-theme="light"]) .segmented button.active { background: var(--brand); color: #fff; }
   :root:not([data-theme="light"]) .segmented button:hover { background: var(--brand-soft); }
-  :root:not([data-theme="light"]) tr.fatrow td, :root:not([data-theme="light"]) #detail-content table.kitchen tr.fatrow td, :root:not([data-theme="light"]) #compose-content table.kitchen tr.fatrow td { background: #33301c; }
-  :root:not([data-theme="light"]) .dstat { background: #212c27; }
-  :root:not([data-theme="light"]) .dstat.warn { background: var(--yellow-bg); }
   :root:not([data-theme="light"]) .note.info { border-left-color: #4a5a52; color: var(--muted); }
   :root:not([data-theme="light"]) .note.warn { color: #f0cf8a; }
-  :root:not([data-theme="light"]) .status.idle, :root:not([data-theme="light"]) .ratio-pill.idle { background: #26322c; color: var(--muted); }
-  :root:not([data-theme="light"]) .badge.custom, :root:not([data-theme="light"]) .badge.adj { background: #1f3350; color: var(--accent); }
-  :root:not([data-theme="light"]) .badge.quelle, :root:not([data-theme="light"]) .badge.keto-mini { background: #2f2650; color: #c4b5fd; }
-  :root:not([data-theme="light"]) .badge.basis { background: #3a2f15; color: #f0cf8a; }
-    :root:not([data-theme="light"]) .badge.meat { background: #3a2f1f; color: #e8c49a; }
+  :root:not([data-theme="light"]) .status.idle { background: #26322c; color: var(--muted); }
   :root:not([data-theme="light"]) .overlay { background: rgba(0,0,0,.6); }
-  :root:not([data-theme="light"]) .overlay-close { background: #26322c; color: var(--ink); }
-  :root:not([data-theme="light"]) #compose-content .title-input:focus { background: var(--bg); }
-  :root:not([data-theme="light"]) .pages { background: var(--bg); }
-  :root:not([data-theme="light"]) .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: none; }
   /* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
-  @media (max-width: 820px) {
-    :root:not([data-theme="light"]) .pages .pane { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
-    :root:not([data-theme="light"]) .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
-    :root:not([data-theme="light"]) .pages .pane:last-child { box-shadow: none; }
-  }
-  :root:not([data-theme="light"]) .detail-actions { background: var(--panel); }
   :root:not([data-theme="light"]) input:disabled { background: var(--bg); color: var(--muted); }
-  :root:not([data-theme="light"]) .prep, :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
+   :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
 }
 :root[data-theme="dark"] {
   --paper: #1c1a16; --paper-2: #24211c; --ink: #ece5d8; --ink-2: #cfc7b8; --grey: #a89f90; --rule: #3d382f; --dot: #6b6458;
@@ -634,7 +370,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   color-scheme: dark;
 }
 [data-theme="dark"] body { background: var(--bg); }
-[data-theme="dark"] .iconbtn, [data-theme="dark"] .stepbtn, [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .segmented button { background: var(--panel); color: var(--ink); }
+[data-theme="dark"] .iconbtn, [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .segmented button { background: var(--panel); color: var(--ink); }
 [data-theme="dark"] .iconbtn.primary, [data-theme="dark"] .btn { color: #fff; }
 [data-theme="dark"] .btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
 [data-theme="dark"] .btn.secondary { background: #26322c; color: var(--ink); }
@@ -643,35 +379,14 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 [data-theme="dark"] .iconbtn.round.open, [data-theme="dark"] .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
 [data-theme="dark"] .segmented button.active { background: var(--brand); color: #fff; }
 [data-theme="dark"] .segmented button:hover { background: var(--brand-soft); }
-[data-theme="dark"] tr.fatrow td, [data-theme="dark"] #detail-content table.kitchen tr.fatrow td, [data-theme="dark"] #compose-content table.kitchen tr.fatrow td { background: #33301c; }
-[data-theme="dark"] .dstat { background: #212c27; }
-[data-theme="dark"] .dstat.warn { background: var(--yellow-bg); }
 [data-theme="dark"] .note.info { border-left-color: #4a5a52; color: var(--muted); }
 [data-theme="dark"] .note.warn { color: #f0cf8a; }
-[data-theme="dark"] .status.idle, [data-theme="dark"] .ratio-pill.idle { background: #26322c; color: var(--muted); }
-[data-theme="dark"] .badge.custom, [data-theme="dark"] .badge.adj { background: #1f3350; color: var(--accent); }
-[data-theme="dark"] .badge.quelle, [data-theme="dark"] .badge.keto-mini { background: #2f2650; color: #c4b5fd; }
-[data-theme="dark"] .badge.basis { background: #3a2f15; color: #f0cf8a; }
-[data-theme="dark"] .badge.meat { background: #3a2f1f; color: #e8c49a; }
+[data-theme="dark"] .status.idle { background: #26322c; color: var(--muted); }
 [data-theme="dark"] .overlay { background: rgba(0,0,0,.6); }
-[data-theme="dark"] .overlay-close { background: #26322c; color: var(--ink); }
-[data-theme="dark"] #compose-content .title-input:focus { background: var(--bg); }
-[data-theme="dark"] .pages { background: var(--bg); }
-[data-theme="dark"] .pages .pane { background: var(--panel); border-color: var(--line); box-shadow: none; }
 /* Stapel-Schatten nur am Handy: am Desktop hat das Blatt weder Rand noch Innenabstand, der Schatten wirkte dort wie ein Rahmen, den die Tabelle überdeckt */
-@media (max-width: 820px) {
-  [data-theme="dark"] .pages .pane { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line), 8px 8px 0 -1px var(--panel), 8px 8px 0 0 var(--line); }
-  [data-theme="dark"] .pages .pane:nth-last-child(2) { box-shadow: 4px 4px 0 -1px var(--panel), 4px 4px 0 0 var(--line); }
-  [data-theme="dark"] .pages .pane:last-child { box-shadow: none; }
-}
-[data-theme="dark"] .detail-actions { background: var(--panel); }
 [data-theme="dark"] input:disabled { background: var(--bg); color: var(--muted); }
-[data-theme="dark"] .prep, [data-theme="dark"] .slot.empty-slot { background: var(--bg); }
+ [data-theme="dark"] .slot.empty-slot { background: var(--bg); }
 /* Wisch-Schließen am Handy: der Kopf des Overlays ist die Griff-Fläche (kein Seitenscroll dahinter) */
-@media (max-width: 820px) {
-  #detail-content .detail-head, #compose-content .detail-head, .detail-tabs-wrap { touch-action: pan-x; }
-  #detail-overlay .overlay-card, #compose-overlay .overlay-card { will-change: transform; }
-}
 /* Heute: gleiche Optik wie Rezeptliste und Detail – Kopfzeile mit Aktionen, Kacheln, Mahlzeiten als Zeilen */
 
 /* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert.
@@ -686,19 +401,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* Kopf von Heute einzeilig: Titel nicht umbrechen, Rahmenzeit kürzen statt umbrechen */
 
 /* Detail → „📅 Für heute“: Auswahl über der Aktionsleiste und Meldung mit Rückgängig */
-#detail-content { position: relative; }
-.today-sheet { position: absolute; right: 12px; bottom: 64px; z-index: 20; width: min(340px, calc(100% - 24px)); max-height: 60vh; overflow-y: auto;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(16,24,40,.18); padding: 8px; }
-.today-title { font-weight: 700; font-size: 14px; padding: 4px 6px 8px; }
-.today-sep { font-size: 12px; color: var(--muted); padding: 8px 6px 4px; }
-.today-opt { display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink);
-  font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 9px; cursor: pointer; }
-.today-opt:hover { background: var(--bg); }
-.today-opt small { color: var(--muted); font-size: 12px; margin-top: 1px; }
-.today-opt.main { background: var(--brand); color: #fff; font-weight: 600; }
-.today-opt.main small { color: rgba(255,255,255,.85); }
-.today-opt.main:hover { background: var(--brand-dark); }
-.today-opt.same span { color: var(--brand-dark); font-weight: 600; }
 .toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 1000;
   display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; max-width: min(560px, calc(100% - 24px));
   background: #1f2933; color: #fff; border-radius: 12px; padding: 10px 12px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
@@ -707,11 +409,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 @media (max-width: 560px) { .toast-msg { flex-basis: 100%; } }
 .toast-btn { border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-weight: 600; font-size: 13px; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
 .toast-btn:hover { background: rgba(255,255,255,.24); }
-@media (max-width: 820px) {
-  .detail-actions .btn.icon-lbl { flex: 0 0 auto; padding-left: 12px; padding-right: 12px; }
-  .detail-actions .btn.icon-lbl .lbl { display: none; }
-  .today-sheet { bottom: calc(60px + env(safe-area-inset-bottom)); }
-}
 
 /* Heute auf einen Bildschirm: niedrige Kachelreihe, dichte Zeitleiste, kurze Hinweise; Haftungstext am Handy nur
    auf den anderen Reitern (er steht auch im Ausdruck und unter Rezepte/Vorgaben). */
@@ -894,7 +591,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .vg-more { font-size: 12.5px; color: var(--muted); margin: 7px 2px 0; line-height: 1.4; }
 /* Umschalter wie Eingabefelder beschriften: Bezeichnung grau darüber, Gruppe über die ganze Breite */
 #view-vorgaben .preset-row { display: block; margin: 0 0 14px; }
-#view-vorgaben .preset-row .seg-label { display: block; font-size: 14px; font-weight: 400; color: var(--muted); margin: 0 0 4px; }
 #view-vorgaben .preset-row .segmented.mini { display: flex; flex-wrap: nowrap; width: 100%; }
 #view-vorgaben .preset-row .segmented.mini button { flex: 1 1 auto; white-space: normal; margin: 0; border-bottom: 0; }
 #view-vorgaben .preset-row + .settings-grid { margin-top: 0; }
@@ -907,7 +603,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 @media (max-width: 560px) {
   #view-vorgaben .preset-row { margin: 0 0 10px; }
-  #view-vorgaben .preset-row .seg-label { font-size: 13px; margin-bottom: 3px; }
   #view-vorgaben .preset-row .segmented.mini button { padding: 2px 6px; line-height: 1.2; }
   #wasser-modus-ctl button, #view-vorgaben #wasser-modus-ctl button { flex-basis: 50%; text-align: center; }
   #view-vorgaben .field-hint { margin-bottom: 18px; font-size: 12px; }
@@ -940,9 +635,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
    ====================================================================== */
 .zeitplan { display: flex; flex-direction: column; gap: 14px; }
 .day-sum { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
-.day-sum .dstat, :root .day-sum .dstat { white-space: nowrap; background: none; padding: 0; border-radius: 0; text-align: left; }
-.day-sum .dstat .v { font-size: inherit; font-weight: 600; color: var(--ink); }
-.day-sum .dstat.warn .v { color: var(--red); }
 .day-tools { display: flex; align-items: center; gap: 4px; margin: -6px -6px 0; }
 .day-tools .dt-range { flex: 1; min-width: 0; padding-left: 6px; font-size: 13px; color: var(--grey); }
 .zp-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 0; border-top: 1px dotted var(--dot); border-bottom: 1px dotted var(--dot); }
@@ -1009,18 +701,14 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .overlay { background: var(--overlay); }
 .sheet-grip { flex: none; width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--rule); }
 .sheet-head { display: flex; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
-.round-btn, :root .sheet-head .overlay-close { position: static; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+.round-btn { position: static; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
   border: 1.5px solid var(--ink); border-radius: 50%; background: transparent; color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
-.round-btn:hover, :root .sheet-head .overlay-close:hover { background: var(--paper-2); }
+.round-btn:hover { background: var(--paper-2); }
 .line-input, :root input.line-input { width: 100%; min-height: 44px; padding: 0 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0;
   background: transparent; color: var(--ink); font: 400 16px var(--f-sans); -webkit-appearance: none; appearance: none; }
 .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
 .line-input::placeholder { color: var(--grey); opacity: 1; }
 #picker-overlay { padding: 0; overflow: hidden; }
-#picker-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: max(56px, 17vh); width: auto; max-width: none; min-height: 0; margin: 0 auto;
-  display: flex; flex-direction: column; gap: 10px; padding: 8px 20px calc(14px + env(safe-area-inset-bottom));
-  border-radius: 20px 20px 0 0; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
-@media (min-width: 821px) { #picker-overlay .overlay-card { top: 8vh; bottom: 8vh; max-width: 560px; border-radius: 20px; } }
 .picker-title { margin: 0; flex: 1; min-width: 0; font: 600 24px/1.1 var(--f-serif); }
 .pick-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; scrollbar-width: none; }
 .pick-row { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 56px; padding: 8px 0; margin: 0;
@@ -1127,7 +815,7 @@ body.heute-tight .page-title { font-size: 28px; }
 .tile-stats { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
 .tile-stats b { font-weight: 600; white-space: nowrap; }
 .tile-stats .prot-ok { color: var(--green); }
-.tile-stats .prot-low, .tile-stats .prot-high, .tile-stats .ratio-pill { color: var(--red); }
+.tile-stats .prot-low, .tile-stats .prot-high { color: var(--red); }
 .tile-badge { font-size: 12px; color: var(--grey); }
 .tile-badge[hidden] { display: none; }
 .favbtn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; }
@@ -1144,6 +832,141 @@ body.heute-tight .page-title { font-size: 28px; }
   .chips { flex-wrap: wrap; overflow: visible; padding: 0; }
   .tiles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
 }
+
+/* ======================================================================
+   Overlays und Sheets (Auswahl, Rezept, Editor)
+   ====================================================================== */
+.overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 0; overflow: hidden;
+  background: var(--overlay); overscroll-behavior: contain; }
+.overlay[hidden] { display: none; }
+.overlay-card { position: relative; width: 100%; max-width: 720px; background: var(--paper); color: var(--ink); }
+.overlay-close { position: absolute; z-index: 6; top: 14px; right: 20px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  border: 1.5px solid var(--ink); border-radius: 50%; background: var(--paper); color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
+.overlay-close:hover { background: var(--paper-2); }
+:root .sheet-head .overlay-close { position: static; flex: none; }
+body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
+#picker-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: max(56px, 17vh); width: auto; max-width: none; min-height: 0; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px; padding: 8px 20px calc(14px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+@media (min-width: 821px) { #picker-overlay .overlay-card { top: 8vh; bottom: 8vh; max-width: 560px; border-radius: 20px; } }
+/* Rezept/Editor: Sheet von oben bis unten, Kopf + Reiter + Blätter + feste Fußleiste */
+#detail-overlay .overlay-card, #compose-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: calc(env(safe-area-inset-top) + 10px);
+  max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px rgba(42,38,33,.25); will-change: transform; }
+@media (min-width: 821px) { #detail-overlay .overlay-card, #compose-overlay .overlay-card { top: 4vh; bottom: 4vh; border-radius: 20px; } }
+#detail-content, #compose-content { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#detail-content > .sheet-grip, #compose-content > .sheet-grip { margin: 8px auto 6px; }
+.detail-head { flex: none; display: flex; flex-direction: column; gap: 4px; margin: 0 20px; padding: 4px 56px 10px 0; border-bottom: 2px solid var(--ink); touch-action: pan-x; }
+.dh-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: var(--grey); }
+.ratio-pill { display: inline-block; padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: 999px; font: 600 12px/1.4 var(--f-mono); color: var(--ink); white-space: nowrap; }
+.ratio-pill.warn, .ratio-pill.bad { border-color: var(--red); color: var(--red); }
+.detail-head .title { margin: 0; font: 600 28px/1.1 var(--f-serif); }
+/* Reiter- und Segmentleiste: 1,5-px-Tintenrahmen, aktiv invertiert */
+.seg-ink { display: inline-flex; max-width: 100%; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.seg-ink button { flex: 1 1 auto; min-height: 38px; margin: 0; padding: 0 12px; border: 0; border-radius: 0; background: transparent; color: var(--ink);
+  font: 600 14px var(--f-sans); white-space: nowrap; cursor: pointer; }
+.seg-ink button.active { background: var(--ink); color: var(--paper); }
+.seg-ink button:focus-visible { outline-offset: -4px; }
+.detail-tabs-wrap { flex: none; padding: 12px 20px 10px; touch-action: pan-x; }
+.detail-tabs { display: flex; width: 100%; }
+.detail-tabs button { flex: 1 1 0; min-height: 40px; padding: 0 6px; }
+/* Blätter: nebeneinander, wischen rastet ein; jedes Blatt scrollt nur bei Bedarf */
+.pages { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.pages::-webkit-scrollbar { display: none; }
+.pane { flex: none; width: 100%; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.pane::-webkit-scrollbar { display: none; }
+.pane-in { display: flex; flex-direction: column; gap: 12px; padding: 2px 20px 18px; }
+@media (min-width: 821px) { .pages { display: block; overflow-y: auto; } .pane { height: auto; overflow: visible; } .pane[hidden] { display: none; } }
+/* Kennzahlen: Wert Mono 600, Bezeichnung grau, gepunktet unten */
+.detail-tiles.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+.detail-tiles.facts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dstat { min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 8px 0; border-bottom: 1px dotted var(--dot); }
+.dstat .v { font: 600 17px/1.25 var(--f-mono); color: var(--ink); white-space: nowrap; }
+.facts.three .dstat .v { font-size: 15px; }
+.dstat .l { font-size: 11px; line-height: 1.3; color: var(--grey); }
+.dstat.warn .v { color: var(--red); }
+/* Hinweise: Info grau, Warnung im hellroten Kasten */
+.note { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; font-size: 13px; line-height: 1.45; color: var(--grey); text-wrap: pretty; }
+.note.warn { padding: 10px 12px; border-radius: 6px; background: var(--red-bg); color: var(--red); }
+.note strong { color: inherit; }
+.warn-txt { color: var(--red); }
+.portion-line { font-size: 12px; line-height: 1.45; color: var(--grey); }
+.portion-line strong { color: var(--ink); font-weight: 600; }
+.portion-line .tlink { min-height: 32px; vertical-align: middle; margin: -8px 0; }
+/* Abwiegen: Überlinie + Schalter „Nährwerte“, 2-px-Linie, Zeilen mit Grammfeld */
+.weigh-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; margin-top: 2px; border-bottom: 2px solid var(--ink); }
+.ph { margin: 0; font: 400 11px/1.3 var(--f-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--grey); }
+.nw-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: var(--grey); cursor: pointer; white-space: nowrap; }
+.nw-toggle input, :root .nw-toggle input { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: var(--ink); }
+.ing-list { display: flex; flex-direction: column; margin-top: -12px; }
+.ing-row { display: grid; grid-template-columns: minmax(0, 1fr) 84px 30px; align-items: center; column-gap: 8px; min-height: 48px; padding: 4px 0; border-bottom: 1px dotted var(--dot); }
+.ing-name { min-width: 0; display: flex; flex-direction: column; }
+.ing-name .name { font-size: 15px; line-height: 1.25; }
+.ing-name .adj { font-size: 11.5px; line-height: 1.3; color: var(--grey); }
+.ing-name .nutr { display: none; font: 500 11px/1.35 var(--f-mono); color: var(--grey); }
+.show-nutr .ing-name .nutr { display: block; }
+:root .ing-row input.amt-edit { width: 84px; min-height: 40px; height: auto; padding: 0 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0;
+  background: transparent; color: var(--ink); font: 600 20px var(--f-mono); text-align: right; }
+:root .ing-row input.amt-edit:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
+.ing-row .unit { font: 500 13px var(--f-mono); color: var(--grey); }
+.ing-row.sum { display: none; min-height: 40px; border-bottom: 0; }
+.show-nutr .ing-row.sum { display: grid; }
+.ing-row.sum .name { font-weight: 600; }
+.sum-g { font: 600 16px var(--f-mono); text-align: right; padding-right: 2px; }
+.foot-hint { font-size: 12px; }
+/* Blatt Tag: 1 · 2 · 3 Tage + Portionen-Stepper */
+.seg-portion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.portion-step { display: inline-flex; align-items: stretch; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.stepbtn { width: 34px; min-height: 38px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font: 600 18px var(--f-sans); cursor: pointer; }
+.stepbtn:hover { background: var(--paper-2); }
+:root .portion-step input { width: 46px; min-height: 38px; height: auto; padding: 0; border: 0; border-left: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); border-radius: 0;
+  background: transparent; color: var(--ink); text-align: center; font: 600 15px var(--f-mono); -moz-appearance: textfield; appearance: textfield; }
+.portion-step input::-webkit-inner-spin-button, .portion-step input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.por-lbl { font: 500 13px var(--f-mono); color: var(--grey); }
+/* Blatt Anpassen: Überlinie, Segment, grauer Erklärtext, Textlinks */
+.adj-block { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.overline { font-size: 11px; line-height: 1.3; letter-spacing: .12em; text-transform: uppercase; color: var(--grey); }
+.adj-text, .meat-note { font-size: 13px; line-height: 1.45; color: var(--grey); }
+.adj-block > .tlink { margin-left: -6px; }
+details.more > summary { list-style: none; display: inline-grid; margin-left: -6px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--grey); }
+/* Blatt Kochen: nummerierte Schritte, letzter (Öl) mit roter Nummer */
+.steps { margin: 0; padding: 0; list-style: none; counter-reset: st; }
+.steps li { counter-increment: st; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; padding: 7px 0; border-bottom: 1px dotted var(--dot); font-size: 14px; line-height: 1.4; text-wrap: pretty; }
+.steps li::before { content: counter(st) "."; font: 600 14px/1.4 var(--f-mono); }
+.steps.oil-last li:last-child::before { color: var(--red); }
+.steps-ph { margin-top: 4px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
+.steps-ph + .steps { margin-top: -12px; }
+/* Feste Fußleiste: „Für heute einplanen“ + runde Knöpfe */
+.detail-actions { flex: none; position: relative; display: flex; align-items: center; gap: 10px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 2px solid var(--ink); background: var(--paper); }
+.btn.primary, :root .btn.primary { flex: 1; min-height: 48px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--ink); color: var(--paper); font: 600 15px var(--f-sans); cursor: pointer; }
+.btn.primary:hover { background: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+:root .btn.round-btn { width: 48px; height: 48px; padding: 0; border: 1.5px solid var(--ink); border-radius: 50%; background: transparent; color: var(--ink); }
+:root .btn.round-btn:hover { background: var(--paper-2); }
+.favbtn.on .star, .favbtn.on svg polygon { fill: currentColor; }
+.vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* „Für heute einplanen“: Auswahl über der Fußleiste */
+.today-sheet { position: absolute; z-index: 20; left: 20px; right: 20px; bottom: calc(78px + env(safe-area-inset-bottom)); max-height: 62%; overflow-y: auto;
+  padding: 4px 14px 10px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+.today-title { padding: 8px 0; border-bottom: 2px solid var(--ink); font: 600 19px/1.2 var(--f-serif); }
+.today-sep { padding: 10px 0 2px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey); }
+.today-opt { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 48px; margin: 0; padding: 8px 0; border: 0; border-bottom: 1px dotted var(--dot);
+  background: transparent; color: var(--ink); font: 600 15px var(--f-sans); text-align: left; cursor: pointer; }
+.today-opt small { font: 400 12px var(--f-sans); color: var(--grey); }
+.today-opt:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.today-opt.main { margin: 10px 0 4px; padding: 10px 12px; border: 0; border-radius: 8px; background: var(--ink); color: var(--paper); }
+.today-opt.main small { color: var(--paper); opacity: .8; }
+.today-opt.same span { text-decoration: underline; text-underline-offset: 3px; }
+/* Heute: Tagessumme nutzt .dstat als reine Textstücke */
+.day-sum .dstat, :root .day-sum .dstat { display: inline; padding: 0; border: 0; white-space: nowrap; }
+.day-sum .dstat .v { font: inherit; font-weight: 600; color: var(--ink); }
+.day-sum .dstat.warn .v { color: var(--red); }
+.tile-stats .ratio-pill { padding: 0; border: 0; font-size: inherit; color: var(--red); }
+.note.tip, .note.info, :root .note.tip, :root .note.info { padding: 0; border: 0; border-radius: 0; background: none; color: var(--grey); }
+:root .note.warn { padding: 10px 12px; border: 0; border-radius: 6px; background: var(--red-bg); color: var(--red); }
+.btn.primary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adj-block .hint { font-size: 13px; color: var(--grey); }
 
 </style>
 </head>
@@ -2753,6 +2576,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
   }
   function hideToast() { const t = document.getElementById("toast"); if (t) { t.classList.remove("show"); t.hidden = true; } clearTimeout(toastTimer); }
+  // Einfache Strich-Symbole (statt Emojis) für runde Knöpfe; erben die Textfarbe.
+  const SVG_ATTR = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  const ICON = {
+    star: '<svg ' + SVG_ATTR + '><polygon class="star" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    print: '<svg ' + SVG_ATTR + '><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><path d="M6 14h12v7H6z"/></svg>',
+    edit: '<svg ' + SVG_ATTR + '><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
+    share: '<svg ' + SVG_ATTR + '><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>',
+  };
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
@@ -3875,7 +3706,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   /* ---------- Detailansicht (Overlay) ---------- */
   // Blätter der Detailansicht in Reihenfolge: Mahlzeit (eine Portion), Tag (Zubereitungsmenge, intern „abwiegen“),
   // Anpassen, Kochen (intern „zubereitung“).
-  const DETAIL_PAGES = [["mahlzeit", "🍽️ Mahlzeit"], ["abwiegen", "📅 Tag"], ["anpassen", "🎛️ Anpassen"], ["zubereitung", "🍳 Kochen"]];
+  const DETAIL_PAGES = [["mahlzeit", "Mahlzeit"], ["abwiegen", "Tag"], ["anpassen", "Anpassen"], ["zubereitung", "Kochen"]];
   function isMobileLayout() { try { return !!(window.matchMedia && window.matchMedia("(max-width: 820px)").matches); } catch (e) { return false; } }
   // detailScale: Zubereitungsmenge – Zahl (Portionen) oder "tag" / "tag:N" (= N ganze Tage, folgt der Mahlzeitenzahl).
   // detailMeat: temporäre Fleischwahl.
@@ -3907,7 +3738,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function computeMealView(rec, d, meatChoice) {
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
-    let adjIndex = base.fatIndex, adjLabel = '<small class="adj">⟵ stellt das Verhältnis ein</small>';
+    let adjIndex = base.fatIndex, adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
       // Nur das Fleisch wird getauscht; Gemüse, Wasser UND Öl/Fett bleiben gleich.
@@ -3919,7 +3750,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (solved) {
         const sm = sumMacros(solved);
         res = { items: solved, ratio: ratioOf(sm), kcal: sm.kcal, ok: true, fatIndex: base.fatIndex };
-        adjIndex = swapSlot.index; adjLabel = '<small class="adj">⟵ stellt das Verhältnis ein</small>';
+        adjIndex = swapSlot.index; adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
       }
     }
     // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Vorgaben; s = 0 lässt alles unverändert.
@@ -4028,19 +3859,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function zwischenText(d, mealFluidPer) {
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
-    if (wp.per === 0) return '<div class="note tip">💧 ' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">💧 ' + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
-      (wp.over ? ' · ⚠️ über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
+    if (wp.per === 0) return '<div class="note tip">' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
+      (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
-    return '<div class="hint" style="margin-top:8px">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="linkbtn" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
+    return '<div class="hint">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="tlink" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
   }
   /* ---------- Blätter (Reiter am Desktop, Wisch-Seiten mit Punkten am Handy) – für Detail und Editor ---------- */
-  function pagerHead(PAGES, cur, tabsId, dotsId) {
-    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (cur === pg[0] ? ' class="active"' : "") + ">" + pg[1] + "</button>";
-    return '<div class="detail-tabs-wrap"><div class="segmented detail-tabs" id="' + tabsId + '">' + PAGES.map(tabBtn).join("") + "</div>" +
-      '<div class="page-dots" id="' + dotsId + '">' + PAGES.map(pg => '<button type="button" class="dot' + (cur === pg[0] ? " active" : "") + '" data-dtab="' + pg[0] + '" aria-label="' + pg[1] + '"></button>').join("") +
-      '<span class="page-no">Seite ' + (Math.max(0, PAGES.findIndex(pg => pg[0] === cur)) + 1) + " von " + PAGES.length + "</span></div></div>";
+  function pagerHead(PAGES, cur, tabsId) {
+    const tabBtn = (pg) => '<button type="button" data-dtab="' + pg[0] + '"' + (cur === pg[0] ? ' class="active" aria-selected="true"' : ' aria-selected="false"') + ' role="tab">' + pg[1] + "</button>";
+    return '<div class="detail-tabs-wrap"><div class="seg-ink detail-tabs" role="tablist" id="' + tabsId + '">' + PAGES.map(tabBtn).join("") + "</div></div>";
   }
   // onChange(k): gewähltes Blatt merken; rerender(): am Desktop wird nach einem Reiterklick neu gezeichnet.
   function setupPager(c, PAGES, cur, onChange, rerender) {
@@ -4050,10 +3879,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const pageIdx = (k) => Math.max(0, PAGES.findIndex(pg => pg[0] === k));
     const leftOf = (i) => panes[i] && panes[0] ? panes[i].offsetLeft - panes[0].offsetLeft : 0;
     const markTab = (k) => {
-      c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b => b.classList.toggle("active", b.dataset.dtab === k));
-      const pn = c.querySelector(".page-dots .page-no"); if (pn) pn.textContent = "Seite " + (pageIdx(k) + 1) + " von " + PAGES.length;
-      const ab = c.querySelector(".detail-tabs button.active");
-      if (ab && typeof ab.scrollIntoView === "function") { try { ab.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
+      c.querySelectorAll(".detail-tabs button[data-dtab]").forEach(b => { b.classList.toggle("active", b.dataset.dtab === k); b.setAttribute("aria-selected", b.dataset.dtab === k ? "true" : "false"); });
     };
     const goTo = (k, smooth) => {
       const left = leftOf(pageIdx(k));
@@ -4075,12 +3901,43 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         }, 80);
       });
     }
-    c.querySelectorAll(".detail-tabs button[data-dtab], .page-dots button[data-dtab]").forEach(b =>
+    if (mobile && pages) bindMouseDrag(pages, panes);
+    c.querySelectorAll(".detail-tabs button[data-dtab]").forEach(b =>
       b.addEventListener("click", () => {
         current = b.dataset.dtab; onChange(current);
         if (mobile && pages) { markTab(current); goTo(current, true); }
         else rerender();
       }));
+  }
+  // Blätter mit der Maus seitlich ziehen (Finger nutzen das native Scrollen mit Einrasten). An den Enden gibt
+  // ein Gummiband von 25 % nach; beim Loslassen rastet das nächste Blatt ein.
+  function bindMouseDrag(pages, panes) {
+    let st = null;
+    pages.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0 || (e.target.closest && e.target.closest("input, button, select, label, summary, a"))) return;
+      st = { x0: e.clientX, left: pages.scrollLeft, moved: false };
+    });
+    pages.addEventListener("pointermove", (e) => {
+      if (!st) return;
+      const dx = e.clientX - st.x0; if (Math.abs(dx) > 4) st.moved = true;
+      const max = pages.scrollWidth - pages.clientWidth, want = st.left - dx;
+      pages.style.scrollSnapType = "none";
+      if (want < 0) { pages.scrollLeft = 0; pages.style.transform = "translateX(" + Math.round(-want * 0.25) + "px)"; }
+      else if (want > max) { pages.scrollLeft = max; pages.style.transform = "translateX(" + Math.round((max - want) * 0.25) + "px)"; }
+      else { pages.scrollLeft = want; pages.style.transform = ""; }
+    });
+    const end = (e) => {
+      if (!st) return;
+      const dx = e.clientX - st.x0, w = pages.clientWidth || 1, moved = st.moved;
+      const i0 = Math.round(st.left / w), i = Math.max(0, Math.min(panes.length - 1, i0 + (dx < -w * 0.2 ? 1 : dx > w * 0.2 ? -1 : 0)));
+      st = null;
+      pages.style.transition = "transform .2s ease-out"; pages.style.transform = "";
+      setTimeout(() => { pages.style.transition = ""; pages.style.scrollSnapType = ""; }, 220);
+      try { pages.scrollTo({ left: i * w, behavior: "smooth" }); } catch (err) { pages.scrollLeft = i * w; }
+      if (moved) { const sw = (ev) => { ev.stopPropagation(); ev.preventDefault(); }; pages.addEventListener("click", sw, { capture: true, once: true }); setTimeout(() => pages.removeEventListener("click", sw, { capture: true }), 300); }
+    };
+    pages.addEventListener("pointerup", end);
+    pages.addEventListener("pointerleave", end);
   }
   function renderDetail() {
     const rec = detailRec;
@@ -4125,18 +3982,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           "Das Dämpfwasser NICHT abgießen – davon " + Math.round(waterG) + " ml abmessen (ist weniger übrig, mit frischem Wasser auf " + Math.round(waterG) + " ml ergänzen; ist mehr übrig, den Rest nicht verwenden) und zusammen mit den gedämpften Zutaten");
     };
 
-    const ketoBadge = (rec.ketocal
-      ? '<span class="badge keto">mit KetoCal</span>'
-      : '<span class="badge noketo">ohne KetoCal</span>') +
-      (rec.quelle ? ' <span class="badge quelle">👩‍⚕️ Diätologie</span>' : "");
-
-    // Fettbasis-Umschalter: gleiches Gericht, andere Variante (z. B. Rapsöl ↔ KetoCal + Butter).
-    // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept.
+    // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept (Blatt Anpassen).
     const sibs = siblingVariants(rec);
+    // Kopf: Verhältnis-Pille, grau Diätologie · Fettbasis · eigenes Rezept
+    const headTags = [rec.quelle ? "Diätologie" : "", (rec.ketocal || sibs.length) ? escapeHtml(basisLabel(rec)) : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
     if (sibs.length) {
-      basisSeg = '<div class="meat-swap basis"><div class="seg-label">🧈 Fettbasis: ' + (rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(rec)) + '</div>' +
-        '<div class="hint">Dieses Gericht gibt es auch als ' + sibs.map(v => '<button type="button" class="linkbtn" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' + (v.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(v)) + "</button>").join(", ") + " – eigenes Rezept mit eigenen Mengen.</div></div>";
+      basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">' + escapeHtml(basisLabel(rec)) + ' – dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
+        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch mit ' + escapeHtml(basisLabel(v)) + "</button>").join("") + "</div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 3 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -4146,9 +3999,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (mlMeal > 0) {
         const nMeals = Math.floor(pk.ml / mlMeal + 1e-9), maxMeals = d.mahl * pk.tage;
         const usedInTage = Math.min(nMeals, maxMeals) * mlMeal;
-        // Kurz und kompakt: Menge je Mahlzeit, Reichweite, Verfall.
-        // Gleiche Darstellung wie der Wasser-Hinweis darüber (grüne Notiz).
-        packInfoSeg = '<div class="note tip pack">🧃 <strong>Packung ' + pk.ml + ' ml</strong> (offen ' + pk.tage + ' Tage haltbar): ' +
+        packInfoSeg = '<div class="note tip pack"><strong>Packung ' + pk.ml + ' ml</strong> (offen ' + pk.tage + ' Tage haltbar): ' +
           fmt(mlMeal, 0) + ' ml je Mahlzeit · reicht für <strong>' + nMeals + ' Mahlzeiten</strong>' +
           (nMeals > maxMeals ? ' · in ' + pk.tage + ' Tagen ' + maxMeals + ' verbraucht, <strong>' + fmt(pk.ml - usedInTage, 0) + ' ml verfallen</strong>'
             : nMeals < maxMeals ? ' · für ' + pk.tage + ' Tage (' + maxMeals + ' Mahlzeiten) reicht eine Packung nicht' : '') + '.</div>';
@@ -4158,12 +4009,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let meatSeg = "";
     if (meatSlot) {
       const cur = detailMeat || meatSlot.baseKey;
-      meatSeg = '<div class="meat-swap"><div class="seg-label">🍖 Fleisch tauschen</div><div class="segmented mini">' +
-        ["huhn", "rind", "pute"].map(k =>
-          '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" +
-          MEATS[k].icon + " " + MEATS[k].label + "</button>"
-        ).join("") +
-        '</div><details class="collapsible mini"><summary>ⓘ Was ändert sich?</summary><p>Nur das Fleisch – Gemüse, Wasser und Öl/Fett bleiben gleich. Die Fleischmenge wird so berechnet, dass das Verhältnis genau stimmt (sie kann daher etwas von der Menge im Rezept abweichen; die Kalorien können leicht variieren).</p></details></div>';
+      meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
+        ["huhn", "rind", "pute"].map(k => '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ">" + MEATS[k].label + "</button>").join("") +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Nur das Fleisch wird getauscht – Gemüse, Wasser und Öl bleiben; die Fleischmenge wird neu berechnet, damit das Verhältnis genau stimmt.</div></div>';
     }
 
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
@@ -4171,34 +4019,31 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (baseOilIndex >= 0) {
       const sOil = d.mctShare, mm = res.mct || null;
       const shareBtn = (v) => '<button type="button" data-mcts="' + v + '"' + (Math.abs(sOil - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + " %</button>";
-      // Sichtbar bleibt eine Zeile (Kennzahlen bzw. „nur Rapsöl“), die Erklärung ist eingeklappt.
-      let note;
-      if (!(sOil > 0)) {
-        note = '<div class="meat-note">Nur Rapsöl.</div>' +
-          '<details class="collapsible mini"><summary>ⓘ Was bedeutet der MCT-Anteil?</summary><p>Der Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – die Rechenregel (Vorgaben) legt fest, welche Größe exakt bleibt. MCT kann durch Capronsäure (C6) den Rachen reizen: klein beginnen, lieber wenig je Mahlzeit, dafür in jeder Mahlzeit.</p></details>';
-      } else {
-        note = (mm ? '<div class="meat-note stat-line">MCT <strong>' + fmt(mm.gMct, 1) + ' g</strong> je Portion · <strong>' + fmt(mm.energiePz, 1) + ' %</strong> der Energie (' + mctEinordnung(mm.energiePz) + ') · ' + sign(mm.dev) + fmt(Math.abs(mm.dev), 1) + ' kcal je Portion, je Tag ' + sign(mm.dev) + fmt(Math.abs(mm.dev * d.mahl), 0) + ' kcal</div>' : "") +
-          '<details class="collapsible mini"><summary>ⓘ Was bedeutet der MCT-Anteil?</summary><p>' +
-          (d.mctMode === "kalorien"
-            ? "🎯 <strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil."
-            : "⚖️ <strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm).") +
-          " ⚠️ MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, Verträglichkeit beobachten. MCT ist je kcal ketogener als langkettiges Fett, ein Tausch senkt die Ketose nicht; besser verträglich ist weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. Die Vorbelegung 8,3 kcal/g ist ein <strong>Praxiswert</strong> – echte Etikettwerte unter Vorgaben eintragen.</p></details>";
-      }
+      const more = '<details class="more"><summary class="tlink">Mehr dazu</summary><p>Der Anteil bezieht sich auf die <strong>Öl-Fettmasse</strong>. Beim Tausch gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – die Rechenregel (Vorgaben) legt fest, welche Größe exakt bleibt. ' +
+        (sOil > 0 ? (d.mctMode === "kalorien"
+          ? "<strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil. "
+          : "<strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm). ") : "") +
+        "MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, Verträglichkeit beobachten; besser verträglich ist weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. MCT ist je kcal ketogener als langkettiges Fett, ein Tausch senkt die Ketose nicht. Die Vorbelegung 8,3 kcal/g ist ein <strong>Praxiswert</strong> – echte Etikettwerte unter Vorgaben eintragen.</p></details>";
+      const note = !(sOil > 0) ? '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie unter Vorgaben. Derzeit nur Rapsöl.</div>'
+        : '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie unter Vorgaben.</div>' +
+          (mm ? '<div class="meat-note stat-line">MCT <strong>' + fmt(mm.gMct, 1) + ' g</strong> je Portion · <strong>' + fmt(mm.energiePz, 1) + ' %</strong> der Energie (' + mctEinordnung(mm.energiePz) + ') · ' + sign(mm.dev) + fmt(Math.abs(mm.dev), 1) + ' kcal je Portion, je Tag ' + sign(mm.dev) + fmt(Math.abs(mm.dev * d.mahl), 0) + ' kcal</div>' : "");
       // Warnhinweise aus der ungerundeten Rechnung (§5)
       let warn = "";
       if (mm) {
-        if (mm.energiePz > 50) warn += '<div class="note warn">⚠️ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
+        if (mm.energiePz > 50) warn += '<div class="note warn">▲ Über dem gängigen Arbeitsbereich von 40–50 %. Die traditionelle MCT-Diät verwendet 60 % und kann Magen-Darm-Beschwerden verursachen.</div>';
         const devTag = mm.dev * d.mahl, kcalTag = mm.kcalNeu * d.mahl;
-        if (d.mctMode !== "kalorien" && kcalTag < d.kcalMin - 0.5) warn += '<div class="note warn">⚠️ Mit diesem MCT-Anteil kämen nur ' + fmt(kcalTag, 0) + ' kcal/Tag zusammen – unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal. MCT-Anteil senken, Rechenregel „Kalorien halten“ wählen oder mit der Diätologie klären.</div>';
+        if (d.mctMode !== "kalorien" && kcalTag < d.kcalMin - 0.5) warn += '<div class="note warn">▲ Mit diesem MCT-Anteil kämen nur ' + fmt(kcalTag, 0) + ' kcal/Tag zusammen – unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal. MCT-Anteil senken, Rechenregel „Kalorien halten“ wählen oder mit der Diätologie klären.</div>';
         else if (d.mctMode !== "kalorien" && devTag < -20) warn += '<div class="note info">Das Tagesziel wird um ' + fmt(-devTag, 0) + ' kcal unterschritten (Minimum ' + fmt(d.kcalMin, 0) + ' kcal/Tag ist eingehalten).</div>';
-        if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="note warn">⚠️ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
+        if (d.mctMode === "kalorien" && (mm.ratioNeu - mm.ratioBasis) > 0.05) warn += '<div class="note warn">▲ Das Verhältnis steigt von ' + fmt(mm.ratioBasis, 2) + ' auf ' + fmt(mm.ratioNeu, 2) + '. Das ist eine Änderung der Verordnung, nicht der Fettart.</div>';
       }
-      oilSeg = '<div class="meat-swap"><div class="seg-label">🧈 Öl: MCT-Anteil an der Öl-Fettmasse</div>' +
-        '<div class="segmented mini">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
-        note + warn + (sOil > 0 ? regelZeile(d) : "") + "</div>";
+      oilSeg = '<div class="adj-block meat-swap oil"><div class="overline">MCT-Anteil am Öl</div>' +
+        '<div class="seg-ink">' + [0, 10, 20, 30, 50, 100].map(shareBtn).join("") + "</div>" +
+        note + warn + (sOil > 0 ? regelZeile(d) : "") + more + "</div>";
     }
 
     // Zwei Sichten auf dieselben Zutaten: Blatt Mahlzeit (eine Portion) und Blatt Tag (Zubereitungsmenge), beide editierbar.
+    // Zeile: Name (+ „stellt das Verhältnis ein“ / Herkunft des Wassers, Nährwerte als Mono-Zeile) · Grammfeld · Einheit.
+    const nutrLine = (m) => '<small class="nutr">Eiweiß ' + fmt(m.eiweiss) + ' · Fett ' + fmt(m.fett) + ' · KH ' + fmt(m.kh) + ' · ' + fmt(m.kcal, 0) + ' kcal</small>';
     let kRows = "", nRows = "";
     items.forEach((it, i) => {
       const g = num(it.grams) * mult;
@@ -4207,86 +4052,86 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const fatRow = isFatCarrier(items, i);
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       const gTxt = (fatRow ? gR.toFixed(1) : String(gR)).replace(".", ","); // Fettträger immer mit einer Nachkommastelle („21,0“)
-      // Wasserzeile: nur die Herkunft steht dabei („⟵ Flüssigkeitsziel“); Anpassungen und ihr Zurücksetzen
-      // stehen – wie bei den Lebensmitteln – in der Statuszeile über den Kacheln.
-      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">⟵ eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">⟵ Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">⟵ höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
+      // Wasserzeile: nur die Herkunft steht dabei; Anpassungen und ihr Zurücksetzen stehen in der Statuszeile.
+      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Blatt Tag: für die Zubereitungsmenge
-      kRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '"></td>' +
-        "<td>" + fmt(mK.eiweiss) + "</td><td>" + fmt(mK.fett) + "</td><td>" + fmt(mK.kh) + "</td><td>" + fmt(mK.kcal, 0) + "</td></tr>";
+      const unit = '<span class="unit">' + (isWaterRow ? "ml" : "g") + "</span>";
+      const label = (mm) => '<div class="ing-name"><span class="name">' + escapeHtml(it.food) + "</span>" + (i === adjIndex ? adjLabel : "") + waterTag + nutrLine(mm) + "</div>";
+      kRows += '<div class="ing-row' + (i === adjIndex ? " fatrow" : "") + '">' + label(mK) +
+        '<input class="amt-edit" type="text" autocomplete="off" inputmode="decimal" aria-label="' + escapeHtml(it.food) + '" data-g="' + gR + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gTxt + '">' + unit + "</div>";
       const gP = Math.round(num(it.grams) * 10) / 10;
       const gPTxt = (fatRow ? gP.toFixed(1) : String(gP)).replace(".", ",");
-      nRows += "<tr" + (i === adjIndex ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) + (i === adjIndex ? adjLabel : "") + waterTag + "</td>" +
-        '<td class="amt"><input class="amt-edit g-edit" type="text" autocomplete="off" inputmode="decimal" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '"></td>' +
-        "<td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
+      nRows += '<div class="ing-row' + (i === adjIndex ? " fatrow" : "") + '">' + label(m) +
+        '<input class="amt-edit g-edit" type="text" autocomplete="off" inputmode="decimal" aria-label="' + escapeHtml(it.food) + '" data-g="' + gP + '" data-water="' + (isWaterRow ? "1" : "0") + '" value="' + gPTxt + '">' + unit + "</div>";
     });
+    const sumRow = (label, g, s) => '<div class="ing-row sum"><div class="ing-name"><span class="name">' + label + '</span>' + nutrLine(s) + '</div><span class="sum-g">' + fmt(g, 0) + '</span><span class="unit">g</span></div>';
     // Zubereitung als nummerierte Schritte (Varoma bevorzugt; Dämpfwasser-Rechnung ist darin enthalten).
     const prepText = rec.varoma
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
     const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
-    const stepsHtml = steps.length ? "<ol class='steps'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
+    const stepsHtml = steps.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));
-    // Vier Blätter: am Handy nebeneinander (seitlich wischen, jedes passt auf einen Bildschirm), am Desktop als Reiter.
+    // Vier Blätter: am Handy nebeneinander (seitlich wischen), am Desktop als Reiter.
     const TABMAP = { rechnen: "mahlzeit", kochen: "abwiegen", tag: "abwiegen", abfuellen: "zubereitung" }; // alte gespeicherte Werte
     const wanted = TABMAP[state.settings.detailTab] || state.settings.detailTab;
     const dtab = DETAIL_PAGES.some(pg => pg[0] === wanted) ? wanted : "mahlzeit";
     const mobile = isMobileLayout();
-    const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (dtab !== k && !mobile ? " hidden" : "") + ">";
+    const paneOpen = (k) => '<section class="pane" data-pane="' + k + '"' + (dtab !== k && !mobile ? " hidden" : "") + "><div class=\"pane-in\">";
+    const paneClose = "</div></section>";
 
     // Ganzer Tag: eine Portion × Mahlzeiten pro Tag – unabhängig von der gewählten Portionenzahl.
-    // Zeigt, was herauskäme, wenn jede Mahlzeit des Tages dieses Rezept wäre (Ziele und Minimum daneben).
     const dayN = d.mahl;
     const dayKcal = sumPer.kcal * dayN;
     const dayLow = dayKcal < d.kcalMin - 0.5, dayHigh = d.kcalMaxAuto && dayKcal > d.kcalMaxAuto + 0.5;
     // Flüssigkeit je Portion: Zutaten-Wasser + Rezept-Wasser, gegen den Anteil am Tagesbedarf.
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
+    const volPer = volumeMl(items), bigVol = d.maxMahlMl > 0 && volPer > d.maxMahlMl + 0.5;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint" style="margin:6px 0 10px">💧 Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
+      ? '<div class="hint fluid-line">Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
-          ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' ✓' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
+          ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
-        (d.maxMahlMl > 0 && volumeMl(items) > d.maxMahlMl + 0.5 ? ' · <strong>⚠️ ' + fmt(volumeMl(items), 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
+        (bigVol ? ' · <strong class="warn-txt">▲ ' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
           ? zwischenText(d, fluidPer)
           : (dayFluid < dayFluidZiel - 3
-              ? '<div class="note warn">💧 Der Tag liegt unter dem Flüssigkeitsziel – das gemerkte Wasser im Rezept ist kleiner als der rechnerische Anteil.</div>'
-              : '<div class="note tip">💧 Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
+              ? '<div class="note warn">▲ Der Tag liegt unter dem Flüssigkeitsziel – das gemerkte Wasser im Rezept ist kleiner als der rechnerische Anteil.</div>'
+              : '<div class="note tip">Flüssigkeit ist in den Mahlzeiten dabei – Wasser je Rezept entsprechend erhöht, kein Sondieren zwischen den Mahlzeiten nötig.</div>'))
       : "";
+    // Kennzahl (2 × 2 bzw. 3 nebeneinander): Wert Mono 600, darunter grau die Bezeichnung, gepunktet unten
+    const fact = (cls, v, l, title) => '<div class="dstat' + (cls ? " " + cls : "") + '"' + (title ? ' title="' + title + '"' : "") + '><div class="v">' + v + '</div><div class="l">' + l + '</div></div>';
 
-    // Blatt Tag: Kacheln für die Zubereitungsmenge – gleiches Layout wie „Mahlzeit“, nur mit den Mengen der Zubereitung
-    // (Standard: ein Tag). Ziele skalieren mit; bei ganzen Tagen zählt das Flüssigkeitsziel je Tag.
+    // Blatt Tag: Kennzahlen für die Zubereitungsmenge (Standard: ein Tag); Ziele skalieren mit.
     const qTag = days === 1 ? "/Tag" : "";
     const qFluid = fluidPer * mult, qFluidZiel = days ? dayFluidZiel * days : d.fluidMahl * mult, qZiel = d.wasserModus === "mahlzeit";
-    const qTiles =
-      '<div class="detail-tiles strip">' +
-        '<div class="dstat' + ((days && dayLow) ? " warn" : "") + '"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal' + qTag + ' · Ziel ' + fmt(d.kcalMahl * mult, 0) + '</div></div>' +
-        '<div class="dstat' + (pStateQ === "ok" ? "" : " warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g' + (pStateQ === "high" ? ' ↑' : '') + '</div><div class="l">Eiweiß' + qTag + ' · Ziel ' + fmt(proteinTarget, 0) + ' g</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge' + qTag + '</div></div>' +
-        (d.fluidDay > 0 ? '<div class="dstat' + (qZiel && qFluid < qFluidZiel - 3 * mult ? " warn" : "") + '"><div class="v">' + fmt(qFluid, 0) + ' ml</div><div class="l">Flüssigkeit' + qTag + (qZiel ? ' · Ziel ' + fmt(qFluidZiel, 0) + ' ml' : ' in Mahlzeiten') + '</div></div>' : '') +
-      '</div>';
-    // Tages-Check nur als Warnung (wie die Eiweiß-Warnung auf „Mahlzeit“): Minimum unterschritten oder über dem Korridor.
+    const qTiles = '<div class="detail-tiles facts">' +
+        fact((days && dayLow) ? "warn" : "", fmt(sum.kcal, 0), "kcal" + qTag + " · Ziel " + fmt(d.kcalMahl * mult, 0)) +
+        fact(pStateQ === "ok" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
+        fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "≈ " + fmt(totalG, 0) + " g") +
+        (d.fluidDay > 0 ? fact(qZiel && qFluid < qFluidZiel - 3 * mult ? "warn" : "", fmt(qFluid, 0) + " ml", "Flüssigkeit" + qTag + (qZiel ? " · Ziel " + fmt(qFluidZiel, 0) + " ml" : " in Mahlzeiten"))
+          : fact("", "≈ " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
+      "</div>";
+    // Tages-Check nur als Warnung: Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow
-      ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
-      : (dayHigh ? '<div class="note warn">⚠️ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
-    // Zubereitungsmenge: 1 Portion, 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl.
-    // Gilt nur hier (Blätter Tag und Kochen) und wird je Rezept gemerkt – die Vorgaben bleiben unberührt.
+      ? '<div class="note warn">▲ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge unter dem Minimum von ' + fmt(d.kcalMin, 0) + ' kcal – im Tagesplan mit anderen Mahlzeiten kombinieren.</div>'
+      : (dayHigh ? '<div class="note warn">▲ Ein Tag nur mit diesem Rezept (' + dayN + ' × ' + fmt(dayKcal / dayN, 0) + ' kcal = ' + fmt(dayKcal, 0) + ' kcal) läge über dem Korridor (bis ' + fmt(d.kcalMaxAuto, 0) + ' kcal).</div>' : "");
+    // Zubereitungsmenge: 1–3 ganze Tage (folgen der Mahlzeitenzahl) oder eine freie Portionenzahl (Stepper).
     const scaleBtn = (v, label) => '<button type="button" data-scale="' + v + '"' + ((v === "1" ? (!days && mult === 1) : detailScale === v) ? ' class="active"' : "") + ">" + label + "</button>";
-    // Eine Zeile: 1 · 2 · 3 Tage + Stepper für eine freie Portionenzahl (Überschrift nennt die gewählte Menge).
     const scaleSeg =
       '<div class="seg-portion batch">' +
-        '<div class="segmented mini">' + scaleBtn("tag", "1 Tag") + scaleBtn("tag:2", "2 Tage") + scaleBtn("tag:3", "3 Tage") + "</div>" +
+        '<div class="seg-ink">' + scaleBtn("tag", "1 Tag") + scaleBtn("tag:2", "2 Tage") + scaleBtn("tag:3", "3 Tage") + "</div>" +
         '<span class="portion-step" title="Portionen"><button type="button" class="stepbtn" data-step="-1" aria-label="eine Portion weniger">−</button>' +
         '<input id="portion-input" type="number" min="0.5" step="0.5" aria-label="Portionen" value="' + (Math.round(mult * 10) / 10) + '">' +
         '<button type="button" class="stepbtn" data-step="1" aria-label="eine Portion mehr">+</button></span>' +
       "</div>";
-    // Statuszeile der Mahlzeit: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
+    // Statuszeile: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
     let waterRef = null;
     if (hasWaterOverride) {
       const keep = state.water[waterKey]; delete state.water[waterKey];
@@ -4295,94 +4140,87 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     const statusLine = (m, bezug) => {
       const parts = [];
-      if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) · <button type="button" class="linkbtn portion-reset">↺ wie berechnet</button>');
-      if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) · <button type="button" class="linkbtn water-reset">↺ wie berechnet</button>');
-      return parts.length ? parts.join(" · ")
-        : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug + ' · Gramm ändern skaliert mit'; // eine Zeile am Handy
+      if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) <button type="button" class="tlink portion-reset">wie berechnet</button>');
+      if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) <button type="button" class="tlink water-reset">wie berechnet</button>');
+      return parts.length ? parts.join(" · ") : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug;
     };
+    const changed = mv.hasPortion || hasWaterOverride;
     const mealStatus = statusLine(1, "je Mahlzeit");
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
     const mctOpen = detailMctOpen == null ? d.mctShare : detailMctOpen;
     const anpParts = [];
-    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>Fleisch getauscht: ' + MEATS[detailMeat].icon + ' ' + MEATS[detailMeat].label + '</strong> (nur in dieser Ansicht) · <button type="button" class="linkbtn meat-reset">↺ wie im Rezept</button>');
-    if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="linkbtn mct-reset" data-mct="' + mctOpen + '">↺ ' + fmt(mctOpen * 100, 0) + ' %</button>');
+    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>Fleisch getauscht: ' + MEATS[detailMeat].label + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
+    if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="tlink mct-reset" data-mct="' + mctOpen + '">zurück auf ' + fmt(mctOpen * 100, 0) + ' %</button>');
     const anpassenStatus = anpParts.length ? anpParts.join(" · ")
       : 'Wie im Rezept' + (meatSlot ? ' · Fleisch gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
     const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
+    const nutrOn = !!state.settings.detailNutr;
+    const weighHead = (title) => '<div class="weigh-head"><h4 class="ph">' + title + '</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (nutrOn ? " checked" : "") + '> Nährwerte</label></div>';
+    const spritzen = Math.max(1, Math.ceil(volPer / 60 - 0.05));
 
     const c = document.getElementById("detail-content");
+    c.classList.toggle("show-nutr", nutrOn);
     c.innerHTML =
-      '<div class="detail-head"><span class="detail-icon">' + (rec.icon || "🥑") + "</span>" +
-        '<div><div class="title">' + escapeHtml(familyOf(rec)) + "</div>" +
-        '<div class="meta"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span><span>" +
-        fmt(sumPer.kcal, 0) + " kcal je Portion</span>" + ketoBadge + "</div></div></div>" +
-      pagerHead(DETAIL_PAGES, dtab, "detail-tabs", "page-dots") +
+      '<div class="sheet-grip" aria-hidden="true"></div>' +
+      '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
+        headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") + "</div>" +
+        '<h2 class="title">' + escapeHtml(familyOf(rec)) + "</h2></div>" +
+      pagerHead(DETAIL_PAGES, dtab, "detail-tabs") +
       '<div class="pages" id="detail-pages">' +
 
-      /* ---------- 1 Mahlzeit ---------- */
+      /* ---------- 1 Mahlzeit (eine Portion) ---------- */
       paneOpen("mahlzeit") +
-      '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
-      '<div class="portion-line">' + mealStatus + '</div>' +
-      '<div class="detail-tiles strip">' +
-        '<div class="dstat' + (mv.hasPortion ? " warn" : "") + '"><div class="v">' + fmt(sumPer.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
-        '<div class="dstat ' + (pStateMeal === "ok" ? "" : "warn") + '"><div class="v">' + fmt(sumPer.eiweiss) + ' g' + (pStateMeal === "high" ? ' ↑' : '') + '</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
-        // Menge und Volumen der ganzen Mahlzeit (mit Öl) – wie im Zeitplan; „ohne Öl“ steht beim Abfüllen (Kochen).
-        '<div class="dstat"><div class="v">≈ ' + fmt(totalG / mult, 0) + ' g</div><div class="l">Menge</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(ml / mult, 0) + ' ml</div><div class="l">Volumen</div></div>' +
+      '<div class="detail-tiles facts">' +
+        fact(mv.hasPortion ? "warn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
+        fact(pStateMeal === "ok" ? "" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
+        fact(bigVol ? "warn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
+        (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "≈ " + fmt(totalG / mult, 0) + " g", "Menge")) +
       "</div>" +
-      (pStateMeal === "low" ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
-      (pStateMeal === "high" ? '<div class="note warn" title="Viel Eiweiß kann die Ketose schwächen.">↑ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel – mit dem Team abklären.</div>' : "") +
-      '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' +
-        nRows +
-        "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG / mult, 0) + "</td><td>" + fmt(sumPer.eiweiss) + "</td><td>" +
-        fmt(sumPer.fett) + "</td><td>" + fmt(sumPer.kh) + "</td><td>" + fmt(sumPer.kcal, 0) + "</td></tr>" +
-      "</tbody></table></div>" +
+      (pStateMeal === "low" ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (pStateMeal === "high" ? '<div class="note warn">▲ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel. Viel Eiweiß kann die Ketose schwächen, bitte mit dem Team abklären.</div>' : "") +
+      '<div class="portion-line' + (changed ? " changed" : "") + '">' + mealStatus + '</div>' +
+      weighHead("Zum Abwiegen · eine Portion") +
+      '<div class="ing-list">' + nRows + sumRow("Summe je Portion", totalG / mult, sumPer) + "</div>" +
+      '<div class="hint foot-hint">Gramm ändern skaliert alle anderen Zutaten mit. Das Verhältnis bleibt.</div>' +
       fluidLine +
-      "</div>" +
+      paneClose +
 
       /* ---------- 2 Tag (Zubereitungsmenge, Standard ein Tag) ---------- */
       paneOpen("abwiegen") +
-      '<h4 class="ph">📅 Tag <span class="hint">' + (mult === 1 ? "eine Portion" : (days === 1 ? "= " : (days ? days + " Tage = " : "")) + portionsTxt + " Portionen") + '</span></h4>' +
       scaleSeg +
-      '<div class="portion-line">' + tagStatus + '</div>' +
       qTiles +
-      '<div class="tbl-wrap"><table class="kitchen"><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' + kRows +
-        "<tr class='sum'><td class='name'>Summe</td><td class='amt'>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
-        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
-      "</tbody></table></div>" +
-      dayCheck +
-      ((fluidDayNote && packInfoSeg && /class="note tip"/.test(fluidDayNote))
-        ? fluidDayNote.replace(/^<div class="note tip">/, '<div class="note tip pack">').replace(/<\/div>$/, "") + "<br>" + packInfoSeg.replace(/^<div class="note tip pack">/, "").replace(/<\/div>$/, "") + "</div>"
-        : fluidDayNote + packInfoSeg) +
-      "</div>" +
+      '<div class="portion-line' + (changed ? " changed" : "") + '">' + tagStatus + '</div>' +
+      weighHead("Zum Abwiegen für " + (mult === 1 ? "1 Portion" : (days === 1 ? "1 Tag = " : (days ? days + " Tage = " : "")) + portionsTxt + " Portionen")) +
+      '<div class="ing-list kitchen">' + kRows + sumRow("Summe", totalG, sum) + "</div>" +
+      dayCheck + fluidDayNote + packInfoSeg +
+      paneClose +
 
       /* ---------- 3 Anpassen ---------- */
       paneOpen("anpassen") +
-      '<h4 class="ph">🎛️ Anpassen <span class="hint">' + (meatSeg && oilSeg ? "Fleisch nur hier · Öl für alle Rezepte" : (oilSeg ? "Öl gilt für alle Rezepte" : (meatSeg ? "nur in dieser Ansicht" : ""))) + '</span></h4>' +
       ((basisSeg || meatSeg || oilSeg) ? '<div class="portion-line">' + anpassenStatus + '</div>' : "") +
-      basisSeg + meatSeg + oilSeg +
+      meatSeg + oilSeg + basisSeg +
       (!(basisSeg || meatSeg || oilSeg) ? '<div class="note info">Für dieses Gericht gibt es nichts umzuschalten.</div>' : "") +
-      "</div>" +
+      (rec.custom ? '<div class="adj-block"><div class="overline">Eigenes Rezept</div><button type="button" class="tlink danger" id="del-btn">Rezept löschen</button></div>' : "") +
+      paneClose +
 
-      /* ---------- 4 Kochen: Abfüll-Kacheln oben (immer sichtbar), darunter die Schritte ---------- */
+      /* ---------- 4 Kochen: Kennzahlen zum Abfüllen, darunter die Schritte ---------- */
       paneOpen("zubereitung") +
-      '<h4 class="ph">🍳 Kochen <span class="hint">für ' + portionLabel + '</span></h4>' +
-      '<div class="portion-line">💉 <strong>Abfüllen je Portion</strong>' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
+      '<div class="detail-tiles facts three fill-tiles">' +
+        fact("", '<span class="fill-big">' + fmt(perGnoOil, 0) + ' g</span>', "je Portion" + (hasOil ? " ohne Öl" : "")) +
+        fact("", fmt(volPer, 0) + " ml", "Volumen" + (hasOil ? " mit Öl" : "")) +
+        fact("", spritzen + " × 60 ml", "Spritzen", "≈ " + fmt(volPer / 60, 1) + " Spritzen à 60 ml") +
+      "</div>" +
+      '<div class="portion-line">Abfüllen je Portion' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
         (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
           (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "") + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
-      '<div class="detail-tiles strip fill-tiles">' +
-        '<div class="dstat"><div class="v fill-big">≈ ' + fmt(perGnoOil, 0) + ' g</div><div class="l">je Portion' + (hasOil ? ' ohne Öl' : '') + '</div></div>' +
-        '<div class="dstat"><div class="v">≈ ' + fmt(perMlNoOil, 0) + ' ml</div><div class="l">≈ ' + fmt(perMlNoOil / 60, 1) + ' Spritzen à 60 ml</div></div>' +
-        (hasOil ? oilRowsPer.map(it => '<div class="dstat oil"><div class="v">' + fmt(num(it.grams), 1) + ' g</div><div class="l">' + escapeHtml(String(it.food).replace(/\s*C8\+C10/, "")) + ' · einrühren</div></div>').join("") : "") +
-      "</div>" +
-      // Hinweis zu Garzeiten nur bei gekochten Gerichten; Angerührtes (KetoCal, Compleat, HiPP) wird nur gemischt.
-      ((res.mct || rec.varoma || (mult !== 1 && !rec.angeruehrt)) ? '<div class="note ' + (res.mct && res.mct.energiePz > 50 ? "warn" : "tip") + '">' +
-        [rec.varoma ? '🫗 Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
-         res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
-         (mult !== 1 && !rec.angeruehrt) ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""].filter(Boolean).join(" ") + "</div>" : "") +
-      '<h4 class="ph steps-ph">' + (rec.varoma ? "🫧 Zubereitung mit Varoma (dämpfen)" : "🥣 Zubereitung") + '</h4>' +
+      // Hinweise: Sieb (Varoma), MCT-Menge, Garzeiten bei mehreren Portionen
+      [rec.varoma ? 'Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
+       res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
+       (mult !== 1 && !rec.angeruehrt) ? 'Garzeiten gelten für <strong>eine</strong> Portion – länger garen, bis alles weich ist; im Kühlschrank lagern.' : ""]
+        .filter(Boolean).map(t => '<div class="note ' + (res.mct && res.mct.energiePz > 50 && /MCT/.test(t) ? "warn" : "tip") + '">' + t + '</div>').join("") +
+      '<h4 class="ph steps-ph">' + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h4>" +
       (stepsHtml || '<div class="note info">Keine Zubereitungsschritte hinterlegt.</div>') +
-      "</div>" +
+      paneClose +
 
       "</div>" + /* pages */
       '<div class="detail-actions" id="detail-actions"></div>';
@@ -4448,38 +4286,41 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
 
-    // Feste Aktionsleiste unten: Favorit · Drucken · Für heute · Editor (· Löschen bei eigenen Rezepten).
-    // Am Handy zeigen Favorit und Drucken nur ihr Symbol (Beschriftung .lbl ausgeblendet).
+    // Feste Fußleiste: „Für heute einplanen“ (Primär) · Editor · Drucken · Favorit als runde Knöpfe.
+    // Eigene Rezepte löschen: Textlink auf dem Blatt Anpassen.
     const actions = c.querySelector("#detail-actions");
-    const fav = isFav(rec);
-    const favBtn = el("button", { class: "btn secondary icon-lbl", title: "Favorit", "aria-label": "Favorit" }, (fav ? "★" : "☆") + ' <span class="lbl">Favorit</span>');
+    const vh = (t) => '<span class="vh">' + t + '</span>';
+    const todayBtn = el("button", { type: "button", class: "btn primary", id: "today-btn", "aria-haspopup": "true" }, "Für heute einplanen");
+    todayBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleTodaySheet(rec); });
+    actions.appendChild(todayBtn);
+    const editBtn = el("button", { type: "button", class: "btn round-btn", id: "edit-btn", title: rec.custom ? "Bearbeiten" : "Im Editor öffnen" }, ICON.edit + vh(rec.custom ? "Bearbeiten" : "Editor"));
+    editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
+    actions.appendChild(editBtn);
+    const printBtn = el("button", { type: "button", class: "btn round-btn", title: "Drucken" }, ICON.print + vh("Drucken"));
+    printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
+    actions.appendChild(printBtn);
+    const favBtn = el("button", { type: "button", class: "btn round-btn favbtn" + (isFav(rec) ? " on" : ""), title: "Favorit", "aria-pressed": isFav(rec) ? "true" : "false" }, ICON.star + vh("Favorit"));
     // Nur den Stern umschalten (Blatt, Menge und Fleischwahl bleiben) und die Liste dahinter gleich mitziehen.
     favBtn.addEventListener("click", () => {
       toggleFav(rec);
-      favBtn.innerHTML = (isFav(rec) ? "★" : "☆") + ' <span class="lbl">Favorit</span>';
+      favBtn.classList.toggle("on", isFav(rec)); favBtn.setAttribute("aria-pressed", isFav(rec) ? "true" : "false");
       renderRezepte();
     });
     actions.appendChild(favBtn);
-    const printBtn = el("button", { class: "btn secondary icon-lbl", title: "Drucken", "aria-label": "Drucken" }, '🖨️ <span class="lbl">Drucken</span>');
-    printBtn.addEventListener("click", () => printRecipe(rec, res, d, mult));
-    actions.appendChild(printBtn);
-    const todayBtn = el("button", { class: "btn", id: "today-btn", "aria-haspopup": "true" }, "📅 Für heute");
-    todayBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleTodaySheet(rec); });
-    actions.appendChild(todayBtn);
-    const editBtn = el("button", { class: "btn secondary", id: "edit-btn" }, "✏️ " + (rec.custom ? "Bearbeiten" : "Editor"));
-    editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });
-    actions.appendChild(editBtn);
-    if (rec.custom) {
-      const delBtn = el("button", { class: "btn ghost" }, "🗑️");
-      delBtn.addEventListener("click", () => {
-        if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
-          state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
-          const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
-          save(); closeDetail(); renderRezepte();
-        }
-      });
-      actions.appendChild(delBtn);
-    }
+    const del = c.querySelector("#del-btn");
+    if (del) del.addEventListener("click", () => {
+      if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
+        state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
+        const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
+        save(); closeDetail(); renderRezepte();
+      }
+    });
+    // Nährwerte je Zutat ein-/ausblenden (gemerkt, gilt für beide Blätter)
+    c.querySelectorAll(".nw-cb").forEach(cb => cb.addEventListener("change", () => {
+      state.settings.detailNutr = cb.checked; save();
+      c.classList.toggle("show-nutr", cb.checked);
+      c.querySelectorAll(".nw-cb").forEach(o => { o.checked = cb.checked; });
+    }));
   }
 
   /* ---------- „Für heute“: Rezept in den Tagesplan übernehmen ----------
@@ -4511,7 +4352,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       idx.forEach(i => { state.dayPlan[i] = { key }; });
       save(); closeTodaySheet(); renderRezepte();
       const what = v === "all" ? "für alle " + d.mahl + " Mahlzeiten" : v === "free" ? "für " + idx.length + " freie Mahlzeit" + (idx.length === 1 ? "" : "en") : "für Mahlzeit " + (idx[0] + 1) + " (" + fmtHM(times.meals[idx[0]]) + ")";
-      showToast("📅 " + escapeHtml(familyOf(rec)) + " " + what + " übernommen", [
+      showToast(escapeHtml(familyOf(rec)) + " " + what + " übernommen", [
         ["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }],
         ["Ansehen", () => { closeDetail(); showView("heute"); }],
       ]);
@@ -4548,8 +4389,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
   // wenn der Inhalt unter dem Finger ganz oben steht (sonst scrollt er wie gewohnt nach oben) und die Bewegung
   // eher senkrecht als waagrecht ist (waagrecht blättert die Seiten). Im gerade bearbeiteten Eingabefeld und
-  // in der „Für heute“-Auswahl wird nicht gezogen. Die Karte folgt dem Finger; ab 90 px oder bei schnellem Wisch
-  // schließt sie, sonst springt sie zurück.
+  // in der „Für heute“-Auswahl wird nicht gezogen. Das Sheet folgt dem Finger (das Overlay wird dabei heller);
+  // ab 140 px oder bei schnellem Wisch (> 0,6 px/ms und > 40 px) schließt es mit 220 ms, sonst federt es zurück.
+  // Nach einem Zug löst das Loslassen keinen Klick aus.
   function bindSwipeDown(overlay, onClose) {
     const card = overlay.querySelector(".overlay-card"); if (!card) return;
     let st = null; // { x0, y0, t0, mode: null | "pull" | "skip" }
@@ -4583,15 +4425,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       }
       if (e.cancelable) e.preventDefault(); // kein Gummiband-Scrollen, solange die Karte gezogen wird
       card.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+      overlay.style.backgroundColor = "rgba(42,38,33," + (0.4 * Math.max(0.15, 1 - Math.max(0, dy) / 400)).toFixed(3) + ")";
     }, { passive: false });
     const end = (e) => {
       if (!st) return;
       const was = st; st = null;
       if (was.mode !== "pull") return;
-      const p = pt(e), dy = p.clientY - was.y0, fast = (Date.now() - was.t0) < 300 && dy > 40;
-      card.style.transition = "transform .18s ease-out";
-      if (dy > 90 || fast) { card.style.transform = "translateY(100%)"; setTimeout(() => { card.style.transform = ""; card.style.transition = ""; onClose(); }, 160); }
-      else { card.style.transform = ""; setTimeout(() => { card.style.transition = ""; }, 200); }
+      const p = pt(e), dy = p.clientY - was.y0, dt = Math.max(1, Date.now() - was.t0), fast = dy / dt > 0.6 && dy > 40;
+      card.style.transition = "transform .22s ease-out";
+      overlay.style.transition = "background-color .22s ease-out";
+      // Nach dem Zug den folgenden Klick schlucken (sonst öffnet z. B. ein Tipp auf eine Zeile etwas)
+      const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      overlay.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => overlay.removeEventListener("click", swallow, { capture: true }), 350);
+      if (dy > 140 || fast) { card.style.transform = "translateY(100%)"; setTimeout(() => { card.style.transform = ""; card.style.transition = ""; overlay.style.backgroundColor = ""; overlay.style.transition = ""; onClose(); }, 220); }
+      else { card.style.transform = ""; overlay.style.backgroundColor = ""; setTimeout(() => { card.style.transition = ""; overlay.style.transition = ""; }, 240); }
     };
     overlay.addEventListener("touchend", end, { passive: true });
     overlay.addEventListener("touchcancel", end, { passive: true });
@@ -5166,7 +5014,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
   const SYNC_KEY = "ketoplaner.sync";
   const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis"];
-  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
+  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
 
