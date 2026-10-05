@@ -88,19 +88,19 @@ Von der Verordnung führt eine Zeile zu **Bedarf schätzen**.
   „:1" steht fix daneben („1,8", „1,5", „1"); die App zeigt Verhältnisse
   überall als „x : 1", auch unter 1 (z. B. „0,67 : 1") und warnt dann unter dem
   Feld mit „▲“,
-  **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg; ist unter „Bedarf schätzen“ ein
-  Geburtsdatum eingetragen, die **Krick-Schätzung**) und
+  **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg; die Krick-Schätzung aus „Bedarf
+  schätzen“ gilt erst, wenn man sie dort ausdrücklich übernimmt) und
   **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Kennzahlen zeigen dazu den Korridor
-  70–90 kcal/kg nach FAO/WHO/UNU 2004 für 6–24 Monate. Mit Geburtsdatum und einem Kind, das nicht geht:
-  Minimum = ESPGHAN-Faustregel 60 % und **Bereich laut Schätzungen** ESPGHAN–FAO/WHO – bitte mit der
-  Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
+  70–90 kcal/kg nach FAO/WHO/UNU 2004 für 6–24 Monate. Mit Geburtsdatum und einem Kind, das nicht geht,
+  zeigen die Kennzahlen stattdessen den **Bereich laut Schätzungen** ESPGHAN–FAO/WHO – nur zur Orientierung,
+  das Minimum bleibt bei 70 kcal/kg; bitte mit der Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
   markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit – darunter als
   **Kennzahl-Kacheln** (pro Mahlzeit, mindestens, Eiweiß, Bereich/Korridor; die Herkunft
   steht im Tooltip). Am Desktop stehen links das Menü der Vorgaben (die aktive Zeile hinterlegt) und rechts
   die Unterseite; ohne Auswahl die Verordnung. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
-  kommt: **„Vorschlag · 80 kcal/kg"** bzw. **„Vorschlag · Krick"** oder **„eigener
+  kommt: **„Vorschlag · 80 kcal/kg"** oder **„eigener
   Wert · Vorschlag 680"** (Textlink) zum Zurücksetzen. Tippt man genau den Vorschlag
   ein oder leert das Feld, gilt wieder der Vorschlag. Nichts verschiebt sich
   dabei.
@@ -434,8 +434,9 @@ Auf der Skala und in der Legende heißt jeder Wert nach seiner Quelle (Krick, ES
 
 Darunter der Hinweis, dass das **keine feste Empfehlung** ist – das Team legt den Bedarf nach dem Wachstum fest.
 
-Die Krick-Schätzung ist zugleich der **Kalorien-Vorschlag** in der Verordnung (gilt nur, solange dort kein
-eigener Wert steht); bei Kindern, die nicht gehen, wird das Minimum die ESPGHAN-Untergrenze (60 %).
+Die Schätzung **ändert die Verordnung nicht von selbst**: Ein Knopf „Krick-Schätzung übernehmen: … kcal am
+Tag“ setzt sie bewusst als Kalorienziel ein (mit **Rückgängig**); vorher rechnet die App weiter mit dem Vorschlag
+nach Gewicht bzw. dem eigenen Wert.
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
 die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
 Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „Wie wird gerechnet? Quellen“

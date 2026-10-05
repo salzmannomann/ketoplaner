@@ -74,15 +74,27 @@
         ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
       (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
+      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "") +
+      // Bewusst übernehmen: die Schätzung ändert die Verordnung nur auf Knopfdruck (mit Rückgängig)
+      (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Schätzung übernehmen: ' +
+        fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal am Tag</button></p>' : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
-    // Alles neu zeichnen: die Krick-Schätzung ist auch der Kalorien-Vorschlag in der Verordnung
+    // Alles neu zeichnen (Skala, Hinweise); die Verordnung ändert sich dadurch nicht
     const set = (k, v) => { state.settings[k] = v; save(); renderRezepte(); };
     birth.addEventListener("change", () => set("bdBirth", birth.value));
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));
     document.getElementById("bd-sex").addEventListener("change", (e) => set("bdSex", e.target.value));
     document.querySelectorAll("#bd-gain button").forEach(b => b.addEventListener("click", () => set("bdGain", num(b.dataset.gain))));
+    // „Krick-Schätzung übernehmen“ setzt die Kalorien der Verordnung (eigener Wert), mit Rückgängig
+    const out = document.getElementById("bd-out");
+    if (out) out.addEventListener("click", (e) => {
+      if (!e.target.closest("#bd-apply")) return;
+      const r = bedarfCalc(derived(), state.settings); if (!r) return;
+      const prev = state.settings.kcal, v = Math.round(r.krick / 10) * 10;
+      state.settings.kcal = v; save(); renderRezepte();
+      showToast("Verordnung: " + fmt(v, 0) + " kcal am Tag", [["Rückgängig", () => { state.settings.kcal = prev; save(); renderRezepte(); }]]);
+    });
   }

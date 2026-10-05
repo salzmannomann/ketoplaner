@@ -2636,13 +2636,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const ratio = num(s.ratio);
     const mahl = mahlCount(s);
     const perKg = num(s.proteinPerKg), weight = num(s.weight);
-    // Kalorien: leer = Vorschlag. Mit Geburtsdatum (Karte „Bedarf schätzen“) die Krick-Schätzung, sonst nach Gewicht
-    // (80 kcal/kg, FAO/WHO/UNU 2004, 6–24 Monate); ohne Gewicht 700 kcal.
+    // Kalorien: leer = Vorschlag nach Gewicht (80 kcal/kg, FAO/WHO/UNU 2004, 6–24 Monate); ohne Gewicht 700 kcal.
+    // „Bedarf schätzen“ (Krick) ändert die Verordnung NICHT von selbst – dort lässt sich die Schätzung bewusst übernehmen.
     const r10 = (v) => Math.round(v / 10) * 10;
     const bd = weight > 0 ? bedarfCalc({ weight }, s) : null;
-    const kcalBasis = bd ? "krick" : weight > 0 ? "gewicht" : "ohne";
+    const kcalBasis = weight > 0 ? "gewicht" : "ohne";
     const kcalManual = num(s.kcal) > 0;
-    const kcalAuto = bd ? r10(bd.krick) : weight > 0 ? r10(weight * 80) : 700;
+    const kcalAuto = weight > 0 ? r10(weight * 80) : 700;
     const kcal = kcalManual ? num(s.kcal) : kcalAuto;
     const autoProtein = perKg > 0 && weight > 0;
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
@@ -2656,10 +2656,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // (FAO/WHO); die Obergrenze bleibt mindestens 10 % über dem Ziel. Das Minimum ist manuell übersteuerbar; ohne
     // Gewicht gilt 85 % des Ziels.
     const kcalBereich = bd && bd.mob !== BD_MOBIL.geht;
-    const kcalRichtwert = weight > 0 ? (bd ? r10(bd.krick) : r10(weight * 80)) : null;
+    const kcalRichtwert = weight > 0 ? r10(weight * 80) : null;
     const kcalMaxAuto = kcalBereich ? Math.max(r10(bd.ref), r10(kcal * 1.1)) : weight > 0 ? r10(weight * 90) : null;
-    // Automatisches Minimum nie über der Verordnung (sonst wäre jeder Tag „unter dem Minimum“).
-    const kcalMinAuto = Math.min(kcalBereich ? r10(bd.lo) : weight > 0 ? r10(weight * 70) : r10(kcal * 0.85), kcal);
+    // Automatisches Minimum nach Gewicht (70 kcal/kg), nie über der Verordnung (sonst wäre jeder Tag „unter dem Minimum“).
+    // Der Bereich laut Schätzungen (ESPGHAN–FAO/WHO) wird nur angezeigt, er setzt das Minimum nicht.
+    const kcalMinAuto = Math.min(weight > 0 ? r10(weight * 70) : r10(kcal * 0.85), kcal);
     const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
     // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg);
     // manuell übersteuerbar. Modus: Wasser zwischen den Mahlzeiten sondieren oder in den Mahlzeiten enthalten.
@@ -3724,17 +3725,29 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
       (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
+      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "") +
+      // Bewusst übernehmen: die Schätzung ändert die Verordnung nur auf Knopfdruck (mit Rückgängig)
+      (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Schätzung übernehmen: ' +
+        fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal am Tag</button></p>' : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
-    // Alles neu zeichnen: die Krick-Schätzung ist auch der Kalorien-Vorschlag in der Verordnung
+    // Alles neu zeichnen (Skala, Hinweise); die Verordnung ändert sich dadurch nicht
     const set = (k, v) => { state.settings[k] = v; save(); renderRezepte(); };
     birth.addEventListener("change", () => set("bdBirth", birth.value));
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));
     document.getElementById("bd-sex").addEventListener("change", (e) => set("bdSex", e.target.value));
     document.querySelectorAll("#bd-gain button").forEach(b => b.addEventListener("click", () => set("bdGain", num(b.dataset.gain))));
+    // „Krick-Schätzung übernehmen“ setzt die Kalorien der Verordnung (eigener Wert), mit Rückgängig
+    const out = document.getElementById("bd-out");
+    if (out) out.addEventListener("click", (e) => {
+      if (!e.target.closest("#bd-apply")) return;
+      const r = bedarfCalc(derived(), state.settings); if (!r) return;
+      const prev = state.settings.kcal, v = Math.round(r.krick / 10) * 10;
+      state.settings.kcal = v; save(); renderRezepte();
+      showToast("Verordnung: " + fmt(v, 0) + " kcal am Tag", [["Rückgängig", () => { state.settings.kcal = prev; save(); renderRezepte(); }]]);
+    });
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */

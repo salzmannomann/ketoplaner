@@ -1330,8 +1330,8 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match($(w, "bd-out").textContent, /FAO\/WHO \(2004\): 685 kcal/);
   assert.doesNotMatch($(w, "bd-out").textContent, /ESPGHAN/, "geht: keine Faustregel für Kinder, die nicht gehen");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 750, "Verordnung unverändert");
-  // Eigener Wert 750 bleibt; der Vorschlag daneben ist die Krick-Schätzung (geht + erhöht → 689 ≈ 690)
-  assert.match($(w, "reset-kcal").textContent, /Vorschlag 690/);
+  // Eigener Wert 750 bleibt; der Vorschlag daneben bleibt nach Gewicht (8,5 × 80 = 680) – die Schätzung ändert ihn nicht
+  assert.match($(w, "reset-kcal").textContent, /Vorschlag 680/);
   // kurz vor dem 3. Geburtstag: Hinweis auf den Formelwechsel
   b.value = iso(34); fire(w, b, "change");
   assert.match($(w, "bd-out").textContent, /Am 3\. Geburtstag wechselt die Formel/);
@@ -1340,26 +1340,29 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match($(w, "bd-out").textContent, /Verordnung unter 70 % von Gleichaltrigen/);
 });
 
-test("Kalorien-Vorschlag folgt der Krick-Schätzung, sobald ein Geburtsdatum eingetragen ist", () => {
+test("Bedarf schätzen ändert die Verordnung nicht von selbst – „Krick-Schätzung übernehmen“ mit Rückgängig", () => {
   const iso = (mo) => { const n = new Date(); const b = new Date(n.getFullYear(), n.getMonth() - mo, Math.min(n.getDate(), 28)); return b.getFullYear() + "-" + String(b.getMonth() + 1).padStart(2, "0") + "-" + String(b.getDate()).padStart(2, "0"); };
   const w = boot({ settings: { kcal: "", kcalMin: "", weight: 8.5, ratio: 1.5, mahlzeiten: 4, view: "vorgaben" } });
   // ohne Geburtsdatum: 80 kcal/kg
   assert.equal($(w, "set-kcal").value, "680");
   assert.match($(w, "src-kcal").textContent, /Vorschlag · 80 kcal\/kg/);
   const b = $(w, "bd-birth"); b.value = iso(26); fire(w, b, "change");
-  // Mädchen, liegt viel, normal → Krick 559 ≈ 560; Minimum ESPGHAN 60 % von 685 ≈ 410; Bereich bis FAO/WHO 690
-  assert.equal($(w, "set-kcal").value, "560");
-  assert.match($(w, "src-kcal").textContent, /Vorschlag · Krick/);
-  assert.equal($(w, "set-kcalmin").value, "410");
-  assert.match($(w, "src-kcalmin").textContent, /Vorschlag · ESPGHAN 60 %/);
-  assert.match(fact(w, "verordnung-summary", "mahl"), /^pro Mahlzeit140 kcal.*560 kcal\/Tag \(Vorschlag nach Krick\) ÷ 4/);
-  assert.match(fact(w, "verordnung-summary", "bereich"), /^Bereich laut Schätzungen410–690kcal\/Tag · ESPGHAN–FAO\/WHO/);
-  // „geht“: Vorschlag weiter nach Krick, Minimum und Korridor wieder nach Gewicht (70–90 kcal/kg)
-  const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
-  assert.equal($(w, "set-kcal").value, "630");
+  // mit Geburtsdatum: Vorschlag und Minimum bleiben nach Gewicht; der Bereich laut Schätzungen wird nur angezeigt
+  assert.equal($(w, "set-kcal").value, "680");
+  assert.match($(w, "src-kcal").textContent, /Vorschlag · 80 kcal\/kg/);
   assert.equal($(w, "set-kcalmin").value, "600");
-  assert.match(fact(w, "verordnung-summary", "bereich"), /^Korridor nach Gewicht600–770/);
+  assert.match(fact(w, "verordnung-summary", "bereich"), /^Bereich laut Schätzungen410–690kcal\/Tag · ESPGHAN–FAO\/WHO/);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal || "", "", "kein eigener Wert gespeichert");
+  // Übernehmen: Mädchen, liegt viel, normal → Krick 559 ≈ 560
+  const ap = $(w, "bd-apply"); assert.ok(ap, "Knopf zum Übernehmen"); assert.match(ap.textContent, /560 kcal/);
+  fire(w, ap);
+  assert.equal($(w, "set-kcal").value, "560");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 560);
+  assert.ok(!$(w, "bd-apply"), "übernommen – Knopf weg");
+  const undo = [...w.document.querySelectorAll("#toast button")].find(x => /Rückgängig/.test(x.textContent));
+  fire(w, undo);
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal || "", "", "Rückgängig stellt den Vorschlag wieder her");
+  assert.equal($(w, "set-kcal").value, "680");
 });
 
 
