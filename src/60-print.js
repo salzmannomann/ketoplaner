@@ -21,7 +21,10 @@
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
-      ov.querySelector("#print-go").addEventListener("click", () => { try { window.print(); } catch (e) {} });
+      ov.querySelector("#print-go").addEventListener("click", () => {
+        if (iosHomeScreenApp()) { sharePrintPdf(true); return; }
+        try { window.print(); } catch (e) {}
+      });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
       document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePrintView(); });
     }
@@ -32,6 +35,14 @@
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
+  }
+  // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
+  // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
+  function iosHomeScreenApp() {
+    const nav = window.navigator || {};
+    const ios = /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+    const standalone = nav.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    return ios && standalone;
   }
   // Vorschau als ganze A4-Seite: am Handy auf die Breite verkleinert (wie gedruckt bzw. als PDF geteilt).
   // Zoomen in der Vorschau: Die App sperrt sonst das Zoomen (versehentliches Vergrößern beim Tippen) – hier gibt es

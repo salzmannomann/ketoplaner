@@ -173,6 +173,9 @@ derselben Vorlage ein **PDF** (z. B. „Tagesplan 2026-10-03.pdf“, „Hendl &
 Brokkoli.pdf“) und öffnet das Teilen-Menü (WhatsApp, Signal, Mail, Dateien); am
 Desktop wird es heruntergeladen. Das PDF entsteht offline in der App (jsPDF);
 Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
+In der **vom Home-Bildschirm gestarteten iPhone/iPad-App** ignoriert iOS den Druckbefehl
+der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü, in dem man
+**„Drucken“** wählt (AirPrint). In Safari und am Computer kommt der normale Druckdialog.
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
 Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den

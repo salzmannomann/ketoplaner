@@ -2591,7 +2591,10 @@
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
-      ov.querySelector("#print-go").addEventListener("click", () => { try { window.print(); } catch (e) {} });
+      ov.querySelector("#print-go").addEventListener("click", () => {
+        if (iosHomeScreenApp()) { sharePrintPdf(true); return; }
+        try { window.print(); } catch (e) {}
+      });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
       document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePrintView(); });
     }
@@ -2602,6 +2605,14 @@
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
+  }
+  // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
+  // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
+  function iosHomeScreenApp() {
+    const nav = window.navigator || {};
+    const ios = /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
+    const standalone = nav.standalone === true || !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    return ios && standalone;
   }
   // Vorschau als ganze A4-Seite: am Handy auf die Breite verkleinert (wie gedruckt bzw. als PDF geteilt).
   // Zoomen in der Vorschau: Die App sperrt sonst das Zoomen (versehentliches Vergrößern beim Tippen) – hier gibt es
@@ -2938,16 +2949,19 @@
     if (n > 1) for (let i = 1; i <= n; i++) { doc.setPage(i); font(8, false, MUTED); doc.text("Seite " + i + " von " + n, PW - M, PH - 8, { align: "right" }); }
     return doc;
   }
-  async function sharePrintPdf() {
+  // forPrint: vom „Drucken“-Knopf in der iPhone-App (dort gibt es keinen Druckdialog) – Hinweis auf „Drucken“ im Menü.
+  async function sharePrintPdf(forPrint) {
     if (!printCurrent) return;
+    forPrint = forPrint === true;
     let doc = null;
     try { doc = buildPdfFromHtml(printCurrent.html); } catch (e) { doc = null; }
-    if (!doc) { showToast("📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
+    if (!doc) { showToast(forPrint ? "📄 PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
     const name = safeFileName(printCurrent.file) + ".pdf";
     const blob = doc.output("blob");
     let file = null;
     try { file = new File([blob], name, { type: "application/pdf" }); } catch (e) {}
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (forPrint) showToast("🖨️ Im Teilen-Menü auf „Drucken“ tippen.");
       try { await navigator.share({ files: [file], title: printCurrent.title }); } catch (e) { /* abgebrochen */ }
       return;
     }

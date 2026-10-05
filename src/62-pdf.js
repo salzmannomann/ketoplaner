@@ -169,16 +169,19 @@
     if (n > 1) for (let i = 1; i <= n; i++) { doc.setPage(i); font(8, false, MUTED); doc.text("Seite " + i + " von " + n, PW - M, PH - 8, { align: "right" }); }
     return doc;
   }
-  async function sharePrintPdf() {
+  // forPrint: vom „Drucken“-Knopf in der iPhone-App (dort gibt es keinen Druckdialog) – Hinweis auf „Drucken“ im Menü.
+  async function sharePrintPdf(forPrint) {
     if (!printCurrent) return;
+    forPrint = forPrint === true;
     let doc = null;
     try { doc = buildPdfFromHtml(printCurrent.html); } catch (e) { doc = null; }
-    if (!doc) { showToast("📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
+    if (!doc) { showToast(forPrint ? "📄 PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
     const name = safeFileName(printCurrent.file) + ".pdf";
     const blob = doc.output("blob");
     let file = null;
     try { file = new File([blob], name, { type: "application/pdf" }); } catch (e) {}
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (forPrint) showToast("🖨️ Im Teilen-Menü auf „Drucken“ tippen.");
       try { await navigator.share({ files: [file], title: printCurrent.title }); } catch (e) { /* abgebrochen */ }
       return;
     }

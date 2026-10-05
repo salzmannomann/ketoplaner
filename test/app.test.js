@@ -1034,6 +1034,27 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   assert.equal(shared.files[0].name, "Hendl & Brokkoli.pdf");
 });
 
+test("iPhone als Home-Bildschirm-App: „Drucken“ öffnet das PDF im Teilen-Menü (iOS ignoriert dort window.print)", async () => {
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
+  if (!w.TextEncoder) { w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder; }
+  w.eval(read("vendor/jspdf.umd.min.js")); w.eval(read("vendor/jspdf.plugin.autotable.min.js"));
+  let printed = 0, shared = null; w.print = () => { printed++; };
+  Object.defineProperty(w.navigator, "canShare", { value: () => true, configurable: true });
+  Object.defineProperty(w.navigator, "share", { value: async (d) => { shared = d; }, configurable: true });
+  Object.defineProperty(w.navigator, "userAgent", { value: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15", configurable: true });
+  const c = openRecipe(w, "Hendl & Brokkoli");
+  fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
+  // In Safari (nicht installiert): normaler Druckdialog
+  fire(w, $(w, "print-go")); await new Promise(r => setTimeout(r, 50));
+  assert.equal(printed, 1); assert.equal(shared, null);
+  // Als Home-Bildschirm-App: PDF ins Teilen-Menü, kein window.print, Hinweis auf „Drucken“
+  Object.defineProperty(w.navigator, "standalone", { value: true, configurable: true });
+  fire(w, $(w, "print-go")); await new Promise(r => setTimeout(r, 50));
+  assert.equal(printed, 1, "window.print nicht aufgerufen");
+  assert.equal(shared.files[0].name, "Hendl & Brokkoli.pdf");
+  assert.match(w.document.body.textContent, /Im Teilen-Menü auf „Drucken“ tippen/);
+});
+
 test("Drucken aus dem Editor: Vorschau öffnet sich ohne Fehler, Öl als letzter Schritt", () => {
   const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
   const c = openRecipe(w, "Hendl & Karotte");
