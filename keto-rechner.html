@@ -682,6 +682,30 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .dk-head { display: flex; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
   .dk-title { display: flex; flex-direction: column; gap: 2px; margin-right: auto; min-width: 0; }
   .dk-title h1 { margin: 0; font: 600 42px/1 var(--f-serif); }
+  /* Tagesplan: links Kopf und Zeitleiste, rechts mitlaufend die Tagesbilanz (rutscht bei wenig Platz darunter) */
+  .zeitplan.dk { display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; align-items: flex-start; max-width: 1160px; }
+  .dk-day { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .dk-head .day-tools { margin: 0; gap: 2px; padding-bottom: 2px; }
+  .dk-head .day-tools .dt-range { flex: none; padding: 0 6px 0 0; font: 500 13px var(--f-mono); white-space: nowrap; }
+  .dk-head .day-tools .tlink { min-width: 0; min-height: 40px; font-size: 13px; }
+  .dk-day .zp-list .zp-row:first-child { border-top: 0; }
+  .dk-bilanz { flex: 1 1 260px; max-width: 320px; position: sticky; top: 34px; display: flex; flex-direction: column; gap: 14px; }
+  .bil-box { display: flex; flex-direction: column; padding-top: 12px; border-top: 2px solid var(--ink); }
+  .bil-head { display: flex; align-items: baseline; gap: 8px; padding-bottom: 6px; }
+  .bil-title { font: 600 22px/1.15 var(--f-serif); }
+  .bil-planned { margin-left: auto; font-size: 12px; color: var(--grey); text-align: right; }
+  .dk-bilanz .day-sum { display: flex; flex-direction: column; gap: 0; font: inherit; color: inherit; }
+  .bil-row { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px dotted var(--dot); }
+  .bil-line { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+  .bil-l { flex: 1; }
+  .bil-line .v { font: 600 15px var(--f-mono); white-space: nowrap; }
+  .bil-goal { font: 500 12px var(--f-mono); color: var(--grey); white-space: nowrap; }
+  .bil-bar { height: 4px; background: var(--rule); }
+  .bil-bar i { display: block; height: 100%; background: var(--ink); }
+  .bil-row.warn .v, .bil-ratio.warn .v { color: var(--red); }
+  .bil-row.warn .bil-bar i { background: var(--red); }
+  .bil-ratio { padding: 10px 0; }
+  .dk-bilanz .zp-hints { padding-top: 10px; }
 }
 
 </style>
@@ -2242,6 +2266,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
   /* ---------- Helpers ---------- */
   // Zahl aus Eingabe oder Wert; ein Komma als Dezimaltrenner („8,5") wird akzeptiert.
+  // Desktop-Ansicht (> 820 px): eigene Anordnung von Tagesplan, Rezepten und Vorgaben (gleiche Bausteine).
+  // Wechselt die Fensterbreite über die Grenze, baut die App neu auf (siehe init).
+  const DESKTOP_MQ = "(min-width: 821px)";
+  function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
@@ -4348,12 +4376,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const est = dm.known < d.mahl;
     const pst = tot.filled ? proteinState(tot.eiweiss, eiweissZiel) : "ok";
     const stat = (cls, v, goal, title) => '<span class="dstat' + (cls ? " " + cls : "") + '"' + (title ? ' title="' + title + '"' : '') + '><b class="v">' + v + '</b> ' + goal + '</span>';
+    const kcalTitle = "Ziel " + fmt(d.kcalMahl * Math.max(1, tot.filled), 0) + " kcal für " + tot.filled + " geplante Mahlzeit" + (tot.filled === 1 ? "" : "en") + " · mindestens " + fmt(kcalMinZiel, 0);
+    const protTitle = pst === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : pst === "low" ? "unter dem Eiweiß-Ziel" : "Eiweiß";
+    const fluidLow = wp.total < d.fluidDay - 15;
+    const fluidTitle = "Mahlzeiten " + fmt(dm.sum, 0) + " ml" + (wp.per > 0 ? " + Wasser " + wp.n + " × " + fmt(wp.per, 0) + " ml" : "") + (est ? " · offene Mahlzeiten geschätzt" : "");
+    const ratioBad = tot.filled && ratioClass(ratioDay, d.ratio) !== "ok";
     const sums = '<div class="day-sum" id="day-sums">' +
-      stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", "Ziel " + fmt(d.kcalMahl * Math.max(1, tot.filled), 0) + " kcal für " + tot.filled + " geplante Mahlzeit" + (tot.filled === 1 ? "" : "en") + " · mindestens " + fmt(kcalMinZiel, 0)) +
-      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", pst === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : pst === "low" ? "unter dem Eiweiß-Ziel" : "Eiweiß") +
-      (d.fluidDay > 0 ? stat(wp.total < d.fluidDay - 15 ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml",
-        "Mahlzeiten " + fmt(dm.sum, 0) + " ml" + (wp.per > 0 ? " + Wasser " + wp.n + " × " + fmt(wp.per, 0) + " ml" : "") + (est ? " · offene Mahlzeiten geschätzt" : "")) : "") +
-      (tot.filled && ratioClass(ratioDay, d.ratio) !== "ok" ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
+      stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", kcalTitle) +
+      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
+      (d.fluidDay > 0 ? stat(fluidLow ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml", fluidTitle) : "") +
+      (ratioBad ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
       "</div>";
     const hints = [];
     if (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.filled && tot.fluid < fluidZiel - 3) hints.push(hintLine("warn", "Unter dem Flüssigkeitsziel – bei einem Rezept ist weniger Wasser gemerkt als sein Anteil."));
@@ -4379,8 +4411,26 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         (rest < -0.5 || second ? "▲ " : "") + escapeHtml(shortName) + ' heute ' + fmt(x.ml, 0) + ' ml · ' + (rest < -0.5 ? 'fehlen ' + fmt(-rest, 0) + ' ml' : 'Rest ' + fmt(rest, 0) + ' ml') + (second ? ' · 2. Packung' : '') + '</div>');
     });
     const notes = zeitplanNotes(d, times, dm, wp) + hints.join("");
-    box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) +
-      '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>' +
+    const slots = '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>';
+    if (isDesktop()) {
+      // Desktop: links Kopf (Überlinie „Heute“, Titel, Zeitraum, Textlinks), Uhrzeiten und Zeitleiste; rechts mitlaufend die
+      // Tagesbilanz – Werte in Mono mit dünnem Balken, darunter Verhältnis und Hinweise. Bei wenig Platz rutscht sie darunter.
+      const bar = (label, v, goal, part, warn, title) => '<div class="bil-row' + (warn ? " warn" : "") + '" title="' + title + '">' +
+        '<div class="bil-line"><span class="bil-l">' + label + '</span><b class="v">' + v + '</b><span class="bil-goal">' + goal + '</span></div>' +
+        '<div class="bil-bar"><i style="width:' + Math.round(Math.max(0, Math.min(1, part)) * 100) + '%"></i></div></div>';
+      const bars = '<div class="day-sum" id="day-sums">' +
+        bar("Kalorien", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", d.kcal > 0 ? tot.kcal / d.kcal : 0, kcalLow, kcalTitle) +
+        bar("Eiweiß", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", d.eiweiss > 0 ? tot.eiweiss / d.eiweiss : 0, pst !== "ok", protTitle) +
+        (d.fluidDay > 0 ? bar("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", "/ " + fmt(d.fluidDay, 0) + " ml", wp.total / d.fluidDay, fluidLow, fluidTitle) : "") + '</div>';
+      box.innerHTML = '<div class="zeitplan dk">' +
+        '<section class="dk-day"><header class="dk-head"><div class="dk-title"><span class="overline">Heute</span><h1>Tagesplan</h1></div>' + tools + '</header>' +
+          zeitplanSettings(times) + slots + '</section>' +
+        '<aside class="dk-bilanz"><div class="bil-box"><div class="bil-head"><span class="bil-title">Tagesbilanz</span><span class="bil-planned">' +
+          tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></div>' + bars +
+          '<div class="bil-line bil-ratio' + (ratioBad ? " warn" : "") + '"><span class="bil-l">Verhältnis</span><b class="v">' + (tot.filled ? fmtRxA(ratioDay, 2) : "—") + '</b>' +
+          '<span class="bil-goal">Ziel ' + fmtRx(d.ratio) + '</span></div></div>' +
+          (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</aside></div>';
+    } else box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) + slots +
       (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
     bindZeitplan(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
@@ -5835,6 +5885,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     bindFilterSwipe();
     renderRezepte();
     showView(state.settings.view || "rezepte");
+    // Breite wechselt zwischen Handy und Desktop (> 820 px): Bereiche in der passenden Anordnung neu aufbauen
+    try {
+      const mq = window.matchMedia && window.matchMedia(DESKTOP_MQ);
+      if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+    } catch (e) {}
   }
 
   document.addEventListener("DOMContentLoaded", init);
