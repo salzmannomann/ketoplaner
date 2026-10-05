@@ -736,6 +736,9 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #recipe-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 4px 32px; align-items: start; }
   .group { display: flex; flex-direction: column; min-width: 0; }
   .group .tiles { margin-bottom: 0; }
+  /* Nur eine Gruppe sichtbar (Gruppen-Chip, Favoriten oder Suche): sie nimmt die ganze Breite, die Rezepte laufen in Spalten */
+  #recipe-list > .group:only-child { grid-column: 1 / -1; }
+  #recipe-list > .group:only-child .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   #recipe-list > .tiles, #recipe-list > .empty-line { grid-column: 1 / -1; }
   #recipe-list > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   .tile { padding: 10px 8px 10px 12px; }
