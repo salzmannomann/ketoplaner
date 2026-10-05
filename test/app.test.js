@@ -14,7 +14,7 @@ const CODE = ["foods.js", "recipes.js", "app.js"].map(read).join("\n;\n");
 const HTML = read("index.html");
 
 // Startet die App in jsdom mit optionalem gespeicherten Zustand (localStorage).
-function boot(stored) {
+function boot(stored, pre) {
   const dom = new JSDOM(HTML, { url: "http://localhost/", runScripts: "outside-only", pretendToBeVisual: true });
   const { window } = dom;
   window.scrollTo = () => {};
@@ -25,6 +25,7 @@ function boot(stored) {
   // Feste 700 kcal/Tag als Ausgangspunkt (der App-Standard ist „leer = Vorschlag nach Gewicht“); kcal: "" testet den Vorschlag.
   stored = stored || {}; stored.settings = Object.assign({ kcal: 700 }, stored.settings || {});
   window.localStorage.setItem("ketoplaner.v5", JSON.stringify(stored));
+  if (pre) pre(window); // z. B. WebCrypto/fetch bereitstellen, bevor die App startet
   window.eval(CODE);
   window.document.dispatchEvent(new window.Event("DOMContentLoaded", { bubbles: true }));
   return window;
@@ -1328,3 +1329,82 @@ test("Kalorien-Vorschlag folgt der Krick-Schätzung, sobald ein Geburtsdatum ein
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal || "", "", "kein eigener Wert gespeichert");
 });
 
+
+test("Geräte-Abgleich: verschlüsselt über den Dienst, Koppeln per Code, jüngere Einstellung gewinnt, Lokales bleibt lokal", async () => {
+  const W = await import("data:text/javascript;base64," + Buffer.from(read("push-worker/worker.js")).toString("base64"));
+  const kv = new Map(), env = { PUSH_KV: { get: async (k, t) => kv.has(k) ? (t === "json" ? JSON.parse(kv.get(k)) : kv.get(k)) : null, put: async (k, v) => { kv.set(k, v); }, delete: async (k) => { kv.delete(k); } } };
+  // Dienst direkt: Konflikt bei veralteter Revision, Kopplungs-Code nur einmal abrufbar
+  const call = async (p, body) => { const r = await W.handle(new Request("https://dienst.test" + p, { method: "POST", body: JSON.stringify(body) }), env); return { status: r.status, j: await r.json() }; };
+  const hid = "a".repeat(64);
+  assert.deepEqual((await call("/api/state/get", { id: hid })).j, { rev: 0 });
+  assert.equal((await call("/api/state/put", { id: hid, baseRev: 0, data: "x" })).j.rev, 1);
+  const cf = await call("/api/state/put", { id: hid, baseRev: 0, data: "y" });
+  assert.equal(cf.status, 409); assert.equal(cf.j.rev, 1); assert.equal(cf.j.data, "x");
+  assert.equal((await call("/api/state/get", { id: "kurz" })).status, 400, "ungültige Adresse");
+  await call("/api/pair/put", { id: hid, blob: "b" });
+  assert.equal((await call("/api/pair/get", { id: hid })).j.blob, "b");
+  assert.equal((await call("/api/pair/get", { id: hid })).status, 404, "Code nur einmal verwendbar");
+  kv.clear();
+
+  // Zwei Geräte, beide reden über fetch mit demselben Dienst
+  const device = (stored) => boot(stored, (w) => {
+    Object.defineProperty(w, "crypto", { value: require("crypto").webcrypto, configurable: true });
+    w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
+    w.fetch = (url, opts) => W.handle(new Request(url, opts), env);
+  });
+  const settle = async (w, pred, what) => { for (let i = 0; i < 100; i++) { if (pred()) return; await new Promise(r => setTimeout(r, 20)); } assert.fail("Zeitüberschreitung: " + what + " · " + $(w, "sync-status").textContent); };
+  const A = device({ settings: { weight: 8.5, ratio: 1.5, mahlzeiten: 4, view: "vorgaben", pushUrl: "https://dienst.test" }, favorites: ["std:Hendl & Brokkoli"] });
+  const B = device({ settings: { weight: 12, ratio: 2, mahlzeiten: 5, view: "heute", pushUrl: "https://dienst.test" } });
+  try {
+    assert.match($(A, "sync-status").textContent, /Ausgeschaltet/);
+    assert.ok($(A, "sync-code-btn").hidden && !$(A, "sync-enable").hidden);
+    const rev = () => { const e = [...kv.entries()].find(([k]) => k.indexOf("st:") === 0); return e ? JSON.parse(e[1]).rev : 0; };
+    const meta = (w) => JSON.parse(w.localStorage.getItem("ketoplaner.sync") || "null");
+    fire(A, $(A, "sync-enable"));
+    await settle(A, () => rev() === 1 && meta(A) && meta(A).at, "A eingeschaltet");
+    assert.match($(A, "sync-status").textContent, /Eingeschaltet/);
+    const stored = [...kv.entries()].find(([k]) => k.indexOf("st:") === 0);
+    assert.ok(stored, "Stand beim Dienst gespeichert");
+    assert.doesNotMatch(stored[1], /Hendl|weight|8\.5/, "beim Dienst nur verschlüsselt");
+    // Code erzeugen und auf B eingeben
+    fire(A, $(A, "sync-code-btn"));
+    await settle(A, () => !$(A, "sync-code").hidden, "Code angezeigt");
+    const code = $(A, "sync-code").querySelector(".sync-code").textContent;
+    assert.match(code, /^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+    $(B, "sync-join-code").value = code.toLowerCase();
+    fire(B, $(B, "sync-join"));
+    await settle(B, () => meta(B) && meta(B).at, "B verbunden");
+    assert.match($(B, "sync-status").textContent, /Eingeschaltet/);
+    const sB = () => JSON.parse(B.localStorage.getItem("ketoplaner.v5"));
+    const sA = () => JSON.parse(A.localStorage.getItem("ketoplaner.v5"));
+    assert.equal(sB().settings.weight, 8.5, "B übernimmt den gemeinsamen Stand");
+    assert.equal(sB().settings.ratio, 1.5); assert.equal(sB().settings.mahlzeiten, 4);
+    assert.deepEqual(sB().favorites, ["std:Hendl & Brokkoli"]);
+    assert.equal(sB().settings.view, "heute", "Ansicht bleibt je Gerät");
+    // B ändert das Gewicht, A ändert gleichzeitig die Mahlzeiten → beides bleibt erhalten
+    const wB = $(B, "set-weight"); wB.value = "9"; fire(B, wB, "input");
+    const r0 = rev();
+    fire(B, $(B, "sync-now"));
+    await settle(B, () => rev() > r0 && !meta(B).dirty, "B hochgeladen");
+    fire(A, A.document.querySelector('#mahlzeiten-ctl button[data-mahl="3"]'));
+    fire(A, $(A, "sync-now"));
+    await settle(A, () => sA().settings.weight === 9, "A bekommt das Gewicht von B");
+    assert.equal(sA().settings.mahlzeiten, 3, "eigene Änderung von A bleibt");
+    fire(B, $(B, "sync-now"));
+    await settle(B, () => sB().settings.mahlzeiten === 3, "B bekommt die Mahlzeiten von A");
+    assert.equal(sB().settings.weight, 9);
+    assert.equal($(B, "set-weight").value, "9", "Anzeige auf B aktualisiert");
+    // Code ist verbraucht
+    const C = device({ settings: { pushUrl: "https://dienst.test" } });
+    try {
+      $(C, "sync-join-code").value = code; fire(C, $(C, "sync-join"));
+      await settle(C, () => /Code unbekannt/.test(C.document.body.textContent), "Hinweis bei verbrauchtem Code");
+      assert.match($(C, "sync-status").textContent, /Ausgeschaltet/);
+    } finally { await new Promise(r => setTimeout(r, 100)); C.close(); }
+    // Ausschalten wirkt nur lokal
+    fire(B, $(B, "sync-off"));
+    assert.match($(B, "sync-status").textContent, /Ausgeschaltet/);
+    assert.equal(sB().settings.weight, 9, "Daten bleiben auf dem Gerät");
+    assert.equal(meta(B), null);
+  } finally { await new Promise(r => setTimeout(r, 300)); A.close(); B.close(); }
+});

@@ -1137,6 +1137,12 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .push-opts label.check { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: 14px; color: var(--ink); }
 .push-opts label.check input { width: 18px; height: 18px; min-width: 18px; margin: 0; padding: 0; }
 #push-toggle:disabled { opacity: .45; cursor: not-allowed; }
+/* Geräte abgleichen (Vorgaben) */
+.sync-join { margin-top: 10px; }
+.sync-join-in { display: flex; gap: 8px; }
+.sync-join-in input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .08em; font-size: 15px; }
+.sync-join-in .btn { white-space: nowrap; }
+.sync-code-box .sync-code { font-size: 22px; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
 
 /* Bedarf schätzen (Vorgaben) */
 .bd-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 8px; margin: 6px 0 8px; align-items: start; }

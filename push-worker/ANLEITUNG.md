@@ -39,6 +39,15 @@ Die Adresse des Workers steht oben auf seiner Seite, etwa
 3. **🔔 Erinnerungen einschalten** → Mitteilungen **erlauben**.
 4. **Testnachricht** – nach wenigen Sekunden erscheint „🔔 HamHam Keto“.
 
+## Aktualisieren (z. B. für den Geräte-Abgleich)
+Wenn die App eine neue Fassung des Dienstes braucht (der Geräte-Abgleich meldet dann „Der Dienst kennt den
+Abgleich noch nicht“):
+1. In Cloudflare **Workers & Pages** → den Worker **hamham-push** öffnen → **Code bearbeiten**.
+2. Den gesamten Inhalt durch die aktuelle Datei `push-worker/worker.js` ersetzen → **Bereitstellen**.
+3. Prüfen: Die Adresse des Workers im Browser öffnen – dort steht jetzt
+   „HamHam Keto Dienst läuft (Erinnerungen und Geräte-Abgleich).“
+Speicher (PUSH_KV) und Zeitplan bleiben dabei unverändert; Erinnerungen laufen einfach weiter.
+
 ## Alternative: Bereitstellung mit der Kommandozeile
 ```
 cd push-worker
@@ -51,6 +60,9 @@ npx wrangler deploy
 Je Handy: die Push-Anmeldung (vom Browser erzeugt), die Zeitzone und die Erinnerungen des Tages
 (Uhrzeit, z. B. „🍽️ Mahlzeit 2 · 10:30“, „Hendl & Brokkoli · ≈ 217 ml · 45 min“). Keine Namen,
 kein Gewicht, keine Verordnung. Ausschalten in der App löscht den Eintrag.
+
+Beim **Geräte-Abgleich** (freiwillig): ein verschlüsselter Block je Gerätegruppe unter einer Zufalls-Adresse –
+ohne den Schlüssel, den nur eure Geräte kennen, nicht lesbar. Kopplungs-Codes verfallen nach 15 Minuten.
 
 ## Wenn keine Nachricht kommt
 - Mitteilungen erlaubt? iPhone-Einstellungen → Mitteilungen → HamHam Keto.

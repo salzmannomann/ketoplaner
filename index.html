@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=bf97f678" />
+  <link rel="stylesheet" href="styles.css?v=1a210fe6" />
 </head>
 <body>
   <header class="topbar">
@@ -269,6 +269,28 @@
         </details>
       </div>
 
+      <div class="card" id="sync-card">
+        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig: iPhone, iPad und Computer auf demselben Stand</span></h3>
+        <div id="sync-status" class="note info"></div>
+        <div id="sync-code" class="note tip sync-code-box" hidden></div>
+        <div class="btn-row">
+          <button id="sync-enable" class="btn" type="button">🔄 Abgleich einschalten</button>
+          <button id="sync-code-btn" class="btn" type="button" hidden>📱 Weiteres Gerät verbinden</button>
+          <button id="sync-now" class="btn secondary" type="button" hidden>Jetzt abgleichen</button>
+          <button id="sync-off" class="btn ghost" type="button" hidden>Ausschalten</button>
+        </div>
+        <div class="sync-join" id="sync-join-row">
+          <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
+            <span class="sync-join-in"><input id="sync-join-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" />
+            <button id="sync-join" class="btn secondary" type="button">Mit Code verbinden</button></span>
+          </label>
+        </div>
+        <details class="collapsible mini">
+          <summary>ⓘ Wie funktioniert das?</summary>
+          <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
+        </details>
+      </div>
+
       <div class="card">
         <h3>💾 Daten</h3>
         <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
@@ -322,7 +344,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=6f6e1ef0"></script>
+  <script src="app.js?v=b013390e"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

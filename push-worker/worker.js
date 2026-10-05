@@ -11,10 +11,18 @@
      GET  /api/key                         → { publicKey }  (VAPID, wird beim ersten Aufruf erzeugt)
      POST /api/sync   { subscription, tz, items:[{ at:"HH:MM", title, body, tag }] }
      POST /api/remove { endpoint }
-     POST /api/test   { subscription }     → schickt sofort eine Testnachricht */
+     POST /api/test   { subscription }     → schickt sofort eine Testnachricht
+
+   Geräte-Abgleich (freiwillig, Ende-zu-Ende verschlüsselt – der Dienst speichert nur unlesbare Blöcke):
+     POST /api/state/get    { id }                   → { rev, data } (rev 0 = noch nichts gespeichert)
+     POST /api/state/put    { id, baseRev, data }    → { rev } oder 409 { conflict, rev, data }, wenn inzwischen neuer
+     POST /api/state/delete { id }
+     POST /api/pair/put     { id, blob }             → Kopplungs-Code für 15 Minuten
+     POST /api/pair/get     { id }                   → { blob } (nur einmal abrufbar) oder 404 */
 
 const SUBJECT = "https://salzmannomann.github.io/ketoplaner/";
 const MAX_ITEMS = 40, MAX_TEXT = 240;
+const MAX_STATE = 512 * 1024, PAIR_TTL = 900, HEX64 = /^[0-9a-f]{64}$/;
 
 // ---------- Hilfsfunktionen ----------
 const enc = new TextEncoder();
@@ -146,7 +154,7 @@ async function handle(request, env) {
   const url = new URL(request.url);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(env) });
   if (request.method === "GET" && url.pathname === "/api/key") return json(env, { publicKey: (await vapidKeys(env)).publicKey });
-  if (request.method === "GET" && url.pathname === "/") return new Response("HamHam Keto Erinnerungsdienst läuft.", { headers: cors(env) });
+  if (request.method === "GET" && url.pathname === "/") return new Response("HamHam Keto Dienst läuft (Erinnerungen und Geräte-Abgleich).", { headers: cors(env) });
   if (request.method !== "POST") return json(env, { error: "not found" }, 404);
   let data; try { data = await request.json(); } catch (e) { return json(env, { error: "bad json" }, 400); }
   if (url.pathname === "/api/sync") {
@@ -168,6 +176,34 @@ async function handle(request, env) {
     await env.PUSH_KV.delete("sub:" + id);
     const ids = await readIndex(env); if (ids.indexOf(id) !== -1) await writeIndex(env, ids.filter(x => x !== id));
     return json(env, { ok: true });
+  }
+  // Geräte-Abgleich: id = SHA-256 eines geheimen Schlüssels der Geräte, data = AES-GCM-verschlüsselter Text
+  if (url.pathname.indexOf("/api/state/") === 0 || url.pathname.indexOf("/api/pair/") === 0) {
+    if (typeof data.id !== "string" || !HEX64.test(data.id)) return json(env, { error: "bad id" }, 400);
+    if (url.pathname === "/api/state/get") {
+      const rec = await env.PUSH_KV.get("st:" + data.id, "json");
+      return json(env, rec ? { rev: rec.rev, data: rec.data } : { rev: 0 });
+    }
+    if (url.pathname === "/api/state/put") {
+      if (typeof data.data !== "string" || data.data.length > MAX_STATE || !Number.isInteger(data.baseRev)) return json(env, { error: "bad data" }, 400);
+      const rec = await env.PUSH_KV.get("st:" + data.id, "json"), cur = rec ? rec.rev : 0;
+      if (data.baseRev !== cur) return json(env, { conflict: true, rev: cur, data: rec ? rec.data : null }, 409);
+      await env.PUSH_KV.put("st:" + data.id, JSON.stringify({ rev: cur + 1, data: data.data, updated: Date.now() }));
+      return json(env, { ok: true, rev: cur + 1 });
+    }
+    if (url.pathname === "/api/state/delete") { await env.PUSH_KV.delete("st:" + data.id); return json(env, { ok: true }); }
+    if (url.pathname === "/api/pair/put") {
+      if (typeof data.blob !== "string" || data.blob.length > 2000) return json(env, { error: "bad blob" }, 400);
+      await env.PUSH_KV.put("pr:" + data.id, data.blob, { expirationTtl: PAIR_TTL });
+      return json(env, { ok: true });
+    }
+    if (url.pathname === "/api/pair/get") {
+      const blob = await env.PUSH_KV.get("pr:" + data.id);
+      if (!blob) return json(env, { error: "unknown code" }, 404);
+      await env.PUSH_KV.delete("pr:" + data.id);
+      return json(env, { blob });
+    }
+    return json(env, { error: "not found" }, 404);
   }
   if (url.pathname === "/api/test") {
     if (!validSub(data.subscription)) return json(env, { error: "bad subscription" }, 400);

@@ -408,6 +408,25 @@ ohne Abhängigkeiten); Einrichtung Schritt für Schritt in `push-worker/ANLEITUN
 nur in der App vom Home-Bildschirm (iOS ab 16.4) bzw. in Browsern mit Push, auf jedem Gerät einzeln;
 ohne Internet keine Nachricht. **Testnachricht** prüft die Einrichtung.
 
+## Geräte abgleichen (freiwillig)
+
+Unter **Vorgaben → 🔄 Geräte abgleichen** lassen sich iPhone, iPad und Computer auf denselben Stand
+bringen – nur wenn man es einschaltet; ausgeschaltet bleibt alles lokal. **Abgleich einschalten** auf dem
+ersten Gerät, dann **📱 Weiteres Gerät verbinden** zeigt einen 8-stelligen Code (15 Minuten gültig, einmal
+verwendbar), den man am anderen Gerät unter **Mit Code verbinden** eingibt; das neue Gerät übernimmt den
+gemeinsamen Stand. Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen
+(nicht: Ansicht, Filter, Sortierung, Darstellung, Erinnerungen, Editor-Entwurf). Jede Einheit – jede einzelne
+Einstellung, der Tagesplan, die Favoriten … – trägt den Zeitpunkt ihrer letzten Änderung; beim Zusammenführen
+gewinnt die jüngere, verschiedene Änderungen auf zwei Geräten bleiben also beide erhalten. Abgeglichen wird
+kurz nach jeder Änderung, beim Öffnen, beim Zurückkehren in die App und jede Minute, solange sie offen ist.
+
+**Ende-zu-Ende verschlüsselt:** Die Geräte teilen einen zufälligen 256-Bit-Schlüssel (AES-GCM). Der Dienst
+(derselbe Cloudflare Worker wie für die Erinnerungen, `push-worker/`) kennt nur dessen SHA-256 als Adresse und
+speichert unlesbare Blöcke mit Revisionsnummer (veraltete Stände werden abgewiesen und neu zusammengeführt).
+Beim Koppeln liegt der Schlüssel 15 Minuten lang mit dem Code verschlüsselt (PBKDF2) beim Dienst.
+**Ausschalten** wirkt nur auf dem jeweiligen Gerät. Der Worker muss dafür in der aktuellen Fassung laufen
+(`push-worker/ANLEITUNG.md`, Abschnitt „Aktualisieren“).
+
 ## Entwicklung
 
 ```
@@ -440,6 +459,7 @@ machen und `npm run build` ausführen.
 | `50-ui-heute.js` | Heute: Zeitleiste, Einpassen auf den Bildschirm, Rezeptauswahl, Tagesplan-Ausdruck |
 | `52-zeitplan.js` | Uhrzeiten, Wassergaben, Hinweise zum Zeitplan |
 | `55-push.js` | Erinnerungen: Anmeldung beim Dienst, Abgleich des Plans, Karte in den Vorgaben |
+| `56-sync.js` | Geräte-Abgleich (freiwillig): Verschlüsselung, Koppeln per Code, Zusammenführen, Karte in den Vorgaben |
 | `60-print.js` | Druckvorschau (mit Zoom), Druckvorlage, Rezept-Ausdruck |
 | `62-pdf.js` | PDF zum Teilen aus der Druckvorlage |
 | `70-ui-compose.js` | Editor für eigene Rezepte |

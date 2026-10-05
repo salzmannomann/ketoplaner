@@ -77,4 +77,10 @@
     }
   }
   // Speichert den Zustand; false, wenn der Speicher nicht beschreibbar ist (privates Fenster, voll).
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch (e) { return false; } }
+  // Danach gleicht der (freiwillige) Geräte-Abgleich die Änderung ab – außer beim Übernehmen eines fremden Stands.
+  function save(fromSync) {
+    let ok = true;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { ok = false; }
+    if (fromSync !== true && typeof syncAfterSave === "function") { try { syncAfterSave(); } catch (e) {} }
+    return ok;
+  }
