@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=13cf9d7e" />
+  <link rel="stylesheet" href="styles.css?v=73960e63" />
 </head>
 <body>
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
@@ -39,32 +39,24 @@
 
     <!-- ===== Rezepte ===== -->
     <section id="view-rezepte" class="view">
-      <!-- Eine Zeile: wischbare Gruppen-Chips + Lupe, Eigenes Rezept, Mehr. Suche und Mehr klappen darunter auf. -->
-      <div class="listbar">
-        <div id="filter-bar" class="chips cat" aria-label="Gruppen"></div>
-        <div class="listbar-actions">
-          <button id="search-toggle" class="iconbtn round" type="button" title="Suchen" aria-label="Suchen">🔍</button>
-          <button id="compose-btn" class="iconbtn round primary" type="button" title="Eigenes Rezept zusammenstellen" aria-label="Eigenes Rezept">＋</button>
-          <button id="more-toggle" class="iconbtn round" type="button" title="Sortierung und Filter" aria-label="Sortierung und Filter">⋯</button>
-        </div>
-      </div>
-      <div id="search-row" class="toolbar top" hidden>
-        <input id="recipe-search" type="search" placeholder="Rezept oder Zutat suchen …" autocomplete="off" />
-        <button id="search-close" class="iconbtn" type="button" title="Suche schließen" aria-label="Suche schließen">✕</button>
-      </div>
-      <div id="more-row" class="more-row" hidden>
-        <label class="check"><input type="checkbox" id="only-quelle" /> 👩‍⚕️ nur Rezepte der Diätologie</label>
-        <label class="check"><input type="checkbox" id="hide-keto" /> 🥄 Rezepte mit KetoCal ausblenden</label>
-        <span class="sort-wrap">
-          <label for="sort-select" class="sort-label">Sortieren:</label>
-          <select id="sort-select">
-            <option value="kategorie">Nach Kategorie</option>
-            <option value="name">Name (A–Z)</option>
-            <option value="eiweiss">Eiweiß (meiste zuerst)</option>
-            <option value="volumen">Menge (wenig zuerst)</option>
+      <!-- Anzahl passender Rezepte und Sortierung; darunter Suche (Unterstrich) mit „+“ für ein eigenes Rezept,
+           dann die wischbaren Gruppen-Chips und die Schalter „nur Diätologie“ / „ohne KetoCal“ -->
+      <div class="list-meta">
+        <span id="list-count" class="list-count"></span>
+        <label class="sort-wrap">
+          <select id="sort-select" aria-label="Sortieren" title="Sortieren">
+            <option value="kategorie">nach Gruppe</option>
+            <option value="name">nach Name</option>
+            <option value="eiweiss">nach Eiweiß</option>
+            <option value="volumen">nach Menge</option>
           </select>
-        </span>
+        </label>
       </div>
+      <div class="search-row">
+        <input id="recipe-search" class="line-input" type="search" placeholder="Rezept oder Zutat suchen" autocomplete="off" />
+        <button id="compose-btn" class="round-btn plus" type="button" title="Eigenes Rezept zusammenstellen" aria-label="Eigenes Rezept">+</button>
+      </div>
+      <div class="listbar"><div id="filter-bar" class="chips cat" aria-label="Gruppen und Filter"></div></div>
       <!-- Bühne fürs Blättern: beim Wischen rutscht die Nachbargruppe als zweite Fläche herein -->
       <div id="list-stage" class="list-stage"><div id="recipe-list"></div></div>
     </section>
@@ -366,7 +358,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=3a614cf8"></script>
+  <script src="app.js?v=85b6559b"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

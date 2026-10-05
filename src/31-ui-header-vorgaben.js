@@ -193,19 +193,7 @@
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
-    const sRow = document.getElementById("search-row"), sTog = document.getElementById("search-toggle"), sClose = document.getElementById("search-close");
-    if (sTog) sTog.addEventListener("click", () => {
-      sRow.hidden = !sRow.hidden;
-      if (!sRow.hidden) { try { search.focus(); } catch (e) {} } else if (search.value) { search.value = ""; }
-      renderRezepte();
-    });
-    if (sClose) sClose.addEventListener("click", () => { search.value = ""; sRow.hidden = true; renderRezepte(); });
-    const mRow = document.getElementById("more-row"), mTog = document.getElementById("more-toggle");
-    if (mTog) mTog.addEventListener("click", () => { mRow.hidden = !mRow.hidden; renderRezepte(); });
-    const oq = document.getElementById("only-quelle");
-    if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
-    const hk = document.getElementById("hide-keto");
-    if (hk) hk.addEventListener("change", () => { state.settings.hideKeto = hk.checked; save(); renderRezepte(); });
+    // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
     // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");

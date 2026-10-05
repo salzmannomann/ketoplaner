@@ -169,17 +169,17 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild,
   assert.ok(all >= 45 && all <= 60, "Rezepte: " + all);
   assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
   assert.ok(new Set(tileNames(w)).size < all, "Gerichte in beiden Fettbasen erscheinen zweimal (gleicher Name)");
-  const kc = tiles(w).filter(t => /🥄/.test(badgeOf(t))).length;
-  assert.ok(kc >= 20, "KetoCal-Rezepte mit 🥄-Schild: " + kc);
+  const kc = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
+  assert.ok(kc >= 20, "KetoCal-Rezepte mit Fettbasis „KetoCal“: " + kc);
   assert.ok(!tiles(w).some(t => /nur mit|nur ohne/.test(badgeOf(t))), "keine „nur mit/ohne“-Schilder mehr");
   // Doppel-Gericht: beide Einträge nebeneinander, ohne KetoCal zuerst, beide mit Fettbasis-Schild
   const hz = tiles(w).filter(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
   assert.equal(hz.length, 2);
-  assert.match(badgeOf(hz[0]), /Rapsöl/); assert.match(badgeOf(hz[1]), /🥄 KetoCal/);
+  assert.match(badgeOf(hz[0]), /Rapsöl/); assert.match(badgeOf(hz[1]), /KetoCal/);
   // Häkchen „Rezepte mit KetoCal ausblenden“
   const hk = $(w, "hide-keto"); hk.checked = true; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all - kc);
-  assert.ok(!tiles(w).some(t => /🥄/.test(badgeOf(t))));
+  assert.ok(!tiles(w).some(t => /KetoCal/.test(badgeOf(t))));
   hk.checked = false; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all);
   clickChip(w, "Angerührt");
@@ -213,7 +213,7 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   // Stern sofort gefüllt, Ansicht bleibt (Menge nicht zurückgesetzt), Liste dahinter zeigt den Favoriten schon
   assert.match(favB.textContent, /★/);
   assert.equal($(w, "detail-content").querySelector("#portion-input").value, "4", "Stern setzt die Ansicht nicht zurück");
-  assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini" && /🥄/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
+  assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini" && /KetoCal/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)"]);
@@ -222,7 +222,7 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   const w2 = boot(st);
   const hz = tiles(w2).filter(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
   assert.equal(hz.length, 2);
-  assert.ok(hz.find(t => /🥄/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
+  assert.ok(hz.find(t => /KetoCal/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
   assert.ok(!hz.find(t => /Rapsöl/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
 });
 
@@ -878,7 +878,7 @@ test("Detail: nach unten wischen schließt die Ansicht (nicht bei kurzem oder se
 });
 
 test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nächste, rechts = vorige), senkrecht nicht, kein Klick nach dem Zug", async () => {
-  const w = boot({ settings: { mctShare: 0 } });
+  const w = boot({ settings: { mctShare: 0, filter: "favoriten" }, favorites: ["std:Hendl & Brokkoli"] }); // Favoriten ist die Gruppe nach „Alle“
   const list = $(w, "recipe-list");
   const wait = (ms) => new Promise(r => setTimeout(r, ms));
   const ptr = (type, x, y, target) => (target || list).dispatchEvent(new w.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 }));
@@ -886,7 +886,7 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   const drag = async (x1, y1, x2, y2) => { ptr("pointerdown", x1, y1); ptr("pointermove", (x1 + x2) / 2, (y1 + y2) / 2); ptr("pointermove", x2, y2); ptr("pointerup", x2, y2); await wait(450); };
   const activeChip = () => w.document.querySelector("#filter-bar .chip.active").textContent.trim();
   const stored = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.filter;
-  assert.equal(activeChip(), "Alle");
+  assert.equal(activeChip(), "Favoriten");
   // Während des Ziehens: Markierung springt wie bei den Detail-Reitern ab halbem Weg um, kein Überblenden
   ptr("pointerdown", 300, 400); ptr("pointermove", 240, 402);
   // … und die Nachbargruppe steht schon als zweite Fläche neben der Liste, beide 1:1 mitgezogen
@@ -897,13 +897,13 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   assert.ok(peek.querySelectorAll(".tile").length >= 5, "Kacheln in der zweiten Fläche");
   assert.equal(list.style.transform, "translateX(-60px)");
   assert.equal(peek.style.transform, "translateX(284px)", "Nachbarfläche eine Seitenbreite (320 + 24 Spalt) daneben");
-  assert.equal(activeChip(), "Alle", "unter halbem Weg bleibt die Markierung");
+  assert.equal(activeChip(), "Favoriten", "unter halbem Weg bleibt die Markierung");
   assert.ok(!w.document.querySelector("#filter-bar .chip.hl"), "kein Überblenden der Chips");
   ptr("pointermove", 100, 402);
   assert.equal(activeChip(), "Geflügel", "über halbem Weg springt die Markierung um");
-  assert.equal(stored(), "alle", "gespeichert wird erst beim Loslassen");
+  assert.equal(stored(), "favoriten", "gespeichert wird erst beim Loslassen");
   ptr("pointermove", 250, 402);
-  assert.equal(activeChip(), "Alle", "zurückziehen nimmt die Markierung zurück");
+  assert.equal(activeChip(), "Favoriten", "zurückziehen nimmt die Markierung zurück");
   ptr("pointermove", 100, 402);
   ptr("pointerup", 100, 402); await wait(450);
   assert.equal(activeChip(), "Geflügel"); assert.equal(stored(), "gefluegel");
@@ -920,7 +920,9 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   await drag(200, 300, 170, 300);
   assert.equal(activeChip(), "Geflügel");
   assert.equal($(w, "recipe-peek"), null, "zweite Fläche nach kurzem Zug wieder weg");
-  // am Anfang bleibt „Alle“ stehen
+  // nach rechts: Favoriten, dann „Alle“ – am Anfang bleibt „Alle“ stehen
+  await drag(100, 400, 300, 400);
+  assert.equal(activeChip(), "Favoriten");
   await drag(100, 400, 300, 400);
   assert.equal(activeChip(), "Alle");
   await drag(100, 400, 300, 400);
@@ -928,7 +930,7 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   // Nach einem Zug öffnet der folgende Klick auf eine Kachel kein Rezept; ein normaler Tipp danach schon
   const tile = () => tiles(w)[0];
   ptr("pointerdown", 300, 400, tile()); ptr("pointermove", 200, 400, tile()); ptr("pointerup", 100, 400, tile()); await wait(450);
-  assert.equal(activeChip(), "Geflügel");
+  assert.equal(activeChip(), "Favoriten");
   fire(w, tile());
   assert.ok($(w, "detail-overlay").hidden, "Klick nach dem Zug wird geschluckt");
   fire(w, tile());
@@ -996,7 +998,7 @@ test("Kochen: Öl wird nicht mitpüriert, letzter Schritt rührt das Öl in jede
   assert.doesNotMatch(mz.textContent, /ohne Öl/);
   fire(w, $(w, "detail-close"));
   // Rezeptliste: ↑ am Eiweiß
-  assert.ok(tiles(w).some(t => /Eiweiß [\d,]+ g ↑/.test(t.textContent) && t.querySelector(".prot-high")));
+  assert.ok(tiles(w).some(t => /Eiweiß [\d,]+ g · hoch/.test(t.textContent) && t.querySelector(".prot-high")));
   // Angerührt: kein zusätzlicher Öl-Schritt (Text sagt es selbst)
   c = openRecipe(w, "HiPP Hühnchen & Öl"); c = switchDetailTab(w, "zubereitung");
   assert.doesNotMatch(c.querySelector(".pane[data-pane=zubereitung]").textContent, /in jede Portion/);

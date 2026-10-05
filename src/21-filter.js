@@ -1,9 +1,10 @@
   /* ---------- Gruppen & Schnellfilter ----------
      Die Rezepte sind nach der Hauptzutat gruppiert („Was habe ich da?“):
      Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel & Gemüse, Obst & Brei und
-     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen). */
+     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen); dazu „Favoriten“ als eigener Chip. */
   const FILTERS = [
     { id: "alle", label: "Alle" },
+    { id: "favoriten", label: "Favoriten" },
     { id: "gefluegel", label: "Geflügel" },
     { id: "rind", label: "Rind & Schwein" },
     { id: "fisch", label: "Fisch" },
@@ -28,5 +29,6 @@
     return g || (egg ? "ei" : fruit ? "obst" : "gemuese");
   }
   function matchesFilter(rec, filter) {
+    if (filter === "favoriten") return isFav(rec);
     return !filter || filter === "alle" || recipeGroup(rec) === filter;
   }

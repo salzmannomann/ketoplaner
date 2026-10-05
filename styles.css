@@ -174,28 +174,9 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .compose-fat .btn.secondary { margin-top: 4px; }
 
 /* Schnellfilter-Chips */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-.chip {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
-  padding: 8px 14px; font-size: 14px; cursor: pointer; color: var(--ink);
-}
-.chip:hover { background: var(--bg); }
-.chip.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
 /* Rezeptliste: eine Zeile – wischbare Gruppen-Chips + Lupe / Eigenes Rezept / Mehr; darunter sofort die Rezepte */
-.listbar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
-#filter-bar { flex: 1; min-width: 0; margin: 0; flex-wrap: nowrap; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-#filter-bar::-webkit-scrollbar { display: none; }
-#filter-bar .chip { flex: 0 0 auto; white-space: nowrap; }
-.listbar-actions { display: flex; gap: 6px; flex: 0 0 auto; }
 .iconbtn.round { width: 38px; height: 38px; padding: 0; justify-content: center; border-radius: 999px; font-size: 17px; }
 .iconbtn.round.open { background: var(--brand-soft); border-color: var(--brand-soft); }
-.more-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 0 0 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
-.more-row .check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); margin: 0; cursor: pointer; }
-.more-row .check input { width: 18px; height: 18px; }
-.more-row .sort-wrap { display: inline-flex; align-items: center; gap: 8px; }
-.more-row .sort-label { color: var(--muted); font-size: 14px; white-space: nowrap; }
-@media (min-width: 821px) { #filter-bar { flex-wrap: wrap; overflow: visible; } }
-@media (max-width: 560px) { .more-row .sort-wrap { width: 100%; } .more-row #sort-select { flex: 1; max-width: none; } }
 
 /* Portions-Umschalter im Detail */
 .seg-portion { margin: 0 0 14px; }
@@ -218,50 +199,11 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .meat-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 .badge.meat { background: #f0e7da; color: #8a5a1c; }
 
-.toolbar .sort-wrap { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
-.toolbar .sort-label { color: var(--muted); font-size: 14px; white-space: nowrap; }
-.toolbar #sort-select { max-width: 220px; }
-@media (max-width: 560px) {
-  .toolbar .sort-wrap { margin-left: 0; width: 100%; }
-  .toolbar #sort-select { flex: 1; max-width: none; }
-}
-.group-head {
-  font-size: 16px; font-weight: 700; color: var(--brand-dark);
-  margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--brand-soft);
-  display: flex; align-items: center; gap: 8px;
-}
-.group-head:first-child { margin-top: 4px; }
-.group-count {
-  font-size: 12px; font-weight: 700; color: var(--muted);
-  background: var(--bg); border-radius: 999px; padding: 1px 9px;
-}
-
 /* Rezept-Kacheln (Übersicht) */
-.tiles { display: grid; }
-.tile {
-  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow); cursor: pointer; display: flex;
-  transition: border-color .12s, box-shadow .12s, transform .06s;
-}
-.tile:hover { border-color: var(--brand); box-shadow: 0 4px 12px rgba(16,24,40,.12); transform: translateY(-1px); }
-.tile:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
-.tile-icon { line-height: 1; }
-.favbtn {
-  border: 0; background: transparent; cursor: pointer; line-height: 1;
-  color: var(--muted); padding: 0 2px;
-}
-.favbtn.on { color: #e2b007; }
-.favbtn:hover { color: #e2b007; }
 .badge.custom { background: #e6effb; color: var(--accent); }
 .badge.quelle { background: #ede9fe; color: #6d28d9; }
 .compose-save { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .compose-save input { flex: 1; min-width: 160px; }
-.tile-name { font-weight: 700; }
-.tile-badge { margin-top: -2px; }
-.tile-stats { display: flex; flex-wrap: wrap; color: var(--muted); }
-.tile-stats .prot-ok { color: var(--green); }
-.tile-stats .prot-low { color: var(--yellow); }
-.tile-stats .prot-high { color: var(--yellow); font-weight: 600; }
 
 /* Detail-Overlay */
 .overlay {
@@ -343,12 +285,9 @@ tr.fatrow td { background: #fdf6e3; }
 .checkrow { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 .checkrow input[type=checkbox] { width: 18px; height: 18px; }
 label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
-#recipe-list h2 { margin-top: 8px; }
 
 /* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
 .view[hidden] { display: none; }
-.toolbar.top { margin-bottom: 12px; }
-.toolbar.top input[type=search] { flex: 1; max-width: none; min-width: 0; }
 .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
 .preset-row .seg-label { font-size: 13px; font-weight: 600; }
 .settings-grid { border: 0; margin-bottom: 8px; }
@@ -443,22 +382,8 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 .collapsible.mini p { font-size: 12px; }
 .meat-swap details.collapsible { margin: 8px 0 0; }
 .meat-note.stat-line { color: var(--ink); }
-.toolbar.top[hidden], .more-row[hidden] { display: none; }
 @media (max-width: 360px) { .detail-tiles.strip { grid-template-columns: 1fr 1fr; } }
 /* Rezept-Zeilen statt Karten: eine Zeile je Gericht, am Desktop zwei Spalten */
-.tiles { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 8px; }
-.tile { flex-direction: row; align-items: center; gap: 10px; padding: 9px 10px 9px 12px; }
-.tile-icon { font-size: 26px; flex: 0 0 auto; }
-.tile-body { flex: 1; min-width: 0; }
-.tile-line1 { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
-.tile-name { font-size: 15px; line-height: 1.25; }
-.tile-badge { margin: 0; display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.tile-badge .badge { margin-left: 0; font-size: 10px; padding: 1px 7px; }
-.tile-badge .ratio-pill { font-size: 11px; padding: 1px 7px; }
-.tile-stats { font-size: 12.5px; gap: 2px 10px; margin-top: 2px; }
-.favbtn { font-size: 20px; flex: 0 0 auto; }
-.tile-chev { color: var(--muted); font-size: 22px; line-height: 1; flex: 0 0 auto; margin-left: -4px; }
-@media (max-width: 560px) { .tiles { grid-template-columns: 1fr; gap: 6px; } }
 /* Detailansicht als sechs Blätter: Desktop = Reiter; Handy = Blätter nebeneinander, seitlich wischen, feste Kopf- und Fußzeile */
 .detail-tabs-wrap { margin: 0 0 12px; }
 .detail-tabs button { padding: 9px 6px; font-size: 13px; }
@@ -584,10 +509,6 @@ td.name small.adj { display: block; font-size: 11px; color: var(--muted); font-w
 @media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } #view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select { height: 38px; } }
 /* Rezeptleiste am Desktop: alle Gruppen in einer Zeile (schmalere Chips), Knöpfe oben ausgerichtet */
 @media (min-width: 821px) {
-  .listbar { align-items: flex-start; gap: 10px; }
-  #filter-bar { gap: 5px; padding: 0; }
-  #filter-bar .chip { padding: 6px 9px; font-size: 13px; }
-  .listbar-actions { gap: 4px; }
   .iconbtn.round { width: 34px; height: 34px; font-size: 15px; }
 }
 td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseline; }
@@ -644,7 +565,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Kopfleiste: weiß, Schriftzug in Grün, Verordnung als Pille rechts – eine Zeile, auch am Handy.
    Am Handy zeigt die Pille eine Kurzfassung (rx-short, drei Zeilen), am Desktop den vollen Text (rx-long). */
-#recipe-search, .toolbar.top input[type=search] { background: var(--panel); }
 /* Pille in den Vorgaben: „zurück“-Zustand (ein Tipp führt dorthin, wo man herkam) */
 
 /* ===== Dunkelmodus: folgt dem System (prefers-color-scheme); zusätzlich per <html data-theme="dark"> erzwingbar,
@@ -661,9 +581,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
   :root:not([data-theme="light"]) .btn.secondary { background: #26322c; color: var(--ink); }
   :root:not([data-theme="light"]) .btn.secondary:hover { background: #30403a; }
-  :root:not([data-theme="light"]) .chip { background: var(--panel); color: var(--ink); }
-  :root:not([data-theme="light"]) .chip:hover { background: var(--brand-soft); }
-  :root:not([data-theme="light"]) .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
   :root:not([data-theme="light"]) .iconbtn.round.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
   :root:not([data-theme="light"]) .iconbtn.round.open, :root:not([data-theme="light"]) .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
   :root:not([data-theme="light"]) .segmented button.active { background: var(--brand); color: #fff; }
@@ -691,7 +608,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   }
   :root:not([data-theme="light"]) .detail-actions { background: var(--panel); }
   :root:not([data-theme="light"]) input:disabled { background: var(--bg); color: var(--muted); }
-  :root:not([data-theme="light"]) .more-row { background: var(--panel); }
   :root:not([data-theme="light"]) .prep, :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
 }
 :root[data-theme="dark"] {
@@ -705,9 +621,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 [data-theme="dark"] .btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
 [data-theme="dark"] .btn.secondary { background: #26322c; color: var(--ink); }
 [data-theme="dark"] .btn.secondary:hover { background: #30403a; }
-[data-theme="dark"] .chip { background: var(--panel); color: var(--ink); }
-[data-theme="dark"] .chip:hover { background: var(--brand-soft); }
-[data-theme="dark"] .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 [data-theme="dark"] .iconbtn.round.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
 [data-theme="dark"] .iconbtn.round.open, [data-theme="dark"] .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
 [data-theme="dark"] .segmented button.active { background: var(--brand); color: #fff; }
@@ -735,7 +648,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 }
 [data-theme="dark"] .detail-actions { background: var(--panel); }
 [data-theme="dark"] input:disabled { background: var(--bg); color: var(--muted); }
-[data-theme="dark"] .more-row { background: var(--panel); }
 [data-theme="dark"] .prep, [data-theme="dark"] .slot.empty-slot { background: var(--bg); }
 /* Wisch-Schließen am Handy: der Kopf des Overlays ist die Griff-Fläche (kein Seitenscroll dahinter) */
 @media (max-width: 820px) {
@@ -747,9 +659,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert.
    Die Bühne schneidet seitlich ab; die Nachbargruppe (#recipe-peek) liegt als zweite Fläche daneben und
    zieht mit der Liste 1:1 mit. */
-.list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; }
-#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; will-change: transform; }
-#recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
 
 /* Heute → Zeitplan: Uhrzeiten oben einstellbar, darunter eine Zeile je Mahlzeit / Wassergabe / Schlafen */
 
@@ -1162,3 +1071,58 @@ body.heute-tight .page-title { font-size: 30px; }
 .zeitplan.tight .zp-hints { padding-top: 5px; gap: 2px; }
 .zeitplan.tight .hint { font-size: 11.5px; line-height: 1.3; }
 body.heute-tight .page-title { font-size: 28px; }
+
+/* ======================================================================
+   Rezepte: Anzahl/Sortierung, Suche mit Unterstrich + „+“, Chips, Gruppen mit Zeilen
+   ====================================================================== */
+#view-rezepte { display: flex; flex-direction: column; gap: 14px; }
+#view-rezepte[hidden] { display: none; }
+.list-meta { display: flex; align-items: center; gap: 10px; margin-top: -4px; font-size: 13px; color: var(--grey); }
+.list-count { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sort-wrap { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 13px; color: var(--grey); white-space: nowrap; }
+:root .sort-wrap select { width: auto; height: auto; min-height: 32px; padding: 0 16px 0 2px; border: 0; border-radius: 0; background: transparent;
+  color: var(--ink); font: 600 13px var(--f-sans); text-decoration: underline; text-underline-offset: 3px; -webkit-appearance: none; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 6px top 55%, right 2px top 55%; background-size: 4px 4px; background-repeat: no-repeat; cursor: pointer; }
+.search-row { display: flex; align-items: center; gap: 10px; }
+.search-row .line-input { flex: 1; min-width: 0; }
+.round-btn.plus { font: 600 22px var(--f-sans); }
+.listbar { margin: 0 -20px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 20px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 999px;
+  background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap; cursor: pointer; }
+.chip.active, .chip.toggle.on { background: var(--ink); color: var(--paper); }
+.chip.toggle { border-style: dashed; }
+.chip.toggle.on { border-style: solid; }
+.chip.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.chip.toggle:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Gruppen: Titel (Serif 21) + Anzahl (Mono), 2-px-Linie; Zeilen gepunktet */
+.group-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 0 6px; border-bottom: 2px solid var(--ink); }
+.group-title { margin: 0; font: 600 21px/1.15 var(--f-serif); }
+.group-count { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
+.tiles { display: flex; flex-direction: column; margin-bottom: 14px; }
+.tile { display: flex; align-items: center; gap: 6px; padding: 10px 0; border-bottom: 1px dotted var(--dot); cursor: pointer; }
+.tile:hover .tile-name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tile-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tile-name { font: 600 18px/1.2 var(--f-serif); }
+.tile-stats { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
+.tile-stats b { font-weight: 600; white-space: nowrap; }
+.tile-stats .prot-ok { color: var(--green); }
+.tile-stats .prot-low, .tile-stats .prot-high, .tile-stats .ratio-pill { color: var(--red); }
+.tile-badge { font-size: 12px; color: var(--grey); }
+.tile-badge[hidden] { display: none; }
+.favbtn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; }
+.favbtn svg polygon { fill: transparent; }
+.favbtn.on svg polygon { fill: currentColor; }
+.favbtn:hover { background: var(--paper-2); }
+.empty-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 12px 0; font-size: 14px; }
+/* Wischen zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert; Nachbargruppe als zweite Fläche */
+.list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; }
+#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; will-change: transform; }
+#recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
+@media (min-width: 821px) {
+  .listbar { margin: 0; }
+  .chips { flex-wrap: wrap; overflow: visible; padding: 0; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+}

@@ -247,9 +247,10 @@
   /* ---------- Gruppen & Schnellfilter ----------
      Die Rezepte sind nach der Hauptzutat gruppiert („Was habe ich da?“):
      Geflügel, Rind & Schwein, Fisch, Ei, Erdäpfel & Gemüse, Obst & Brei und
-     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen). */
+     „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen); dazu „Favoriten“ als eigener Chip. */
   const FILTERS = [
     { id: "alle", label: "Alle" },
+    { id: "favoriten", label: "Favoriten" },
     { id: "gefluegel", label: "Geflügel" },
     { id: "rind", label: "Rind & Schwein" },
     { id: "fisch", label: "Fisch" },
@@ -274,6 +275,7 @@
     return g || (egg ? "ei" : fruit ? "obst" : "gemuese");
   }
   function matchesFilter(rec, filter) {
+    if (filter === "favoriten") return isFav(rec);
     return !filter || filter === "alle" || recipeGroup(rec) === filter;
   }
 
@@ -762,12 +764,17 @@
     const byName = (a, b) => a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0));
 
     list.innerHTML = "";
+    list.dataset.count = entries.length;
     if (entries.length === 0) {
-      // Suche in einer Gruppe ohne Treffer: Hinweis mit Knopf „in allen Gruppen suchen“
-      const box = el("div", { class: "card empty" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe. " : "Keine Gerichte für diese Auswahl.");
+      // Keine Treffer: Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+      const box = el("div", { class: "empty-line" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe." : filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
       if (q && filter !== "alle") {
-        const b = el("button", { type: "button", class: "linkbtn" }, "In allen Gruppen suchen");
+        const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
         b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
+        box.appendChild(b);
+      } else if (onlyQuelle || hideKeto || q) {
+        const b = el("button", { type: "button", class: "tlink" }, "Filter zurücksetzen");
+        b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
       }
       list.appendChild(box);
@@ -777,17 +784,19 @@
     function appendGroup(title, arr) {
       if (!arr.length) return;
       const sorted = arr.slice().sort(byName);
-      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
+      list.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
       sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
 
     if (sort === "kategorie") {
-      const favs = entries.filter(x => isFav(x.rec));
-      const rest = entries.filter(x => !isFav(x.rec));
-      appendGroup("⭐ Favoriten", favs);
-      FILTERS.filter(f => f.id !== "alle").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
+      // Favoriten oben als eigene Gruppe – unter „Alle“ und im Chip „Favoriten“; in einer Gruppe stehen sie normal mit.
+      const favTop = filter === "alle" || filter === "favoriten";
+      const favs = favTop ? entries.filter(x => isFav(x.rec)) : [];
+      const rest = favTop ? entries.filter(x => !isFav(x.rec)) : entries;
+      appendGroup("Favoriten", favs);
+      FILTERS.filter(f => f.id !== "alle" && f.id !== "favoriten").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
@@ -855,21 +864,25 @@
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
 
-    // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
+    // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“ und „ohne KetoCal“.
     const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto;
-    // Eine wischbare Zeile mit den Gruppen; der aktive Chip wird ins Bild gerückt. KetoCal-Phase steht in
-    // Kopfzeile und Vorgaben, der Diätologie-Filter und die Sortierung im „⋯“-Aufklapper.
     const fb = $("filter-bar");
     const prevScroll = fb.scrollLeft;
     fb.innerHTML = "";
     let activeChip = null;
     FILTERS.forEach(f => {
-      const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
+      const chip = el("button", { type: "button", class: "chip" + (f.id === filter ? " active" : ""), "aria-pressed": f.id === filter ? "true" : "false" }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
+    });
+    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
+      const lab = el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+      const cb = lab.querySelector("input");
+      cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
+      fb.appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
       // Position behalten und weich zum aktiven Chip rollen (beim ersten Aufbau direkt hinsetzen)
@@ -879,14 +892,13 @@
       else fb.scrollLeft = target;
     }
     fb.dataset.ready = "1";
-    const oq = $("only-quelle"); if (oq) oq.checked = onlyQuelle;
-    const hk = $("hide-keto"); if (hk) hk.checked = hideKeto;
-    const mt = $("more-toggle"); if (mt) mt.classList.toggle("open", onlyQuelle || hideKeto || (s.sort && s.sort !== "kategorie") || !$("more-row").hidden);
-    const stg = $("search-toggle"); if (stg) stg.classList.toggle("open", !!q || !$("search-row").hidden);
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
+    // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
+    const lc = $("list-count"), n = num($("recipe-list").dataset.count);
+    if (lc) lc.textContent = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
   }
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
@@ -1084,19 +1096,7 @@
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
-    const sRow = document.getElementById("search-row"), sTog = document.getElementById("search-toggle"), sClose = document.getElementById("search-close");
-    if (sTog) sTog.addEventListener("click", () => {
-      sRow.hidden = !sRow.hidden;
-      if (!sRow.hidden) { try { search.focus(); } catch (e) {} } else if (search.value) { search.value = ""; }
-      renderRezepte();
-    });
-    if (sClose) sClose.addEventListener("click", () => { search.value = ""; sRow.hidden = true; renderRezepte(); });
-    const mRow = document.getElementById("more-row"), mTog = document.getElementById("more-toggle");
-    if (mTog) mTog.addEventListener("click", () => { mRow.hidden = !mRow.hidden; renderRezepte(); });
-    const oq = document.getElementById("only-quelle");
-    if (oq) oq.addEventListener("change", () => { state.settings.onlyQuelle = oq.checked; save(); renderRezepte(); });
-    const hk = document.getElementById("hide-keto");
-    if (hk) hk.addEventListener("change", () => { state.settings.hideKeto = hk.checked; save(); renderRezepte(); });
+    // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
     document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
     // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");
@@ -1151,40 +1151,33 @@
   }
 
   /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */
+  // Rezeptzeile (Küchenzettel): Name (Serif), darunter Mono „128 kcal · 131 ml · Eiweiß 2,4 g“ (Eiweiß grün ok,
+  // rot mit „hoch“/„niedrig“), darunter grau „Diätologie · KetoCal + Butter“ statt bunter Schilder; rechts der Stern.
+  const STAR_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
   function renderRecipeTile(rec, res, d, fam) {
     const sum = sumMacros(res.items);
     const r = ratioOf(sum);
-    const totalG = res.items.reduce((a, it) => a + num(it.grams), 0);
     const ml = volumeMl(res.items);
     const pState = proteinState(sum.eiweiss, d.eiweissMahl);
     const name = fam ? fam.name : familyOf(rec);
     const multi = isMulti(rec);
-
     const fav = isFav(rec);
+    const tags = [];
+    if (rec.quelle) tags.push("Diätologie");
+    if (multi || rec.ketocal) tags.push(escapeHtml(basisLabel(rec)));
+    if (rec.custom) tags.push("eigenes Rezept");
     const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
-    // Eine Zeile je Gericht: Icon · Name + Badges / Werte · Stern · Chevron. Die ganze Zeile öffnet das Rezept.
     tile.innerHTML =
-      '<span class="tile-icon">' + (rec.icon || "🥑") + "</span>" +
-      '<div class="tile-body">' +
-      '<div class="tile-line1"><span class="tile-name">' + escapeHtml(name) + "</span>" +
-      '<span class="tile-badge">' +
-        // Fettbasis: bei Gerichten in beiden Varianten steht sie an beiden Einträgen, sonst nur ein KetoCal-Schild.
-        (multi ? '<span class="badge ' + (rec.ketocal ? "keto-mini" : "basis") + '">' + (rec.ketocal ? "🥄 " : "") + escapeHtml(basisLabel(rec)) + "</span>"
-               : (rec.ketocal ? '<span class="badge keto-mini">🥄 KetoCal</span>' : "")) +
-        (rec.custom ? '<span class="badge custom">eigenes</span>' : "") +
-        (rec.quelle ? '<span class="badge quelle">👩‍⚕️ Diätologie</span>' : "") +
-        (ratioClass(r, d.ratio) !== "ok" ? '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + "</span>" : "") +
-      "</span></div>" +
-      '<div class="tile-stats">' +
-        "<span>" + fmt(sum.kcal, 0) + " kcal</span>" +
-        "<span>≈ " + fmt(totalG, 0) + " g / " + fmt(ml, 0) + " ml</span>" +
-        '<span class="prot-' + pState + '"' + (pState === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : "") + '>Eiweiß ' + fmt(sum.eiweiss) + " g" + (pState === "high" ? " ↑" : "") + "</span>" +
-      "</div></div>" +
-      '<button class="favbtn' + (fav ? " on" : "") + '" title="Favorit">' + (fav ? "★" : "☆") + "</button>" +
-      '<span class="tile-chev" aria-hidden="true">›</span>';
+      '<div class="tile-body"><span class="tile-name">' + escapeHtml(name) + '</span>' +
+      '<span class="tile-stats">' + fmt(sum.kcal, 0) + " kcal · " + fmt(ml, 0) + " ml · " +
+        '<b class="prot-' + pState + '"' + (pState === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : "") + '>Eiweiß ' + fmt(sum.eiweiss) + " g" + (pState === "high" ? " · hoch" : pState === "low" ? " · niedrig" : "") + "</b>" +
+        (ratioClass(r, d.ratio) !== "ok" ? ' · <b class="ratio-pill ' + ratioClass(r, d.ratio) + '">▲ ' + fmtRxA(r, 2) + "</b>" : "") + "</span>" +
+      (tags.length ? '<span class="tile-badge">' + tags.join(" · ") + "</span>" : '<span class="tile-badge" hidden></span>') +
+      "</div>" +
+      '<button type="button" class="favbtn' + (fav ? " on" : "") + '" title="' + (fav ? "Favorit entfernen" : "Als Favorit merken") + '" aria-pressed="' + (fav ? "true" : "false") + '" aria-label="Favorit">' + STAR_SVG + "</button>";
     const open = () => openRecipeDetail(rec);
     tile.addEventListener("click", open);
-    tile.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    tile.addEventListener("keydown", e => { if (e.target !== tile) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     tile.querySelector(".favbtn").addEventListener("click", e => { e.stopPropagation(); toggleFav(rec); renderRezepte(); });
     return tile;
   }

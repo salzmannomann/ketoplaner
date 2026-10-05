@@ -156,12 +156,17 @@
     const byName = (a, b) => a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0));
 
     list.innerHTML = "";
+    list.dataset.count = entries.length;
     if (entries.length === 0) {
-      // Suche in einer Gruppe ohne Treffer: Hinweis mit Knopf „in allen Gruppen suchen“
-      const box = el("div", { class: "card empty" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe. " : "Keine Gerichte für diese Auswahl.");
+      // Keine Treffer: Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+      const box = el("div", { class: "empty-line" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe." : filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
       if (q && filter !== "alle") {
-        const b = el("button", { type: "button", class: "linkbtn" }, "In allen Gruppen suchen");
+        const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
         b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
+        box.appendChild(b);
+      } else if (onlyQuelle || hideKeto || q) {
+        const b = el("button", { type: "button", class: "tlink" }, "Filter zurücksetzen");
+        b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
       }
       list.appendChild(box);
@@ -171,17 +176,19 @@
     function appendGroup(title, arr) {
       if (!arr.length) return;
       const sorted = arr.slice().sort(byName);
-      list.appendChild(el("div", { class: "group-head" }, title + ' <span class="group-count">' + sorted.length + "</span>"));
+      list.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
       sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
       list.appendChild(grid);
     }
 
     if (sort === "kategorie") {
-      const favs = entries.filter(x => isFav(x.rec));
-      const rest = entries.filter(x => !isFav(x.rec));
-      appendGroup("⭐ Favoriten", favs);
-      FILTERS.filter(f => f.id !== "alle").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
+      // Favoriten oben als eigene Gruppe – unter „Alle“ und im Chip „Favoriten“; in einer Gruppe stehen sie normal mit.
+      const favTop = filter === "alle" || filter === "favoriten";
+      const favs = favTop ? entries.filter(x => isFav(x.rec)) : [];
+      const rest = favTop ? entries.filter(x => !isFav(x.rec)) : entries;
+      appendGroup("Favoriten", favs);
+      FILTERS.filter(f => f.id !== "alle" && f.id !== "favoriten").forEach(f => appendGroup(f.label, rest.filter(x => recipeGroup(x.rec) === f.id)));
     } else {
       const keyFn = sort === "eiweiss"
         ? x => -sumMacros(x.res.items).eiweiss
@@ -249,21 +256,25 @@
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
 
-    // Schnellfilter-Chips: Gruppen (entweder/oder) + Schalter (KetoCal-Phase, Diätologie)
+    // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“ und „ohne KetoCal“.
     const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
     const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto;
-    // Eine wischbare Zeile mit den Gruppen; der aktive Chip wird ins Bild gerückt. KetoCal-Phase steht in
-    // Kopfzeile und Vorgaben, der Diätologie-Filter und die Sortierung im „⋯“-Aufklapper.
     const fb = $("filter-bar");
     const prevScroll = fb.scrollLeft;
     fb.innerHTML = "";
     let activeChip = null;
     FILTERS.forEach(f => {
-      const chip = el("button", { class: "chip" + (f.id === filter ? " active" : "") }, f.label);
+      const chip = el("button", { type: "button", class: "chip" + (f.id === filter ? " active" : ""), "aria-pressed": f.id === filter ? "true" : "false" }, f.label);
       chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
+    });
+    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
+      const lab = el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+      const cb = lab.querySelector("input");
+      cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
+      fb.appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
       // Position behalten und weich zum aktiven Chip rollen (beim ersten Aufbau direkt hinsetzen)
@@ -273,12 +284,11 @@
       else fb.scrollLeft = target;
     }
     fb.dataset.ready = "1";
-    const oq = $("only-quelle"); if (oq) oq.checked = onlyQuelle;
-    const hk = $("hide-keto"); if (hk) hk.checked = hideKeto;
-    const mt = $("more-toggle"); if (mt) mt.classList.toggle("open", onlyQuelle || hideKeto || (s.sort && s.sort !== "kategorie") || !$("more-row").hidden);
-    const stg = $("search-toggle"); if (stg) stg.classList.toggle("open", !!q || !$("search-row").hidden);
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
+    // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
+    const lc = $("list-count"), n = num($("recipe-list").dataset.count);
+    if (lc) lc.textContent = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
   }
