@@ -52,9 +52,9 @@
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
-            (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · ca. ' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span></span>' +
+            (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
+          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
-        warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") +
         '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
     });
     zeitplanExtraRows(times, wp).forEach(r => rows.push(r));

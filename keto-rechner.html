@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#1a2320" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f0e5" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1c1a16" media="(prefers-color-scheme: dark)" />
   <title>HamHam Keto</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-180.png" />
@@ -65,30 +65,8 @@ body {
 }
 
 /* Layout */
-.app { display: flex; min-height: 100vh; }
-.brand {
-  padding: 4px 8px 16px;
-}
-.nav { display: flex; flex-direction: column; gap: 2px; }
-.nav button {
-  display: flex; align-items: center; gap: 10px;
-  width: 100%; text-align: left;
-  background: transparent; border: 0; cursor: pointer;
-  padding: 10px 12px; border-radius: 9px;
-  color: var(--ink); font-size: 15px;
-}
-.nav button:hover { background: var(--bg); }
-.nav button.active { background: var(--brand-soft); color: var(--brand-dark); font-weight: 600; }
-.main { max-width: 1040px; margin: 0 auto; padding: 24px 24px 80px; }
 
 /* Kopfleiste */
-.topbar {
-  position: sticky; top: 0; z-index: 30;
-  background: var(--panel); border-bottom: 1px solid var(--line);
-  padding: 10px 24px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-.topbar .brand { padding: 0; font-size: 19px; }
 .iconbtn {
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--line); background: #fff; color: var(--ink);
@@ -99,20 +77,6 @@ body {
 .iconbtn.open { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
 .iconbtn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .iconbtn.primary:hover { background: var(--brand-dark); }
-.brand {
-  display: flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 18px; color: var(--brand-dark);
-}
-.brand .logo-img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; box-shadow: 0 1px 3px rgba(16,24,40,.18); display: block; }
-.brand .brand-name {
-  font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
-  font-weight: 700; font-size: 30px; line-height: 1;
-  color: var(--brand-dark); letter-spacing: .2px; padding-top: 2px;
-}
-@media (max-width: 560px) {
-  .brand .logo-img { width: 32px; height: 32px; }
-  .brand .brand-name { font-size: 26px; }
-}
 
 h1 { font-size: 26px; margin: 0 0 4px; }
 
@@ -189,7 +153,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 
 /* Mobile */
 @media (max-width: 820px) {
-  .main { padding: 16px 14px 90px; }
   h1 { font-size: 22px; }
   .card { padding: 16px; }
   .overlay { padding: 0; }
@@ -402,30 +365,6 @@ label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 
 /* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
 .view[hidden] { display: none; }
-.main { padding-bottom: 96px; }
-.tabbar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-  display: flex; justify-content: center; gap: 4px;
-  background: var(--panel); border-top: 1px solid var(--line);
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-}
-.tabbar button {
-  flex: 1; max-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600;
-  padding: 6px 4px; border-radius: 10px; cursor: pointer;
-}
-.tabbar button svg { width: 24px; height: 24px; }
-.tabbar button.active { color: var(--brand-dark); background: var(--brand-soft); }
-.tabbar button[hidden] { display: none; }
-.rx-chip {
-  border: 1px solid var(--brand-soft); background: var(--brand-soft); color: var(--brand-dark);
-  border-radius: 14px; padding: 5px 12px; font: inherit; font-size: 13px; font-weight: 600; line-height: 1.3;
-  cursor: pointer; max-width: 62vw; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
-}
-.rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.rx-chip .rx-sub { font-weight: 500; font-size: 12px; opacity: .9; }
-@media (max-width: 560px) { .rx-chip { font-size: 12px; padding: 4px 10px; } .rx-chip .rx-sub { font-size: 11px; } }
-.rx-chip:hover { background: #d9ecdf; }
 .toolbar.top { margin-bottom: 12px; }
 .toolbar.top input[type=search] { flex: 1; max-width: none; min-width: 0; }
 .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
@@ -462,12 +401,6 @@ details.collapsible { margin: 8px 0; }
 .werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
 .werte-table td:first-child, .werte-table th:first-child { text-align: left; }
 .werte-table .ovr { color: var(--yellow); font-weight: 600; }
-@media (min-width: 821px) {
-  .tabbar { position: sticky; bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); justify-content: flex-start; padding: 4px 24px; }
-  .tabbar button { flex: 0 0 auto; flex-direction: row; gap: 8px; font-size: 14px; padding: 8px 14px; }
-  .tabbar button svg { width: 18px; height: 18px; }
-  .main { padding-bottom: 60px; }
-}
 
 /* ===== Detailansicht mit drei Reitern: Kochen / Abfüllen / Rechnen ===== */
 .detail-tabs { margin: 0 0 14px; }
@@ -489,14 +422,6 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 
 /* ===== Heute: Tagesplan ===== */
 /* Verordnungs-Chip (zweizeilig): am Handy als eigene Zeile unter dem Logo, mit Umbruch; am Desktop feste Kopfhöhe */
-@media (max-width: 820px) {
-  .topbar { flex-wrap: nowrap; }
-  .rx-chip { width: auto; flex: 0 1 auto; }
-}
-@media (min-width: 821px) {
-  .topbar { min-height: 72px; }
-  .tabbar { top: 72px; }
-}
 /* Kein Querscrollen am Handy: Segment-Schalter in den Vorgaben füllen die Breite und brechen um, statt abgeschnitten zu werden */
 @media (max-width: 560px) {
   html, body { overflow-x: hidden; }
@@ -737,23 +662,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Kopfleiste: weiß, Schriftzug in Grün, Verordnung als Pille rechts – eine Zeile, auch am Handy.
    Am Handy zeigt die Pille eine Kurzfassung (rx-short, drei Zeilen), am Desktop den vollen Text (rx-long). */
-.topbar .brand { min-width: 0; }
-.topbar .brand .brand-name { white-space: nowrap; }
-.rx-chip .rx-short { display: none; }
-@media (max-width: 820px) {
-  .topbar { padding: 12px 12px; min-height: 68px; }
-  .rx-chip { border-radius: 12px; padding: 4px 9px; max-width: calc(100% - 172px); font-size: 12px; line-height: 1.3; gap: 0; }
-  .rx-chip .rx-sub { font-size: 11px; }
-  .topbar .brand { flex: 0 0 auto; gap: 8px; }
-  .topbar .brand .brand-name { font-size: 26px; }
-  .topbar .brand .logo-img { width: 34px; height: 34px; }
-  .rx-chip .rx-long { display: none; }
-  .rx-chip .rx-short { display: block; }
-  .rx-chip .rx-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-}
 #recipe-search, .toolbar.top input[type=search] { background: var(--panel); }
 /* Pille in den Vorgaben: „zurück“-Zustand (ein Tipp führt dorthin, wo man herkam) */
-.rx-chip.back { background: var(--brand); border-color: var(--brand); color: #fff; }
 
 /* ===== Dunkelmodus: folgt dem System (prefers-color-scheme); zusätzlich per <html data-theme="dark"> erzwingbar,
    per data-theme="light" abschaltbar. Die Regeln stehen zweimal (Medienabfrage und Attribut), erzeugt aus einer Liste. ===== */
@@ -764,10 +674,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   color-scheme: dark;
   }
   :root:not([data-theme="light"]) body { background: var(--bg); }
-  :root:not([data-theme="light"]) .topbar { background: var(--panel); border-bottom-color: var(--line); }
-  :root:not([data-theme="light"]) .topbar .brand .brand-name { color: var(--brand-dark); }
-  :root:not([data-theme="light"]) .rx-chip { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
-  :root:not([data-theme="light"]) .rx-chip:hover { background: #2b4536; }
   :root:not([data-theme="light"]) .iconbtn, :root:not([data-theme="light"]) .stepbtn, :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea, :root:not([data-theme="light"]) .segmented button { background: var(--panel); color: var(--ink); }
   :root:not([data-theme="light"]) .iconbtn.primary, :root:not([data-theme="light"]) .btn { color: #fff; }
   :root:not([data-theme="light"]) .btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
@@ -790,7 +696,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .badge.quelle, :root:not([data-theme="light"]) .badge.keto-mini { background: #2f2650; color: #c4b5fd; }
   :root:not([data-theme="light"]) .badge.basis { background: #3a2f15; color: #f0cf8a; }
     :root:not([data-theme="light"]) .badge.meat { background: #3a2f1f; color: #e8c49a; }
-    :root:not([data-theme="light"]) .tabbar { background: var(--panel); border-color: var(--line); }
   :root:not([data-theme="light"]) .overlay { background: rgba(0,0,0,.6); }
   :root:not([data-theme="light"]) .overlay-close { background: #26322c; color: var(--ink); }
   :root:not([data-theme="light"]) #compose-content .title-input:focus { background: var(--bg); }
@@ -803,7 +708,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
     :root:not([data-theme="light"]) .pages .pane:last-child { box-shadow: none; }
   }
   :root:not([data-theme="light"]) .detail-actions { background: var(--panel); }
-  :root:not([data-theme="light"]) .brand .logo-img { box-shadow: 0 1px 3px rgba(0,0,0,.5); }
   :root:not([data-theme="light"]) input:disabled { background: var(--bg); color: var(--muted); }
   :root:not([data-theme="light"]) .more-row { background: var(--panel); }
   :root:not([data-theme="light"]) .prep, :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
@@ -814,10 +718,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   color-scheme: dark;
 }
 [data-theme="dark"] body { background: var(--bg); }
-[data-theme="dark"] .topbar { background: var(--panel); border-bottom-color: var(--line); }
-[data-theme="dark"] .topbar .brand .brand-name { color: var(--brand-dark); }
-[data-theme="dark"] .rx-chip { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
-[data-theme="dark"] .rx-chip:hover { background: #2b4536; }
 [data-theme="dark"] .iconbtn, [data-theme="dark"] .stepbtn, [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .segmented button { background: var(--panel); color: var(--ink); }
 [data-theme="dark"] .iconbtn.primary, [data-theme="dark"] .btn { color: #fff; }
 [data-theme="dark"] .btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
@@ -840,7 +740,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 [data-theme="dark"] .badge.quelle, [data-theme="dark"] .badge.keto-mini { background: #2f2650; color: #c4b5fd; }
 [data-theme="dark"] .badge.basis { background: #3a2f15; color: #f0cf8a; }
 [data-theme="dark"] .badge.meat { background: #3a2f1f; color: #e8c49a; }
-[data-theme="dark"] .tabbar { background: var(--panel); border-color: var(--line); }
 [data-theme="dark"] .overlay { background: rgba(0,0,0,.6); }
 [data-theme="dark"] .overlay-close { background: #26322c; color: var(--ink); }
 [data-theme="dark"] #compose-content .title-input:focus { background: var(--bg); }
@@ -853,7 +752,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   [data-theme="dark"] .pages .pane:last-child { box-shadow: none; }
 }
 [data-theme="dark"] .detail-actions { background: var(--panel); }
-[data-theme="dark"] .brand .logo-img { box-shadow: 0 1px 3px rgba(0,0,0,.5); }
 [data-theme="dark"] input:disabled { background: var(--bg); color: var(--muted); }
 [data-theme="dark"] .more-row { background: var(--panel); }
 [data-theme="dark"] .prep, [data-theme="dark"] .slot.empty-slot { background: var(--bg); }
@@ -949,9 +847,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* Heute füllt am Handy den Bildschirm: freie Höhe verteilt sich auf die Zeilen (Mahlzeiten 3 : Wasser 1),
    bei genug Platz („roomy“) etwas größere Schrift und Rezeptnamen bis zu zwei Zeilen (fitHeute). */
 /* Zutaten (+ Öl) je Mahlzeit: immer, als eigene Zeile über die ganze Breite, eingerückt bis zum Rezeptnamen */
-@media (max-width: 820px) {
-  body[data-view="heute"] .main { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
-}
 
 /* Mahlzeiten pro Tag: Auswahl 3 · 4 · 5, so hoch wie die Eingabefelder daneben */
 #view-vorgaben .mahl-seg { display: flex; width: 100%; height: 40px; }
@@ -967,14 +862,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 /* ↻ ✕ in der Zeitleiste: größere Trefferfläche als das sichtbare Symbol (danebentippen öffnet sonst das Rezept) */
 
 /* Desktop: Kopf und Reiterleiste auf dieselbe Breite eingerückt wie der Inhalt (.main: max. 1040 px, 24 px Rand) */
-@media (min-width: 821px) {
-  .topbar, .tabbar { padding-left: max(24px, calc((100% - 1040px) / 2 + 24px)); padding-right: max(24px, calc((100% - 1040px) / 2 + 24px)); }
-  .tabbar { padding-left: max(10px, calc((100% - 1040px) / 2 + 10px)); }
-}
 
 /* Kopf-Pille darf schrumpfen (sonst ragt sie bei 320 px aus dem Bild); Logo-Schrift auf sehr schmalen Handys kleiner */
-.rx-chip { min-width: 0; }
-@media (max-width: 360px) { .topbar .brand .brand-name { font-size: 22px; } }
 
 /* Erinnerungen (Vorgaben) */
 .push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
@@ -1168,7 +1057,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zp-more { display: none; }
 .zp-list.more .zp-more { display: inline; }
 .zp-head .tlink { margin: -8px -6px 0 0; }
-.zp-warn { font-size: 12px; font-weight: 600; color: var(--red); }
+.zp-warn { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--red); }
 /* Zutaten: Grundstufe zwei Spalten, „roomy“ eine je Zeile (Entwurf), „tight“ fortlaufend */
 .zp-ing { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 1px; font-size: 13px; }
 .zp-list.roomy .zp-ing { grid-template-columns: minmax(0, 1fr) auto; }
@@ -1194,7 +1083,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zp-row.sleep { color: var(--grey); grid-template-columns: 46px minmax(0, 1fr); }
 .zp-row.water .zp-time, .zp-row.sleep .zp-time { font-size: 13px; }
 .zp-hints { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }
-/* Knappste Stufe: weniger Luft */
+.zp-row.water .zp-sleep { display: none; color: var(--grey); }
+/* Knappste Stufe: weniger Luft – Menge/Dauer und Warnung neben dem Namen, Schlafen in der Zeile der Abendgabe */
 .zeitplan.tight { gap: 10px; }
 .zp-list.tight .zp-row.meal { padding: 8px 0; }
 .zp-list.tight .zp-main { gap: 3px; }
@@ -1235,28 +1125,76 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .pick-vol.big { color: var(--yellow); font-weight: 600; }
 .pick-list .empty { padding: 16px 0; color: var(--grey); font-size: 14px; }
 
+/* ======================================================================
+   Seite, Kopf und Hauptnavigation
+   ====================================================================== */
+.main { max-width: 1100px; margin: 0 auto; padding: 0 20px calc(110px + env(safe-area-inset-bottom)); }
+/* Kopf (alle Hauptseiten gleich): Überlinie + Titel links, Verordnung rechts, darunter 2-px-Tintenlinie */
+.topbar { display: flex; align-items: flex-end; gap: 10px; width: calc(100% - 40px); max-width: 1060px; margin: 0 auto 14px;
+  padding: calc(14px + env(safe-area-inset-top)) 0 10px; border-bottom: 2px solid var(--ink); }
+.brand { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.brand-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey); line-height: 1.3; }
+.page-title { margin: 0; font: 600 36px/1 var(--f-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rx-chip { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin: 0; padding: 4px 0;
+  border: 0; background: transparent; color: var(--ink); font: 400 12px/1.3 var(--f-mono); cursor: pointer; }
+.rx-chip .rx-pill { padding: 2px 8px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 600; white-space: nowrap; }
+.rx-chip .rx-sub { white-space: nowrap; }
+.rx-chip:hover .rx-pill, .rx-chip.back .rx-pill { background: var(--ink); color: var(--paper); }
+/* Navigation: schwebend über dem Home-Balken, 2-px-Rahmen, drei gleiche Felder, aktiv invertiert */
+.tabbar { position: fixed; z-index: 50; left: 20px; right: 20px; bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--paper); }
+.tabbar button { flex: 1 1 0; min-height: 48px; margin: 0; padding: 0 6px; border: 0; border-left: 1.5px solid var(--ink); border-radius: 0;
+  background: transparent; color: var(--ink); font: 600 15px var(--f-sans); cursor: pointer; }
+.tabbar button[hidden] { display: none; }
+.tabbar button:first-child, .tabbar button[hidden] + button { border-left: 0; }
+.tabbar button.active { background: var(--ink); color: var(--paper); }
+.tabbar button:focus-visible { outline-offset: -4px; outline-color: var(--paper); }
+.tabbar button:not(.active):focus-visible { outline-color: var(--ink); }
+@media (min-width: 821px) {
+  .tabbar { left: 50%; right: auto; width: min(420px, calc(100% - 40px)); transform: translateX(-50%); bottom: 20px; }
+}
+@media (max-width: 380px) { .page-title { font-size: 31px; } }
+.zp-list.tight .zp-head .zp-txt { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 0; }
+.zp-list.tight .zp-vol { font-size: 11px; }
+.zp-list.tight .zp-vol .ca { display: none; }
+.zp-list.tight .zp-warn { font-size: 11px; }
+.zp-list.tight .zp-head .tlink { min-height: 32px; margin-top: -4px; }
+.zp-list.tight .zp-row.water, .zp-list.tight .zp-row.sleep { padding: 3px 0; }
+.zp-list.tight .zp-row.water .zp-sleep { display: inline; }
+.zp-list.tight .zp-row.water:has(.zp-sleep) ~ .zp-row.sleep, .zp-list.tight .zp-row.sleep:has(~ .zp-row.water .zp-sleep) { display: none; }
+.zeitplan.tight .day-tools .tlink { min-height: 34px; }
+.zeitplan.tight .day-tools .dt-range { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zp-list.tight .zp-warn { margin-top: 0; }
+/* knappste Stufe, Feinschliff: niedrigere Zeilen, Tauschen-Link flacher, Zutaten enger */
+.zeitplan.tight { gap: 8px; }
+.zp-list.tight .zp-row.meal { padding: 6px 0; }
+.zp-list.tight .zp-row.meal .zp-time { padding-top: 1px; }
+.zp-list.tight .zp-head .tlink { min-height: 24px; margin: -2px -6px 0 0; }
+.zp-list.tight .zp-ing { font-size: 11.5px; line-height: 1.28; }
+.zp-list.tight .zp-row.water, .zp-list.tight .zp-row.sleep { padding: 2px 0; font-size: 12px; }
+.zp-list.tight .zp-row.water .zp-time, .zp-list.tight .zp-row.sleep .zp-time { font-size: 12px; }
+.zp-list.tight .zp-row.empty-slot { min-height: 36px; }
+body.heute-tight .topbar { padding-top: calc(8px + env(safe-area-inset-top)); padding-bottom: 8px; margin-bottom: 10px; }
+body.heute-tight .page-title { font-size: 30px; }
+.zp-list.tight .zp-row.water .zp-txt:has(.zp-sleep) .zp-sub { display: none; }
+.zeitplan.tight .zp-hints { padding-top: 5px; gap: 2px; }
+.zeitplan.tight .hint { font-size: 11.5px; line-height: 1.3; }
+body.heute-tight .page-title { font-size: 28px; }
+
 </style>
 </head>
 <body>
+  <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
   <header class="topbar">
-    <div class="brand"><img class="logo-img" src="data:image/png;base64,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" alt="HamHam Keto Logo" /><span class="brand-name">HamHam Keto</span></div>
-    <!-- Verordnungs-Chip: zeigt überall, womit gerade gerechnet wird; tippen öffnet die Vorgaben -->
+    <div class="brand"><span class="brand-kicker">HamHam Keto</span><h1 class="page-title" id="page-title">Rezepte</h1></div>
     <button id="rx-chip" class="rx-chip" type="button" title="Aktive Vorgaben – tippen zum Ändern"></button>
   </header>
 
+  <!-- Hauptnavigation: schwebend unten, drei gleiche Felder ohne Symbole -->
   <nav class="tabbar" aria-label="Bereiche">
-    <button type="button" data-view="heute" id="tab-heute" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v3M17 2v3M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span>Heute</span>
-    </button>
-    <button type="button" data-view="rezepte" class="active">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM14 4v6h6M7 13h10M7 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Rezepte</span>
-    </button>
-    <button type="button" data-view="vorgaben">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-      <span>Vorgaben</span>
-    </button>
+    <button type="button" data-view="heute" id="tab-heute" hidden><span>Heute</span></button>
+    <button type="button" data-view="rezepte" class="active"><span>Rezepte</span></button>
+    <button type="button" data-view="vorgaben"><span>Vorgaben</span></button>
   </nav>
 
   <main class="main">
@@ -3598,6 +3536,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
   const VIEWS = ["heute", "rezepte", "vorgaben"];
+  const PAGE_TITLES = { heute: "Tagesplan", rezepte: "Rezepte", vorgaben: "Vorgaben" };
   function showView(name) {
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
@@ -3605,7 +3544,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
+    const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
@@ -3616,40 +3556,32 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const chip = document.getElementById("rx-chip"); if (!chip) return;
     const back = (state.settings.view === "vorgaben") && !!chipReturn;
     chip.classList.toggle("back", back);
-    chip.title = back ? "Zurück zu " + ({ heute: "Heute", rezepte: "Rezepte" }[chipReturn.view] || "vorher") : "Aktive Vorgaben – tippen zum Ändern";
+    chip.title = back ? "Zurück zu " + ({ heute: "Heute", rezepte: "Rezepte" }[chipReturn.view] || "vorher") : (chip.dataset.full ? chip.dataset.full + "\n" : "") + "Tippen öffnet die Vorgaben";
   }
-  // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
+  // Verordnung im Kopf: Pille „1,8 : 1“ und darunter „640 kcal · 800 ml“ (Mono). Die ausführliche Fassung
+  // (kcal je Mahlzeit, MCT, Wassergaben laut Tagesplan) steht im aria-label und als Tooltip.
   function renderHeader(d) {
     if (typeof schedulePushSync === "function") schedulePushSync(); // Erinnerungen an geänderten Plan angleichen
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    // Zeile 1: Verordnung. Zeile 2: Flüssigkeit – Ziel, Modus und (laut Tagesplan) die Menge zwischen den Mahlzeiten.
     const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl +
-      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
+      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " (Kalorien halten)" : "") : "");
     let l2 = "";
     if (d.fluidDay > 0) {
-      l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · ";
+      l2 = fmt(d.fluidDay, 0) + " ml/Tag · ";
       if (d.wasserModus === "mahlzeit") l2 += "alles in den Mahlzeiten (je " + fmt(d.fluidMahl, 0) + " ml)";
       else {
-        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ⚠️ wenn eine Gabe über der Höchstmenge liegt.
+        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
         l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
-        if (wg.wp.over) l2 += " · ⚠️ zu viel auf einmal";
+        if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
       }
     }
-    // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
-    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = zu viel auf einmal).
-    const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
-    let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
-    if (d.fluidDay > 0) {
-      s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
-      if (d.wasserModus === "mahlzeit") s3 = "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit";
-      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + (wg.est ? "≈ " : "") + wg.text : "kein Wasser extra"; }
-      if (/⚠️/.test(l2)) s3 += " ⚠️";
-    }
-    chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
-      '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + [s2, s3].map((t, k) => t ? '<span class="rx-line rx-sub rx-short' + (k === 1 ? ' rx-s3' : '') + '">' + escapeHtml(t) + "</span>" : "").join("");
+    chip.innerHTML = '<span class="rx-pill">' + escapeHtml(fmtRx(d.ratio)) + '</span><span class="rx-sub">' + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + "</span>";
+    chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
+    chip.dataset.full = l1 + (l2 ? "\n" + l2 : "");
+    markChip();
   }
-  function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
+  function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
     if (typeof renderPushCard === "function") renderPushCard();
@@ -3722,7 +3654,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
       if (t === "auto") { if (m.dataset.orig) m.setAttribute("content", m.dataset.orig); return; }
       if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content");
-      m.setAttribute("content", t === "dark" ? "#1a2320" : "#ffffff");
+      m.setAttribute("content", t === "dark" ? "#1c1a16" : "#f5f0e5");
     });
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
@@ -4780,9 +4712,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
-            (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · ca. ' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span></span>' +
+            (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
+          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
-        warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") +
         '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
     });
     zeitplanExtraRows(times, wp).forEach(r => rows.push(r));
@@ -5137,7 +5069,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function zeitplanExtraRows(times, wp) {
     const rows = [];
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
-      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml Wasser' + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' : '') + '</span>' +
+      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml Wasser' + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
+        (times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') : '') + '</span>' +
       '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;

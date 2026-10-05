@@ -301,7 +301,7 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.ok($(w, "src-kcal").classList.contains("auto"));
   assert.ok($(w, "reset-kcal").hidden);
   assert.match(fact(w, "verordnung-summary", "mahl"), /^pro Mahlzeit170 kcal.*680 kcal\/Tag \(Vorschlag 80 kcal\/kg\) ÷ 4/);
-  assert.match($(w, "rx-chip").textContent, /170 kcal × 4/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /170 kcal × 4/);
   assert.equal($(w, "set-kcalmin").value, "600");
   assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag · 100 ml\/kg/);
   // Eiweiß: Standard 1,5 g/kg erkennbar
@@ -482,7 +482,7 @@ test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird b
   wi.value = "8,5"; fire(w, wi, "input");
   assert.equal(wi.value, "8,5");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.weight, 8.5);
-  assert.match($(w, "rx-chip").textContent, /850 ml\/Tag/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /850 ml\/Tag/);
   fire(w, wi, "change"); wi.blur();
   assert.equal(wi.value, "8,5");
   // Punkt geht ebenso
@@ -498,7 +498,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "src-protein").textContent, /✓ Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
-  assert.match($(w, "rx-chip").textContent, /💧 800 ml\/Tag · Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
   {
@@ -523,7 +523,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   ri.value = "1:"; fire(w, ri, "input");            // unvollständige Eingabe ändert nichts
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}").settings.ratio, 1.8);
   ri.value = "1"; fire(w, ri, "input");
-  assert.match($(w, "rx-chip").textContent, /^1:1 /);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /^1:1 /);
   let c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(Math.abs(ratioOf(c) - 1.0) <= 0.05);
   fire(w, $(w, "detail-close"));
@@ -535,7 +535,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal($(w, "ratio-hint"), null, "kein Hinweis bei Werten ab 1:1");
   assert.equal($(w, "verordnung-summary").querySelector(".note.warn"), null);
   ri.value = "1:1,5"; fire(w, ri, "input"); // alte Schreibweise wird weiterhin verstanden
-  assert.match($(w, "rx-chip").textContent, /^0,67:1 /);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /^0,67:1 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
   c = openRecipe(w, "Compleat");
   assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67]:1$/);
@@ -626,7 +626,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
   assert.ok($(w, "set-dichte").disabled, "Dichte nur beim Sondieren, Feld bleibt an Ort und Stelle");
   assert.match(fact(w, "fluid-summary", "gabe"), /^in jeder Mahlzeit21[23] ml/);
-  assert.match($(w, "rx-chip").textContent, /alles in den Mahlzeiten \(je 21[23] ml\)/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /alles in den Mahlzeiten \(je 21[23] ml\)/);
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
   assert.match(c.querySelector("table.kitchen").textContent, /Flüssigkeitsziel/);
@@ -652,7 +652,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.match(fluidStat(w2).textContent, /\/ 850 ml$/);
   const tot2 = numDe(fluidStat(w2).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot2 - 850) <= 12, "Zeitplan erreicht das Tagesziel: " + tot2);
-  assert.match($(w2, "rx-chip").textContent, /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
+  assert.match($(w2, "rx-chip").getAttribute("aria-label"), /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
   assert.match(fact(w2, "fluid-summary", "gabe"), /900 ml\/Tag \(manuell\)/);
@@ -682,7 +682,8 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
   assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
   assert.deepEqual([...hc.querySelectorAll(".zp-row")].slice(-2).map(r => r.textContent), ["18:45" + [...hc.querySelectorAll(".zp-row.water .zp-txt")].pop().textContent + "10 min", "20:00Schlafen"]);
-  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser vor dem Schlafen$/, "Abendgabe vor dem Schlafen, danach eigene Zeile Schlafen");
+  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser vor dem Schlafen · Schlafen 20:00$/, "Abendgabe vor dem Schlafen (Schlafen dort nur in der knappsten Stufe sichtbar), danach eigene Zeile Schlafen");
+  assert.equal(hc.querySelector(".zp-row.water .zp-sleep").title, "Schlafen 20:00");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
   assert.equal(hc.querySelector(".day-tools .dt-range").textContent, "7:00–17:30 · alle 3 h 30 min");
@@ -846,7 +847,7 @@ test("Darstellung: Hell/Dunkel-Schalter unter Vorgaben – auto folgt dem Gerät
   assert.equal(root.getAttribute("data-theme"), "dark");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.theme, "dark");
   assert.ok(w.document.querySelector('#theme-ctl button[data-theme="dark"]').classList.contains("active"));
-  assert.ok([...w.document.querySelectorAll('meta[name="theme-color"]')].every(m => m.getAttribute("content") === "#1a2320"));
+  assert.ok([...w.document.querySelectorAll('meta[name="theme-color"]')].every(m => m.getAttribute("content") === "#1c1a16"));
   // Neustart übernimmt die Wahl; „Wie das Gerät“ entfernt das Attribut wieder
   const w2 = boot(JSON.parse(w.localStorage.getItem("ketoplaner.v5")));
   assert.equal(w2.document.documentElement.getAttribute("data-theme"), "dark");
@@ -1214,15 +1215,15 @@ test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan mar
   // „Leeren“ (im Auswahlfenster) entfernt mit „Rückgängig“; die Kopf-Pille rechnet sofort neu
   w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4 }, dayPlan: [0, 1, 2, 3].map(i => ({ key: i === 1 ? "std:Hendl & Brokkoli" : "std:Compleat & KetoCal" })) });
   fire(w, $(w, "tab-heute"));
-  const pill0 = $(w, "rx-chip").textContent;
+  const pill0 = $(w, "rx-chip").getAttribute("aria-label");
   fire(w, $(w, "heute-content").querySelector('.zp-row.slot [data-pick="1"]')); fire(w, $(w, "picker-clear"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 1);
-  assert.notEqual($(w, "rx-chip").textContent, pill0, "Pille zeigt die neue Wassermenge");
-  assert.match($(w, "rx-chip").textContent, /Wasser ≈ \d × \d+ ml/, "≈, solange eine Mahlzeit geschätzt ist");
+  assert.notEqual($(w, "rx-chip").getAttribute("aria-label"), pill0, "Pille zeigt die neue Wassermenge");
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/, "≈, solange eine Mahlzeit geschätzt ist");
   assert.match($(w, "toast").textContent, /Mahlzeit 2 geleert/);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 0, "Rückgängig");
-  assert.equal($(w, "rx-chip").textContent, pill0);
+  assert.equal($(w, "rx-chip").getAttribute("aria-label"), pill0);
 });
 
 test("Audit: Öl-Erkennung, Schlafen vor der letzten Mahlzeit, Suche in einer Gruppe, Service Worker lädt alles vor", () => {

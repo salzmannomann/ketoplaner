@@ -1,5 +1,6 @@
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
   const VIEWS = ["heute", "rezepte", "vorgaben"];
+  const PAGE_TITLES = { heute: "Tagesplan", rezepte: "Rezepte", vorgaben: "Vorgaben" };
   function showView(name) {
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
@@ -7,7 +8,8 @@
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+    document.querySelectorAll(".tabbar button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
+    const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
@@ -18,40 +20,32 @@
     const chip = document.getElementById("rx-chip"); if (!chip) return;
     const back = (state.settings.view === "vorgaben") && !!chipReturn;
     chip.classList.toggle("back", back);
-    chip.title = back ? "Zurück zu " + ({ heute: "Heute", rezepte: "Rezepte" }[chipReturn.view] || "vorher") : "Aktive Vorgaben – tippen zum Ändern";
+    chip.title = back ? "Zurück zu " + ({ heute: "Heute", rezepte: "Rezepte" }[chipReturn.view] || "vorher") : (chip.dataset.full ? chip.dataset.full + "\n" : "") + "Tippen öffnet die Vorgaben";
   }
-  // Verordnungs-Chip: zeigt immer, womit gerade gerechnet wird.
+  // Verordnung im Kopf: Pille „1,8 : 1“ und darunter „640 kcal · 800 ml“ (Mono). Die ausführliche Fassung
+  // (kcal je Mahlzeit, MCT, Wassergaben laut Tagesplan) steht im aria-label und als Tooltip.
   function renderHeader(d) {
     if (typeof schedulePushSync === "function") schedulePushSync(); // Erinnerungen an geänderten Plan angleichen
     const chip = document.getElementById("rx-chip"); if (!chip) return;
-    // Zeile 1: Verordnung. Zeile 2: Flüssigkeit – Ziel, Modus und (laut Tagesplan) die Menge zwischen den Mahlzeiten.
     const l1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl +
-      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " % " + (d.mctMode === "kalorien" ? "🎯" : "⚖️") : "");
+      (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " (Kalorien halten)" : "") : "");
     let l2 = "";
     if (d.fluidDay > 0) {
-      l2 = "💧 " + fmt(d.fluidDay, 0) + " ml/Tag · ";
+      l2 = fmt(d.fluidDay, 0) + " ml/Tag · ";
       if (d.wasserModus === "mahlzeit") l2 += "alles in den Mahlzeiten (je " + fmt(d.fluidMahl, 0) + " ml)";
       else {
-        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ⚠️ wenn eine Gabe über der Höchstmenge liegt.
+        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
         l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
-        if (wg.wp.over) l2 += " · ⚠️ zu viel auf einmal";
+        if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
       }
     }
-    // Kurzfassung für die schmale Pille am Handy (eine Zeile Verordnung, eine Zeile Flüssigkeit).
-    // Drei kurze Zeilen: Verordnung · MCT + Tagesziel · Wasser zwischen/in den Mahlzeiten (⚠️ = zu viel auf einmal).
-    const s1 = fmtTarget(d.ratio) + " · " + fmt(d.kcalMahl, 0) + " kcal × " + d.mahl;
-    let s2 = d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "", s3 = "";
-    if (d.fluidDay > 0) {
-      s2 += (s2 ? " · " : "") + "💧 " + fmt(d.fluidDay, 0) + " ml/Tag";
-      if (d.wasserModus === "mahlzeit") s3 = "je " + fmt(d.fluidMahl, 0) + " ml in der Mahlzeit";
-      else { const wg = waterGiftsText(d); s3 = wg.wp.per > 0 ? "Wasser " + (wg.est ? "≈ " : "") + wg.text : "kein Wasser extra"; }
-      if (/⚠️/.test(l2)) s3 += " ⚠️";
-    }
-    chip.innerHTML = '<span class="rx-line rx-long">' + escapeHtml(l1) + "</span>" + (l2 ? '<span class="rx-line rx-sub rx-long">' + escapeHtml(l2) + "</span>" : "") +
-      '<span class="rx-line rx-short">' + escapeHtml(s1) + "</span>" + [s2, s3].map((t, k) => t ? '<span class="rx-line rx-sub rx-short' + (k === 1 ? ' rx-s3' : '') + '">' + escapeHtml(t) + "</span>" : "").join("");
+    chip.innerHTML = '<span class="rx-pill">' + escapeHtml(fmtRx(d.ratio)) + '</span><span class="rx-sub">' + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + "</span>";
+    chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
+    chip.dataset.full = l1 + (l2 ? "\n" + l2 : "");
+    markChip();
   }
-  function regelLabel(d) { return d.mctMode === "kalorien" ? "🎯 Kalorien halten" : "⚖️ Verhältnis halten"; }
+  function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   function renderVorgaben(d) {
     const s = state.settings;
     if (typeof renderPushCard === "function") renderPushCard();
@@ -124,7 +118,7 @@
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
       if (t === "auto") { if (m.dataset.orig) m.setAttribute("content", m.dataset.orig); return; }
       if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content");
-      m.setAttribute("content", t === "dark" ? "#1a2320" : "#ffffff");
+      m.setAttribute("content", t === "dark" ? "#1c1a16" : "#f5f0e5");
     });
   }
   // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
