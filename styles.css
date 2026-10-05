@@ -1190,3 +1190,24 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .vg-col .bd-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 
+
+/* Vorgaben in der Sprache von Heute und Rezepte: grüne Abschnitts-Überschrift mit feiner Linie auf dem grauen Grund
+   (wie „🍗 Geflügel“), darunter der Inhalt in einem schlanken weißen Feld (wie Zeitleiste und Rezept-Kacheln). */
+#view-vorgaben .card { background: transparent; border: 0; box-shadow: none; padding: 0; margin-bottom: 20px; }
+#view-vorgaben .card > h3 {
+  font-size: 16px; font-weight: 700; color: var(--brand-dark); margin: 0 0 10px;
+  padding-bottom: 6px; border-bottom: 2px solid var(--brand-soft); line-height: 1.3;
+}
+#view-vorgaben .card > h3 .hint { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+#view-vorgaben .vg-body { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px 12px; }
+#view-vorgaben .vg-body > :first-child { margin-top: 0; }
+#view-vorgaben .vg-body > :last-child { margin-bottom: 0; }
+#view-vorgaben .vg-body .note { font-size: 13px; padding: 8px 11px; line-height: 1.45; border-radius: 9px; }
+#view-vorgaben .vg-body details.collapsible > summary { font-size: 12.5px; }
+@media (max-width: 560px) {
+  #view-vorgaben .card { padding: 0; margin-bottom: 16px; }
+  #view-vorgaben .card > h3 { font-size: 15.5px; margin-bottom: 8px; padding-bottom: 5px; }
+  #view-vorgaben .card > h3 .hint { font-size: 12px; }
+  #view-vorgaben .vg-body { padding: 11px 12px 10px; }
+  #view-vorgaben .vg-body .note { font-size: 12.5px; padding: 7px 10px; }
+}

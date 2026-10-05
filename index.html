@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=1e2dc336" />
+  <link rel="stylesheet" href="styles.css?v=2ece469e" />
 </head>
 <body>
   <header class="topbar">
@@ -81,6 +81,7 @@
     <section id="view-vorgaben" class="view" hidden>
       <div class="card">
         <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
+        <div class="vg-body">
         <div class="settings-grid">
           <div>
             <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
@@ -123,12 +124,14 @@
           </div>
         </div>
         <div id="verordnung-summary" class="note tip"></div>
+        </div>
       </div>
 
       <!-- Desktop: zwei Spalten – links Ernährung (Bedarf, Flüssigkeit, Öl), rechts Küche und App; am Handy untereinander -->
       <div class="vg-cols"><div class="vg-col">
       <div class="card" id="bedarf-card">
         <h3>📊 Bedarf schätzen <span class="hint">– zur Orientierung</span></h3>
+        <div class="vg-body">
         <div class="bd-row">
           <label class="bd-birth">Geboren <span class="bd-age" id="bd-age"></span><input id="bd-birth" type="date" /></label>
           <label>Geschlecht
@@ -160,10 +163,12 @@
           <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>Faustregel 60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen – ein gröberer zweiter Rechenweg, nur nach Alter, ohne Muskelspannung und Bewegung (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
           <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ≈ 31 % weniger als gesunde, Formeln unterschätzten um ≈ 22 %), Borsani 2023 (Ruheverbrauch ≈ 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
         </details>
+        </div>
       </div>
 
       <div class="card">
         <h3>💧 Flüssigkeit</h3>
+        <div class="vg-body">
         <div class="preset-row">
           <span class="seg-label">Wasser:</span>
           <div class="segmented mini" id="wasser-modus-ctl">
@@ -185,10 +190,12 @@
         </div>
         <div id="fluid-summary" class="note tip"></div>
         <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt Heute → ⏰ Uhrzeiten. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
+        </div>
       </div>
 
       <div class="card">
         <h3>⚡ Öl <span class="hint">– MCT-Anteil und Rechenregel, gilt für alle Rezepte mit Öl</span></h3>
+        <div class="vg-body">
         <div class="preset-row">
           <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
           <div class="segmented mini" id="mct-share-ctl"></div>
@@ -217,11 +224,13 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       </div><div class="vg-col">
       <div class="card">
         <h3>🍳 Küche</h3>
+        <div class="vg-body">
         <div class="settings-grid">
           <div>
             <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
@@ -232,10 +241,12 @@
           <summary>ⓘ Rundung und Verdunstung</summary>
           <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
+        </div>
       </div>
 
       <div class="card">
         <h3>🎨 Darstellung</h3>
+        <div class="vg-body">
         <div class="preset-row">
           <span class="seg-label">Hell / Dunkel:</span>
           <div class="segmented mini" id="theme-ctl">
@@ -244,10 +255,12 @@
             <button type="button" data-theme="dark">🌙 Dunkel</button>
           </div>
         </div>
+        </div>
       </div>
 
       <div class="card" id="push-card">
         <h3>🔔 Erinnerungen <span class="hint">– Nachricht zu jeder Mahlzeit und Wassergabe</span></h3>
+        <div class="vg-body">
         <div id="push-status" class="note tip"></div>
         <div class="push-opts">
           <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
@@ -270,10 +283,12 @@
           <p>Die Uhrzeiten kommen aus Heute (⏰). Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
           <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
         </details>
+        </div>
       </div>
 
       <div class="card" id="sync-card">
         <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig: iPhone, iPad und Computer auf demselben Stand</span></h3>
+        <div class="vg-body">
         <div id="sync-status" class="note info"></div>
         <div id="sync-code" class="note tip sync-code-box" hidden></div>
         <div class="btn-row">
@@ -292,10 +307,12 @@
           <summary>ⓘ Wie funktioniert das?</summary>
           <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
         </details>
+        </div>
       </div>
 
       <div class="card">
         <h3>💾 Daten</h3>
+        <div class="vg-body">
         <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
         <div class="btn-row">
           <button id="export-btn" class="btn" type="button">⬇️ Backup exportieren</button>
@@ -311,6 +328,7 @@
           <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
           <div id="werte-list" class="tbl-wrap"></div>
         </details>
+        </div>
       </div>
       </div></div>
     </section>
