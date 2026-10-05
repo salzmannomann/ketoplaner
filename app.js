@@ -1370,7 +1370,21 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    modalOpen("detail");
+    applyDetailLayout();
+  }
+  let detailModal = false, panelMq = null;
+  function isPanelLayout() { try { return !!(window.matchMedia && window.matchMedia("(min-width: 1100px)").matches); } catch (e) { return false; } }
+  // Breiter Bildschirm: Rezept als festes Panel rechts, die Liste bleibt daneben bedienbar (kein Einfrieren).
+  // Ändert sich die Fensterbreite bei offenem Rezept, wechselt die Darstellung mit.
+  function applyDetailLayout() {
+    if (document.getElementById("detail-overlay").hidden) return;
+    const panel = isPanelLayout();
+    document.body.classList.toggle("detail-panel", panel);
+    if (!panel && !detailModal) { modalOpen("detail"); detailModal = true; }
+    if (panel && detailModal) { modalClose("detail"); detailModal = false; }
+    if (!panelMq) {
+      try { panelMq = window.matchMedia("(min-width: 1100px)"); panelMq.addEventListener("change", applyDetailLayout); } catch (e) { panelMq = {}; }
+    }
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -2024,7 +2038,8 @@
   function closeDetail() {
     closeTodaySheet();
     document.getElementById("detail-overlay").hidden = true;
-    modalClose("detail");
+    document.body.classList.remove("detail-panel");
+    if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
   // wenn der Inhalt unter dem Finger ganz oben steht (sonst scrollt er wie gewohnt nach oben) und die Bewegung
