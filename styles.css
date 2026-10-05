@@ -1,21 +1,34 @@
 :root {
-  --bg: #f4f6f8;
-  --panel: #ffffff;
-  --ink: #1f2933;
-  --muted: #6b7785;
-  --line: #e2e8f0;
-  --brand: #2f855a;
-  --brand-dark: #276749;
-  --brand-soft: #e6f4ec;
-  --accent: #3182ce;
-  --green: #2f855a;
-  --green-bg: #e6f4ec;
-  --yellow: #8f5c0a; /* dunkler als früher (#b7791f), damit Warnungen auf Weiß/Creme gut lesbar sind (WCAG AA) */
-  --yellow-bg: #fdf6e3;
-  --red: #c53030;
-  --red-bg: #fdecec;
-  --shadow: 0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.06);
-  --radius: 12px;
+  /* Küchenzettel: Papier, Tinte, Linien statt Karten; Farbe nur mit Bedeutung (Rot Warnung, Blau Wasser, Grün passt) */
+  --paper: #f5f0e5;
+  --paper-2: #ebe3d3;
+  --ink: #2a2621;
+  --ink-2: #4a443c;
+  --grey: #645d53;
+  --rule: #d6ccba;
+  --dot: #a99f8f;
+  --red: #ad3326;
+  --red-bg: #f5e0d8;
+  --blue: #2c5c9a;
+  --green: #3c6a3e;
+  --yellow: #8a5a00;
+  --yellow-bg: #f5e9cc;
+  --overlay: rgba(42,38,33,.40);
+  --f-sans: 'IBM Plex Sans', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* ältere Namen, auf die neuen Rollen gelegt (noch nicht umgebaute Teile) */
+  --bg: var(--paper);
+  --panel: var(--paper);
+  --muted: var(--grey);
+  --line: var(--rule);
+  --brand: var(--ink);
+  --brand-dark: var(--ink);
+  --brand-soft: var(--paper-2);
+  --accent: var(--blue);
+  --green-bg: var(--paper-2);
+  --shadow: none;
+  --radius: 8px;
 }
 
 * { box-sizing: border-box; }
@@ -23,8 +36,8 @@ html, body { margin: 0; padding: 0; }
 /* Scrollbalken-Platz immer reservieren -> kein Springen beim Filterwechsel */
 html { scrollbar-gutter: stable; overflow-y: scroll; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
+  font-family: var(--f-sans);
+  background: var(--paper);
   color: var(--ink);
   font-size: 16px;
   line-height: 1.5;
@@ -457,8 +470,6 @@ table.kitchen tr.fatrow td { background: var(--green-bg); }
 .btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
 
 /* ===== Heute: Tagesplan ===== */
-.slot { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-.slot.empty-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--bg); border-style: dashed; }
 .picker-title { margin: 0 0 10px; padding-right: 40px; }
 .pick-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
 .pick-row { display: grid; grid-template-columns: 34px 1fr; column-gap: 10px; align-items: center; text-align: left; width: 100%;
@@ -738,10 +749,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
    per data-theme="light" abschaltbar. Die Regeln stehen zweimal (Medienabfrage und Attribut), erzeugt aus einer Liste. ===== */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #111816; --panel: #1a2320; --ink: #e7ece9; --muted: #9aa79f; --line: #2c3a33;
-  --brand: #2f855a; --brand-dark: #8fd6ad; --brand-soft: #22362b; --accent: #8ab8ff;
-  --green: #8fd6ad; --green-bg: #1d3327; --yellow: #e6b95f; --yellow-bg: #3a2f15; --red: #f29a9a; --red-bg: #3d1f1f;
-  --shadow: 0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  --paper: #1c1a16; --paper-2: #24211c; --ink: #ece5d8; --ink-2: #cfc7b8; --grey: #a89f90; --rule: #3d382f; --dot: #6b6458;
+  --red: #f0a090; --red-bg: #3e231d; --blue: #8fb3e6; --green: #9cc69a; --yellow: #e4bc68; --yellow-bg: #3a3018; --overlay: rgba(0,0,0,.55);
   color-scheme: dark;
   }
   :root:not([data-theme="light"]) body { background: var(--bg); }
@@ -790,10 +799,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   :root:not([data-theme="light"]) .prep, :root:not([data-theme="light"]) .slot.empty-slot { background: var(--bg); }
 }
 :root[data-theme="dark"] {
-  --bg: #111816; --panel: #1a2320; --ink: #e7ece9; --muted: #9aa79f; --line: #2c3a33;
-  --brand: #2f855a; --brand-dark: #8fd6ad; --brand-soft: #22362b; --accent: #8ab8ff;
-  --green: #8fd6ad; --green-bg: #1d3327; --yellow: #e6b95f; --yellow-bg: #3a2f15; --red: #f29a9a; --red-bg: #3d1f1f;
-  --shadow: 0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  --paper: #1c1a16; --paper-2: #24211c; --ink: #ece5d8; --ink-2: #cfc7b8; --grey: #a89f90; --rule: #3d382f; --dot: #6b6458;
+  --red: #f0a090; --red-bg: #3e231d; --blue: #8fb3e6; --green: #9cc69a; --yellow: #e4bc68; --yellow-bg: #3a3018; --overlay: rgba(0,0,0,.55);
   color-scheme: dark;
 }
 [data-theme="dark"] body { background: var(--bg); }
@@ -846,24 +853,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #detail-overlay .overlay-card, #compose-overlay .overlay-card { will-change: transform; }
 }
 /* Heute: gleiche Optik wie Rezeptliste und Detail – Kopfzeile mit Aktionen, Kacheln, Mahlzeiten als Zeilen */
-.day-head { margin-top: 0; }
-.head-actions { margin-left: auto; display: inline-flex; gap: 6px; }
-.head-actions .iconbtn.round { width: 34px; height: 34px; font-size: 15px; }
-#heute-content .portion-line { margin: 0 0 8px; }
-#heute-content .detail-tiles.strip { margin-bottom: 10px; }
-#heute-content .note { margin: 6px 0 10px; }
-.tiles.day-slots { margin-top: 4px; }
-.tile.slot { padding: 9px 6px 9px 10px; background: var(--panel); border: 1px solid var(--line); gap: 8px; }
-.tile.slot .tile-icon { font-size: 24px; }
-.tile.slot.empty-slot { display: flex; justify-content: flex-start; border-style: dashed; background: var(--bg); box-shadow: none; }
-.tile.slot.empty-slot .tile-icon { color: var(--brand); font-weight: 700; font-size: 22px; }
-.tile.slot.empty-slot .tile-name { color: var(--brand-dark); }
-.slot-act { border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; padding: 6px 5px; cursor: pointer; border-radius: 8px; flex: 0 0 auto; }
-.slot-act:hover { background: var(--bg); color: var(--ink); }
-@media (max-width: 820px) {
-  #heute-content .detail-tiles.strip .dstat .l { font-size: 10.5px; line-height: 1.2; }
-  #heute-content .detail-tiles.strip .dstat .l small { font-size: 10px; }
-}
 
 /* Wischen in der Rezeptliste zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert.
    Die Bühne schneidet seitlich ab; die Nachbargruppe (#recipe-peek) liegt als zweite Fläche daneben und
@@ -873,65 +862,11 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 #recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
 
 /* Heute → Zeitplan: Uhrzeiten oben einstellbar, darunter eine Zeile je Mahlzeit / Wassergabe / Schlafen */
-.zeitplan { margin-bottom: 18px; }
-.zp-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; margin: 0 0 10px; }
-.zp-f { display: flex; flex-direction: column; gap: 3px; margin: 0; font-size: 12px; color: var(--muted); }
-.zp-f input { height: 40px; padding: 6px 9px; font-size: 16px; min-width: 0; }
-.zp-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; }
-.zp-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--line); }
-.zp-row:first-child { border-top: 0; }
-.zp-row.meal { cursor: pointer; }
-.zp-row.meal:hover { background: var(--bg); }
-.zp-row.water { background: color-mix(in srgb, var(--accent, #3b82f6) 7%, var(--panel)); }
-.zp-row.sleep { color: var(--muted); }
-.zp-time { flex: 0 0 46px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--brand-dark); }
-.zp-ic { flex: 0 0 auto; font-size: 18px; }
-.zp-txt { flex: 1; min-width: 0; font-size: 14px; line-height: 1.3; }
-.zp-txt small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
-.zp-txt .zp-open { color: var(--brand-dark); text-decoration: underline; }
-@media (max-width: 560px) {
-  .zp-set { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 8px; }
-  .zp-f input { padding: 6px 6px; font-size: 15px; }
-  .zp-f input { height: 38px; }
-  .zp-row { padding: 8px 10px; gap: 8px; }
-  .zp-txt { font-size: 13.5px; }
-}
 
 /* Heute kompakt: eine Zeitleiste – Mahlzeiten (mit Rezept, ↻/✕) und Wasser einzeilig, Uhrzeiten hinter ⏰ */
-.zeitplan .zp-set[hidden] { display: none; }
-.zeitplan .zp-set { margin: 0 0 8px; }
-.zeitplan .detail-tiles.strip { margin: 4px 0 8px; }
-.zp-row.meal .zp-name { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.zp-row.meal .zp-name .ratio-pill { font-weight: 600; }
-.zp-row.meal small { text-overflow: ellipsis; }
-.zp-row .slot-act { flex: 0 0 auto; }
-.zp-row.water, .zp-row.sleep { padding-top: 5px; padding-bottom: 5px; }
-.zp-row.water .zp-ic, .zp-row.sleep .zp-ic { font-size: 15px; }
-.zp-row.water .zp-txt, .zp-row.sleep .zp-txt { font-size: 13.5px; }
 /* Dauer der Wassergabe rechts in der Spalte der Mahlzeiten-Dauer (--wmin-r misst fitHeute), Zeile bleibt einzeilig */
-.zp-row.water { position: relative; }
-.zp-row.water .zp-wmin { position: absolute; right: var(--wmin-r, 66px); top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.zp-list .zp-row.water { padding-right: calc(var(--wmin-r, 66px) + 42px); }
-.zp-row.water .zp-txt { white-space: nowrap; }
-.zp-row.water .zp-sleep { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); margin: 0; font-size: 11px; }
-.zp-ic.add { color: var(--brand); font-weight: 700; width: 22px; text-align: center; }
-.zp-row.empty-slot { cursor: pointer; }
-.zp-row.empty-slot .zp-name { font-weight: 500; }
-@media (max-width: 560px) {
-  .zeitplan .group-count { font-size: 11.5px; }
-  .zp-row.meal { padding: 7px 8px; }
-}
 /* Mahlzeiten-Zeilen der Zeitleiste ohne eigenen Kartenrahmen (die Liste ist die Karte); leere Zeile leicht abgesetzt */
-.zp-list .zp-row.slot, :root .zp-list .zp-row.slot { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 8px 10px 8px 12px; background: var(--panel); box-shadow: none; margin: 0; }
-.zp-list .zp-row.slot:first-child { border-top: 0; }
-.zp-list .zp-row.slot.empty-slot { display: flex; flex-wrap: nowrap; justify-content: flex-start; border-style: solid; background: var(--bg); }
 /* Kopf von Heute einzeilig: Titel nicht umbrechen, Rahmenzeit kürzen statt umbrechen */
-.zeitplan .day-head { flex-wrap: nowrap; align-items: center; }
-.zeitplan .day-head .day-title { white-space: nowrap; }
-.zeitplan .day-head .group-count { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-@media (max-width: 560px) {
-  .zeitplan .day-head .head-actions .iconbtn.round { font-size: 14px; }
-}
 
 /* Detail → „📅 Für heute“: Auswahl über der Aktionsleiste und Meldung mit Rückgängig */
 #detail-content { position: relative; }
@@ -964,54 +899,11 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Heute auf einen Bildschirm: niedrige Kachelreihe, dichte Zeitleiste, kurze Hinweise; Haftungstext am Handy nur
    auf den anderen Reitern (er steht auch im Ausdruck und unter Rezepte/Vorgaben). */
-.zeitplan .day-head { margin-bottom: 8px; }
-.zeitplan .day-strip { margin: 0 0 8px; gap: 6px; }
-.zeitplan .day-strip .dstat { padding: 6px 4px; }
-.zeitplan .day-strip .dstat .v { font-size: 16px; line-height: 1.2; }
-.zeitplan .day-strip .dstat .v .ratio-pill { font-size: 13px; padding: 1px 7px; }
-.zeitplan .day-strip .dstat .l { font-size: 11px; line-height: 1.2; margin-top: 1px; }
-.zeitplan .day-strip .dstat.wide { grid-column: span 3; }
-.zeitplan .note { margin: 6px 0 0; }
-.zeitplan .note.pack { padding: 7px 10px; font-size: 13px; }
 @media (max-width: 820px) {
   body[data-view="heute"] .footnote { display: none; }
 }
-@media (max-width: 560px) {
-  .zeitplan .day-head { margin-bottom: 6px; padding-bottom: 6px; }
-  .zeitplan .day-strip { gap: 5px; margin-bottom: 6px; }
-  .zeitplan .day-strip .dstat { padding: 5px 3px; }
-  .zeitplan .day-strip .dstat .v { font-size: 14.5px; }
-  .zeitplan .day-strip .dstat .l { font-size: 10px; }
-  .zp-list .zp-row.slot, :root .zp-list .zp-row.slot { padding: 5px 4px 5px 8px; }
-  .zp-row.meal .zp-name { font-size: 14px; }
-  .zp-row.meal small { font-size: 11.5px; margin-top: 0; }
-  .zp-row .slot-act { width: 28px; height: 28px; font-size: 15px; padding: 4px; }
-  .zp-row.water, .zp-row.sleep { padding: 3px 8px; }
-  .zp-row.water .zp-txt, .zp-row.sleep .zp-txt { font-size: 13px; }
-  .zp-time { font-size: 13.5px; flex-basis: 40px; }
-  .zp-ic { font-size: 16px; }
-  .zeitplan .note { font-size: 12px; line-height: 1.35; }
-  .zeitplan .note.pack { font-size: 12px; padding: 6px 9px; }
-}
-.zp-vol { flex: 0 0 auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.zp-vol.est { font-style: italic; }
-@media (max-width: 560px) {
-  .zp-vol { font-size: 12px; }
-  .zp-row.meal { gap: 6px; }
-}
-.zp-sleep { flex: 0 0 auto; margin-left: auto; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
-@media (max-width: 560px) {
-  .zp-list .zp-row.slot, :root .zp-list .zp-row.slot { min-height: 34px; padding-top: 3px; padding-bottom: 3px; }
-  .zp-row.water, .zp-row.sleep { padding-top: 2px; padding-bottom: 2px; min-height: 26px; }
-  .zp-sleep { font-size: 12px; }
-  .zeitplan .note { padding: 5px 9px; }
-  .zeitplan .day-head .head-actions .iconbtn.round { width: 30px; height: 30px; }
-}
 /* Zweite Zeile einer Mahlzeit (Öl, Eiweiß) darf umbrechen statt abgeschnitten zu werden – Mengen nie verstecken */
-.zp-row.meal small { white-space: normal; overflow: visible; }
 /* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
-.zp-vol { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
-.zp-vol small { font-size: 11px; color: var(--muted); font-style: normal; }
 
 /* Druckvorschau in der App: Leiste mit Zurück und Drucken, darunter das weiße Blatt. Beim Drucken nur das Blatt. */
 .print-overlay { position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: #e9edf0; }
@@ -1047,22 +939,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Heute füllt am Handy den Bildschirm: freie Höhe verteilt sich auf die Zeilen (Mahlzeiten 3 : Wasser 1),
    bei genug Platz („roomy“) etwas größere Schrift und Rezeptnamen bis zu zwei Zeilen (fitHeute). */
-.zp-list.fill .zp-row.meal { flex: 3 1 auto; }
-.zp-list.fill .zp-row.water, .zp-list.fill .zp-row.sleep { flex: 1 1 auto; }
-.zp-list.roomy .zp-row.meal .zp-name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.22; font-size: 15px; }
-.zp-row .zp-txt small.zp-more { display: none; }
-.zp-list.more .zp-row .zp-txt small.zp-more { display: block; }
 /* Zutaten (+ Öl) je Mahlzeit: immer, als eigene Zeile über die ganze Breite, eingerückt bis zum Rezeptnamen */
-.zp-list .zp-row.meal { flex-wrap: wrap; row-gap: 2px; align-content: center; }
-.zp-list .zp-row small.zp-ing { display: block; flex: 0 0 100%; box-sizing: border-box; padding-left: var(--ing-indent, 70px); padding-right: 4px;
-  white-space: normal; overflow: visible; text-overflow: clip; color: var(--ink); opacity: .82; font-size: 12px; line-height: 1.3; margin: 0; }
-.zp-row small.zp-ing .nw { white-space: nowrap; }
-.zp-list.roomy .zp-time { font-size: 15px; flex-basis: 44px; }
-.zp-list.roomy .zp-ic { font-size: 18px; }
-.zp-list.roomy .zp-vol { font-size: 13px; }
-.zp-list.roomy .zp-row.water .zp-txt, .zp-list.roomy .zp-row.sleep .zp-txt { font-size: 14px; }
 @media (max-width: 820px) {
-  body[data-view="heute"] .zeitplan { margin-bottom: 0; }
   body[data-view="heute"] .main { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
 
@@ -1070,53 +948,14 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 #view-vorgaben .mahl-seg { display: flex; width: 100%; height: 40px; }
 #view-vorgaben .mahl-seg button { padding: 0 6px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
 #view-vorgaben .mahl-seg button { min-height: 0; }
-.zp-vol.big { color: var(--yellow); font-weight: 600; }
 
 /* Knappste Stufe (5 Mahlzeiten im Browser u. ä.): alles etwas enger, damit die Zutaten ohne Scrollen Platz haben */
-.zeitplan.tight .day-head { margin-bottom: 4px; padding-bottom: 4px; }
-.zeitplan.tight .day-strip { margin-bottom: 4px; gap: 4px; }
-.zeitplan.tight .day-strip .dstat .l { margin-top: 0; }
-:root .zeitplan.tight .zp-list .zp-row.slot { padding: 2px 4px 2px 8px; min-height: 0; }
-.zeitplan.tight .zp-row.water, .zeitplan.tight .zp-row.sleep { padding-top: 1px; padding-bottom: 1px; }
-.zeitplan.tight .zp-row.water .zp-txt, .zeitplan.tight .zp-row.sleep .zp-txt { font-size: 12px; }
-.zeitplan.tight .zp-row.water .zp-ic, .zeitplan.tight .zp-row.sleep .zp-ic { font-size: 13px; }
-.zeitplan.tight .zp-time { font-size: 13px; }
-.zeitplan.tight .zp-row.meal .zp-name { font-size: 13.5px; }
-.zeitplan.tight .zp-vol { font-size: 11.5px; }
-.zeitplan.tight .zp-vol small { font-size: 10.5px; }
-.zeitplan.tight .zp-row.water .zp-wmin { font-size: 10.5px; }
-.zeitplan.tight .zp-list .zp-row small.zp-ing { font-size: 11px; line-height: 1.25; }
-.zeitplan.tight .note { margin-top: 4px; }
 /* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
-#heute-content .zeitplan .note { margin: 5px 0 0; }
-#heute-content .zeitplan .note + .note { margin-top: 3px; }
-#heute-content .zeitplan.tight .note { margin-top: 4px; }
-#heute-content .zeitplan.tight .note + .note { margin-top: 2px; }
-.zeitplan.tight .note.pack { padding: 4px 8px; font-size: 11.5px; }
-:root .zeitplan.tight .zp-list .zp-row.water, :root .zeitplan.tight .zp-list .zp-row.sleep { min-height: 0; }
-.zeitplan.tight .zp-row.water > *, .zeitplan.tight .zp-row.sleep > * { line-height: 1.25; }
-.zeitplan.tight .zp-row .slot-act { width: 24px; height: 24px; }
-.zeitplan.tight .note { padding: 3px 8px; font-size: 11.5px; line-height: 1.3; }
-@media (max-width: 820px) { body.heute-tight[data-view="heute"] .rx-chip .rx-s3 { display: none; } }
-@media (max-width: 820px) { body.heute-tight[data-view="heute"] .main { padding-top: 8px; } }
-.zeitplan.tight .day-strip .dstat { padding: 2px; }
-.zeitplan.tight .day-strip .dstat .v { font-size: 13px; line-height: 1.15; }
-.zeitplan.tight .day-strip .dstat .l { font-size: 9.5px; line-height: 1.15; }
-.zeitplan.tight .day-strip .dstat .v .ratio-pill { font-size: 12px; padding: 0 6px; }
-.zeitplan.tight .day-head .head-actions .iconbtn.round { width: 26px; height: 26px; font-size: 12px; }
 .vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }
 
 /* Kopf von Heute: Zeitraum und Abstand am Handy untereinander statt abgeschnitten */
-@media (max-width: 560px) {
-  .zeitplan .day-head .group-count { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
-  .zeitplan .day-head .group-count .dh-range, .zeitplan .day-head .group-count .dh-int { display: block; white-space: nowrap; }
-  .zeitplan .day-head .group-count .dh-sep { display: none; }
-}
 
 /* ↻ ✕ in der Zeitleiste: größere Trefferfläche als das sichtbare Symbol (danebentippen öffnet sonst das Rezept) */
-.zp-row .slot-act { position: relative; }
-.zp-row .slot-act::after { content: ""; position: absolute; inset: -8px -4px; }
-.zp-row.bad-slot .zp-name { text-decoration: line-through; opacity: .75; }
 
 /* Desktop: Kopf und Reiterleiste auf dieselbe Breite eingerückt wie der Inhalt (.main: max. 1040 px, 24 px Rand) */
 @media (min-width: 821px) {
@@ -1189,7 +1028,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   .vg-col .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vg-col .bd-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
-
 
 /* Vorgaben in der Sprache von Heute und Rezepte: grüne Abschnitts-Überschrift mit feiner Linie auf dem grauen Grund
    (wie „🍗 Geflügel“), darunter der Inhalt in einem schlanken weißen Feld (wie Zeitleiste und Rezept-Kacheln). */
@@ -1276,3 +1114,83 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 4px 0 2px; }
 .push-act .btn-row { margin: 0; }
 @media (max-width: 560px) { .push-act .btn-row { flex: 1 1 100%; } }
+
+/* ======================================================================
+   Küchenzettel – Grundbausteine (Textlink, Hinweiszeile, Fokus)
+   ====================================================================== */
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.tlink { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 6px; margin: 0;
+  border: 0; background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.tlink:hover { color: var(--red); }
+.tlink.danger { color: var(--red); }
+.tlink[hidden] { display: none; }
+.hint { font-size: 13px; line-height: 1.45; color: var(--grey); text-wrap: pretty; }
+.hint.warn { color: var(--red); }
+
+/* ======================================================================
+   Heute (Tagesplan)
+   ====================================================================== */
+.zeitplan { display: flex; flex-direction: column; gap: 14px; }
+.day-sum { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
+.day-sum .dstat, :root .day-sum .dstat { white-space: nowrap; background: none; padding: 0; border-radius: 0; text-align: left; }
+.day-sum .dstat .v { font-size: inherit; font-weight: 600; color: var(--ink); }
+.day-sum .dstat.warn .v { color: var(--red); }
+.day-tools { display: flex; align-items: center; gap: 4px; margin: -6px -6px 0; }
+.day-tools .dt-range { flex: 1; min-width: 0; padding-left: 6px; font-size: 13px; color: var(--grey); }
+.zp-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 0; border-top: 1px dotted var(--dot); border-bottom: 1px dotted var(--dot); }
+.zp-set[hidden] { display: none; }
+.zp-f { display: flex; flex-direction: column; gap: 4px; margin: 0; font-size: 12px; color: var(--grey); }
+.zp-f input { width: 100%; min-width: 0; min-height: 40px; padding: 0; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0;
+  background: transparent; color: var(--ink); font: 600 16px var(--f-mono); }
+.zp-f input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
+.zp-list { display: flex; flex-direction: column; }
+.zp-row { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; column-gap: 8px; }
+.zp-time { font-family: var(--f-mono); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Mahlzeit: Uhrzeit | Name, Menge · Dauer, „tauschen“; darunter die Zutaten mit Gramm */
+.zp-row.meal { grid-template-columns: 46px minmax(0, 1fr); padding: 12px 0; border-top: 1px solid var(--ink); cursor: pointer; }
+.zp-row.meal .zp-time { padding-top: 3px; }
+.zp-main { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.zp-head { display: flex; align-items: flex-start; gap: 6px; }
+.zp-head .zp-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.zp-name { font-family: var(--f-serif); font-size: 19px; font-weight: 600; line-height: 1.15; }
+.zp-vol { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
+.zp-vol.big { color: var(--yellow); font-weight: 600; }
+.zp-more { display: none; }
+.zp-list.more .zp-more { display: inline; }
+.zp-head .tlink { margin: -8px -6px 0 0; }
+.zp-warn { font-size: 12px; font-weight: 600; color: var(--red); }
+/* Zutaten: Grundstufe zwei Spalten, „roomy“ eine je Zeile (Entwurf), „tight“ fortlaufend */
+.zp-ing { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 1px; font-size: 13px; }
+.zp-list.roomy .zp-ing { grid-template-columns: minmax(0, 1fr) auto; }
+.zp-ing .it { display: contents; }
+.zp-ing .n { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zp-ing .g { font-family: var(--f-mono); font-weight: 600; text-align: right; white-space: nowrap; }
+.zp-list.tight .zp-ing { display: block; font-size: 12px; line-height: 1.35; }
+.zp-list.tight .zp-ing .it { display: inline; white-space: nowrap; }
+.zp-list.tight .zp-ing .g { margin-left: 4px; }
+.zp-list.tight .zp-ing .it:not(:last-child)::after { content: " · "; white-space: normal; color: var(--grey); }
+/* Offene Mahlzeit / Rezept passt nicht: kursiv grau, rechts „wählen“ */
+.zp-row.empty-slot { grid-template-columns: 46px minmax(0, 1fr) auto; align-items: baseline; min-height: 56px; }
+.zp-row.empty-slot .zp-time { color: var(--grey); padding-top: 0; }
+.zp-row.empty-slot .zp-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.zp-row.empty-slot .zp-name { font-weight: 500; font-style: italic; color: var(--grey); }
+.zp-row.empty-slot > .tlink { min-width: 0; min-height: 0; padding: 0; }
+.zp-row.bad-slot .zp-name { text-decoration: line-through; }
+/* Wasser blau, Schlafen grau – beide gepunktet getrennt */
+.zp-row.water, .zp-row.sleep { padding: 6px 0; border-top: 1px dotted var(--dot); font-size: 13px; }
+.zp-row.water { color: var(--blue); }
+.zp-row.water .zp-sub { color: var(--grey); }
+.zp-row.water .zp-wmin { font-family: var(--f-mono); white-space: nowrap; }
+.zp-row.sleep { color: var(--grey); grid-template-columns: 46px minmax(0, 1fr); }
+.zp-row.water .zp-time, .zp-row.sleep .zp-time { font-size: 13px; }
+.zp-hints { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }
+/* Knappste Stufe: weniger Luft */
+.zeitplan.tight { gap: 10px; }
+.zp-list.tight .zp-row.meal { padding: 8px 0; }
+.zp-list.tight .zp-main { gap: 3px; }
+.zp-list.tight .zp-name { font-size: 17px; }
+.zp-list.tight .zp-row.empty-slot { min-height: 44px; }
+.zp-list.tight .zp-row.water, .zp-list.tight .zp-row.sleep { padding: 4px 0; }
+.zeitplan.tight .zp-hints { gap: 3px; padding-top: 6px; }
+.zeitplan.tight .hint { font-size: 12px; line-height: 1.35; }

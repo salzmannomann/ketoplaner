@@ -249,11 +249,15 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const hc = $(w2, "heute-content").textContent;
-  assert.match(hc, /🧃 Compleat Paediatric/); assert.match(hc, new RegExp(fmtDe(mlK) + " ml") /* Tag = 4 Portionen */);
+  assert.match(hc, /Compleat Paediatric heute/); assert.match(hc, new RegExp(fmtDe(mlK) + " ml") /* Tag = 4 Portionen */);
   assert.ok(!$(w2, "day-sums").querySelector(".dstat").classList.contains("warn"), "Minimum erreicht – keine Warnung");
 });
 // Kennzahl-Kachel unter Verordnung/Flüssigkeit: sichtbarer Text plus Herkunft aus dem title.
 function fact(w, box, k) { const e = $(w, box).querySelector('[data-k="' + k + '"]'); return e ? e.textContent + " · " + e.title : ""; }
+// Zutatentabelle einer Mahlzeit in Heute als Text: „Hühnerbrust 19 g · Broccoli 42,5 g · …“
+function ingText(row) { return [...row.querySelectorAll(".zp-ing .n")].map(n => n.textContent + " " + n.nextElementSibling.textContent).join(" · ").replace(/\u00a0/g, " "); }
+// Tagessumme: Feld mit „ml“ (Flüssigkeit)
+const fluidStat = (w) => [...$(w, "day-sums").querySelectorAll(".dstat")].find(x => / ml$/.test(x.textContent.trim()));
 function fmtDe(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
 test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung, Tagesplan warnt bei Unterschreitung", () => {
@@ -558,13 +562,28 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
   const kcalTile = [...hc.querySelectorAll("#day-sums .dstat")][0].querySelector(".v").textContent;
   assert.ok(Math.abs(parseFloat(kcalTile) - 139) <= 2, "Tagessumme kcal: " + kcalTile);
-  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), / · Rapsöl [\d,]+ g · MCT-Öl 1,2 g$/, "Öl steht als normale Zutat am Ende der Zutatenzeile (Zahl und „g“ bleiben zusammen)");
-  assert.match(hc.querySelector(".zp-row.slot .zp-ing").textContent.replace(/\u00a0/g, " "), /^Hühnerbrust [\d,]+ g · Broccoli gekocht [\d,]+ g · Wasser [\d,]+ g · /, "kurze Namen, roh/gekocht bleibt");
-  // Eine Zeitleiste: Mahlzeiten mit Uhrzeit, Ändern (↻) und Entfernen (✕); Kopf mit Uhrzeiten, Drucken, Leeren
-  assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector(".zp-row.slot [data-clear]") && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
+  assert.match(ingText(hc.querySelector(".zp-row.slot")), / · Rapsöl [\d,]+ g · MCT-Öl 1,2 g$/, "Öl steht als normale Zutat am Ende der Zutatentabelle");
+  assert.match(ingText(hc.querySelector(".zp-row.slot")), /^Hühnerbrust [\d,]+ g · Broccoli gekocht [\d,]+ g · Wasser [\d,]+ ml · /, "kurze Namen, roh/gekocht bleibt, Wasser in ml");
+  // Eine Zeitleiste: Mahlzeiten mit Uhrzeit und „tauschen“; Werkzeugzeile mit Uhrzeiten, Drucken, Leeren; keine Emojis
+  assert.ok(hc.querySelector(".zp-row.slot .zp-time") && hc.querySelector('.zp-row.slot [data-pick="0"]') && hc.querySelector("#zp-toggle") && hc.querySelector("#print-day") && hc.querySelector("#clear-day"));
+  assert.equal(hc.querySelector(".zp-row.slot [data-pick]").textContent, "tauschen");
+  assert.equal(hc.querySelector("[data-clear]"), null, "Leeren einer Mahlzeit steht im Auswahlfenster");
   assert.equal(hc.querySelectorAll(".tile.slot").length, 0, "keine doppelte Mahlzeitenliste mehr");
-  fire(w, hc.querySelector('.zp-row.slot [data-clear="0"]'));
-  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 5, "Entfernen leert die Zeile");
+  // „tauschen“ → Auswahl „Rezept für 7:00“ mit „Leeren“ (rot) → Mahlzeit leer, Rückgängig stellt sie wieder her
+  fire(w, hc.querySelector('.zp-row.slot [data-pick="0"]'));
+  assert.equal($(w, "picker-title").textContent, "Rezept für 7:00");
+  assert.equal($(w, "picker-clear").hidden, false);
+  fire(w, $(w, "picker-clear"));
+  assert.equal($(w, "picker-overlay").hidden, true);
+  assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 5, "Leeren leert die Zeile");
+  assert.match($(w, "toast").textContent, /Mahlzeit 1 geleert/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.equal($(w, "heute-content").querySelectorAll(".slot:not(.empty-slot)").length, 1, "Rückgängig");
+  fire(w, $(w, "heute-content").querySelector('[data-pick="0"]')); fire(w, $(w, "picker-clear"));
+  hc = $(w, "heute-content");
+  fire(w, hc.querySelector('.empty-slot[data-pick="0"]'));
+  assert.equal($(w, "picker-clear").hidden, true, "bei offener Mahlzeit kein Leeren");
+  fire(w, $(w, "picker-close"));
   // Plan leeren ohne Rückfrage, mit Rückgängig
   fire(w, hc.querySelector('[data-pick="1"]'));
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
@@ -582,7 +601,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal($(w, "heute-content").querySelectorAll(".slot").length, 3);
   assert.equal(w.document.querySelectorAll("#heute-content .zp-row.water").length, 3, "3 Mahlzeiten: zwei Pausen + Abendgabe");
   const vols = [...w.document.querySelectorAll("#heute-content .zp-row.meal:not(.empty-slot) .zp-vol")];
-  vols.forEach(v => { const ml = numDe(v.firstChild.textContent.replace(/[^\d,]/g, "")); assert.equal(v.classList.contains("big"), ml > 200 + 0.5, v.textContent); });
+  vols.forEach(v => { const ml = numDe(v.firstChild.textContent.replace(/ ml.*/, "").replace(/[^\d,]/g, "")); assert.equal(v.classList.contains("big"), ml > 200 + 0.5, v.textContent); });
 });
 
 test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mahlzeiten sondieren (Rezept-Wasser, Rest als Wassergaben) oder in den Mahlzeiten dabei", () => {
@@ -630,8 +649,8 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   const w2 = boot(st);
   fire(w2, $(w2, "tab-heute"));
   const hc2 = $(w2, "heute-content");
-  assert.match(hc2.querySelector("#day-sums").textContent, /💧 Ziel 850 ml/);
-  const tot2 = numDe([...$(w2, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
+  assert.match(fluidStat(w2).textContent, /\/ 850 ml$/);
+  const tot2 = numDe(fluidStat(w2).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot2 - 850) <= 12, "Zeitplan erreicht das Tagesziel: " + tot2);
   assert.match($(w2, "rx-chip").textContent, /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
   // Manuelle Vorgabe
@@ -661,35 +680,36 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   let hc = $(w, "heute-content");
   assert.ok(hc.firstElementChild.classList.contains("zeitplan"), "Zeitplan steht oben");
   const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
-  assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45"]);
-  const ev = hc.querySelector(".zp-row.water:last-child");
-  assert.match(ev.textContent, /18:45.*Wasser.*🌙 20:00/, "Schlafen in der Zeile der Abendgabe");
-  assert.equal(ev.querySelector(".zp-sleep").title, "Schlafen 20:00");
+  assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
+  assert.deepEqual([...hc.querySelectorAll(".zp-row")].slice(-2).map(r => r.textContent), ["18:45" + [...hc.querySelectorAll(".zp-row.water .zp-txt")].pop().textContent + "10 min", "20:00Schlafen"]);
+  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser vor dem Schlafen$/, "Abendgabe vor dem Schlafen, danach eigene Zeile Schlafen");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
-  assert.match(hc.querySelector(".day-head").textContent, /Heute 7:00–17:30 · alle 3 h 30 min/);
+  assert.equal(hc.querySelector(".day-tools .dt-range").textContent, "7:00–17:30 · alle 3 h 30 min");
+  assert.deepEqual([...hc.querySelectorAll(".day-tools .tlink")].map(b => b.textContent), ["Uhrzeiten", "Drucken", "Leeren"]);
   fire(w, $(w, "zp-toggle"));
   hc = $(w, "heute-content");
   assert.ok(!hc.querySelector(".zp-set").hidden, "⏰ klappt die Uhrzeiten auf");
-  const waters = [...hc.querySelectorAll(".zp-row.water strong")].map(e => e.textContent);
+  const waters = [...hc.querySelectorAll(".zp-row.water .zp-txt")].map(e => e.firstChild.textContent);
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
   assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser$/.test(x)), waters.join(" | "));
-  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00.*Compleat & KetoCal.*≈ 125 ml25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
+  assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00Compleat & KetoCal125 ml · ca\. 25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-vol").length, 0, "beim Wasser keine Zeitangabe");
-  assert.equal(hc.querySelector(".zp-row.meal .zp-txt small:not(.zp-more)"), null, "ohne Öl und mit genug Eiweiß nur eine Zeile");
-  // Zutaten und kcal/Eiweiß je Mahlzeit nur, wenn Platz ist (Klassen „ing“/„more“ von fitHeute; jsdom misst nicht → kompakt)
-  assert.match(hc.querySelector(".zp-row.meal .zp-more").textContent, /^\d+ kcal · Eiweiß [\d,]+ g$/);
-  const ingTxt = hc.querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
-  assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ g$/, ingTxt);
+  assert.equal(hc.querySelector(".zp-row.meal .zp-warn"), null, "ohne Warnung keine Warnzeile");
+  // kcal/Eiweiß je Mahlzeit nur, wenn Platz ist (Klasse „more“ von fitHeute; jsdom misst nicht → kompakt)
+  assert.match(hc.querySelector(".zp-row.meal .zp-more").textContent, /^ · \d+ kcal · Eiweiß [\d,]+ g$/);
+  const ingTxt = ingText(hc.querySelector(".zp-row.meal"));
+  assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ ml$/, ingTxt);
   assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
   assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
   // Wassergaben einzeilig, Dauer rechts in der Spalte der Mahlzeiten-Dauer (etwa 15 ml pro Minute, mindestens 5 Minuten)
   assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^\d+ ml Wasser$/);
+  assert.match(hc.querySelector(".zp-row.water .zp-time").textContent, /^\d+:\d\d$/);
   assert.match(hc.querySelector(".zp-row.water .zp-wmin").textContent, /^\d+ min$/);
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-txt br, .zp-row.water div").length, 0, "Wassergaben einzeilig");
-  const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
+  const tot = numDe(fluidStat(w).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
-  assert.equal(hc.querySelectorAll(".zeitplan .note.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
+  assert.equal(hc.querySelectorAll(".zeitplan .hint.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
   // Letzte Mahlzeit früher → Abstand 2 h → Warnung
   let el = $(w, "zp-letzte"); el.value = "13:00"; fire(w, el, "change");
   assert.match($(w, "heute-content").querySelector(".zeitplan").textContent, /Nur 2 h Abstand/);
@@ -708,9 +728,9 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const w2 = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0 } });
   fire(w2, $(w2, "tab-heute"));
   const hz = $(w2, "heute-content");
-  assert.match(hz.querySelector(".zp-row.meal").textContent, /Mahlzeit 1 · Rezept wählen≈ \d+ ml/);
-  assert.ok(hz.querySelector(".zp-row.meal .zp-vol.est"), "geschätzte Menge gekennzeichnet");
-  assert.match([...$(w2, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent, /^≈ /, "offene Mahlzeiten geschätzt");
+  assert.match(hz.querySelector(".zp-row.meal").textContent, /^7:00Mahlzeit 1 · offenwählen$/);
+  assert.match(hz.querySelector(".zp-row.meal").title, /Menge geschätzt: ≈ \d+ ml/, "geschätzte Menge im Tooltip");
+  assert.match(fluidStat(w2).querySelector(".v").textContent, /^ca\. /, "offene Mahlzeiten geschätzt");
   fire(w2, hz.querySelector('.empty-slot[data-pick="1"]'));
   assert.equal($(w2, "picker-overlay").hidden, false);
 });
@@ -1129,7 +1149,7 @@ test("Druckvorschau zoomen: zwei Finger auseinander vergrößert, Doppeltippen w
 test("Öl-Erkennung: „Thunfisch in Öl“ ist eine Zutat, kein Öl zum Einrühren", () => {
   const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, mctShare: 0.1 }, dayPlan: [{ key: "std:Thunfisch & Zucchini" }, { key: null }, { key: null }, { key: null }] });
   fire(w, $(w, "tab-heute"));
-  const ing = $(w, "heute-content").querySelector(".zp-row.meal .zp-ing").textContent.replace(/\u00a0/g, " ");
+  const ing = ingText($(w, "heute-content").querySelector(".zp-row.meal"));
   assert.match(ing, /^Thunfisch in Öl [\d,]+ g · /, ing);
   assert.match(ing, / · Rapsöl [\d,]+ g · MCT-Öl [\d,]+ g$/, "Öle am Ende");
   let c = openRecipe(w, "Thunfisch & Zucchini"); c = switchDetailTab(w, "zubereitung");
@@ -1172,7 +1192,7 @@ test("Detailansicht: nach unten wischen schließt – auf jedem Blatt, nur wenn 
   assert.ok(!ov.hidden, "kurzer, langsamer Zug springt zurück");
 });
 
-test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan markiert, ✕ mit Rückgängig, Pille sofort aktuell", () => {
+test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan markiert, Leeren mit Rückgängig, Pille sofort aktuell", () => {
   // Rundung: kleine Mengen (Compleat bei 3:1) werden nicht grob gerundet – kcal bleiben beim Ziel
   let w = boot({ settings: { kcal: 680, weight: 8.5, mctShare: 0, ratio: 3, mahlzeiten: 5 } });
   let c = openRecipe(w, "Compleat & KetoCal");
@@ -1185,19 +1205,21 @@ test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan mar
   const bad = hc.querySelector(".bad-slot");
   assert.ok(bad, "unpassendes Rezept markiert");
   {
-    assert.match(bad.textContent, /passt nicht zu 1,5:1/);
+    assert.match(bad.textContent, /passt nicht zu 1,5 : 1/);
+    assert.match(bad.textContent, /wählen$/);
     assert.ok(!bad.querySelector(".zp-ing"), "keine (unangepassten) Gramm");
-    assert.match($(w, "day-sums").textContent, /Ziel 188/, "Summen nur für die passende Mahlzeit");
+    assert.match($(w, "day-sums").querySelector(".dstat").textContent, /^188 \/ 750 kcal$/, "Summen nur für die passende Mahlzeit");
+    assert.match($(w, "day-sums").querySelector(".dstat").title, /Ziel 188 kcal für 1 geplante Mahlzeit/);
   }
-  // ✕ entfernt mit „Rückgängig“; die Kopf-Pille rechnet sofort neu
+  // „Leeren“ (im Auswahlfenster) entfernt mit „Rückgängig“; die Kopf-Pille rechnet sofort neu
   w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4 }, dayPlan: [0, 1, 2, 3].map(i => ({ key: i === 1 ? "std:Hendl & Brokkoli" : "std:Compleat & KetoCal" })) });
   fire(w, $(w, "tab-heute"));
   const pill0 = $(w, "rx-chip").textContent;
-  fire(w, $(w, "heute-content").querySelectorAll("[data-clear]")[1]);
+  fire(w, $(w, "heute-content").querySelector('.zp-row.slot [data-pick="1"]')); fire(w, $(w, "picker-clear"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 1);
   assert.notEqual($(w, "rx-chip").textContent, pill0, "Pille zeigt die neue Wassermenge");
   assert.match($(w, "rx-chip").textContent, /Wasser ≈ \d × \d+ ml/, "≈, solange eine Mahlzeit geschätzt ist");
-  assert.match($(w, "toast").textContent, /Mahlzeit 2 entfernt/);
+  assert.match($(w, "toast").textContent, /Mahlzeit 2 geleert/);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 0, "Rückgängig");
   assert.equal($(w, "rx-chip").textContent, pill0);

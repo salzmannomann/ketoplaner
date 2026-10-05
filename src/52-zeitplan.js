@@ -84,36 +84,32 @@
     const dm = dayMeals(d), wp = waterPlan(d, dm.sum, zeitTimes(d));
     return { wp, text: wp.per > 0 ? wp.n + " × " + fmt(wp.per, 0) + " ml" : "keine", est: dm.known < d.mahl };
   }
-  // Uhrzeiten-Felder sind eingeklappt (⏰ im Kopf klappt sie auf); bei ungültigen Zeiten immer offen.
+  // Uhrzeiten-Felder sind eingeklappt („Uhrzeiten“ in der Werkzeugzeile klappt sie auf); bei ungültigen Zeiten immer offen.
   let zpEdit = false;
-  // Hinweise zum Zeitplan (Abstand, Schlafen, Wassermenge).
+  // Hinweise zum Zeitplan (Abstand, Schlafen, Wassermenge) – je eine Zeile „▲ …“ unter der Zeitleiste.
   function zeitplanNotes(d, times, dm, wp) {
     const notes = [];
     const lastMeal = times.meals[times.meals.length - 1];
-    if (times.schlafBad) notes.push('<div class="note warn">⚠️ Schlafen liegt vor der letzten Mahlzeit – bitte die Uhrzeiten unter ⏰ prüfen.</div>');
-    if (times.bad) notes.push('<div class="note warn">⚠️ Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen.</div>');
-    if (times.interval != null && times.interval < 180) notes.push('<div class="note warn" title="Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten.">⚠️ Nur ' + fmtDauer(times.interval) + ' Abstand – Keto-Kost braucht oft 3–4 h.</div>');
-    if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push('<div class="note warn" title="Sonst droht Rückfluss im Liegen.">⚠️ Letzte Mahlzeit nur ' + fmtDauer(times.schlaf - lastMeal) + ' vor dem Schlafen – 2 h einplanen.</div>');
-    if (wp.over) notes.push('<div class="note warn">⚠️ ' + fmt(wp.per, 0) + ' ml je Wassergabe – über ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen.</div>');
-    if (d.fluidDay > 0 && wp.rest < -10) notes.push('<div class="note tip">💧 Die Mahlzeiten liefern schon ' + fmt(-wp.rest, 0) + ' ml mehr als das Tagesziel – keine Wassergaben nötig.</div>');
+    if (times.schlafBad) notes.push(hintLine("warn", "Schlafen liegt vor der letzten Mahlzeit – bitte die Uhrzeiten prüfen."));
+    if (times.bad) notes.push(hintLine("warn", "Die letzte Mahlzeit muss nach der ersten liegen – bitte die Uhrzeiten prüfen."));
+    if (times.interval != null && times.interval < 180) notes.push(hintLine("warn", "Nur " + fmtDauer(times.interval) + " Abstand – Keto-Kost braucht oft 3–4 h.", "Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten."));
+    if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push(hintLine("warn", "Letzte Mahlzeit nur " + fmtDauer(times.schlaf - lastMeal) + " vor dem Schlafen – 2 h einplanen.", "Sonst droht Rückfluss im Liegen."));
+    if (wp.over) notes.push(hintLine("warn", fmt(wp.per, 0) + " ml je Wassergabe – über " + fmt(d.maxMahlMl, 0) + " ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen."));
+    if (d.fluidDay > 0 && wp.rest < -10) notes.push(hintLine("info", "Die Mahlzeiten liefern schon " + fmt(-wp.rest, 0) + " ml mehr als das Tagesziel – keine Wassergaben nötig."));
     return notes.join("");
   }
   function zeitplanSettings(times) {
     const field = (id, label, val) => '<label class="zp-f"><span>' + label + '</span><input id="' + id + '" type="time" value="' + escapeHtml(String(val)) + '"></label>';
     return '<div class="zp-set"' + (zpEdit || times.bad ? "" : " hidden") + '>' +
-      field("zp-erste", "Erste Mahlzeit", times.z.erste) + field("zp-letzte", "Letzte Mahlzeit", times.z.letzte) + field("zp-schlaf", "Schlafen", times.z.schlaf) + '</div>';
+      field("zp-erste", "Erste", times.z.erste) + field("zp-letzte", "Letzte", times.z.letzte) + field("zp-schlaf", "Schlafen", times.z.schlaf) + '</div>';
   }
-  // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute).
+  // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute): Uhrzeit · Menge · Dauer.
   function zeitplanExtraRows(times, wp) {
     const rows = [];
-    // Gibt es eine Abendgabe, steht das Schlafen ganz rechts in derselben Zeile (🌙 Uhrzeit, spart eine Zeile).
-    const sleepInline = wp.per > 0 && times.schlaf != null && times.gifts.some(g => g.kind === "abend");
-    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span><span class="zp-ic">💧</span>' +
-      '<span class="zp-txt"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong></span>' +
-      (g.kind === "abend" && sleepInline ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '">🌙 ' + fmtHM(times.schlaf) + '</span>' : '') +
-      // Dauer in der Spalte, in der bei den Mahlzeiten die Dauer steht (fitHeute misst die Position, --wmin-r)
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
+      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml Wasser' + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' : '') + '</span>' +
       '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
-    if (times.schlaf != null && !sleepInline) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-ic">🌙</span><span class="zp-txt">Schlafen</span></div>' });
+    if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;
   }
   function bindZeitplan(box) {

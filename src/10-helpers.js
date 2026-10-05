@@ -25,6 +25,9 @@
     return fmt(r, dec);
   }
   function fmtTarget(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + ":1" : "—"; }
+  // Anzeige in der Oberfläche (Küchenzettel): „1,8 : 1“ mit Abständen; Ausdruck/PDF bleiben bei „1,8:1“.
+  function fmtRx(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + " : 1" : "—"; }
+  function fmtRxA(r, dec) { const t = fmtRatio(r, dec); return t === "—" ? t : t.replace(":1", " : 1"); }
   // Eingabe „1,8", „1.8", „1,8:1" oder „1:1,5" → Zahl (g Fett je 1 g Eiweiß+KH); 0 wenn ungültig.
   function parseRatio(text) {
     const t = String(text || "").replace(/,/g, ".").replace(/\s+/g, "");
