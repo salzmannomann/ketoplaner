@@ -47,7 +47,8 @@ Ziel. Aktionen sind unterstrichene **Textlinks** („tauschen“, „wählen“,
 Felder mit Unterstrich, Umschalter sind Segmentleisten mit Tintenrahmen. Die Oberfläche kommt
 ohne Emojis aus; Symbole (Stern, Drucken, Bearbeiten, Teilen, Löschen) sind schlichte Strichzeichnungen.
 Die Schriften liegen in der App (Ordner `fonts/`, SIL Open Font License): keine Anfrage an Google, offline
-verfügbar und in der Einzeldatei eingebettet.
+verfügbar. Die Einzeldatei `keto-rechner.html` bettet nur IBM Plex Mono 500/600 und Newsreader 600 ein
+(Zahlenspalten und Überschriften, etwa 90 KB statt 0,45 MB); Fließtext nimmt dort die Systemschrift.
 
 ## Aufbau der App
 

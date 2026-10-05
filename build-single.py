@@ -67,6 +67,25 @@ def update_versions(html):
     return html
 
 
+def single_file_fonts(css):
+    """Schriften für die Einzeldatei: alle Schnitte einzubetten machte sie um fast die Hälfte größer (+0,45 MB).
+    Deshalb nur, was die Zahlenspalten und Überschriften tragen: IBM Plex Mono 500/600 und Newsreader 600
+    (statisch, ein Schnitt für alle Überschriften; Kursiv leitet der Browser ab). Fließtext nimmt die
+    Systemschrift (--f-sans fällt auf system-ui zurück). Die App (index.html) lädt weiterhin alle Schnitte."""
+    faces = re.findall(r'@font-face \{[^}]*\}\n?', css)
+    keep = []
+    for f in faces:
+        if "IBM Plex Mono" in f:
+            keep.append(f)
+        elif "Newsreader" in f and "font-style: normal" in f:
+            keep.append(re.sub(r'font-weight: [^;]+;', 'font-weight: 600;', f.replace("fonts/newsreader.woff2", "fonts/newsreader-600.woff2")))
+    if not faces:
+        return css
+    start = css.index(faces[0])
+    end = css.index(faces[-1]) + len(faces[-1])
+    return css[:start] + "".join(keep) + css[end:]
+
+
 def main():
     # 0) app.js aus den Modulen zusammensetzen
     build_app_js()
@@ -99,6 +118,7 @@ def main():
 
     # 2) Einzeldatei bauen – CSS einbetten (Query-String ?v=... ignorieren)
     css = read("styles.css")
+    css = single_file_fonts(css)
     # Schriften als data-URI einbetten, damit die Einzeldatei sie auch ohne fonts/-Ordner und ohne Netz hat
     def embed_font(m):
         import base64
