@@ -711,11 +711,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .bil-ratio { padding: 10px 0; }
   .dk-bilanz .zp-hints { padding-top: 10px; }
   /* Rezepte: Kopf mit Anzahl, Titel, Suche, Häkchen und „+ Eigenes Rezept“; Chips klein in einer Zeile;
-     Liste in Spalten (ab etwa 1240 px Fensterbreite zwei: die Liste wächst doppelt so schnell wie das Panel, Spalten ab 250 px);
-     rechts das Rezept als festes Panel (rutscht bei schmalem Fenster unter die Liste) */
+     Liste in Spalten (ab 250 px, auto-fill). Unter 1100 px nimmt die Liste die volle Breite und ein Rezept öffnet als
+     Fenster; ab 1100 px steht rechts das Rezept als festes Panel (eigener Block unten) */
   #view-rezepte { display: block; }
   .rz-layout { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; max-width: 1240px; }
-  .rz-main { flex: 2 1 420px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
+  .rz-main { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
   /* Kopf mit festem Raster, damit er beim Wechsel der Filter nicht springt: oben Anzahl + Titel und die Suche,
      darunter die Häkchen und „+ Eigenes Rezept“; eine lange Anzahl wird gekürzt statt umzubrechen */
   .dk-head.rz-head { grid-column: 1 / -1; display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(220px, 300px); align-items: end; gap: 6px 16px; }
@@ -743,18 +743,6 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #recipe-list > .tiles, #recipe-list > .empty-line { grid-column: 1 / -1; }
   #recipe-list > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   .tile { padding: 10px 8px 10px 12px; }
-  .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }
-  .rz-panel { flex: 1 1 340px; max-width: 440px; min-width: 0; position: sticky; top: 34px; }
-  /* Unter 1100 px kein Panel (es stünde unter der langen Liste) – das Rezept öffnet dann als Fenster */
-  @media (max-width: 1099px) { .rz-panel { display: none; } }
-  .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
-  .rz-panel #detail-overlay[hidden] { display: none; }
-  .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
-    border: 2px solid var(--ink); border-radius: 10px; box-shadow: none; transform: none; will-change: auto; }
-  .rz-panel #detail-close, .rz-panel #detail-content > .sheet-grip { display: none; }
-  .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
-  .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
-  .rz-panel .pane-in { padding: 4px 22px 18px; }
   /* Vorgaben: Kopf, links das Menü (Zeilen 56 px, aktiv dunkler), rechts die Unterseite (max. 640 px) */
   #view-vorgaben { display: grid; grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); gap: 20px 36px; align-items: start; max-width: 1040px; }
   #view-vorgaben[hidden] { display: none; }
@@ -774,4 +762,21 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
     padding: 8px 22px 22px; border: 2px solid var(--ink); border-radius: 12px; }
   #detail-overlay .overlay-card, #compose-overlay .overlay-card { border: 2px solid var(--ink); border-radius: 12px; }
   .toast, body.modal-open .toast { bottom: 28px; min-width: 380px; width: max-content; max-width: min(560px, calc(100% - 40px)); }
+}
+/* Rezepte ab 1100 px: Liste (wächst doppelt so schnell, ab etwa 1240 px zwei Spalten) und daneben das Rezept als
+   festes Panel; die Markierung des gewählten Rezepts gibt es nur hier. Darunter kein Panel – das Rezept öffnet als Fenster. */
+.rz-panel { display: none; }
+@media (min-width: 1100px) {
+  .rz-layout { flex-wrap: nowrap; }
+  .rz-main { flex: 2 1 420px; }
+  .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }
+  .rz-panel { display: block; flex: 1 1 340px; max-width: 440px; min-width: 0; position: sticky; top: 34px; }
+  .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
+  .rz-panel #detail-overlay[hidden] { display: none; }
+  .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
+    border: 2px solid var(--ink); border-radius: 10px; box-shadow: none; transform: none; will-change: auto; }
+  .rz-panel #detail-close, .rz-panel #detail-content > .sheet-grip { display: none; }
+  .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
+  .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
+  .rz-panel .pane-in { padding: 4px 22px 18px; }
 }

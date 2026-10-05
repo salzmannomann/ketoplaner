@@ -19,7 +19,7 @@
   }
   function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec, keepScale) {
-    detailRec = rec; if (!keepScale) detailScale = "tag"; detailMeat = null;
+    detailRec = rec; detailPicked = true; if (!keepScale) detailScale = "tag"; detailMeat = null;
     detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
     state.settings.detailTab = "mahlzeit"; // jedes Rezept öffnet mit „Mahlzeit“; innerhalb der Ansicht bleibt das gewählte Blatt
     renderDetail();
@@ -31,8 +31,10 @@
   /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
      Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
      wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
-     1100 px öffnet ein Rezept wie am Handy als Fenster. */
-  let detailModal = false, detailHome = null;
+     1100 px öffnet ein Rezept als zentriertes Fenster. Wird das Fenster schmaler, während ein selbst gewähltes Rezept
+     im Panel steht, bleibt es als Fenster offen (die automatische Vorauswahl nicht); wird es breiter, wandert ein offenes
+     Fenster ins Panel. */
+  let detailModal = false, detailHome = null, detailPicked = false;
   function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
   function syncDetailPanel(opened) {
     const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
@@ -40,7 +42,14 @@
     if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
     const list = document.getElementById("recipe-list");
     if (!panelMode()) {
-      if (ov.parentElement === slot) { closeTodaySheet(); ov.hidden = true; detailHome.parent.insertBefore(ov, detailHome.next); }
+      if (ov.parentElement === slot) {
+        closeTodaySheet(); detailHome.parent.insertBefore(ov, detailHome.next);
+        // nur die Breite hat sich geändert (Bereich Rezepte bleibt): das gewählte Rezept als Fenster weiterzeigen
+        if (detailPicked && detailRec && !ov.hidden && state.settings.view === "rezepte") {
+          renderDetail();
+          if (!detailModal) { modalOpen("detail"); detailModal = true; }
+        } else ov.hidden = true;
+      }
       document.body.classList.remove("detail-panel");
       if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
       return;
@@ -53,7 +62,7 @@
     const key = detailRec ? recipeKey(detailRec) : null;
     let sel = key ? tiles.find(t => t.dataset.key === key) : null;
     if (!opened && !sel && tiles.length && tiles[0]._rec) {
-      detailRec = tiles[0]._rec; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailRec = tiles[0]._rec; detailPicked = false; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
       detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
       sel = tiles[0];
     }
@@ -63,7 +72,7 @@
     // Inhalt auffrischen (z. B. nach geänderten Vorgaben oder Favorit in der Liste) – nicht während im Panel getippt wird
     if (!opened && !slot.contains(document.activeElement)) renderDetail();
   }
-  // Steht das Panel unter der Liste (schmales Fenster), nach der Auswahl dorthin rollen
+  // Liegt das Panel außer Sicht (z. B. weit gescrollt), nach der Auswahl dorthin rollen
   function revealPanel() {
     const slot = document.getElementById("rz-panel"); if (!slot) return;
     const r = slot.getBoundingClientRect();
@@ -745,7 +754,7 @@
   function closeDetail() {
     closeTodaySheet();
     if (panelMode()) return; // Panel am Desktop bleibt stehen (es gibt dort kein Schließen)
-    document.getElementById("detail-overlay").hidden = true;
+    document.getElementById("detail-overlay").hidden = true; detailPicked = false;
     if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,

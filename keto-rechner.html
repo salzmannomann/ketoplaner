@@ -727,11 +727,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .bil-ratio { padding: 10px 0; }
   .dk-bilanz .zp-hints { padding-top: 10px; }
   /* Rezepte: Kopf mit Anzahl, Titel, Suche, Häkchen und „+ Eigenes Rezept“; Chips klein in einer Zeile;
-     Liste in Spalten (ab etwa 1240 px Fensterbreite zwei: die Liste wächst doppelt so schnell wie das Panel, Spalten ab 250 px);
-     rechts das Rezept als festes Panel (rutscht bei schmalem Fenster unter die Liste) */
+     Liste in Spalten (ab 250 px, auto-fill). Unter 1100 px nimmt die Liste die volle Breite und ein Rezept öffnet als
+     Fenster; ab 1100 px steht rechts das Rezept als festes Panel (eigener Block unten) */
   #view-rezepte { display: block; }
   .rz-layout { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; max-width: 1240px; }
-  .rz-main { flex: 2 1 420px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
+  .rz-main { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
   /* Kopf mit festem Raster, damit er beim Wechsel der Filter nicht springt: oben Anzahl + Titel und die Suche,
      darunter die Häkchen und „+ Eigenes Rezept“; eine lange Anzahl wird gekürzt statt umzubrechen */
   .dk-head.rz-head { grid-column: 1 / -1; display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(220px, 300px); align-items: end; gap: 6px 16px; }
@@ -759,18 +759,6 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #recipe-list > .tiles, #recipe-list > .empty-line { grid-column: 1 / -1; }
   #recipe-list > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   .tile { padding: 10px 8px 10px 12px; }
-  .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }
-  .rz-panel { flex: 1 1 340px; max-width: 440px; min-width: 0; position: sticky; top: 34px; }
-  /* Unter 1100 px kein Panel (es stünde unter der langen Liste) – das Rezept öffnet dann als Fenster */
-  @media (max-width: 1099px) { .rz-panel { display: none; } }
-  .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
-  .rz-panel #detail-overlay[hidden] { display: none; }
-  .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
-    border: 2px solid var(--ink); border-radius: 10px; box-shadow: none; transform: none; will-change: auto; }
-  .rz-panel #detail-close, .rz-panel #detail-content > .sheet-grip { display: none; }
-  .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
-  .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
-  .rz-panel .pane-in { padding: 4px 22px 18px; }
   /* Vorgaben: Kopf, links das Menü (Zeilen 56 px, aktiv dunkler), rechts die Unterseite (max. 640 px) */
   #view-vorgaben { display: grid; grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); gap: 20px 36px; align-items: start; max-width: 1040px; }
   #view-vorgaben[hidden] { display: none; }
@@ -790,6 +778,23 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
     padding: 8px 22px 22px; border: 2px solid var(--ink); border-radius: 12px; }
   #detail-overlay .overlay-card, #compose-overlay .overlay-card { border: 2px solid var(--ink); border-radius: 12px; }
   .toast, body.modal-open .toast { bottom: 28px; min-width: 380px; width: max-content; max-width: min(560px, calc(100% - 40px)); }
+}
+/* Rezepte ab 1100 px: Liste (wächst doppelt so schnell, ab etwa 1240 px zwei Spalten) und daneben das Rezept als
+   festes Panel; die Markierung des gewählten Rezepts gibt es nur hier. Darunter kein Panel – das Rezept öffnet als Fenster. */
+.rz-panel { display: none; }
+@media (min-width: 1100px) {
+  .rz-layout { flex-wrap: nowrap; }
+  .rz-main { flex: 2 1 420px; }
+  .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }
+  .rz-panel { display: block; flex: 1 1 340px; max-width: 440px; min-width: 0; position: sticky; top: 34px; }
+  .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
+  .rz-panel #detail-overlay[hidden] { display: none; }
+  .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
+    border: 2px solid var(--ink); border-radius: 10px; box-shadow: none; transform: none; will-change: auto; }
+  .rz-panel #detail-close, .rz-panel #detail-content > .sheet-grip { display: none; }
+  .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
+  .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
+  .rz-panel .pane-in { padding: 4px 22px 18px; }
 }
 
 </style>
@@ -3791,7 +3796,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function scaleMult(d) { const days = scaleDays(); return days ? days * d.mahl : (num(detailScale) > 0 ? num(detailScale) : 1); }
   function openRecipeDetail(rec, keepScale) {
-    detailRec = rec; if (!keepScale) detailScale = "tag"; detailMeat = null;
+    detailRec = rec; detailPicked = true; if (!keepScale) detailScale = "tag"; detailMeat = null;
     detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
     state.settings.detailTab = "mahlzeit"; // jedes Rezept öffnet mit „Mahlzeit“; innerhalb der Ansicht bleibt das gewählte Blatt
     renderDetail();
@@ -3803,8 +3808,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
      Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
      wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
-     1100 px öffnet ein Rezept wie am Handy als Fenster. */
-  let detailModal = false, detailHome = null;
+     1100 px öffnet ein Rezept als zentriertes Fenster. Wird das Fenster schmaler, während ein selbst gewähltes Rezept
+     im Panel steht, bleibt es als Fenster offen (die automatische Vorauswahl nicht); wird es breiter, wandert ein offenes
+     Fenster ins Panel. */
+  let detailModal = false, detailHome = null, detailPicked = false;
   function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
   function syncDetailPanel(opened) {
     const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
@@ -3812,7 +3819,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
     const list = document.getElementById("recipe-list");
     if (!panelMode()) {
-      if (ov.parentElement === slot) { closeTodaySheet(); ov.hidden = true; detailHome.parent.insertBefore(ov, detailHome.next); }
+      if (ov.parentElement === slot) {
+        closeTodaySheet(); detailHome.parent.insertBefore(ov, detailHome.next);
+        // nur die Breite hat sich geändert (Bereich Rezepte bleibt): das gewählte Rezept als Fenster weiterzeigen
+        if (detailPicked && detailRec && !ov.hidden && state.settings.view === "rezepte") {
+          renderDetail();
+          if (!detailModal) { modalOpen("detail"); detailModal = true; }
+        } else ov.hidden = true;
+      }
       document.body.classList.remove("detail-panel");
       if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
       return;
@@ -3825,7 +3839,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const key = detailRec ? recipeKey(detailRec) : null;
     let sel = key ? tiles.find(t => t.dataset.key === key) : null;
     if (!opened && !sel && tiles.length && tiles[0]._rec) {
-      detailRec = tiles[0]._rec; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailRec = tiles[0]._rec; detailPicked = false; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
       detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
       sel = tiles[0];
     }
@@ -3835,7 +3849,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Inhalt auffrischen (z. B. nach geänderten Vorgaben oder Favorit in der Liste) – nicht während im Panel getippt wird
     if (!opened && !slot.contains(document.activeElement)) renderDetail();
   }
-  // Steht das Panel unter der Liste (schmales Fenster), nach der Auswahl dorthin rollen
+  // Liegt das Panel außer Sicht (z. B. weit gescrollt), nach der Auswahl dorthin rollen
   function revealPanel() {
     const slot = document.getElementById("rz-panel"); if (!slot) return;
     const r = slot.getBoundingClientRect();
@@ -4517,7 +4531,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function closeDetail() {
     closeTodaySheet();
     if (panelMode()) return; // Panel am Desktop bleibt stehen (es gibt dort kein Schließen)
-    document.getElementById("detail-overlay").hidden = true;
+    document.getElementById("detail-overlay").hidden = true; detailPicked = false;
     if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
