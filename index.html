@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=faf16b27" />
+  <link rel="stylesheet" href="styles.css?v=c168fcdd" />
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -259,8 +259,11 @@
           <h3 class="vg-sec-title">Erinnerungen <span class="hint">zu Mahlzeiten und Wasser</span></h3>
           <div id="push-status" class="note info"></div>
           <div class="push-opts">
-            <label class="check"><input type="checkbox" id="push-meals" /> Mahlzeiten</label>
-            <label class="check"><input type="checkbox" id="push-water" /> Wassergaben</label>
+            <div class="seg-ink" id="push-kind" role="group" aria-label="Woran erinnern">
+              <button type="button" data-kind="meals">Mahlzeiten</button><button type="button" data-kind="water">Wasser</button><button type="button" data-kind="both">beides</button><button type="button" data-kind="none">keine</button>
+            </div>
+            <!-- dieselben zwei Einstellungen wie bisher (pushMeals / pushWater); das Segment setzt sie -->
+            <span class="push-cbs" hidden><input type="checkbox" id="push-meals" aria-label="Mahlzeiten" /><input type="checkbox" id="push-water" aria-label="Wassergaben" /></span>
           </div>
           <div class="push-act">
             <label class="push-lead">Zeitpunkt
@@ -374,7 +377,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=4a7b060b"></script>
+  <script src="app.js?v=db67fa8c"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

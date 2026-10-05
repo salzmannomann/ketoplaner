@@ -108,6 +108,8 @@
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;
+    const kind = o.meals && o.water ? "both" : o.meals ? "meals" : o.water ? "water" : "none";
+    document.querySelectorAll("#push-kind [data-kind]").forEach(b => b.classList.toggle("active", b.dataset.kind === kind));
     const pl = document.getElementById("push-lead"); if (pl) pl.value = String(o.lead);
     const pu = document.getElementById("push-url"); if (pu && document.activeElement !== pu) pu.value = s.pushUrl || PUSH_URL_DEFAULT;
   }
@@ -119,6 +121,13 @@
     opt("push-meals", "pushMeals", (el) => el.checked);
     opt("push-water", "pushWater", (el) => el.checked);
     opt("push-lead", "pushLead", (el) => num(el.value));
+    // Segment „Mahlzeiten · Wasser · beides · keine“ → pushMeals / pushWater (Speicherschlüssel wie bisher)
+    document.querySelectorAll("#push-kind [data-kind]").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.kind;
+      state.settings.pushMeals = k === "meals" || k === "both";
+      state.settings.pushWater = k === "water" || k === "both";
+      save(); renderPushCard(); schedulePushSync();
+    }));
     document.getElementById("push-url").addEventListener("change", (e) => { state.settings.pushUrl = e.target.value.trim(); save(); renderPushCard(); schedulePushSync(); });
     renderPushCard();
     if (state.settings.pushOn) setTimeout(() => pushSync(false), 800);

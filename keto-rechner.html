@@ -423,6 +423,8 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 .seg-ink button.active { background: var(--ink); color: var(--paper); }
 .seg-ink button:disabled { color: var(--dot); cursor: not-allowed; }
 .seg-ink button:focus-visible { outline-offset: -4px; }
+/* Häkchen überall gleich: Tinte (im Dunkelmodus hell), 18 px – :where() lässt besondere Regeln (Filter-Chips) gewinnen */
+:where(input[type="checkbox"]) { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
 .detail-tabs-wrap { flex: none; padding: 12px 20px 10px; touch-action: pan-x; }
 .detail-tabs { display: flex; width: 100%; }
 .detail-tabs button { flex: 1 1 0; min-height: 40px; padding: 0 6px; }
@@ -623,8 +625,7 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .vg-sec-title .hint { font-family: var(--f-sans); font-size: 12px; }
 /* Erinnerungen */
 .push-opts { display: flex; flex-wrap: wrap; gap: 6px 18px; }
-.check { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 15px; color: var(--ink); cursor: pointer; }
-.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+#push-kind button { padding: 0 10px; font-size: 13px; }
 .push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .push-lead { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--grey); }
 .push-url-lbl { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--grey); }
@@ -1052,8 +1053,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
           <h3 class="vg-sec-title">Erinnerungen <span class="hint">zu Mahlzeiten und Wasser</span></h3>
           <div id="push-status" class="note info"></div>
           <div class="push-opts">
-            <label class="check"><input type="checkbox" id="push-meals" /> Mahlzeiten</label>
-            <label class="check"><input type="checkbox" id="push-water" /> Wassergaben</label>
+            <div class="seg-ink" id="push-kind" role="group" aria-label="Woran erinnern">
+              <button type="button" data-kind="meals">Mahlzeiten</button><button type="button" data-kind="water">Wasser</button><button type="button" data-kind="both">beides</button><button type="button" data-kind="none">keine</button>
+            </div>
+            <!-- dieselben zwei Einstellungen wie bisher (pushMeals / pushWater); das Segment setzt sie -->
+            <span class="push-cbs" hidden><input type="checkbox" id="push-meals" aria-label="Mahlzeiten" /><input type="checkbox" id="push-water" aria-label="Wassergaben" /></span>
           </div>
           <div class="push-act">
             <label class="push-lead">Zeitpunkt
@@ -5192,6 +5196,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;
+    const kind = o.meals && o.water ? "both" : o.meals ? "meals" : o.water ? "water" : "none";
+    document.querySelectorAll("#push-kind [data-kind]").forEach(b => b.classList.toggle("active", b.dataset.kind === kind));
     const pl = document.getElementById("push-lead"); if (pl) pl.value = String(o.lead);
     const pu = document.getElementById("push-url"); if (pu && document.activeElement !== pu) pu.value = s.pushUrl || PUSH_URL_DEFAULT;
   }
@@ -5203,6 +5209,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     opt("push-meals", "pushMeals", (el) => el.checked);
     opt("push-water", "pushWater", (el) => el.checked);
     opt("push-lead", "pushLead", (el) => num(el.value));
+    // Segment „Mahlzeiten · Wasser · beides · keine“ → pushMeals / pushWater (Speicherschlüssel wie bisher)
+    document.querySelectorAll("#push-kind [data-kind]").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.kind;
+      state.settings.pushMeals = k === "meals" || k === "both";
+      state.settings.pushWater = k === "water" || k === "both";
+      save(); renderPushCard(); schedulePushSync();
+    }));
     document.getElementById("push-url").addEventListener("change", (e) => { state.settings.pushUrl = e.target.value.trim(); save(); renderPushCard(); schedulePushSync(); });
     renderPushCard();
     if (state.settings.pushOn) setTimeout(() => pushSync(false), 800);

@@ -1337,6 +1337,16 @@ test("Erinnerungen in den Vorgaben: Karte mit Optionen, ohne Push-Fähigkeit ein
   const w = boot({ settings: { kcal: 750, weight: 8.5, mahlzeiten: 4, view: "vorgaben" } });
   assert.ok($(w, "push-card"), "Karte vorhanden");
   assert.ok($(w, "push-meals").checked && $(w, "push-water").checked, "Mahlzeiten und Wasser standardmäßig an");
+  // Segment „Mahlzeiten · Wasser · beides · keine“ setzt dieselben zwei Einstellungen wie früher die Häkchen
+  const kind = () => [...w.document.querySelectorAll("#push-kind .active")].map(b => b.dataset.kind).join();
+  assert.equal(kind(), "both");
+  for (const [k, m, wa] of [["meals", true, false], ["water", false, true], ["none", false, false], ["both", true, true]]) {
+    fire(w, w.document.querySelector('#push-kind [data-kind="' + k + '"]'));
+    const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings;
+    assert.deepEqual([st.pushMeals, st.pushWater, kind()], [m, wa, k], "Segment " + k);
+  }
+  const wOld = boot({ settings: { kcal: 750, weight: 8.5, mahlzeiten: 4, view: "vorgaben", pushMeals: false, pushWater: true } });
+  assert.equal(wOld.document.querySelector("#push-kind .active").dataset.kind, "water", "alte Einstellung „nur Wasser“ bleibt");
   assert.equal($(w, "push-lead").value, "5", "5 min vorher");
   assert.match($(w, "push-status").textContent, /kann keine Push-Nachrichten|Home-Bildschirm|Online-Version/);
   assert.ok($(w, "push-toggle").disabled, "ohne Push-Fähigkeit nicht einschaltbar");
