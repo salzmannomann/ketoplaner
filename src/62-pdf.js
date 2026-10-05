@@ -40,7 +40,10 @@
       const TW = 15.5 * s;
       let y = PY;
       font(13 * s, true); const hh = lineH(13 * s);
-      if (draw) doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
+      if (draw) {
+        doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
+        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h span")), R, y + hh * 0.8, { align: "right" }); // Verhältnis
+      }
       y += hh + 1.2 * s;
       if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
       y += 0.8 * s;
