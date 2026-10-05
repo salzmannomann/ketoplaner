@@ -40,10 +40,12 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // HTML/Navigation: zuerst Netzwerk (frische Version), offline aus Cache
+  // HTML/Navigation: zuerst Netzwerk (frische Version), offline aus Cache. „no-cache“ fragt immer beim Server
+  // nach (sonst liefert der Browser die Seite bis zu 10 Minuten aus seinem eigenen Zwischenspeicher – GitHub Pages
+  // erlaubt das – und ein Update käme erst verspätet an). Ist die Seite unverändert, antwortet der Server nur kurz.
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-cache" })
         .then((r) => { const cp = r.clone(); caches.open(VERSION).then((c) => c.put(req, cp)); return r; })
         .catch(() => caches.match(req).then((m) => m || caches.match("./index.html")))
     );
