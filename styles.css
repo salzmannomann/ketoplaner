@@ -156,14 +156,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 .segmented button.active { background: var(--brand); color: #fff; font-weight: 600; }
 
 /* Eigenes Rezept (Composer) */
-.compose-rows { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
-.compose-row { display: flex; align-items: center; gap: 8px; }
-.compose-row .food-select { flex: 1; min-width: 0; }
-.compose-row .compose-grams { width: 90px; flex: 0 0 auto; }
-.compose-row .unit { color: var(--muted); font-size: 14px; }
-.compose-fat { margin: 14px 0 4px; }
-.compose-fat > label { display: block; margin-bottom: 6px; }
-.compose-fat .btn.secondary { margin-top: 4px; }
 
 /* Schnellfilter-Chips */
 /* Rezeptliste: eine Zeile – wischbare Gruppen-Chips + Lupe / Eigenes Rezept / Mehr; darunter sofort die Rezepte */
@@ -177,8 +169,6 @@ td select, td input { padding: 7px 9px; font-size: 14px; }
 /* Fleisch-Tausch im Rezept */
 
 /* Rezept-Kacheln (Übersicht) */
-.compose-save { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-.compose-save input { flex: 1; min-width: 160px; }
 
 /* Detail-Overlay */
 .overlay {
@@ -202,8 +192,6 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
   .settings-grid { grid-template-columns: 1fr; }
   .segmented button { padding: 9px 4px; font-size: 13px; }
 }
-.checkrow { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-.checkrow input[type=checkbox] { width: 18px; height: 18px; }
 label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
 
 /* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
@@ -383,14 +371,6 @@ input:disabled { background: var(--bg); color: var(--muted); }
 /* Kopf von Heute einzeilig: Titel nicht umbrechen, Rahmenzeit kürzen statt umbrechen */
 
 /* Detail → „📅 Für heute“: Auswahl über der Aktionsleiste und Meldung mit Rückgängig */
-.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 1000;
-  display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; max-width: min(560px, calc(100% - 24px));
-  background: #1f2933; color: #fff; border-radius: 12px; padding: 10px 12px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-.toast[hidden] { display: none; }
-.toast-msg { flex: 1 1 auto; min-width: 0; }
-@media (max-width: 560px) { .toast-msg { flex-basis: 100%; } }
-.toast-btn { border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-weight: 600; font-size: 13px; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-.toast-btn:hover { background: rgba(255,255,255,.24); }
 
 /* Heute auf einen Bildschirm: niedrige Kachelreihe, dichte Zeitleiste, kurze Hinweise; Haftungstext am Handy nur
    auf den anderen Reitern (er steht auch im Ausdruck und unter Rezepte/Vorgaben). */
@@ -949,3 +929,41 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 :root .note.warn { padding: 10px 12px; border: 0; border-radius: 6px; background: var(--red-bg); color: var(--red); }
 .btn.primary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adj-block .hint { font-size: 13px; color: var(--grey); }
+
+/* ======================================================================
+   Editor (eigenes Rezept): wie die Rezeptansicht – Name als Titel-Feld, Zeilen mit Unterstrich-Feldern
+   ====================================================================== */
+:root .title-input { width: 100%; min-height: 0; height: auto; padding: 0 0 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent;
+  color: var(--ink); font: 600 28px/1.15 var(--f-serif); }
+:root .title-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
+.title-input::placeholder { color: var(--grey); opacity: 1; font-style: italic; font-weight: 500; }
+.compose-rows { display: flex; flex-direction: column; margin-top: -12px; }
+.compose-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 22px 36px; align-items: center; column-gap: 8px; min-height: 52px; border-bottom: 1px dotted var(--dot); }
+#compose-fats .compose-row:only-child { grid-template-columns: minmax(0, 1fr); }
+:root .compose-row select, :root .compose-row input { min-height: 40px; height: auto; padding: 0 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); }
+:root .compose-row select { font: 400 15px var(--f-sans); -webkit-appearance: none; appearance: none; padding-right: 18px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 7px top 55%, right 2px top 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+:root .compose-row input.compose-grams { width: 72px; font: 600 18px var(--f-mono); text-align: right; }
+:root .compose-row select:focus, :root .compose-row input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
+.compose-row .unit { font: 500 13px var(--f-mono); color: var(--grey); }
+.row-del { width: 36px; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--grey); font: 400 22px/1 var(--f-sans); cursor: pointer; }
+.row-del:hover { color: var(--red); background: var(--paper-2); }
+.add-link { align-self: flex-start; margin: -6px 0 0 -6px; }
+.wh-hint { font-size: 12px; color: var(--grey); }
+.checkrow { display: flex; align-items: flex-start; gap: 8px; margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: var(--grey); cursor: pointer; }
+.checkrow input, :root .checkrow input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; padding: 0; accent-color: var(--ink); }
+.compose-result { display: flex; flex-direction: column; gap: 12px; }
+.ing-row.ro { min-height: 40px; }
+.ing-row.ro .sum-g { font-size: 17px; }
+:root .btn.round-btn.danger { color: var(--red); border-color: var(--red); }
+
+/* Meldung (Toast): Tinte-Fläche über der Navigation, „Rückgängig“ unterstrichen, „Ansehen“ als helle Pille */
+.toast { position: fixed; z-index: 1000; left: 20px; right: 20px; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px); max-width: 560px; margin: 0 auto;
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 10px; background: var(--ink); color: var(--paper); font-size: 14px; line-height: 1.35; }
+.toast[hidden] { display: none; }
+.toast-msg { flex: 1; min-width: 0; padding: 6px 0; }
+.toast-btn { flex: none; min-height: 40px; margin: 0; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--paper);
+  font: 600 14px var(--f-sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.toast-btn.pill { padding: 0 12px; background: var(--paper); color: var(--ink); text-decoration: none; }
+body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }

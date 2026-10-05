@@ -807,8 +807,8 @@ test("Editor (eigenes Rezept) im Detail-Layout: Kopf mit Name, zwei Blätter, Ka
   assert.match(res.querySelector(".portion-line").textContent, /^Wie berechnet · 140 kcal je Mahlzeit · Fett für 1,8:1 berechnet$/);
   assert.equal(res.querySelectorAll(".detail-tiles .dstat").length, 4);
   assert.match(res.querySelectorAll(".detail-tiles .dstat")[0].textContent, /140.*kcal · Ziel 140/);
-  assert.match(res.querySelector("table tr.fatrow").textContent, /Schlagobers.*stellt das Verhältnis ein/);
-  assert.match(c.querySelector("#compose-meta").textContent, /1,80:1.*140 kcal je Portion/);
+  assert.match(res.querySelector(".ing-row.fatrow").textContent, /Schlagobers.*stellt das Verhältnis ein/);
+  assert.match(c.querySelector("#compose-meta").textContent, /1,80 : 1.*140 kcal je Portion/);
   // Speichern braucht einen Namen (Kopf)
   const nm = c.querySelector("#compose-name"); nm.value = "Mein Hendl"; fire(w, nm, "input");
   fire(w, c.querySelector("#compose-save"));

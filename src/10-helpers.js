@@ -51,7 +51,8 @@
   function showToast(html, buttons) {
     let t = document.getElementById("toast");
     if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
-    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn" data-ti="' + i + '">' + b[0] + '</button>').join("");
+    // „Rückgängig“ als unterstrichener Text, weitere Aktionen (z. B. „Ansehen“) als helle Pille
+    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn' + (i > 0 ? " pill" : "") + '" data-ti="' + i + '">' + b[0] + '</button>').join("");
     t.querySelectorAll(".toast-btn").forEach(b => b.addEventListener("click", () => { hideToast(); buttons[num(b.dataset.ti)][1](); }));
     t.hidden = false; t.classList.add("show");
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
@@ -64,6 +65,7 @@
     print: '<svg ' + SVG_ATTR + '><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><path d="M6 14h12v7H6z"/></svg>',
     edit: '<svg ' + SVG_ATTR + '><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
     share: '<svg ' + SVG_ATTR + '><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>',
+    trash: '<svg ' + SVG_ATTR + '><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
   };
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
