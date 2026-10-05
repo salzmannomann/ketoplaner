@@ -1463,18 +1463,18 @@
         "</div>" +
         '<ul class="bd-legend">' +
           '<li><i class="sw krick"></i><span><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</span></li>" +
-          (walks ? "" : '<li><i class="sw band"></i><span><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</span></li>") +
+          (walks ? "" : '<li><i class="sw band"></i><span><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</span></li>") +
           '<li><i class="sw ref"></i><span><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</span></li>" +
         "</ul>" +
-        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
+        '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
         ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
         : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
       (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
       (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "") +
       // Bewusst übernehmen: die Schätzung ändert die Verordnung nur auf Knopfdruck (mit Rückgängig)
-      (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Schätzung übernehmen: ' +
-        fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal am Tag</button></p>' : "");
+      (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Wert übernehmen: ' +
+        fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal</button></p>' : "");
   }
   // Leeres Datumsfeld: grauer Platzhalter „TT.MM.JJJJ“ (.date-wrap.empty), auch dort, wo der Browser keinen zeigt
   function markDateEmpty() {
