@@ -33,11 +33,11 @@
       if (!f || g <= 0) return; hasBase = true;
       Pb += f.eiweiss * g / 100; Fb += f.fett * g / 100; Cb += f.kh * g / 100;
     });
-    if (!hasBase) return { ok: false, note: "Bitte mindestens ein Lebensmittel wählen." };
+    if (!hasBase) return { ok: false, hint: true, note: "Bitte mindestens ein Lebensmittel wählen." };
 
     // gültige Fette mit Anteil
     const valid = (fats || []).filter(x => lookup(x.food) && num(x.share) > 0);
-    if (!valid.length) return { ok: false, note: "Bitte mindestens ein Fett zum Ausgleich wählen." };
+    if (!valid.length) return { ok: false, hint: true, note: "Bitte mindestens ein Fett zum Ausgleich wählen." };
     const totShare = valid.reduce((a, x) => a + num(x.share), 0);
     const w = valid.map(x => num(x.share) / totShare);
     // gemischte Nährwerte pro 100 g
@@ -149,7 +149,7 @@
       if (!res.ok) {
         lastOk = false; lastItems = [];
         meta.innerHTML = '<span class="dh-tag">noch unvollständig</span>' + badge;
-        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div><div class="note warn">▲ ' + res.note + "</div>";
+        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div>' + (res.hint ? '<div class="note info">' : '<div class="note warn">▲ ') + res.note + "</div>"; // leer = Anleitung (grau), Rechenproblem = rot
         return;
       }
       let items = res.items;

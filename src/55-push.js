@@ -7,8 +7,9 @@
   function pushSupport() {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-    if (location.protocol !== "https:" && location.hostname !== "localhost") return { ok: false, why: "Nur in der Online-Version (GitHub Pages), nicht in der Einzeldatei." };
-    if (ios && !standalone) return { ok: false, why: "Am iPhone nur in der App vom Home-Bildschirm (Teilen → „Zum Home-Bildschirm“), nicht im Safari-Tab." };
+    // hint: nur eine Erklärung, wo Erinnerungen gehen (grau) – kein Fehler
+    if (location.protocol !== "https:" && location.hostname !== "localhost") return { ok: false, hint: true, why: "Nur in der Online-Version (GitHub Pages), nicht in der Einzeldatei." };
+    if (ios && !standalone) return { ok: false, hint: true, why: "Am iPhone nur in der App vom Home-Bildschirm (Teilen → „Zum Home-Bildschirm“), nicht im Safari-Tab." };
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return { ok: false, why: "Dieses Gerät bzw. dieser Browser kann keine Push-Nachrichten empfangen." };
     return { ok: true };
   }
@@ -94,8 +95,11 @@
     const st = document.getElementById("push-status"); if (!st) return;
     const s = state.settings, o = pushOpt(), sup = pushSupport(), on = !!s.pushOn;
     let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_SYNC_KEY) || "null"); } catch (e) {}
-    st.className = "note " + (!sup.ok || pushError ? "warn" : on ? "tip" : "info");
+    // Rot nur, wenn Erinnerungen wirklich nicht gehen: Gerät kann kein Push, Mitteilungen blockiert, Fehler beim Abgleich
+    let denied = false; try { denied = sup.ok && window.Notification && Notification.permission === "denied"; } catch (e) {}
+    st.className = "note " + ((!sup.ok && !sup.hint) || denied || pushError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !sup.ok ? escapeHtml(sup.why)
+      : denied ? (isIOS() ? "Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben." : "Mitteilungen sind für diese Seite blockiert – in den Browser-Einstellungen erlauben.")
       : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „Wie funktioniert das?“ eintragen."
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")

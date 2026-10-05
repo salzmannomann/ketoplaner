@@ -2805,8 +2805,9 @@
   function pushSupport() {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-    if (location.protocol !== "https:" && location.hostname !== "localhost") return { ok: false, why: "Nur in der Online-Version (GitHub Pages), nicht in der Einzeldatei." };
-    if (ios && !standalone) return { ok: false, why: "Am iPhone nur in der App vom Home-Bildschirm (Teilen → „Zum Home-Bildschirm“), nicht im Safari-Tab." };
+    // hint: nur eine Erklärung, wo Erinnerungen gehen (grau) – kein Fehler
+    if (location.protocol !== "https:" && location.hostname !== "localhost") return { ok: false, hint: true, why: "Nur in der Online-Version (GitHub Pages), nicht in der Einzeldatei." };
+    if (ios && !standalone) return { ok: false, hint: true, why: "Am iPhone nur in der App vom Home-Bildschirm (Teilen → „Zum Home-Bildschirm“), nicht im Safari-Tab." };
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return { ok: false, why: "Dieses Gerät bzw. dieser Browser kann keine Push-Nachrichten empfangen." };
     return { ok: true };
   }
@@ -2892,8 +2893,11 @@
     const st = document.getElementById("push-status"); if (!st) return;
     const s = state.settings, o = pushOpt(), sup = pushSupport(), on = !!s.pushOn;
     let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_SYNC_KEY) || "null"); } catch (e) {}
-    st.className = "note " + (!sup.ok || pushError ? "warn" : on ? "tip" : "info");
+    // Rot nur, wenn Erinnerungen wirklich nicht gehen: Gerät kann kein Push, Mitteilungen blockiert, Fehler beim Abgleich
+    let denied = false; try { denied = sup.ok && window.Notification && Notification.permission === "denied"; } catch (e) {}
+    st.className = "note " + ((!sup.ok && !sup.hint) || denied || pushError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !sup.ok ? escapeHtml(sup.why)
+      : denied ? (isIOS() ? "Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben." : "Mitteilungen sind für diese Seite blockiert – in den Browser-Einstellungen erlauben.")
       : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „Wie funktioniert das?“ eintragen."
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
@@ -3719,11 +3723,11 @@
       if (!f || g <= 0) return; hasBase = true;
       Pb += f.eiweiss * g / 100; Fb += f.fett * g / 100; Cb += f.kh * g / 100;
     });
-    if (!hasBase) return { ok: false, note: "Bitte mindestens ein Lebensmittel wählen." };
+    if (!hasBase) return { ok: false, hint: true, note: "Bitte mindestens ein Lebensmittel wählen." };
 
     // gültige Fette mit Anteil
     const valid = (fats || []).filter(x => lookup(x.food) && num(x.share) > 0);
-    if (!valid.length) return { ok: false, note: "Bitte mindestens ein Fett zum Ausgleich wählen." };
+    if (!valid.length) return { ok: false, hint: true, note: "Bitte mindestens ein Fett zum Ausgleich wählen." };
     const totShare = valid.reduce((a, x) => a + num(x.share), 0);
     const w = valid.map(x => num(x.share) / totShare);
     // gemischte Nährwerte pro 100 g
@@ -3835,7 +3839,7 @@
       if (!res.ok) {
         lastOk = false; lastItems = [];
         meta.innerHTML = '<span class="dh-tag">noch unvollständig</span>' + badge;
-        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div><div class="note warn">▲ ' + res.note + "</div>";
+        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div>' + (res.hint ? '<div class="note info">' : '<div class="note warn">▲ ') + res.note + "</div>"; // leer = Anleitung (grau), Rechenproblem = rot
         return;
       }
       let items = res.items;
