@@ -234,6 +234,8 @@
   }
   function bindCompose() {
     document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
+    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });

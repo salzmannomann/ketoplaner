@@ -12,6 +12,7 @@
     document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel nur im Bereich Rezepte
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
   }

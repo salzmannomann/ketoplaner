@@ -6,7 +6,9 @@
      durch (oder weich zurück). Senkrechtes Wischen bleibt Scrollen; nach einem Zug löst der folgende Klick
      keine Kachel aus. */
   function chipScrollTarget(fb, chip) {
-    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, chip.offsetLeft - (fb.clientWidth - chip.offsetWidth) / 2));
+    // Lage des Chips innerhalb der Zeile (unabhängig davon, wo die Zeile auf der Seite steht – am Desktop rechts der linken Spalte)
+    const left = chip.getBoundingClientRect().left - fb.getBoundingClientRect().left + fb.scrollLeft;
+    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, left - (fb.clientWidth - chip.offsetWidth) / 2));
   }
   function stepFilter(dir) {
     const cur = FILTERS.findIndex(f => f.id === state.settings.filter);
@@ -176,10 +178,13 @@
     function appendGroup(title, arr) {
       if (!arr.length) return;
       const sorted = arr.slice().sort(byName);
-      list.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
+      // Hülle je Gruppe: am Desktop eine Spalte der Liste, am Handy ohne Wirkung (display: contents)
+      const grp = el("div", { class: "group" });
+      grp.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
       sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
-      list.appendChild(grid);
+      grp.appendChild(grid);
+      list.appendChild(grp);
     }
 
     if (sort === "kategorie") {
@@ -210,6 +215,7 @@
   /* ---------- Rezepte rendern ---------- */
   function renderRezepte() {
     const s = state.settings;
+    placeRecipeSearch();
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
@@ -270,11 +276,16 @@
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
     });
+    // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
+    const dk = isDesktop(), tg = $("rz-toggles");
+    if (tg) tg.innerHTML = "";
     [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
-      const lab = el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+      const lab = dk && tg
+        ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
+        : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
       const cb = lab.querySelector("input");
       cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
-      fb.appendChild(lab);
+      (dk && tg ? tg : fb).appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
       // Position behalten und weich zum aktiven Chip rollen (beim ersten Aufbau direkt hinsetzen)
@@ -290,5 +301,16 @@
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
     // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
     const lc = $("list-count"), n = num($("recipe-list").dataset.count);
-    if (lc) lc.textContent = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    if (lc) lc.textContent = countTxt;
+    const rc = $("rz-count"); if (rc) rc.textContent = countTxt;
+    if (typeof syncDetailPanel === "function") syncDetailPanel();
+  }
+  // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
+  function placeRecipeSearch() {
+    const sq = document.getElementById("recipe-search"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
+    if (!sq || !slot || !btn) return;
+    const want = isDesktop() ? slot : btn.parentElement;
+    if (sq.parentElement === want) return;
+    if (want === slot) slot.appendChild(sq); else want.insertBefore(sq, btn);
   }

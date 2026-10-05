@@ -628,7 +628,9 @@
      durch (oder weich zurück). Senkrechtes Wischen bleibt Scrollen; nach einem Zug löst der folgende Klick
      keine Kachel aus. */
   function chipScrollTarget(fb, chip) {
-    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, chip.offsetLeft - (fb.clientWidth - chip.offsetWidth) / 2));
+    // Lage des Chips innerhalb der Zeile (unabhängig davon, wo die Zeile auf der Seite steht – am Desktop rechts der linken Spalte)
+    const left = chip.getBoundingClientRect().left - fb.getBoundingClientRect().left + fb.scrollLeft;
+    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, left - (fb.clientWidth - chip.offsetWidth) / 2));
   }
   function stepFilter(dir) {
     const cur = FILTERS.findIndex(f => f.id === state.settings.filter);
@@ -798,10 +800,13 @@
     function appendGroup(title, arr) {
       if (!arr.length) return;
       const sorted = arr.slice().sort(byName);
-      list.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
+      // Hülle je Gruppe: am Desktop eine Spalte der Liste, am Handy ohne Wirkung (display: contents)
+      const grp = el("div", { class: "group" });
+      grp.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
       sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
-      list.appendChild(grid);
+      grp.appendChild(grid);
+      list.appendChild(grp);
     }
 
     if (sort === "kategorie") {
@@ -832,6 +837,7 @@
   /* ---------- Rezepte rendern ---------- */
   function renderRezepte() {
     const s = state.settings;
+    placeRecipeSearch();
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
@@ -892,11 +898,16 @@
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
     });
+    // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
+    const dk = isDesktop(), tg = $("rz-toggles");
+    if (tg) tg.innerHTML = "";
     [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
-      const lab = el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+      const lab = dk && tg
+        ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
+        : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
       const cb = lab.querySelector("input");
       cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
-      fb.appendChild(lab);
+      (dk && tg ? tg : fb).appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
       // Position behalten und weich zum aktiven Chip rollen (beim ersten Aufbau direkt hinsetzen)
@@ -912,7 +923,18 @@
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
     // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
     const lc = $("list-count"), n = num($("recipe-list").dataset.count);
-    if (lc) lc.textContent = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    if (lc) lc.textContent = countTxt;
+    const rc = $("rz-count"); if (rc) rc.textContent = countTxt;
+    if (typeof syncDetailPanel === "function") syncDetailPanel();
+  }
+  // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
+  function placeRecipeSearch() {
+    const sq = document.getElementById("recipe-search"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
+    if (!sq || !slot || !btn) return;
+    const want = isDesktop() ? slot : btn.parentElement;
+    if (sq.parentElement === want) return;
+    if (want === slot) slot.appendChild(sq); else want.insertBefore(sq, btn);
   }
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
@@ -929,6 +951,7 @@
     document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel nur im Bereich Rezepte
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
   }
@@ -1257,7 +1280,8 @@
     if (rec.quelle) tags.push("Diätologie");
     if (multi || rec.ketocal) tags.push(escapeHtml(basisLabel(rec)));
     if (rec.custom) tags.push("eigenes Rezept");
-    const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
+    const tile = el("div", { class: "tile", tabindex: "0", role: "button", "data-key": recipeKey(rec) });
+    tile._rec = rec; // Desktop: erstes Rezept der Liste ins Panel
     tile.innerHTML =
       '<div class="tile-body"><span class="tile-name">' + escapeHtml(name) + '</span>' +
       '<span class="tile-stats">' + fmt(sum.kcal, 0) + " kcal · " + fmt(ml, 0) + " ml · " +
@@ -1389,21 +1413,49 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    applyDetailLayout();
+    if (panelMode()) { syncDetailPanel(true); revealPanel(); }
+    else if (!detailModal) { modalOpen("detail"); detailModal = true; }
   }
-  let detailModal = false, panelMq = null;
-  function isPanelLayout() { try { return !!(window.matchMedia && window.matchMedia("(min-width: 1100px)").matches); } catch (e) { return false; } }
-  // Breiter Bildschirm: Rezept als festes Panel rechts, die Liste bleibt daneben bedienbar (kein Einfrieren).
-  // Ändert sich die Fensterbreite bei offenem Rezept, wechselt die Darstellung mit.
-  function applyDetailLayout() {
-    if (document.getElementById("detail-overlay").hidden) return;
-    const panel = isPanelLayout();
-    document.body.classList.toggle("detail-panel", panel);
-    if (!panel && !detailModal) { modalOpen("detail"); detailModal = true; }
-    if (panel && detailModal) { modalClose("detail"); detailModal = false; }
-    if (!panelMq) {
-      try { panelMq = window.matchMedia("(min-width: 1100px)"); panelMq.addEventListener("change", applyDetailLayout); } catch (e) { panelMq = {}; }
+  /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
+     Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
+     am Handy als Fenster. */
+  let detailModal = false, detailHome = null;
+  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function syncDetailPanel(opened) {
+    const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
+    if (!ov || !slot) return;
+    if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
+    const list = document.getElementById("recipe-list");
+    if (!panelMode()) {
+      if (ov.parentElement === slot) { closeTodaySheet(); ov.hidden = true; detailHome.parent.insertBefore(ov, detailHome.next); }
+      document.body.classList.remove("detail-panel");
+      if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
+      return;
     }
+    if (detailModal) { modalClose("detail"); detailModal = false; }
+    if (ov.parentElement !== slot) slot.appendChild(ov);
+    document.body.classList.add("detail-panel");
+    // Auswahl: das offene Rezept, sonst das erste der Liste (ist es nicht mehr in der Liste, ebenfalls das erste)
+    const tiles = list ? [...list.querySelectorAll(".tile")] : [];
+    const key = detailRec ? recipeKey(detailRec) : null;
+    let sel = key ? tiles.find(t => t.dataset.key === key) : null;
+    if (!opened && !sel && tiles.length && tiles[0]._rec) {
+      detailRec = tiles[0]._rec; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
+      sel = tiles[0];
+    }
+    tiles.forEach(t => t.classList.toggle("sel", t === sel));
+    if (!detailRec || (!sel && !opened)) { ov.hidden = true; return; }
+    ov.hidden = false;
+    // Inhalt auffrischen (z. B. nach geänderten Vorgaben oder Favorit in der Liste) – nicht während im Panel getippt wird
+    if (!opened && !slot.contains(document.activeElement)) renderDetail();
+  }
+  // Steht das Panel unter der Liste (schmales Fenster), nach der Auswahl dorthin rollen
+  function revealPanel() {
+    const slot = document.getElementById("rz-panel"); if (!slot) return;
+    const r = slot.getBoundingClientRect();
+    if (r.top > window.innerHeight - 80 || r.bottom < 0) { try { slot.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -2056,8 +2108,8 @@
   }
   function closeDetail() {
     closeTodaySheet();
+    if (panelMode()) return; // Panel am Desktop bleibt stehen (es gibt dort kein Schließen)
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("detail-panel");
     if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
@@ -3692,6 +3744,8 @@
   }
   function bindCompose() {
     document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
+    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
