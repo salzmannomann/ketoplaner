@@ -1945,7 +1945,7 @@
       "</div>" +
       '<div class="portion-line">Abfüllen je Portion' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
         (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
-          (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "") + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
+          (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => escapeHtml(String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
       // Hinweise: Sieb (Varoma), MCT-Menge, Garzeiten bei mehreren Portionen
       [rec.varoma ? 'Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
        res.mct ? 'MCT <strong>' + fmt(res.mct.gMct, 1) + ' g</strong> je Portion (' + fmt(res.mct.energiePz, 0) + ' % der Energie) – klein beginnen, Verträglichkeit beobachten.' : "",
