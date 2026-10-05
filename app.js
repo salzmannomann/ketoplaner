@@ -95,6 +95,10 @@
 
   /* ---------- Helpers ---------- */
   // Zahl aus Eingabe oder Wert; ein Komma als Dezimaltrenner („8,5") wird akzeptiert.
+  // Desktop-Ansicht (> 820 px): eigene Anordnung von Tagesplan, Rezepten und Vorgaben (gleiche Bausteine).
+  // Wechselt die Fensterbreite über die Grenze, baut die App neu auf (siehe init).
+  const DESKTOP_MQ = "(min-width: 821px)";
+  function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
@@ -624,7 +628,9 @@
      durch (oder weich zurück). Senkrechtes Wischen bleibt Scrollen; nach einem Zug löst der folgende Klick
      keine Kachel aus. */
   function chipScrollTarget(fb, chip) {
-    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, chip.offsetLeft - (fb.clientWidth - chip.offsetWidth) / 2));
+    // Lage des Chips innerhalb der Zeile (unabhängig davon, wo die Zeile auf der Seite steht – am Desktop rechts der linken Spalte)
+    const left = chip.getBoundingClientRect().left - fb.getBoundingClientRect().left + fb.scrollLeft;
+    return Math.max(0, Math.min(fb.scrollWidth - fb.clientWidth, left - (fb.clientWidth - chip.offsetWidth) / 2));
   }
   function stepFilter(dir) {
     const cur = FILTERS.findIndex(f => f.id === state.settings.filter);
@@ -794,10 +800,13 @@
     function appendGroup(title, arr) {
       if (!arr.length) return;
       const sorted = arr.slice().sort(byName);
-      list.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
+      // Hülle je Gruppe: am Desktop eine Spalte der Liste, am Handy ohne Wirkung (display: contents)
+      const grp = el("div", { class: "group" });
+      grp.appendChild(el("div", { class: "group-head" }, '<h2 class="group-title">' + title + '</h2><span class="group-count">' + sorted.length + "</span>"));
       const grid = el("div", { class: "tiles" });
       sorted.forEach(x => grid.appendChild(renderRecipeTile(x.rec, x.res, d, x.fam)));
-      list.appendChild(grid);
+      grp.appendChild(grid);
+      list.appendChild(grp);
     }
 
     if (sort === "kategorie") {
@@ -828,6 +837,7 @@
   /* ---------- Rezepte rendern ---------- */
   function renderRezepte() {
     const s = state.settings;
+    placeRecipeSearch();
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
@@ -888,11 +898,16 @@
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
     });
+    // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
+    const dk = isDesktop(), tg = $("rz-toggles");
+    if (tg) tg.innerHTML = "";
     [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
-      const lab = el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+      const lab = dk && tg
+        ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
+        : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
       const cb = lab.querySelector("input");
       cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
-      fb.appendChild(lab);
+      (dk && tg ? tg : fb).appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
       // Position behalten und weich zum aktiven Chip rollen (beim ersten Aufbau direkt hinsetzen)
@@ -908,7 +923,18 @@
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
     // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
     const lc = $("list-count"), n = num($("recipe-list").dataset.count);
-    if (lc) lc.textContent = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    if (lc) lc.textContent = countTxt;
+    const rc = $("rz-count"); if (rc) rc.textContent = countTxt;
+    if (typeof syncDetailPanel === "function") syncDetailPanel();
+  }
+  // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
+  function placeRecipeSearch() {
+    const sq = document.getElementById("recipe-search"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
+    if (!sq || !slot || !btn) return;
+    const want = isDesktop() ? slot : btn.parentElement;
+    if (sq.parentElement === want) return;
+    if (want === slot) slot.appendChild(sq); else want.insertBefore(sq, btn);
   }
 
   /* ---------- Kopfzeile, Bereiche (Tabs), Vorgaben ---------- */
@@ -922,9 +948,10 @@
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel nur im Bereich Rezepte
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
   }
@@ -958,6 +985,18 @@
     chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
     chip.dataset.full = l1 + (l2 ? "\n" + l2 : "");
     markChip();
+    renderSideRx(d);
+  }
+  // Desktop: Verordnung in der linken Spalte als Wertetabelle (Verhältnis groß in Mono, darunter die Tageswerte)
+  function renderSideRx(d) {
+    const box = document.getElementById("side-rx"); if (!box) return;
+    const row = (l, v) => '<div class="side-row"><span>' + l + '</span><b>' + escapeHtml(v) + '</b></div>';
+    box.innerHTML = '<div class="side-rx-head"><span class="overline">Verordnung vom Team</span>' +
+      '<button type="button" class="tlink" id="side-rx-edit" title="Verordnung in den Vorgaben ändern">Ändern</button></div>' +
+      '<div class="side-ratio"><b>' + escapeHtml(fmtRx(d.ratio)) + '</b><span>Fett : Eiweiß + KH</span></div>' +
+      row("Kalorien am Tag", fmt(d.kcal, 0) + " kcal") + row("je Mahlzeit", d.mahl + " × " + fmt(d.kcalMahl, 0)) +
+      row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
+      '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   /* ---------- Vorgaben: Liste mit Unterseiten ----------
@@ -968,13 +1007,18 @@
   const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
-    vgPage = name || null;
+    // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
+    vgPage = name || (isDesktop() ? "verordnung" : null);
     const list = document.getElementById("vg-list"); if (!list) return;
     list.hidden = !!vgPage;
+    const cur = vgPage === "bedarf" ? "verordnung" : vgPage;
+    list.querySelectorAll(".vg-row[data-vg]").forEach(r => { r.classList.toggle("active", r.dataset.vg === cur); r.setAttribute("aria-current", r.dataset.vg === cur ? "page" : "false"); });
     document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
     document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
+  // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
+  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
@@ -1169,7 +1213,10 @@
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
     // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    // Desktop: „Ändern“ in der Verordnung der linken Spalte öffnet Vorgaben → Verordnung
+    const side = document.getElementById("side-rx");
+    if (side) side.addEventListener("click", (e) => { if (!e.target.closest("#side-rx-edit")) return; chipReturn = null; showView("vorgaben"); showVgPage("verordnung"); });
     // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => {
@@ -1238,7 +1285,8 @@
     if (rec.quelle) tags.push("Diätologie");
     if (multi || rec.ketocal) tags.push(escapeHtml(basisLabel(rec)));
     if (rec.custom) tags.push("eigenes Rezept");
-    const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
+    const tile = el("div", { class: "tile", tabindex: "0", role: "button", "data-key": recipeKey(rec) });
+    tile._rec = rec; // Desktop: erstes Rezept der Liste ins Panel
     tile.innerHTML =
       '<div class="tile-body"><span class="tile-name">' + escapeHtml(name) + '</span>' +
       '<span class="tile-stats">' + fmt(sum.kcal, 0) + " kcal · " + fmt(ml, 0) + " ml · " +
@@ -1370,21 +1418,49 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    applyDetailLayout();
+    if (panelMode()) { syncDetailPanel(true); revealPanel(); }
+    else if (!detailModal) { modalOpen("detail"); detailModal = true; }
   }
-  let detailModal = false, panelMq = null;
-  function isPanelLayout() { try { return !!(window.matchMedia && window.matchMedia("(min-width: 1100px)").matches); } catch (e) { return false; } }
-  // Breiter Bildschirm: Rezept als festes Panel rechts, die Liste bleibt daneben bedienbar (kein Einfrieren).
-  // Ändert sich die Fensterbreite bei offenem Rezept, wechselt die Darstellung mit.
-  function applyDetailLayout() {
-    if (document.getElementById("detail-overlay").hidden) return;
-    const panel = isPanelLayout();
-    document.body.classList.toggle("detail-panel", panel);
-    if (!panel && !detailModal) { modalOpen("detail"); detailModal = true; }
-    if (panel && detailModal) { modalClose("detail"); detailModal = false; }
-    if (!panelMq) {
-      try { panelMq = window.matchMedia("(min-width: 1100px)"); panelMq.addEventListener("change", applyDetailLayout); } catch (e) { panelMq = {}; }
+  /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
+     Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
+     am Handy als Fenster. */
+  let detailModal = false, detailHome = null;
+  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function syncDetailPanel(opened) {
+    const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
+    if (!ov || !slot) return;
+    if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
+    const list = document.getElementById("recipe-list");
+    if (!panelMode()) {
+      if (ov.parentElement === slot) { closeTodaySheet(); ov.hidden = true; detailHome.parent.insertBefore(ov, detailHome.next); }
+      document.body.classList.remove("detail-panel");
+      if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
+      return;
     }
+    if (detailModal) { modalClose("detail"); detailModal = false; }
+    if (ov.parentElement !== slot) slot.appendChild(ov);
+    document.body.classList.add("detail-panel");
+    // Auswahl: das offene Rezept, sonst das erste der Liste (ist es nicht mehr in der Liste, ebenfalls das erste)
+    const tiles = list ? [...list.querySelectorAll(".tile")] : [];
+    const key = detailRec ? recipeKey(detailRec) : null;
+    let sel = key ? tiles.find(t => t.dataset.key === key) : null;
+    if (!opened && !sel && tiles.length && tiles[0]._rec) {
+      detailRec = tiles[0]._rec; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
+      sel = tiles[0];
+    }
+    tiles.forEach(t => t.classList.toggle("sel", t === sel));
+    if (!detailRec || (!sel && !opened)) { ov.hidden = true; return; }
+    ov.hidden = false;
+    // Inhalt auffrischen (z. B. nach geänderten Vorgaben oder Favorit in der Liste) – nicht während im Panel getippt wird
+    if (!opened && !slot.contains(document.activeElement)) renderDetail();
+  }
+  // Steht das Panel unter der Liste (schmales Fenster), nach der Auswahl dorthin rollen
+  function revealPanel() {
+    const slot = document.getElementById("rz-panel"); if (!slot) return;
+    const r = slot.getBoundingClientRect();
+    if (r.top > window.innerHeight - 80 || r.bottom < 0) { try { slot.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -2037,8 +2113,8 @@
   }
   function closeDetail() {
     closeTodaySheet();
+    if (panelMode()) return; // Panel am Desktop bleibt stehen (es gibt dort kein Schließen)
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("detail-panel");
     if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,
@@ -2186,12 +2262,16 @@
     const est = dm.known < d.mahl;
     const pst = tot.filled ? proteinState(tot.eiweiss, eiweissZiel) : "ok";
     const stat = (cls, v, goal, title) => '<span class="dstat' + (cls ? " " + cls : "") + '"' + (title ? ' title="' + title + '"' : '') + '><b class="v">' + v + '</b> ' + goal + '</span>';
+    const kcalTitle = "Ziel " + fmt(d.kcalMahl * Math.max(1, tot.filled), 0) + " kcal für " + tot.filled + " geplante Mahlzeit" + (tot.filled === 1 ? "" : "en") + " · mindestens " + fmt(kcalMinZiel, 0);
+    const protTitle = pst === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : pst === "low" ? "unter dem Eiweiß-Ziel" : "Eiweiß";
+    const fluidLow = wp.total < d.fluidDay - 15;
+    const fluidTitle = "Mahlzeiten " + fmt(dm.sum, 0) + " ml" + (wp.per > 0 ? " + Wasser " + wp.n + " × " + fmt(wp.per, 0) + " ml" : "") + (est ? " · offene Mahlzeiten geschätzt" : "");
+    const ratioBad = tot.filled && ratioClass(ratioDay, d.ratio) !== "ok";
     const sums = '<div class="day-sum" id="day-sums">' +
-      stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", "Ziel " + fmt(d.kcalMahl * Math.max(1, tot.filled), 0) + " kcal für " + tot.filled + " geplante Mahlzeit" + (tot.filled === 1 ? "" : "en") + " · mindestens " + fmt(kcalMinZiel, 0)) +
-      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", pst === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : pst === "low" ? "unter dem Eiweiß-Ziel" : "Eiweiß") +
-      (d.fluidDay > 0 ? stat(wp.total < d.fluidDay - 15 ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml",
-        "Mahlzeiten " + fmt(dm.sum, 0) + " ml" + (wp.per > 0 ? " + Wasser " + wp.n + " × " + fmt(wp.per, 0) + " ml" : "") + (est ? " · offene Mahlzeiten geschätzt" : "")) : "") +
-      (tot.filled && ratioClass(ratioDay, d.ratio) !== "ok" ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
+      stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", kcalTitle) +
+      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
+      (d.fluidDay > 0 ? stat(fluidLow ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml", fluidTitle) : "") +
+      (ratioBad ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
       "</div>";
     const hints = [];
     if (d.fluidDay > 0 && d.wasserModus === "mahlzeit" && tot.filled && tot.fluid < fluidZiel - 3) hints.push(hintLine("warn", "Unter dem Flüssigkeitsziel – bei einem Rezept ist weniger Wasser gemerkt als sein Anteil."));
@@ -2217,8 +2297,26 @@
         (rest < -0.5 || second ? "▲ " : "") + escapeHtml(shortName) + ' heute ' + fmt(x.ml, 0) + ' ml · ' + (rest < -0.5 ? 'fehlen ' + fmt(-rest, 0) + ' ml' : 'Rest ' + fmt(rest, 0) + ' ml') + (second ? ' · 2. Packung' : '') + '</div>');
     });
     const notes = zeitplanNotes(d, times, dm, wp) + hints.join("");
-    box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) +
-      '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>' +
+    const slots = '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>';
+    if (isDesktop()) {
+      // Desktop: links Kopf (Überlinie „Heute“, Titel, Zeitraum, Textlinks), Uhrzeiten und Zeitleiste; rechts mitlaufend die
+      // Tagesbilanz – Werte in Mono mit dünnem Balken, darunter Verhältnis und Hinweise. Bei wenig Platz rutscht sie darunter.
+      const bar = (label, v, goal, part, warn, title) => '<div class="bil-row' + (warn ? " warn" : "") + '" title="' + title + '">' +
+        '<div class="bil-line"><span class="bil-l">' + label + '</span><b class="v">' + v + '</b><span class="bil-goal">' + goal + '</span></div>' +
+        '<div class="bil-bar"><i style="width:' + Math.round(Math.max(0, Math.min(1, part)) * 100) + '%"></i></div></div>';
+      const bars = '<div class="day-sum" id="day-sums">' +
+        bar("Kalorien", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", d.kcal > 0 ? tot.kcal / d.kcal : 0, kcalLow, kcalTitle) +
+        bar("Eiweiß", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", d.eiweiss > 0 ? tot.eiweiss / d.eiweiss : 0, pst !== "ok", protTitle) +
+        (d.fluidDay > 0 ? bar("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", "/ " + fmt(d.fluidDay, 0) + " ml", wp.total / d.fluidDay, fluidLow, fluidTitle) : "") + '</div>';
+      box.innerHTML = '<div class="zeitplan dk">' +
+        '<section class="dk-day"><header class="dk-head"><div class="dk-title"><span class="overline">Heute</span><h1>Tagesplan</h1></div>' + tools + '</header>' +
+          zeitplanSettings(times) + slots + '</section>' +
+        '<aside class="dk-bilanz"><div class="bil-box"><div class="bil-head"><span class="bil-title">Tagesbilanz</span><span class="bil-planned">' +
+          tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></div>' + bars +
+          '<div class="bil-line bil-ratio' + (ratioBad ? " warn" : "") + '"><span class="bil-l">Verhältnis</span><b class="v">' + (tot.filled ? fmtRxA(ratioDay, 2) : "—") + '</b>' +
+          '<span class="bil-goal">Ziel ' + fmtRx(d.ratio) + '</span></div></div>' +
+          (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</aside></div>';
+    } else box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) + slots +
       (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
     bindZeitplan(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
@@ -3651,6 +3749,8 @@
   }
   function bindCompose() {
     document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
+    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
@@ -3673,6 +3773,11 @@
     bindFilterSwipe();
     renderRezepte();
     showView(state.settings.view || "rezepte");
+    // Breite wechselt zwischen Handy und Desktop (> 820 px): Bereiche in der passenden Anordnung neu aufbauen
+    try {
+      const mq = window.matchMedia && window.matchMedia(DESKTOP_MQ);
+      if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+    } catch (e) {}
   }
 
   document.addEventListener("DOMContentLoaded", init);

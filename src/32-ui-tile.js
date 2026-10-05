@@ -14,7 +14,8 @@
     if (rec.quelle) tags.push("Diätologie");
     if (multi || rec.ketocal) tags.push(escapeHtml(basisLabel(rec)));
     if (rec.custom) tags.push("eigenes Rezept");
-    const tile = el("div", { class: "tile", tabindex: "0", role: "button" });
+    const tile = el("div", { class: "tile", tabindex: "0", role: "button", "data-key": recipeKey(rec) });
+    tile._rec = rec; // Desktop: erstes Rezept der Liste ins Panel
     tile.innerHTML =
       '<div class="tile-body"><span class="tile-name">' + escapeHtml(name) + '</span>' +
       '<span class="tile-stats">' + fmt(sum.kcal, 0) + " kcal · " + fmt(ml, 0) + " ml · " +

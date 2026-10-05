@@ -25,21 +25,49 @@
     renderDetail();
     const overlay = document.getElementById("detail-overlay");
     overlay.hidden = false;
-    applyDetailLayout();
+    if (panelMode()) { syncDetailPanel(true); revealPanel(); }
+    else if (!detailModal) { modalOpen("detail"); detailModal = true; }
   }
-  let detailModal = false, panelMq = null;
-  function isPanelLayout() { try { return !!(window.matchMedia && window.matchMedia("(min-width: 1100px)").matches); } catch (e) { return false; } }
-  // Breiter Bildschirm: Rezept als festes Panel rechts, die Liste bleibt daneben bedienbar (kein Einfrieren).
-  // Ändert sich die Fensterbreite bei offenem Rezept, wechselt die Darstellung mit.
-  function applyDetailLayout() {
-    if (document.getElementById("detail-overlay").hidden) return;
-    const panel = isPanelLayout();
-    document.body.classList.toggle("detail-panel", panel);
-    if (!panel && !detailModal) { modalOpen("detail"); detailModal = true; }
-    if (panel && detailModal) { modalClose("detail"); detailModal = false; }
-    if (!panelMq) {
-      try { panelMq = window.matchMedia("(min-width: 1100px)"); panelMq.addEventListener("change", applyDetailLayout); } catch (e) { panelMq = {}; }
+  /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
+     Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
+     am Handy als Fenster. */
+  let detailModal = false, detailHome = null;
+  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function syncDetailPanel(opened) {
+    const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
+    if (!ov || !slot) return;
+    if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
+    const list = document.getElementById("recipe-list");
+    if (!panelMode()) {
+      if (ov.parentElement === slot) { closeTodaySheet(); ov.hidden = true; detailHome.parent.insertBefore(ov, detailHome.next); }
+      document.body.classList.remove("detail-panel");
+      if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
+      return;
     }
+    if (detailModal) { modalClose("detail"); detailModal = false; }
+    if (ov.parentElement !== slot) slot.appendChild(ov);
+    document.body.classList.add("detail-panel");
+    // Auswahl: das offene Rezept, sonst das erste der Liste (ist es nicht mehr in der Liste, ebenfalls das erste)
+    const tiles = list ? [...list.querySelectorAll(".tile")] : [];
+    const key = detailRec ? recipeKey(detailRec) : null;
+    let sel = key ? tiles.find(t => t.dataset.key === key) : null;
+    if (!opened && !sel && tiles.length && tiles[0]._rec) {
+      detailRec = tiles[0]._rec; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
+      sel = tiles[0];
+    }
+    tiles.forEach(t => t.classList.toggle("sel", t === sel));
+    if (!detailRec || (!sel && !opened)) { ov.hidden = true; return; }
+    ov.hidden = false;
+    // Inhalt auffrischen (z. B. nach geänderten Vorgaben oder Favorit in der Liste) – nicht während im Panel getippt wird
+    if (!opened && !slot.contains(document.activeElement)) renderDetail();
+  }
+  // Steht das Panel unter der Liste (schmales Fenster), nach der Auswahl dorthin rollen
+  function revealPanel() {
+    const slot = document.getElementById("rz-panel"); if (!slot) return;
+    const r = slot.getBoundingClientRect();
+    if (r.top > window.innerHeight - 80 || r.bottom < 0) { try { slot.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
   }
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
@@ -692,8 +720,8 @@
   }
   function closeDetail() {
     closeTodaySheet();
+    if (panelMode()) return; // Panel am Desktop bleibt stehen (es gibt dort kein Schließen)
     document.getElementById("detail-overlay").hidden = true;
-    document.body.classList.remove("detail-panel");
     if (detailModal) { modalClose("detail"); detailModal = false; }
   }
   // Nach unten wischen schließt das Overlay – überall auf der Karte und auf jedem Blatt. Der Wisch zählt nur,

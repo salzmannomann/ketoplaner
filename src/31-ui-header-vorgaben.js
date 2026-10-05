@@ -9,9 +9,10 @@
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
+    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel nur im Bereich Rezepte
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
   }
@@ -45,6 +46,18 @@
     chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
     chip.dataset.full = l1 + (l2 ? "\n" + l2 : "");
     markChip();
+    renderSideRx(d);
+  }
+  // Desktop: Verordnung in der linken Spalte als Wertetabelle (Verhältnis groß in Mono, darunter die Tageswerte)
+  function renderSideRx(d) {
+    const box = document.getElementById("side-rx"); if (!box) return;
+    const row = (l, v) => '<div class="side-row"><span>' + l + '</span><b>' + escapeHtml(v) + '</b></div>';
+    box.innerHTML = '<div class="side-rx-head"><span class="overline">Verordnung vom Team</span>' +
+      '<button type="button" class="tlink" id="side-rx-edit" title="Verordnung in den Vorgaben ändern">Ändern</button></div>' +
+      '<div class="side-ratio"><b>' + escapeHtml(fmtRx(d.ratio)) + '</b><span>Fett : Eiweiß + KH</span></div>' +
+      row("Kalorien am Tag", fmt(d.kcal, 0) + " kcal") + row("je Mahlzeit", d.mahl + " × " + fmt(d.kcalMahl, 0)) +
+      row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
+      '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   /* ---------- Vorgaben: Liste mit Unterseiten ----------
@@ -55,13 +68,18 @@
   const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
-    vgPage = name || null;
+    // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
+    vgPage = name || (isDesktop() ? "verordnung" : null);
     const list = document.getElementById("vg-list"); if (!list) return;
     list.hidden = !!vgPage;
+    const cur = vgPage === "bedarf" ? "verordnung" : vgPage;
+    list.querySelectorAll(".vg-row[data-vg]").forEach(r => { r.classList.toggle("active", r.dataset.vg === cur); r.setAttribute("aria-current", r.dataset.vg === cur ? "page" : "false"); });
     document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
     document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
+  // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
+  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
@@ -256,7 +274,10 @@
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
     // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    // Desktop: „Ändern“ in der Verordnung der linken Spalte öffnet Vorgaben → Verordnung
+    const side = document.getElementById("side-rx");
+    if (side) side.addEventListener("click", (e) => { if (!e.target.closest("#side-rx-edit")) return; chipReturn = null; showView("vorgaben"); showVgPage("verordnung"); });
     // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => {

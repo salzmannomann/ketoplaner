@@ -16,9 +16,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=d2c05bfc" />
+  <link rel="stylesheet" href="styles.css?v=3163bf53" />
 </head>
 <body>
+  <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
+       Am Handy ausgeblendet; dort übernehmen Kopf und schwebende Navigation. -->
+  <aside class="side" id="side" aria-label="HamHam Keto">
+    <div class="side-brand"><img src="icon-192.png" alt="" width="40" height="40" /><div class="side-brand-txt"><span class="overline">Ketogene Diät</span><span class="side-name">HamHam Keto</span></div></div>
+    <nav class="side-nav" aria-label="Bereiche">
+      <button type="button" data-view="heute">Tagesplan</button>
+      <button type="button" data-view="rezepte">Rezepte</button>
+      <button type="button" data-view="vorgaben">Vorgaben</button>
+    </nav>
+    <div class="side-rx" id="side-rx"></div>
+    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Alle Daten bleiben auf diesem Gerät.</p>
+  </aside>
+
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
   <header class="topbar">
     <div class="brand"><span class="brand-kicker">HamHam Keto</span><h1 class="page-title" id="page-title">Rezepte</h1></div>
@@ -40,6 +53,15 @@
 
     <!-- ===== Rezepte ===== -->
     <section id="view-rezepte" class="view">
+      <!-- Desktop: links die Liste (rz-main), rechts das Rezept als festes Panel (rz-panel). Am Handy wirken beide
+           Hüllen nicht (display: contents bzw. ausgeblendet). -->
+      <div class="rz-layout"><div class="rz-main">
+      <header class="dk-head dk-only rz-head">
+        <div class="dk-title"><span class="overline" id="rz-count"></span><h1>Rezepte</h1></div>
+        <span class="rz-search-slot" id="rz-search-slot"></span>
+        <span class="rz-toggles" id="rz-toggles"></span>
+        <button type="button" class="tlink" id="compose-link" title="Eigenes Rezept zusammenstellen">+ Eigenes Rezept</button>
+      </header>
       <!-- Anzahl passender Rezepte und Sortierung; darunter Suche (Unterstrich) mit „+“ für ein eigenes Rezept,
            dann die wischbaren Gruppen-Chips und die Schalter „nur Diätologie“ / „ohne KetoCal“ -->
       <div class="list-meta">
@@ -60,11 +82,13 @@
       <div class="listbar"><div id="filter-bar" class="chips cat" aria-label="Gruppen und Filter"></div></div>
       <!-- Bühne fürs Blättern: beim Wischen rutscht die Nachbargruppe als zweite Fläche herein -->
       <div id="list-stage" class="list-stage"><div id="recipe-list"></div></div>
+      </div><aside class="rz-panel dk-only" id="rz-panel" aria-label="Rezept"></aside></div>
     </section>
 
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
       <!-- Liste: Gruppen „Ernährung“ und „App“, jede Zeile öffnet eine Unterseite -->
+      <header class="dk-head dk-only vg-dkhead"><div class="dk-title"><span class="overline">Einstellungen</span><h1>Vorgaben</h1></div></header>
       <div id="vg-list" class="vg-list">
         <div class="overline vg-group">Ernährung</div>
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -353,7 +377,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=70ce9517"></script>
+  <script src="app.js?v=4c41d783"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
