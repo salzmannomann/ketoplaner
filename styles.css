@@ -1086,6 +1086,11 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zeitplan.tight .zp-row.water .zp-wmin { font-size: 10.5px; }
 .zeitplan.tight .zp-list .zp-row small.zp-ing { font-size: 11px; line-height: 1.25; }
 .zeitplan.tight .note { margin-top: 4px; }
+/* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
+#heute-content .zeitplan .note { margin: 5px 0 0; }
+#heute-content .zeitplan .note + .note { margin-top: 3px; }
+#heute-content .zeitplan.tight .note { margin-top: 4px; }
+#heute-content .zeitplan.tight .note + .note { margin-top: 2px; }
 .zeitplan.tight .note.pack { padding: 4px 8px; font-size: 11.5px; }
 :root .zeitplan.tight .zp-list .zp-row.water, :root .zeitplan.tight .zp-list .zp-row.sleep { min-height: 0; }
 .zeitplan.tight .zp-row.water > *, .zeitplan.tight .zp-row.sleep > * { line-height: 1.25; }
