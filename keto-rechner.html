@@ -637,6 +637,11 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .sync-join-in { display: flex; align-items: center; gap: 10px; }
 .sync-join-in .line-input { flex: 1; min-width: 0; font: 600 16px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
 .btn-row [hidden] { display: none; }
+/* Knöpfe einer Reihe gleich hoch (Primär 48 px, Sekundär sonst 44 px) */
+.vg-sec .btn-row .btn { min-height: 48px; }
+/* Backup als Text: Unterstrich-Feld wie die übrigen Eingaben statt Rahmen-Kasten */
+#export-text { padding: 8px 0; border: 0; border-top: 1px dotted var(--dot); border-bottom: 2px solid var(--ink); border-radius: 0; }
+#export-text:focus { outline: none; border-bottom-color: var(--blue); }
 /* Bedarf schätzen: Skala mit drei Einordnungen (Linien statt Farbe) */
 .bd-row label.vo-row { cursor: pointer; }
 .bd-age { font-family: var(--f-mono); }
@@ -5431,9 +5436,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!window.document) return; // Fenster schon geschlossen (später eintreffende Antwort)
     const st = document.getElementById("sync-status"); if (!st) return;
     const on = syncOn(), m = syncMeta;
-    st.className = "note " + (syncError ? "warn" : on ? "tip" : "info");
+    // Grau: Zustand; Rot nur, wenn der Abgleich nicht geht (Gerät kann es nicht, Fehler beim letzten Abgleich)
+    st.className = "note " + (!syncSupport() || syncError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !syncSupport() ? "Dieses Gerät bzw. dieser Browser kann nicht verschlüsselt abgleichen."
-      : syncError ? escapeHtml(syncError)
+      : syncError ? "Abgleich fehlgeschlagen – " + escapeHtml(syncError)
       : on ? "<strong>Eingeschaltet</strong>" + (m.at ? " · zuletzt abgeglichen " + new Date(m.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet – alles bleibt nur auf diesem Gerät.";
     const show = (id, v) => { const el = document.getElementById(id); if (el) el.hidden = !v; };

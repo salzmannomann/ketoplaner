@@ -205,9 +205,10 @@
     if (!window.document) return; // Fenster schon geschlossen (später eintreffende Antwort)
     const st = document.getElementById("sync-status"); if (!st) return;
     const on = syncOn(), m = syncMeta;
-    st.className = "note " + (syncError ? "warn" : on ? "tip" : "info");
+    // Grau: Zustand; Rot nur, wenn der Abgleich nicht geht (Gerät kann es nicht, Fehler beim letzten Abgleich)
+    st.className = "note " + (!syncSupport() || syncError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !syncSupport() ? "Dieses Gerät bzw. dieser Browser kann nicht verschlüsselt abgleichen."
-      : syncError ? escapeHtml(syncError)
+      : syncError ? "Abgleich fehlgeschlagen – " + escapeHtml(syncError)
       : on ? "<strong>Eingeschaltet</strong>" + (m.at ? " · zuletzt abgeglichen " + new Date(m.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet – alles bleibt nur auf diesem Gerät.";
     const show = (id, v) => { const el = document.getElementById(id); if (el) el.hidden = !v; };
