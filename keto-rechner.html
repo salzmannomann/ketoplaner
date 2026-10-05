@@ -1148,8 +1148,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Erinnerungen (Vorgaben) */
 .push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
-.push-opts .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
-.push-opts .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
+.push-act .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
+.push-act .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
 .push-url-lbl { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .push-url-lbl input { font-size: 14px; }
 .push-opts label.check { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: 14px; color: var(--ink); }
@@ -1290,6 +1290,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 }
 #mct-more .settings-grid { margin-bottom: 0; }
 #mct-more .settings-grid > div { padding-bottom: 10px; }
+/* Erinnerungen: Zeitpunkt und Knöpfe nebeneinander */
+.push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 4px 0 2px; }
+.push-act .btn-row { margin: 0; }
+@media (max-width: 560px) { .push-act .btn-row { flex: 1 1 100%; } }
 
 </style>
 </head>
@@ -1542,6 +1546,9 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <div class="push-opts">
           <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
           <label class="check"><input type="checkbox" id="push-water" /> 💧 Wassergaben</label>
+        </div>
+        <!-- Zeitpunkt und Einschalten in einer Zeile (am Handy: Knopf darunter über die ganze Breite) -->
+        <div class="push-act">
           <label class="push-lead">Zeitpunkt
             <select id="push-lead">
               <option value="0">pünktlich</option>
@@ -1550,10 +1557,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
               <option value="15">15 min vorher</option>
             </select>
           </label>
-        </div>
-        <div class="btn-row">
-          <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
-          <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+          <div class="btn-row">
+            <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
+            <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+          </div>
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Wie funktioniert das?</summary>

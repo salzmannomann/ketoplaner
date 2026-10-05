@@ -1130,8 +1130,8 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Erinnerungen (Vorgaben) */
 .push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
-.push-opts .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
-.push-opts .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
+.push-act .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
+.push-act .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
 .push-url-lbl { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .push-url-lbl input { font-size: 14px; }
 .push-opts label.check { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: 14px; color: var(--ink); }
@@ -1272,3 +1272,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 }
 #mct-more .settings-grid { margin-bottom: 0; }
 #mct-more .settings-grid > div { padding-bottom: 10px; }
+/* Erinnerungen: Zeitpunkt und Knöpfe nebeneinander */
+.push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 4px 0 2px; }
+.push-act .btn-row { margin: 0; }
+@media (max-width: 560px) { .push-act .btn-row { flex: 1 1 100%; } }

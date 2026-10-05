@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=3c716dfb" />
+  <link rel="stylesheet" href="styles.css?v=ae1ccd39" />
 </head>
 <body>
   <header class="topbar">
@@ -266,6 +266,9 @@
         <div class="push-opts">
           <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
           <label class="check"><input type="checkbox" id="push-water" /> 💧 Wassergaben</label>
+        </div>
+        <!-- Zeitpunkt und Einschalten in einer Zeile (am Handy: Knopf darunter über die ganze Breite) -->
+        <div class="push-act">
           <label class="push-lead">Zeitpunkt
             <select id="push-lead">
               <option value="0">pünktlich</option>
@@ -274,10 +277,10 @@
               <option value="15">15 min vorher</option>
             </select>
           </label>
-        </div>
-        <div class="btn-row">
-          <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
-          <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+          <div class="btn-row">
+            <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
+            <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+          </div>
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Wie funktioniert das?</summary>
