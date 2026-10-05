@@ -297,6 +297,6 @@
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
-      "<div class='kz-cut'><span>✂ hier teilen</span></div></div></body></html>";
+      "<div class='kz-cut'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }

@@ -2290,7 +2290,7 @@
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
-      "<div class='kz-cut'><span>✂ hier teilen</span></div></div></body></html>";
+      "<div class='kz-cut'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }
 
@@ -2679,7 +2679,6 @@
     ".kz-page{position:relative;width:297mm;height:209mm;overflow:hidden}" +
     ".kz{position:absolute;left:0;top:0;width:148.5mm;height:160mm;padding:10mm 10mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
     ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
-    ".kz-cut span{position:absolute;top:5mm;left:2mm;font-size:8pt;color:#8a969c;white-space:nowrap}" +
     ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.8mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
@@ -2901,7 +2900,6 @@
     // Teilungslinie in der Mitte der Seite
     doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
     doc.line(CW, 0, CW, 210); doc.setLineDashPattern([], 0);
-    font(8, false, [138, 150, 156]); doc.text("hier teilen", CW + 2, 8);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {

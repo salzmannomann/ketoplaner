@@ -113,7 +113,6 @@
     // Teilungslinie in der Mitte der Seite
     doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
     doc.line(CW, 0, CW, 210); doc.setLineDashPattern([], 0);
-    font(8, false, [138, 150, 156]); doc.text("hier teilen", CW + 2, 8);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {
