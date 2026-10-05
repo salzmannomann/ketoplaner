@@ -200,7 +200,7 @@
   function rebuildFoodIndex() {
     foodIndex = {};
     FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
-    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (⚙️ Einstellungen).
+    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
     // "Öl = 100 % Fett" ist bewusst NICHT hart verdrahtet.
@@ -2879,7 +2879,7 @@
      Der Ausdruck öffnet sich als Vorschau in der App (kein neues Fenster – in der installierten iPhone-App gäbe es
      dort weder Zurück noch zuverlässig einen Druckdialog). Inhalt und Stil liegen in einem Shadow-DOM, damit die
      Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css).
-     „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
+     „Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
   function openPrintView(html, file) {
     const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
@@ -2896,10 +2896,10 @@
     if (!ov) {
       ov = document.createElement("div");
       ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
-      ov.innerHTML = '<div class="print-bar"><button type="button" class="btn secondary" id="print-back">‹ Zurück</button>' +
+      ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
-        '<button type="button" class="btn secondary" id="print-share">📤 Teilen</button>' +
-        '<button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
+        '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
+        '<button type="button" class="btn" id="print-go">Drucken</button></div>' +
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
@@ -3370,13 +3370,13 @@
     forPrint = forPrint === true;
     let doc = null;
     try { doc = buildPdfFromHtml(printCurrent.html); } catch (e) { doc = null; }
-    if (!doc) { showToast(forPrint ? "📄 PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
+    if (!doc) { showToast(forPrint ? "PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
     const name = safeFileName(printCurrent.file) + ".pdf";
     const blob = doc.output("blob");
     let file = null;
     try { file = new File([blob], name, { type: "application/pdf" }); } catch (e) {}
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      if (forPrint) showToast("🖨️ Im Teilen-Menü auf „Drucken“ tippen.");
+      if (forPrint) showToast("Im Teilen-Menü auf „Drucken“ tippen.");
       try { await navigator.share({ files: [file], title: printCurrent.title }); } catch (e) { /* abgebrochen */ }
       return;
     }
@@ -3385,8 +3385,8 @@
       const url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      showToast("📄 PDF gespeichert: " + escapeHtml(name));
-    } catch (e) { showToast("📄 PDF konnte nicht gespeichert werden."); }
+      showToast("PDF gespeichert: " + escapeHtml(name));
+    } catch (e) { showToast("PDF konnte nicht gespeichert werden."); }
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */

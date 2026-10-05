@@ -191,11 +191,7 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 /* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
 
 /* Druckvorschau in der App: Leiste mit Zurück und Drucken, darunter das weiße Blatt. Beim Drucken nur das Blatt. */
-.print-overlay { position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: #e9edf0; }
 .print-overlay[hidden] { display: none; }
-.print-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; padding-top: calc(10px + env(safe-area-inset-top)); background: var(--panel); border-bottom: 1px solid var(--line); }
-.print-bar .print-title { flex: 1; min-width: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
-.print-bar .btn { padding: 8px 14px; font-size: 14px; white-space: nowrap; }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 .print-sheet { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1f2933; padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
 /* Randlose Vorlage (Küchenzettel): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst; Querformat breiter */
@@ -212,12 +208,6 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
   body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; zoom: 1 !important; }
 }
 /* Vorschau-Leiste: am Handy ohne Titel, damit Zurück, Teilen und Drucken Platz haben */
-@media (max-width: 560px) {
-  .print-bar { gap: 6px; padding-left: 10px; padding-right: 10px; }
-  .print-bar .print-title { display: none; }
-  .print-bar #print-back { margin-right: auto; }
-  .print-bar .btn { padding: 8px 11px; font-size: 13.5px; }
-}
 /* Vorschau zoombar: mit einem Finger verschieben, das Zwei-Finger-Zoomen übernimmt die App (Seite selbst bleibt fix) */
 .print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
 .print-overlay.zoomed .print-sheet { margin: 0; }
@@ -764,6 +754,13 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top)); }
 body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 @media (max-width: 380px) { .num-input { width: 80px; } .vg-title h2 { font-size: 28px; } }
 .vg-sec-title .hint { font-weight: 400; }
+
+/* Druckvorschau: Papier-Leiste mit Zurück, Teilen und Drucken; darunter das weiße Blatt (Vorlage unverändert) */
+.print-overlay { position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: var(--paper-2); }
+.print-bar { display: flex; align-items: center; gap: 10px; padding: 8px 20px; padding-top: calc(8px + env(safe-area-inset-top)); background: var(--paper); border-bottom: 2px solid var(--ink); }
+.print-bar #print-back { margin-left: -6px; font-size: 15px; text-decoration: none; }
+.print-bar .print-title { flex: 1; min-width: 0; font: 600 19px var(--f-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
+@media (max-width: 560px) { .print-bar { gap: 8px; padding-left: 16px; padding-right: 16px; } .print-bar .print-title { display: none; } .print-bar #print-back { margin-right: auto; } .print-bar .btn { padding: 0 12px; } }
 
 </style>
 </head>
@@ -2415,7 +2412,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function rebuildFoodIndex() {
     foodIndex = {};
     FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
-    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (⚙️ Einstellungen).
+    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
     // "Öl = 100 % Fett" ist bewusst NICHT hart verdrahtet.
@@ -5094,7 +5091,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      Der Ausdruck öffnet sich als Vorschau in der App (kein neues Fenster – in der installierten iPhone-App gäbe es
      dort weder Zurück noch zuverlässig einen Druckdialog). Inhalt und Stil liegen in einem Shadow-DOM, damit die
      Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css).
-     „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
+     „Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
   function openPrintView(html, file) {
     const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
@@ -5111,10 +5108,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!ov) {
       ov = document.createElement("div");
       ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
-      ov.innerHTML = '<div class="print-bar"><button type="button" class="btn secondary" id="print-back">‹ Zurück</button>' +
+      ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
-        '<button type="button" class="btn secondary" id="print-share">📤 Teilen</button>' +
-        '<button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
+        '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
+        '<button type="button" class="btn" id="print-go">Drucken</button></div>' +
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
@@ -5585,13 +5582,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     forPrint = forPrint === true;
     let doc = null;
     try { doc = buildPdfFromHtml(printCurrent.html); } catch (e) { doc = null; }
-    if (!doc) { showToast(forPrint ? "📄 PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
+    if (!doc) { showToast(forPrint ? "PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
     const name = safeFileName(printCurrent.file) + ".pdf";
     const blob = doc.output("blob");
     let file = null;
     try { file = new File([blob], name, { type: "application/pdf" }); } catch (e) {}
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      if (forPrint) showToast("🖨️ Im Teilen-Menü auf „Drucken“ tippen.");
+      if (forPrint) showToast("Im Teilen-Menü auf „Drucken“ tippen.");
       try { await navigator.share({ files: [file], title: printCurrent.title }); } catch (e) { /* abgebrochen */ }
       return;
     }
@@ -5600,8 +5597,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      showToast("📄 PDF gespeichert: " + escapeHtml(name));
-    } catch (e) { showToast("📄 PDF konnte nicht gespeichert werden."); }
+      showToast("PDF gespeichert: " + escapeHtml(name));
+    } catch (e) { showToast("PDF konnte nicht gespeichert werden."); }
   }
 
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
