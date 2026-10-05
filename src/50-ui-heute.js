@@ -266,27 +266,32 @@
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
   // Tagesplan-Ausdruck als Küchenzettel: A5 hochkant auf der linken Hälfte einer quer gedruckten A4-Seite, unten 5 cm frei
-  // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Groß Uhrzeit, Rezept und Menge; klein die Dauer, darunter
-  // die Zutaten je Portion zum Abwiegen (zwei Spalten, Gramm fett). Die Schrift passt sich an (fitKitchenCard).
+  // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Oben der Zeitplan (Uhrzeit, Rezept bzw. Wasser, Dauer,
+  // Menge – je eine Zeile), darunter jedes Rezept nur einmal mit seinen Zutaten je Portion zum Abwiegen (zwei Spalten,
+  // Gramm fett) und den Uhrzeiten, zu denen es gegeben wird. Die Schrift passt sich an (fitKitchenCard).
   function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
-    const rows = [];
+    const rows = [], groups = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      // Groß steht der Rezeptname (statt „Mahlzeit n“), darunter die Sondierdauer bzw. der Hinweis
-      const w = m.rec ? escapeHtml(m.rec.name) : m.bad ? escapeHtml(m.bad.name) : "Rezept offen";
-      // Dauer klein unter der Uhrzeit (spart eine Zeile); Hinweise ohne Rezept stehen unter dem Namen
-      const x = m.rec ? "<div class='x d'>" + sondierMin(m.vol) + " min</div>" : "<div class='x'><i>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i></div>";
-      const z = f ? f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food))
-        .map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") : "";
-      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span>" +
-        "<span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span>" + x + (z ? "<div class='z'>" + z + "</div>" : "") + "</div>" });
+      const w = m.rec ? "<span class='n'>" + escapeHtml(m.rec.name) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
+        : "<span class='n'>" + (m.bad ? escapeHtml(m.bad.name) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
+      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span><span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span></div>" });
+      if (!f) return;
+      // gleiches Rezept mit gleichen Mengen nur einmal, mit allen Uhrzeiten
+      const items = f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food));
+      const sig = f.rec.name + "|" + items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
+      const g = groups.find(x => x.sig === sig);
+      if (g) g.times.push(t); else groups.push({ sig, name: f.rec.name, items, times: [t] });
     });
-    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'>Wasser" + (g.kind === "abend" ? " <i>vor dem Schlafen</i>" : "") + "</span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
-    if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'>Schlafen</span><span class='m'></span></div>" });
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
+    if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
+    const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
+      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") + "</div>" +
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") +
+      (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
       "<div class='kz-cut'><span>✂ hier teilen</span></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }

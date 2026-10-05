@@ -19,74 +19,90 @@
     throw new Error("AutoTable fehlt");
   }
   // Küchenzettel: A4 quer, linke Hälfte = A5 hochkant (148,5 × 210 mm) mit Teilungslinie in der Mitte, unten 5 cm frei
-  // zum Einstecken; gleiche Gliederung wie die Vorschau. Die Schrift beginnt bei 150 % und wird schrittweise kleiner,
-  // bis alles hineinpasst.
+  // zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
+  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst.
   function kitchenCardPdf(doc, kz) {
-    const X = 0, Y = 0, CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5;
-    const L = X + PX, R = X + CW - PX;
+    const CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5, ZS = 11.2, ZGAP = 5;
+    const L = PX, R = CW - PX;
+    const INK = [31, 41, 51], MUTED = [85, 85, 85], GREEN = [47, 133, 90], BLUE = [36, 85, 127], GREY = [122, 133, 139];
     const lineH = (size) => size * 0.3528 * 1.2;
-    const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || [31, 41, 51]); };
+    const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
     const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
-    const head = kz.querySelector(".kz-h");
     const rows = [...kz.querySelectorAll(".r")].map(r => ({
       kind: r.classList.contains("wa") ? "wa" : r.classList.contains("sl") ? "sl" : "me",
-      t: txt(r, ".t"), w: txt(r, ".w"), m: txt(r, ".m"), x: txt(r, ".x:not(.d)"), d: txt(r, ".x.d"),
-      z: [...r.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
+      t: txt(r, ".t"), n: txt(r, ".n"), d: txt(r, ".d"), m: txt(r, ".m"),
     }));
-    // Zutaten in zwei Spalten: links der Name (darf umbrechen), rechts fett die Gramm
-    const ZS = 10, ZGAP = 4;
-    const ingRows = (z, width, s) => {
-      const cw = (width - ZGAP) / 2, out = [];
-      for (let k = 0; k < z.length; k += 2) {
-        const cells = z.slice(k, k + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
-        out.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)), cw });
-      }
-      return out;
-    };
+    const recs = [...kz.querySelectorAll(".rb")].map(b => ({
+      n: txt(b, ".rn b"), times: txt(b, ".rn i"),
+      z: [...b.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
+    }));
     const layout = (s, draw) => {
-      // Uhrzeit-Spalte wächst mit der Schrift
-      const TW = 15.5 * s, IW = R - L - TW - GAP;
-      let y = Y + PY;
+      const TW = 15.5 * s;
+      let y = PY;
       font(13 * s, true); const hh = lineH(13 * s);
-      if (draw) doc.text(txt(head, "b"), L, y + hh * 0.8);
+      if (draw) doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
       y += hh + 1.2;
-      if (draw) { doc.setDrawColor(47, 133, 90); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
+      if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
       y += 0.8;
-      rows.forEach(r => {
-        const big = r.kind === "me" ? 14.5 : r.kind === "wa" ? 12.5 : 10, mid = r.kind === "me" ? 13 : r.kind === "wa" ? 11 : 10;
-        const h1 = lineH(big);
-        // Rezeptname darf umbrechen (Platz bis zur Mengenangabe rechts)
-        font(big * s, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
-        font(mid * s, r.kind === "me"); const wl = doc.splitTextToSize(r.w, R - L - TW - GAP - mw);
-        const wx = (wl.length - 1) * lineH(mid * s);
-        font(8.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
-        const zr = r.z.length ? ingRows(r.z, IW, s) : [], zlh = lineH(ZS * s) * 1.05;
-        const zh = zr.reduce((a, q) => a + q.n * zlh + 0.3, 0);
-        const h = 1.2 + h1 * s + wx + (xl.length ? 0.3 + xl.length * lineH(8.5 * s) : 0) + (zr.length ? 0.8 + zh : 0) + 1.2;
+      // Zeitplan: Uhrzeit · Rezept bzw. Wasser (+ Dauer klein) · Menge
+      rows.forEach((r, k) => {
+        const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 11.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 10.2 : 10) * s, ds = 8.5 * s;
+        const col = r.kind === "wa" ? BLUE : r.kind === "sl" ? GREY : INK;
+        font(big, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
+        const avail = R - L - TW - GAP - mw;
+        font(nm, r.kind === "me"); const nW = doc.getTextWidth(r.n);
+        font(ds, false); const dW = r.d ? doc.getTextWidth(" " + r.d) : 0;
+        // Name und Dauer in einer Zeile, sonst Dauer darunter; sehr lange Namen brechen um
+        font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail);
+        const sameLine = nl.length === 1 && nW + dW <= avail;
+        const h = 1 + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 1;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
-          const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
-          let yy = y + 1.2 + h1 * s * 0.8;
-          font(big * s, r.kind !== "sl", col); doc.text(r.t, L, yy);
-          font(mid * s, r.kind === "me", col); wl.forEach((l, k) => doc.text(l, L + TW + GAP, yy + k * lineH(mid * s)));
-          if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
-          yy = y + 1.2 + h1 * s + wx;
-          if (r.d) { font(8.5 * s, false, [85, 85, 85]); doc.text(r.d, L, yy + 1 + lineH(8.5 * s) * 0.78); }
-          if (xl.length) { font(8.5 * s, false, [85, 85, 85]); yy += 0.3; xl.forEach(l => { yy += lineH(8.5 * s); doc.text(l, L + TW + GAP, yy - lineH(8.5 * s) * 0.22); }); }
-          if (zr.length) {
-            yy += 0.8;
-            zr.forEach(q => {
-              q.cells.forEach((c, ci) => {
-                const x0 = L + TW + GAP + ci * (q.cw + ZGAP), x1 = x0 + q.cw;
-                font(ZS * s, false, [31, 41, 51]); c.lines.forEach((l, li) => doc.text(l, x0, yy + (li + 0.78) * zlh));
-                font(ZS * s, true, [31, 41, 51]); doc.text(c.it.g, x1, yy + (c.lines.length - 1 + 0.78) * zlh, { align: "right" });
-                doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
-                doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
-              });
-              yy += q.n * zlh + 0.3;
-            });
+          const base = y + 1 + lineH(big) * 0.8;
+          font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
+          font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, L + TW + GAP, base + i * lineH(nm)));
+          if (r.d) {
+            font(ds, false, r.kind === "wa" ? BLUE : MUTED);
+            if (sameLine) doc.text(r.d, L + TW + GAP + nW + doc.getTextWidth(" "), base);
+            else doc.text(r.d, L + TW + GAP, base + (nl.length - 1) * lineH(nm) + lineH(ds));
           }
-          if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
+          if (r.m) { font(big, true, col); doc.text(r.m, R, base, { align: "right" }); }
+          if (r.kind !== "sl" && k < rows.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
+        }
+        y += h;
+      });
+      if (!recs.length) return y;
+      // Zutaten je Portion: jedes Rezept einmal
+      y += 3.5;
+      font(10.5 * s, true, GREEN); const sh = lineH(10.5 * s);
+      if (draw) { doc.text(pdfText(txt(kz, ".kz-s")), L, y + sh * 0.8); doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.4); doc.line(L, y + sh + 0.8, R, y + sh + 0.8); }
+      y += sh + 1.3;
+      const zlh = lineH(ZS * s) * 1.05, cw = (R - L - 2 - ZGAP) / 2;
+      recs.forEach((rc, k) => {
+        const tn = 11.5 * s, ti = 8.5 * s;
+        const pairs = [];
+        for (let i = 0; i < rc.z.length; i += 2) {
+          const cells = rc.z.slice(i, i + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
+          pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
+        }
+        const h = 1.2 + lineH(tn) + 0.6 + pairs.reduce((a, q) => a + q.n * zlh + 0.3, 0) + 1.2;
+        if (draw) {
+          let yy = y + 1.2 + lineH(tn) * 0.8;
+          font(tn, true); doc.text(rc.n, L, yy);
+          const x2 = L + doc.getTextWidth(rc.n) + 2;
+          font(ti, false, MUTED); doc.text(rc.times, x2, yy);
+          yy = y + 1.2 + lineH(tn) + 0.6;
+          pairs.forEach(q => {
+            q.cells.forEach((c, ci) => {
+              const x0 = L + 1 + ci * (cw + ZGAP), x1 = x0 + cw;
+              font(ZS * s, false); c.lines.forEach((l, li) => doc.text(l, x0, yy + (li + 0.78) * zlh));
+              font(ZS * s, true); doc.text(c.it.g, x1, yy + (c.lines.length - 1 + 0.78) * zlh, { align: "right" });
+              doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
+              doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
+            });
+            yy += q.n * zlh + 0.3;
+          });
+          if (k < recs.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
         y += h;
       });
@@ -96,8 +112,8 @@
     while (layout(s, false) > BOTTOM && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
     // Teilungslinie in der Mitte der Seite
     doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
-    doc.line(X + CW, 0, X + CW, 210); doc.setLineDashPattern([], 0);
-    font(8, false, [138, 150, 156]); doc.text("hier teilen", X + CW + 2, 8);
+    doc.line(CW, 0, CW, 210); doc.setLineDashPattern([], 0);
+    font(8, false, [138, 150, 156]); doc.text("hier teilen", CW + 2, 8);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {

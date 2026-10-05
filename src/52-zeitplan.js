@@ -14,9 +14,10 @@
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
   // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
-  // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen und bekommt keine Zeitangabe.
-  const SONDIER_ML_MIN = 5;
+  // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen: etwa 15 ml pro Minute, mindestens 5 Minuten.
+  const SONDIER_ML_MIN = 5, WASSER_ML_MIN = 15;
   function sondierMin(vol) { return Math.max(10, round5(vol / SONDIER_ML_MIN)); }
+  function wasserMin(vol) { return Math.max(5, round5(vol / WASSER_ML_MIN)); }
   // Eingestellte Uhrzeiten (leer = Vorgabe; Schlafen darf leer sein = keine Abendgabe).
   function zeitSettings() {
     const s = state.settings;
@@ -108,7 +109,7 @@
     // Gibt es eine Abendgabe, steht das Schlafen rechts in derselben Zeile (spart eine Zeile).
     const sleepInline = wp.per > 0 && times.schlaf != null && times.gifts.some(g => g.kind === "abend");
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span><span class="zp-ic">💧</span>' +
-      '<span class="zp-txt"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong></span>' +
+      '<span class="zp-txt" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong> <small class="zp-wmin">· ' + wasserMin(wp.per) + ' min</small></span>' +
       (g.kind === "abend" && sleepInline ? '<span class="zp-sleep">🌙 Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') + '</div>' }));
     if (times.schlaf != null && !sleepInline) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-ic">🌙</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;

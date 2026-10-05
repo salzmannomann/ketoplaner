@@ -181,10 +181,10 @@ der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü
 Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Kopf und Datum (er gilt meist mehrere Tage):
 **A5 hochkant** auf der linken Hälfte einer **quer gedruckten A4-Seite**, gestrichelte Teilungslinie in der
 Mitte; **unten bleiben 5 cm frei** zum Einstecken in eine Hülle. Am iPhone geht dieser Ausdruck immer über das
-PDF (Safari übernimmt das Querformat nicht sicher). Groß stehen
-**Uhrzeit, Rezeptname (statt „Mahlzeit 1“) bzw. Wasser und die Menge in ml**, die Sondierdauer klein unter
-der Uhrzeit, darunter gut lesbar die **Zutaten je Portion zum Abwiegen** in zwei Spalten (Name links, Gramm
-fett rechts, Öl am Ende); Wassergaben blau, zuletzt „Schlafen“. Die Schrift ist so groß wie
+PDF (Safari übernimmt das Querformat nicht sicher). Oben der **Zeitplan**, je Eintrag eine Zeile: **Uhrzeit,
+Rezeptname (statt „Mahlzeit 1“) bzw. Wasser, klein die Dauer, rechts die Menge in ml**; Wassergaben blau, zuletzt
+„Schlafen“. Darunter **„Zutaten je Portion“: jedes Rezept nur einmal** mit den Uhrzeiten, zu denen es gegeben
+wird, und den Zutaten zum Abwiegen in zwei Spalten (Name links, Gramm fett rechts, Öl am Ende). Die Schrift ist so groß wie
 möglich: Vorschau und PDF beginnen bei 150 % und verkleinern, bis alles auf die Karte passt (mindestens 60 %).
 Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
@@ -259,8 +259,9 @@ niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 (Mahlzeiten plus Wassergaben, „≈" solange Mahlzeiten offen sind).
 
 In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondierdauer**
-(etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser ohne
-Zeitangabe), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
+(etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser schneller,
+etwa 15 ml pro Minute, mindestens 5 Minuten, z. B. „75 ml Wasser · 5 min“ – auch auf dem Zettel und in
+der Erinnerung), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
 Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
 Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile (mit **Rückgängig**), ein Tipp
 öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte

@@ -676,7 +676,10 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ g$/, ingTxt);
   assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
   assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
-  assert.equal(hc.querySelectorAll(".zp-row.water small").length, 0, "Wassergaben einzeilig");
+  // Wassergaben einzeilig, mit Dauer in derselben Zeile (etwa 15 ml pro Minute, mindestens 5 Minuten)
+  const wtxt = hc.querySelector(".zp-row.water .zp-txt");
+  assert.match(wtxt.textContent, /^\d+ ml Wasser · \d+ min$/, wtxt.textContent);
+  assert.equal(hc.querySelectorAll(".zp-row.water .zp-txt br, .zp-row.water div").length, 0, "Wassergaben einzeilig");
   const tot = numDe([...$(w, "day-sums").querySelectorAll(".dstat")].find(x => /💧/.test(x.textContent)).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
   assert.equal(hc.querySelectorAll(".zeitplan .note.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
@@ -990,10 +993,15 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   assert.equal(kz.querySelector(".kz-h").textContent, "Tagesplan", "kein Datum");
   assert.ok(root.querySelector(".kz-cut"), "Teilungslinie");
   const first = kz.querySelector(".r.me");
-  assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
+  assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w .n").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
   assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
-  assert.match(first.querySelector(".x.d").textContent, /^\d+ min$/, "Dauer unter der Uhrzeit");
-  const z1 = [...first.querySelectorAll(".z .i")].map(i => i.querySelector("span").textContent + " | " + i.querySelector("b").textContent.replace(/\s/g, " "));
+  assert.match(first.querySelector(".w .d").textContent, /^\d+ min$/, "Dauer beim Rezept");
+  const wa = kz.querySelector(".r.wa"); assert.match(wa.querySelector(".d").textContent, /^\d+ min$/, "Dauer auch beim Wasser");
+  // Zutaten: jedes Rezept einmal, mit allen Uhrzeiten
+  const rbs = [...kz.querySelectorAll(".rb")];
+  assert.equal(rbs.length, 1, "4 × Compleat & KetoCal → ein Rezeptblock");
+  assert.match(rbs[0].querySelector(".rn").textContent, /^Compleat & KetoCal 7:00 · \d+:\d\d · \d+:\d\d · \d+:\d\d$/);
+  const z1 = [...rbs[0].querySelectorAll(".z .i")].map(i => i.querySelector("span").textContent + " | " + i.querySelector("b").textContent.replace(/\s/g, " "));
   assert.ok(/^Ketocal 3:1 \| [\d,]+ g$/.test(z1[0]) && /^Compleat \| [\d,]+ g$/.test(z1[1]), z1.join(", "));
   assert.ok(kz.querySelectorAll(".r.wa").length >= 3, "Wassergaben"); assert.ok(kz.querySelector(".r.sl"), "Schlafen");
   assert.ok(!root.querySelector("table") && !/Tagessummen|Verordnung/.test(root.textContent), "keine A4-Tabellen und Summen mehr");
@@ -1030,9 +1038,11 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   const ps = w.document.getElementById("print-sheet").shadowRoot;
   const meals = [...ps.querySelectorAll(".r.me")];
   assert.equal(meals.length, 4);
-  assert.equal(meals[2].querySelector(".w").textContent, "Hendl & Brokkoli");
+  assert.equal(meals[2].querySelector(".w .n").textContent, "Hendl & Brokkoli");
+  const blocks = [...ps.querySelectorAll(".rb")];
+  assert.deepEqual(blocks.map(b => b.querySelector(".rn b").textContent), ["Compleat & KetoCal", "Hendl & Brokkoli"], "jedes Rezept nur einmal");
   assert.doesNotMatch(ps.textContent, /Mahlzeit \d/);
-  const ing = [...meals[2].querySelectorAll(".z .i span")].map(i => i.textContent);
+  const ing = [...blocks[1].querySelectorAll(".z .i span")].map(i => i.textContent);
   assert.ok(/Hühnerbrust/.test(ing[0]) && /Rapsöl/.test(ing[ing.length - 2]) && /MCT-Öl/.test(ing[ing.length - 1]), ing.join(", "));
   assert.doesNotMatch(ps.textContent, /vor dem Füttern/, "kein „Öl vor dem Füttern“ im Ausdruck");
   const f = shared.files[0];

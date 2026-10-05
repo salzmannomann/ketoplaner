@@ -908,6 +908,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zp-row.water, .zp-row.sleep { padding-top: 5px; padding-bottom: 5px; }
 .zp-row.water .zp-ic, .zp-row.sleep .zp-ic { font-size: 15px; }
 .zp-row.water .zp-txt, .zp-row.sleep .zp-txt { font-size: 13.5px; }
+.zp-row.water .zp-wmin { display: inline; margin: 0; font-size: .88em; color: var(--muted); font-weight: 500; white-space: nowrap; }
 .zp-ic.add { color: var(--brand); font-weight: 700; width: 22px; text-align: center; }
 .zp-row.empty-slot { cursor: pointer; }
 .zp-row.empty-slot .zp-name { font-weight: 500; }
