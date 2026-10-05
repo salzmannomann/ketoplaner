@@ -205,11 +205,12 @@ In der **vom Home-Bildschirm gestarteten iPhone/iPad-App** ignoriert iOS den Dru
 der Seite; dort öffnet **Drucken** deshalb dasselbe PDF im Teilen-Menü, in dem man
 **„Drucken“** wählt (AirPrint). In Safari und am Computer kommt der normale Druckdialog.
 
-**Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
-Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Datum (er gilt meist mehrere Tage) in ruhigem Design: Kopf mit
-kleiner Marke über „Tagesplan“, rechts das **Verhältnis** als grüne Pille und darunter **kcal und Flüssigkeit pro Tag**
-(Verordnung); feine Abschnittsüberschriften, Zeitplan mit Linien nur zwischen den Mahlzeiten-Blöcken (Wasser blau mit
-Punkt), jedes Rezept als hellgraue Karte:
+**Ausdrucke** (im Küchenzettel-Stil wie die App: Tinte auf Papier, Linien statt Karten, Zahlen in Mono, Titel in
+Newsreader; im PDF Times, Courier und Helvetica): einheitlicher Kopf (Titel, Datum, Tintenlinie), Tabellen mit
+gepunkteten Zeilen, Fußzeile mit Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Datum (er gilt meist mehrere Tage) in ruhigem Design: Kopf mit
+kleiner Marke über „Tagesplan“, rechts das **Verhältnis** als Pille mit Tintenrahmen und darunter **kcal und Flüssigkeit
+pro Tag** (Verordnung), darunter eine Tintenlinie; feine Abschnittsüberschriften, Zeitplan mit Tintenlinie vor jeder Mahlzeit
+(Wasser blau, Wasser und Schlafen gepunktet abgesetzt), jedes Rezept mit Tintenlinie oben und gepunktet getrennten Zutaten:
 **A6** im linken oberen Viertel einer **A4-Seite** (einfach zweimal falten, gestrichelte Falzlinien);
 **unten bleiben 2,5 cm frei** zum Einstecken in eine Hülle. Am iPhone geht dieser Ausdruck immer über das
 PDF (Safari übernimmt randlose Seiten nicht sicher). Oben der **Zeitplan**, je Eintrag eine Zeile: **Uhrzeit,

@@ -44,6 +44,13 @@
     // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
     sheet.style.zoom = ""; fitKitchenCard(root);
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
+    // Die Größe hängt an den Schriften: nach dem Laden (Newsreader, IBM Plex) noch einmal einpassen
+    try {
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+        if (ov.hidden || !sheet.shadowRoot || sheet.shadowRoot !== root) return;
+        const z = sheet.style.zoom; sheet.style.zoom = ""; fitKitchenCard(root); sheet.style.zoom = z;
+      });
+    } catch (e) {}
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
   // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
@@ -127,36 +134,10 @@
 
   // Küchenzettel (Tagesplan): A6 = linkes oberes Viertel einer A4-Seite (zweimal falten, Falzlinien gestrichelt),
   // unten 2,5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
-  // --s anpassen kann.
+  // --s anpassen kann. Küchenzettel-Stil: Tinte auf Papier, Linien statt Karten, Zahlen in Mono, Wasser blau gepunktet.
+  // Die Schriften (Newsreader, IBM Plex) lädt index.html; @font-face gilt auch im Shadow-DOM der Vorschau.
   const KITCHEN_CSS =
-    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    "body{font-family:Helvetica,Arial,sans-serif;color:#1f2933;margin:0}" +
-    "@page{size:A4 portrait;margin:0}" +
-    ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
-    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}" +
-    ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
-    // Kopf: kleine Marke über „Tagesplan“, rechts Verhältnis als Pille, darunter kcal und Flüssigkeit
-    ".kz-h{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm}" +
-    ".kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:#2f855a;font-weight:bold;margin-bottom:.3em}" +
-    ".kz-h .ti b{display:block;font-size:1.9em;line-height:1;letter-spacing:-.01em}" +
-    ".kz-h .rx{text-align:right;white-space:nowrap}.kz-h .rx .pill{display:inline-block;background:#e6f4ec;color:#22694a;font-weight:bold;border-radius:99px;padding:.18em .7em;font-size:1.05em}" +
-    ".kz-h .rx small{display:block;color:#7b8794;margin-top:.3em;font-size:.95em}" +
-    ".lbl{font-size:.78em;letter-spacing:.12em;text-transform:uppercase;color:#7b8794;font-weight:bold;margin:1.1em 0 .4em}" +
-    // Zeitplan: Mahlzeit mit folgender Wassergabe als Block, feine Linie nur zwischen den Blöcken
-    ".r{display:grid;grid-template-columns:calc(13mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.38em 0;break-inside:avoid}" +
-    ".r.me,.r.sl{border-top:.2mm solid #e4e8eb}.lbl + .r{border-top:0}" +
-    ".r .t{font-weight:bold;font-size:1.3em}.r .n{font-weight:bold;font-size:1.18em}.r i{font-style:normal}.r .d{color:#7b8794;font-size:.9em;margin-left:.4em}" +
-    ".r .m{font-weight:bold;font-size:1.3em;text-align:right;white-space:nowrap}" +
-    ".r.wa{padding:.1em 0 .32em;color:#2b6cb0}.r.wa .t,.r.wa .m{font-size:1em;font-weight:600}.r.wa .n{font-weight:normal;font-size:1em}.r.wa .d{color:#6b9bd1}" +
-    // Wassertropfen vor „Wasser“ (SVG, druckt mit)
-    ".r.wa .n:before{content:'';display:inline-block;width:.6em;height:.9em;margin-right:.4em;vertical-align:-.08em;background:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 12 18%22%3E%3Cpath d=%22M6 0L11.196 9A6 6 0 1 1 .804 9Z%22 fill=%22%2363a4e8%22/%3E%3C/svg%3E') no-repeat center/contain}" +
-    ".r.sl{color:#9aa5b1;padding-top:.32em}.r.sl .t,.r.sl .n{font-weight:normal;font-size:1em}" +
-    // Zutaten: jedes Rezept als hellgraue Karte, Uhrzeiten grün rechts, Gramm fett
-    ".rb{background:#f5f7f6;border-radius:2mm;padding:.55em .8em .6em;margin-top:.55em;break-inside:avoid}" +
-    ".rn{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;margin-bottom:.35em}.rn b{font-size:1.25em}" +
-    ".rn i{font-style:normal;font-size:.9em;font-weight:600;color:#2f855a;white-space:nowrap}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;row-gap:.22em;font-size:1.18em;line-height:1.2}" +
-    ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm}.rb .z .i b{white-space:nowrap}";
+    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:#2a2621;margin:0}@page{size:A4 portrait;margin:0}.kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}.kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}.kz-fold{position:absolute;border:0 dashed #c9c0b0}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}.kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;padding-bottom:.45em;border-bottom:.5mm solid #2a2621}.kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:#645d53;font-weight:600;margin-bottom:.25em}.kz-h .ti b{display:block;font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:2.1em;line-height:1}.kz-h .rx{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}.kz-h .rx .pill{display:inline-block;border:.3mm solid #2a2621;color:#2a2621;font-weight:600;border-radius:99px;padding:.1em .65em;font-size:1em}.kz-h .rx small{display:block;color:#645d53;margin-top:.3em;font-size:.88em}.lbl{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:#645d53;font-weight:600;margin:1.1em 0 .3em}.r{display:grid;grid-template-columns:calc(12mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.4em 0;break-inside:avoid}.r.me{border-top:.25mm solid #2a2621}.r.sl,.r.wa{border-top:.2mm dotted #a99f8f}.lbl + .r{border-top:0}.r .t{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em}.r .n{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.r i{font-style:normal}.r .d{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:#645d53;font-size:.82em;margin-left:.4em}.r .m{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em;text-align:right;white-space:nowrap}.r.wa{padding:.22em 0;color:#2c5c9a}.r.wa .t,.r.wa .m{font-size:.95em;font-weight:500}.r.wa .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.r.wa .d{color:#2c5c9a}.r.sl{color:#645d53;padding:.22em 0}.r.sl .t,.r.sl .m{font-size:.95em;font-weight:500}.r.sl .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.rb{border-top:.25mm solid #2a2621;padding:.45em 0 .5em;break-inside:avoid}.rn{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;margin-bottom:.3em}.rn b{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.rn i{font-style:normal;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-size:.82em;color:#645d53;white-space:nowrap}.rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;font-size:1.08em;line-height:1.25}.rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;padding:.12em 0;border-bottom:.2mm dotted #a99f8f}.rb .z .i span{color:#3d3832}.rb .z .i b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;white-space:nowrap}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
   // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
@@ -166,24 +147,9 @@
     while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
   }
 
-  // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
+  // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, Tintenlinie, Tabellen mit Punktlinien, Fußzeile.
   const PRINT_CSS =
-    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0;font-size:10.5pt;line-height:1.4}" +
-    ".head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2pt solid #2f855a;padding-bottom:2mm;margin-bottom:3mm}" +
-    "h1{font-size:17pt;margin:0;line-height:1.15}.meta{color:#555;font-size:9pt;text-align:right;white-space:nowrap}" +
-    ".rx{margin:0 0 3mm;color:#333;font-size:9.5pt}" +
-    "h2{font-size:11.5pt;margin:5mm 0 1.5mm;color:#2f855a}" +
-    "table{width:100%;border-collapse:collapse;margin:0}" +
-    "th{background:#eef5f0;text-align:left;font-size:8.5pt;font-weight:bold;color:#33463b;padding:1.4mm 1.5mm;border-bottom:.6pt solid #9bb8a6}" +
-    "td{border-bottom:.4pt solid #d5dbd8;padding:1.6mm 1.5mm;vertical-align:top}" +
-    ".num{text-align:right;white-space:nowrap}" +
-    "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
-    ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
-    ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
-    "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
-    "tr,li,.box{break-inside:avoid}" +
-    ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
+    "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:#2a2621;margin:0;font-size:10.5pt;line-height:1.4;font-variant-numeric:tabular-nums}.head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2pt solid #2a2621;padding-bottom:2.5mm;margin-bottom:3mm}h1{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:24pt;margin:0;line-height:1.05}.meta{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:#645d53;font-size:8.5pt;text-align:right;white-space:nowrap}.rx{margin:0 0 4mm;color:#645d53;font-size:9pt}.rx b{color:#2a2621}h2{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:14pt;margin:6mm 0 1.5mm;color:#2a2621}table{width:100%;border-collapse:collapse;margin:0}th{text-align:left;font-size:7.5pt;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#645d53;padding:1.2mm 1.5mm;border-bottom:1pt solid #2a2621}td{border-bottom:.5pt dotted #a99f8f;padding:1.5mm 1.5mm;vertical-align:top}.num{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}td.num b{font-weight:600}tr.sum td{font-weight:600;border-top:1pt solid #2a2621;border-bottom:none}.box{border-top:.5pt dotted #a99f8f;border-bottom:.5pt dotted #a99f8f;padding:2.2mm 0;margin:3mm 0;font-size:9.5pt}.box.warn{background:#f5e0d8;color:#ad3326;border:0;border-radius:1.5mm;padding:2.2mm 3.2mm}.box.warn:before{content:\"▲ \"}ol{margin:1mm 0 0;padding:0;list-style:none;counter-reset:s}li{counter-increment:s;display:grid;grid-template-columns:8mm 1fr;padding:1.5mm 0;border-bottom:.5pt dotted #a99f8f}li:before{content:counter(s) \".\";font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600}li:last-child:before{color:#ad3326}tr,li,.box{break-inside:avoid}.foot{margin-top:6mm;padding-top:2mm;border-top:.5pt solid #2a2621;color:#645d53;font-size:8pt}";
   function printDoc(title, meta, bodyHtml) {
     return "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>" + escapeHtml(title) + "</title><style>" + PRINT_CSS + "</style></head><body>" +
       "<div class='head'><h1>" + escapeHtml(title) + "</h1><div class='meta'>" + meta + "</div></div>" + bodyHtml +
