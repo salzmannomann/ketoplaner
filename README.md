@@ -61,6 +61,14 @@ der Seitentitel (Tagesplan, Rezepte, Vorgaben):
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
 | **Vorgaben** | Liste mit Unterseiten: Verordnung (mit Bedarf schätzen), Flüssigkeit, Öl und MCT, Küche, Erinnerungen und Daten |
 
+**Am Desktop (Fenster breiter als 820 px)** steht links eine mitlaufende Spalte (224 px, Tintenlinie) mit
+Icon und „HamHam Keto“, der Navigation **Tagesplan · Rezepte · Vorgaben** untereinander (aktiv invertiert), der
+**Verordnung als Wertetabelle** (Verhältnis groß, darunter kcal am Tag, je Mahlzeit, Eiweiß, Flüssigkeit, MCT und
+Gewicht; „Ändern“ öffnet Vorgaben → Verordnung) und dem Haftungshinweis. Kopfzeile und schwebende Leiste
+entfallen dort; jede Seite hat einen eigenen Kopf mit Überlinie und Titel. Auswahlfenster und Rezept aus dem
+Tagesplan öffnen als zentrierte Fenster, Meldungen stehen unten mittig. Wechselt die Fensterbreite über die
+Grenze, ordnet sich die App sofort um.
+
 Oben rechts zeigt der **Verordnungs-Chip** jederzeit, womit gerade gerechnet
 wird: das Verhältnis als Pille („1,8 : 1“) und darunter kcal und Flüssigkeit pro Tag
 („640 kcal · 800 ml“). Die ausführliche Fassung (kcal × Mahlzeiten, MCT-Anteil,
@@ -89,8 +97,8 @@ Von der Verordnung führt eine Zeile zu **Bedarf schätzen**.
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
   markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit – darunter als
   **Kennzahl-Kacheln** (pro Mahlzeit, mindestens, Eiweiß, Bereich/Korridor; die Herkunft
-  steht im Tooltip). Am Desktop stehen die Felder in 3 × 2: Verhältnis, Mahlzeiten,
-  Gewicht – darunter Kalorien, Minimum, Eiweiß. Ein
+  steht im Tooltip). Am Desktop stehen links das Menü der Vorgaben (die aktive Zeile hinterlegt) und rechts
+  die Unterseite; ohne Auswahl die Verordnung. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
   kommt: **„Vorschlag · 80 kcal/kg"** bzw. **„Vorschlag · Krick"** oder **„eigener
   Wert · Vorschlag 680"** (Textlink) zum Zurücksetzen. Tippt man genau den Vorschlag
@@ -228,8 +236,12 @@ heute einplanen** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten
 freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
 erscheint eine Meldung mit **Rückgängig** und **Ansehen** (wechselt zu Heute).
 Übernommen wird genau die offene Variante (mit oder ohne KetoCal); angepasste
-Portion und Wasser gelten auch im Tagesplan. Ab 1100 px Breite öffnet das Rezept
-als **festes Panel rechts**, die Rezeptliste bleibt daneben bedienbar.
+Portion und Wasser gelten auch im Tagesplan. Am Desktop steht das Rezept als **festes Panel rechts**
+neben der Rezeptliste (2-px-Rahmen, Reiter statt Blättern, der Inhalt scrollt im Panel): ein Klick auf eine
+Zeile wechselt das Panel (die gewählte Zeile hat einen Tintenstreifen), ohne Auswahl zeigt es das erste Rezept.
+Die Liste läuft dort in Spalten, darüber ein Kopf mit Anzahl, Suche, den Häkchen „Nur Diätologie“ und „Ohne
+KetoCal“ und „+ Eigenes Rezept“; die Gruppen-Chips stehen klein in einer Zeile. Bei schmalem Fenster rutscht
+das Panel unter die Liste.
 
 1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Volumen,
    Flüssigkeit), die Tabelle „Zum Abwiegen · eine Portion“ (Nährwerte je Zutat zuschaltbar) und die Flüssigkeitszeile (Zutaten +
@@ -289,8 +301,9 @@ Tag gegen das Ziel („638 / 640 kcal“; „ca.“ solange Mahlzeiten offen sin
 Überschreitung). Darunter der Zeitraum („7:00–17:30 · alle 2 h 38 min“) und drei
 Textlinks: **Uhrzeiten** klappt die Uhrzeiten auf (**Erste**, **Letzte**, **Schlafen**;
 Vorgabe 7:00, 17:30, 20:00), **Drucken** druckt, **Leeren** leert den Plan (ohne Rückfrage,
-mit **Rückgängig**). Am Desktop (ab 821 px) steht die Zeitleiste links und die
-**Tagesbilanz** mit Werkzeugen und Hinweisen rechts daneben.
+mit **Rückgängig**). Am Desktop stehen Zeitraum und Links im Seitenkopf neben dem Titel, links die
+Zeitleiste und rechts mitlaufend die **Tagesbilanz**: Kalorien, Eiweiß und Flüssigkeit mit dünnem Balken
+(rot bei Warnung), darunter das Verhältnis des Tages und die Hinweise; bei wenig Platz rutscht sie darunter.
 
 In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondierdauer**
 (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „125 ml · ca. 25 min“; Wasser schneller,
