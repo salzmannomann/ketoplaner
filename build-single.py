@@ -112,6 +112,13 @@ def main():
         with open(logo, "rb") as fh:
             b64 = base64.b64encode(fh.read()).decode("ascii")
         html = html.replace('src="icon-192.png"', 'src="data:image/png;base64,' + b64 + '"')
+    # App-Icon (SVG) als Favicon einbetten
+    svg = os.path.join(HERE, "icon.svg")
+    if os.path.exists(svg):
+        import base64
+        with open(svg, "rb") as fh:
+            b64s = base64.b64encode(fh.read()).decode("ascii")
+        html = html.replace('href="icon.svg"', 'href="data:image/svg+xml;base64,' + b64s + '"')
 
     # Skripte einbetten (Reihenfolge wie in index.html beibehalten)
     for src in ("foods.js", "recipes.js", "vendor/jspdf.umd.min.js", "vendor/jspdf.plugin.autotable.min.js", "app.js"):
