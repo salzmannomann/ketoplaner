@@ -1007,13 +1007,18 @@
   const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
-    vgPage = name || null;
+    // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
+    vgPage = name || (isDesktop() ? "verordnung" : null);
     const list = document.getElementById("vg-list"); if (!list) return;
     list.hidden = !!vgPage;
+    const cur = vgPage === "bedarf" ? "verordnung" : vgPage;
+    list.querySelectorAll(".vg-row[data-vg]").forEach(r => { r.classList.toggle("active", r.dataset.vg === cur); r.setAttribute("aria-current", r.dataset.vg === cur ? "page" : "false"); });
     document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
     document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
+  // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
+  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {

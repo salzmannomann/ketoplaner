@@ -743,6 +743,25 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
   .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
   .rz-panel .pane-in { padding: 4px 22px 18px; }
+  /* Vorgaben: Kopf, links das Menü (Zeilen 56 px, aktiv dunkler), rechts die Unterseite (max. 640 px) */
+  #view-vorgaben { display: grid; grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); gap: 20px 36px; align-items: start; max-width: 1040px; }
+  #view-vorgaben[hidden] { display: none; }
+  .vg-dkhead { grid-column: 1 / -1; }
+  #vg-list, #vg-list[hidden] { grid-column: 1; display: flex; position: sticky; top: 34px; }
+  #view-vorgaben .vg-page { grid-column: 2; grid-row: 2; max-width: 640px; min-width: 0; }
+  #view-vorgaben .vg-page[hidden] { display: none; }
+  .vg-group { padding: 16px 0 6px; }
+  .vg-row { min-height: 56px; padding: 8px 10px; border-radius: 4px; }
+  .vg-row:hover { background: var(--paper-2); }
+  .vg-row.active { background: var(--paper-2); }
+  .vg-row .vg-name { font-size: 17px; }
+  .vg-back[data-vgback="list"] { display: none; }
+  body.vg-sub .main { padding-top: 34px; }
+  /* Auswahlfenster als zentrierter Dialog, Rezept/Editor aus dem Tagesplan als Fenster; Meldung unten mittig */
+  #picker-overlay .overlay-card { left: 50%; right: auto; top: 9vh; bottom: auto; height: 78vh; width: min(580px, 92vw); transform: translateX(-50%);
+    padding: 8px 22px 22px; border: 2px solid var(--ink); border-radius: 12px; }
+  #detail-overlay .overlay-card, #compose-overlay .overlay-card { border: 2px solid var(--ink); border-radius: 12px; }
+  .toast, body.modal-open .toast { bottom: 28px; min-width: 380px; width: max-content; max-width: min(560px, calc(100% - 40px)); }
 }
 
 </style>
@@ -817,6 +836,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
       <!-- Liste: Gruppen „Ernährung“ und „App“, jede Zeile öffnet eine Unterseite -->
+      <header class="dk-head dk-only vg-dkhead"><div class="dk-title"><span class="overline">Einstellungen</span><h1>Vorgaben</h1></div></header>
       <div id="vg-list" class="vg-list">
         <div class="overline vg-group">Ernährung</div>
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -3225,13 +3245,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
-    vgPage = name || null;
+    // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
+    vgPage = name || (isDesktop() ? "verordnung" : null);
     const list = document.getElementById("vg-list"); if (!list) return;
     list.hidden = !!vgPage;
+    const cur = vgPage === "bedarf" ? "verordnung" : vgPage;
+    list.querySelectorAll(".vg-row[data-vg]").forEach(r => { r.classList.toggle("active", r.dataset.vg === cur); r.setAttribute("aria-current", r.dataset.vg === cur ? "page" : "false"); });
     document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
     document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
+  // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
+  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
