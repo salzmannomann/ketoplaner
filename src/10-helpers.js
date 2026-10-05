@@ -25,6 +25,9 @@
     return fmt(r, dec);
   }
   function fmtTarget(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + ":1" : "—"; }
+  // Anzeige in der Oberfläche (Küchenzettel): „1,8 : 1“ mit Abständen; Ausdruck/PDF bleiben bei „1,8:1“.
+  function fmtRx(r) { return (r > 0 && isFinite(r)) ? fmtRatioNum(r) + " : 1" : "—"; }
+  function fmtRxA(r, dec) { const t = fmtRatio(r, dec); return t === "—" ? t : t.replace(":1", " : 1"); }
   // Eingabe „1,8", „1.8", „1,8:1" oder „1:1,5" → Zahl (g Fett je 1 g Eiweiß+KH); 0 wenn ungültig.
   function parseRatio(text) {
     const t = String(text || "").replace(/,/g, ".").replace(/\s+/g, "");
@@ -48,12 +51,22 @@
   function showToast(html, buttons) {
     let t = document.getElementById("toast");
     if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
-    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn" data-ti="' + i + '">' + b[0] + '</button>').join("");
+    // „Rückgängig“ als unterstrichener Text, weitere Aktionen (z. B. „Ansehen“) als helle Pille
+    t.innerHTML = '<span class="toast-msg">' + html + '</span>' + (buttons || []).map((b, i) => '<button type="button" class="toast-btn' + (i > 0 ? " pill" : "") + '" data-ti="' + i + '">' + b[0] + '</button>').join("");
     t.querySelectorAll(".toast-btn").forEach(b => b.addEventListener("click", () => { hideToast(); buttons[num(b.dataset.ti)][1](); }));
     t.hidden = false; t.classList.add("show");
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
   }
   function hideToast() { const t = document.getElementById("toast"); if (t) { t.classList.remove("show"); t.hidden = true; } clearTimeout(toastTimer); }
+  // Einfache Strich-Symbole (statt Emojis) für runde Knöpfe; erben die Textfarbe.
+  const SVG_ATTR = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  const ICON = {
+    star: '<svg ' + SVG_ATTR + '><polygon class="star" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    print: '<svg ' + SVG_ATTR + '><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><path d="M6 14h12v7H6z"/></svg>',
+    edit: '<svg ' + SVG_ATTR + '><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
+    share: '<svg ' + SVG_ATTR + '><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>',
+    trash: '<svg ' + SVG_ATTR + '><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  };
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }

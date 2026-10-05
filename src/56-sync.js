@@ -8,7 +8,7 @@
      Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
   const SYNC_KEY = "ketoplaner.sync";
   const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis"];
-  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
+  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
 
@@ -75,7 +75,7 @@
   async function syncPost(path, data) {
     const r = await fetch(pushUrl() + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     let j = null; try { j = await r.json(); } catch (e) {}
-    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren (ⓘ).");
+    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren („Wie funktioniert das?“).");
     return { status: r.status, j: j || {} };
   }
 
@@ -143,12 +143,12 @@
 
   // ---- Ein-/Ausschalten und Koppeln ----
   async function syncEnable() {
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     const raw = crypto.getRandomValues(new Uint8Array(32));
     syncMeta = { key: b64u(raw), rev: 0, ts: {}, dirty: true }; syncLastJson = null;
     syncMarkChanges(Date.now()); syncMeta.dirty = true; syncSaveMeta();
     await syncNow(); syncStartTimer();
-    showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
+    showToast(syncError ? escapeHtml(syncError) : "Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
     renderSyncCard();
   }
   function randomCode() {
@@ -171,8 +171,8 @@
   }
   async function syncJoin(input) {
     const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
-    if (code.length !== 8) { showToast("🔄 Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
       const id = await sha256hex("hamham-pair:" + code);
       const r = await syncPost("/api/pair/get", { id });
@@ -182,14 +182,14 @@
       // Beim Koppeln übernimmt dieses Gerät den gemeinsamen Stand (eigene Daten werden ersetzt)
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
-      showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast("🔄 " + escapeHtml(String(e && e.message || e))); }
+      showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
+    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
     renderSyncCard();
   }
   function syncDisable() {
     if (!confirm("Abgleich auf diesem Gerät ausschalten? Die Daten bleiben hier erhalten, werden aber nicht mehr mit den anderen Geräten abgeglichen.")) return;
     syncMeta = null; syncLastJson = null; pairShown = null; syncError = ""; syncSaveMeta();
-    showToast("🔄 Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
+    showToast("Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
   }
 
   // ---- Karte in den Vorgaben ----
@@ -209,7 +209,7 @@
     if (pc) {
       const valid = on && pairShown && pairShown.until > Date.now();
       pc.hidden = !valid;
-      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → 🔄 Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
+      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → Erinnerungen und Daten → Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
         new Date(pairShown.until).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) + ", nur einmal verwendbar.</small>";
     }
   }

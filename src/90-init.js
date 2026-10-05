@@ -3,6 +3,7 @@
     rebuildFoodIndex();
     applyTheme();
     bindSettingsBar();
+    bindVgPages();
     bindPush();
     bindSync();
     bindBedarf();

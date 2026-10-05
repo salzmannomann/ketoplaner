@@ -3,7 +3,7 @@
   function rebuildFoodIndex() {
     foodIndex = {};
     FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
-    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (⚙️ Einstellungen).
+    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
     // "Öl = 100 % Fett" ist bewusst NICHT hart verdrahtet.

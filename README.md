@@ -33,32 +33,53 @@ folgen automatisch dem Gewicht, bis eigene Werte eingetragen werden.
 Keine Installation, kein Server nötig.
 
 Die App folgt dem **Hell-/Dunkelmodus des Geräts** (Systemeinstellung); unter
-Vorgaben → 🎨 Darstellung lässt sich Hell oder Dunkel auch fest wählen. Der
-Dunkelmodus färbt alle Ansichten, Karten, Tabellen, Hinweise und Overlays um.
+Vorgaben → Erinnerungen und Daten → Darstellung lässt sich Hell oder Dunkel auch fest wählen. Der
+Dunkelmodus tauscht nur die Farbwerte (warmes Dunkelbraun statt Papier), Aufbau und Schrift bleiben gleich.
+
+### Gestaltung („Küchenzettel“)
+
+Die Oberfläche sieht aus wie ein ruhiger, gedruckter Küchenzettel: warmes Papier (#f5f0e5),
+dunkle Tinte, feine Linien statt Karten und Schatten. Drei Schriften: **Newsreader** für Titel
+und Rezeptnamen, **IBM Plex Sans** für Text, **IBM Plex Mono** für alle Zahlen (Gramm, kcal, ml,
+Uhrzeiten), damit Mengen untereinander stehen. Farbe trägt Bedeutung: **Rot** für Warnungen
+(beginnen immer mit „▲“), **Blau** für Wasser und aktive Eingabefelder, **Grün** für Eiweiß im
+Ziel. Aktionen sind unterstrichene **Textlinks** („tauschen“, „wählen“, „Leeren“), Eingaben sind
+Felder mit Unterstrich, Umschalter sind Segmentleisten mit Tintenrahmen. Die Oberfläche kommt
+ohne Emojis aus; Symbole (Stern, Drucken, Bearbeiten, Teilen, Löschen) sind schlichte Strichzeichnungen.
+Die Schriften kommen von Google Fonts und werden vom Service Worker zwischengespeichert; ohne
+Netz fällt die Einzeldatei auf Systemschriften zurück.
 
 ## Aufbau der App
 
-Die App hat drei Bereiche, erreichbar über die Leiste am unteren Rand
-(am Desktop oben):
+Die App hat drei Bereiche, erreichbar über die schwebende Leiste am unteren Rand
+(Rahmen 2 px, der aktive Bereich invertiert). Oben steht klein „HAMHAM KETO“ und darunter
+der Seitentitel (Tagesplan, Rezepte, Vorgaben):
 
 | Bereich | Wofür |
 | --- | --- |
 | **Heute** | Zeitleiste mit Uhrzeiten, einem Rezept je Mahlzeit, Wassergaben und Tagessummen |
 | **Rezepte** | Rezeptliste mit Suche, Schnellfiltern, Favoriten und eigenem Rezept |
-| **Vorgaben** | Verordnung, Flüssigkeit, Öl (MCT), Küche, Darstellung, Daten (Backup) |
+| **Vorgaben** | Liste mit Unterseiten: Verordnung (mit Bedarf schätzen), Flüssigkeit, Öl und MCT, Küche, Erinnerungen und Daten |
 
 Oben rechts zeigt der **Verordnungs-Chip** jederzeit, womit gerade gerechnet
-wird: Zeile 1 die Verordnung (z. B. „1,8:1 · 128 kcal × 5 · MCT
-10 % ⚖️"), Zeile 2 die Flüssigkeit (Ziel je Tag, Modus, und laut Tagesplan die
-Menge, die zwischen den Mahlzeiten zu sondieren ist). Ein Tipp darauf öffnet die
-Vorgaben.
+wird: das Verhältnis als Pille („1,8 : 1“) und darunter kcal und Flüssigkeit pro Tag
+(„640 kcal · 800 ml“). Die ausführliche Fassung (kcal × Mahlzeiten, MCT-Anteil,
+Wassergaben laut Tagesplan) steht im Tooltip und für Screenreader. Ein Tipp darauf
+öffnet Vorgaben → Verordnung.
 
 ### Vorgaben
 
+Die Vorgaben sind eine **Liste mit Unterseiten**: Ernährung (Verordnung, Flüssigkeit, Öl und MCT)
+und App (Küche, Erinnerungen und Daten); jede Zeile zeigt ihren aktuellen Wert, „‹ Vorgaben“
+führt zurück. Die **Verordnung ist gesperrt**: sie zeigt die Werte mit Herkunft und lässt sich
+erst nach **„Bearbeiten“** ändern. Änderungen wirken sofort; **Abbrechen** stellt den Stand
+vor dem Bearbeiten wieder her, **Speichern** bestätigt mit einer Meldung samt **Rückgängig**.
+Von der Verordnung führt eine Zeile zu **Bedarf schätzen**.
+
 - **Verordnung:** Beim Verhältnis wird nur die **vordere Zahl** eingegeben,
   „:1" steht fix daneben („1,8", „1,5", „1"); die App zeigt Verhältnisse
-  überall als „x:1", auch unter 1 (z. B. „0,67:1") und warnt dann unter dem
-  Feld,
+  überall als „x : 1", auch unter 1 (z. B. „0,67 : 1") und warnt dann unter dem
+  Feld mit „▲“,
   **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg; ist unter „Bedarf schätzen“ ein
   Geburtsdatum eingetragen, die **Krick-Schätzung**) und
   **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Kennzahlen zeigen dazu den Korridor
@@ -71,19 +92,19 @@ Vorgaben.
   steht im Tooltip). Am Desktop stehen die Felder in 3 × 2: Verhältnis, Mahlzeiten,
   Gewicht – darunter Kalorien, Minimum, Eiweiß. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
-  kommt: grün **„✓ Vorschlag · 80 kcal/kg"** bzw. **„✓ Vorschlag · Krick"** oder **„eigener
-  Wert · ↺ Vorschlag 680"** zum Zurücksetzen. Tippt man genau den Vorschlag
+  kommt: **„Vorschlag · 80 kcal/kg"** bzw. **„Vorschlag · Krick"** oder **„eigener
+  Wert · Vorschlag 680"** (Textlink) zum Zurücksetzen. Tippt man genau den Vorschlag
   ein oder leert das Feld, gilt wieder der Vorschlag. Nichts verschiebt sich
   dabei.
-- **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
-  Mahlzeiten"** (Standard) oder **„🥣 in den Mahlzeiten"** –
+- **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„zwischen den
+  Mahlzeiten"** (Standard) oder **„in den Mahlzeiten"** –
   dazu **Gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
   100 ml/kg bis 10 kg) und, nur beim Sondieren, **Höchstens kcal je ml**
   (Vorgabe 1,5). Beim Sondieren behält jede Mahlzeit nur ihr Rezept-Wasser zum
   Anrühren – so bleibt sie klein; ist sie damit dichter als erlaubt (z. B.
   Compleat & KetoCal), füllt die App gerade so weit auf. Der Rest des
   Tagesbedarfs kommt als **Wassergaben**, deren Menge die App selbst rechnet
-  (Uhrzeiten unter Heute → ⏰ Uhrzeiten). Für den Stuhl zählt die Tagesmenge,
+  (Uhrzeiten unter Heute → Uhrzeiten). Für den Stuhl zählt die Tagesmenge,
   nicht ob das Wasser in oder zwischen den Mahlzeiten kommt. „In den Mahlzeiten
   dabei" gibt jeder Mahlzeit ihren vollen Anteil. Gemerktes Wasser hat immer
   Vorrang; liegt eine Mahlzeit oder Wassergabe über 25 ml/kg, warnt die App. Gezählt wird das
@@ -95,7 +116,7 @@ Vorgaben.
   werden nach dem Runden der anderen Zutaten so nachgestellt, dass das
   Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). Gerundet wird die
   Menge, die auf der Waage liegt; Vielfache („1 Tag", „2 Tage") bleiben im Raster.
-- **Rechenregel:** **⚖️ Verhältnis halten** oder **🎯 Kalorien halten** – eine
+- **Rechenregel:** **Verhältnis halten** oder **Kalorien halten** – eine
   Regel für den Fall, dass nicht beides geht (MCT-Anteil). In den Rezepten
   wird die Regel nur angezeigt.
 - **MCT-Öl:** Anteil an der Öl-Fettmasse in Stufen (0 / 10 / 20 / 30 / 50 /
@@ -103,7 +124,7 @@ Vorgaben.
   Fett-/kcal-Werte erscheinen erst ab 10 %.
 - **Küche:** Verdunstung beim Dämpfen (ml) – einmal für den eigenen Thermomix
   kalibrieren (Standard 150 ml).
-- **Daten:** **Backup exportieren/importieren** (JSON-Datei oder Text zum
+- **Erinnerungen und Daten:** Erinnerungen, Geräte-Abgleich, Darstellung (Auto/Hell/Dunkel) und **Backup exportieren/importieren** (JSON-Datei oder Text zum
   Kopieren) – so lassen sich alle Einstellungen, Favoriten, eigene Rezepte und
   der Tagesplan auf ein anderes Handy übertragen. **„Werte prüfen"** listet
   die Nährwerte aller verwendeten Lebensmittel zum Abgleich mit der
@@ -117,67 +138,71 @@ Vorgaben.
 - **Ein Eintrag je Gericht.** Hat ein Gericht eine Variante mit und ohne
   KetoCal (z. B. „Hendl & Zucchini" mit Rapsöl oder mit KetoCal + Butter) –
   **jedes Rezept ist ein eigener Eintrag** mit gleichem Namen und einem
-  Fettbasis-Schild („Rapsöl" bzw. „🥄 KetoCal + Butter"); der Eintrag ohne
+  Fettbasis-Schild („Rapsöl" bzw. „KetoCal + Butter"); der Eintrag ohne
   KetoCal steht zuerst. Rezepte, die nur mit KetoCal existieren, tragen
-  „🥄 KetoCal". Im ⋯-Menü lassen sich **Rezepte mit KetoCal ausblenden**.
-- **Gruppen nach Hauptzutat:** 🍗 Geflügel, 🥩 Rind & Schwein, 🐟 Fisch,
-  🥚 Ei, 🥔 Erdäpfel & Gemüse, 🍓 Obst & Brei und 🥤 Angerührt (ohne Kochen:
+  „KetoCal". Der Umschalt-Chip **„ohne KetoCal“** blendet sie aus.
+- **Gruppen nach Hauptzutat:** Geflügel, Rind & Schwein, Fisch,
+  Ei, Erdäpfel & Gemüse, Obst & Brei und Angerührt (ohne Kochen:
   HiPP-Gläschen, KetoCal & Pre Apta, Compleat & KetoCal, Compleat & KetoCal & Pre Apta). Die Gruppen stehen
-  in **einer wischbaren Chip-Zeile**, direkt darunter beginnen die Rezepte. Auch
+  als **Chips** (Alle, Favoriten, Gruppen) unter dem Suchfeld, dazu die gestrichelten
+  Umschalt-Chips **„nur Diätologie“** (Original-Rezepte aus den Vorlagen) und **„ohne KetoCal“**.
+  Über der Suche stehen die Anzahl („58 Rezepte passen zur Verordnung“) und die
+  **Sortierung** (nach Gruppe, Name, Eiweiß oder Menge). Auch
   **in der Liste selbst** wechselt seitliches Wischen (drücken und ziehen, Finger
   oder Maus) zur nächsten bzw. vorigen Gruppe – ein echtes Blättern: die
   Nachbargruppe rutscht schon beim Ziehen neben der aktuellen Liste herein, die
   Markierung in der Chip-Zeile wandert mit, beim Loslassen läuft die Bewegung
-  bis zur Ruhelage durch; senkrecht bleibt Scrollen. Rechts
-  daneben: **🔍 Suche** (klappt ein Suchfeld auf), **➕ Eigenes Rezept** und **⋯**
-  mit dem Haken **👩‍⚕️ nur Rezepte der Diätologie** (Original-Rezepte aus den
-  Vorlagen) und der Sortierung nach Gruppe, Name, Eiweiß oder Menge.
+  bis zur Ruhelage durch; senkrecht bleibt Scrollen. Das **Suchfeld**
+  (Rezept oder Zutat) steht immer sichtbar mit Unterstrich, rechts daneben der runde
+  **+**-Knopf für ein eigenes Rezept.
   Findet die Suche in der gewählten Gruppe nichts, führt **„In allen Gruppen
   suchen“** weiter. Eine KetoCal-Vorgabe gibt es nicht mehr.
-- Die **Kacheln** zeigen Icon, Name, aktive Fettbasis, kcal und Eiweiß; ein
-  Stern markiert Favoriten (immer ganz oben). Eiweiß unter 90 % des Ziels ist
-  gelb, über dem **Doppelten des Ziels** gelb mit „↑“ – im Rezept steht dann
-  „Eiweiß x-mal so hoch wie das Ziel – mit dem Team abklären“ (viel Eiweiß kann
+- Jedes Rezept ist eine **Zeile** unter einer Gruppenüberschrift mit Anzahl: Name,
+  darunter in Mono kcal · ml · Eiweiß, darunter klein Herkunft und Fettbasis; rechts
+  der **Stern** für Favoriten (Favoriten stehen zusätzlich als eigene Gruppe ganz oben).
+  Eiweiß im Ziel ist grün, unter 90 % des Ziels „niedrig“, über dem **Doppelten des Ziels**
+  rot mit „hoch“ – im Rezept steht dann
+  „▲ Eiweiß x-mal so hoch wie das Ziel … bitte mit dem Team abklären“ (viel Eiweiß kann
   die Ketose schwächen; bei 1,5:1 liefern viele Fleisch-Rezepte 2–3 × das Ziel).
 - **Nach dem Real-Food-Blends-Ketokochbuch** (2020) nachgebaut, ohne
   Diätologie-Schild: **Hendl & Fisolen & Ei**, **Lachs & Hafer & Kürbis** und
   **Ei & Apfel & Hafer** – Fisolen als ballaststoffreiches Gemüse, Ei als zweite
   Eiweißquelle, etwas Hafer; das Fett stellt die App fürs Verhältnis ein.
-- **➕ Eigenes Rezept:** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
+- **Eigenes Rezept (+):** beliebige Zutaten (z. B. saisonales Obst) plus ein oder
   mehrere Fette zum Ausgleich; die App berechnet die Fettmenge fürs
   Verhältnis, wahlweise für eine fixe Zutatenmenge oder hochgerechnet auf eine
   Mahlzeit. Der Editor sieht aus wie die Detailansicht: oben Name (als
-  Eingabefeld), Verhältnis-Pille und kcal, darunter zwei Blätter **✏️ Zutaten**
-  (Zutatenzeilen, Fett(e) zum Ausgleich, Skalieren-Haken) und **🍽️ Mahlzeit**
-  (Statuszeile, Kacheln und Tabelle genau wie bei einem Rezept), unten die feste
-  Leiste **💾 Speichern · 🖨️ Drucken · 🗑️**. Eigene Rezepte können gespeichert,
+  Eingabefeld), Verhältnis-Pille und kcal, darunter zwei Blätter **Zutaten**
+  (Zutatenzeilen, Fett(e) zum Ausgleich, Skalieren-Haken) und **Mahlzeit**
+  (Kennzahlen und Tabelle genau wie bei einem Rezept), unten die feste
+  Leiste **Als Rezept speichern** · Drucken · Leeren. Eigene Rezepte können gespeichert,
   bearbeitet und gelöscht werden.
 
 ### Detailansicht eines Rezepts
 
 Die Detailansicht besteht aus **vier Blättern** und öffnet mit **Mahlzeit**. Am
-Handy liegen die Blätter nebeneinander: seitlich wischen oder auf die Punkte
-tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
-sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). **Nach unten
-wischen schließt** die Ansicht – überall auf der Karte und auf jedem Blatt (auch über die
+Handy liegen die Blätter nebeneinander: seitlich wischen (auch mit der Maus ziehen)
+oder oben in der Segmentleiste **Mahlzeit · Tag · Anpassen · Kochen** tippen; jedes Blatt passt auf einen Bildschirm, nichts scrollt vertikal (nur bei
+sehr vielen Zutaten oder langen Anleitungen scrollt das einzelne Blatt). Oben sitzt ein Griff; **nach unten
+wischen schließt** die Ansicht (weit genug oder schnell genug) – überall auf der Karte und auf jedem Blatt (auch über die
 Gramm-Felder); ist ein Blatt nach unten gescrollt, scrollt der Wisch zuerst zurück nach oben,
 seitliches Wischen blättert. Gleiches gilt für den Editor. Oben
-stehen fest Name, Verhältnis-Pille, kcal je Portion und Badges, unten fest die
-Aktionsleiste **☆ Favorit · 🖨️ Drucken · 📅 Für heute · ✏️ Editor** (bei eigenen
-Rezepten auch 🗑️; am Handy zeigen Favorit und Drucken nur ihr Symbol).
-**🖨️ Drucken** (Rezept, Tagesplan, eigenes Rezept) öffnet eine **Druckvorschau in
+stehen fest Verhältnis-Pille, Herkunft/Fettbasis und der Name, unten fest die
+Aktionsleiste **Für heute einplanen** und drei runde Knöpfe **Editor · Drucken · Favorit**
+(eigene Rezepte löschen unter Anpassen).
+**Drucken** (Rezept, Tagesplan, eigenes Rezept) öffnet eine **Druckvorschau in
 der App** – die ganze A4-Seite, am Handy auf die Breite verkleinert – mit
-**‹ Zurück**, **📤 Teilen** und **🖨️ Drucken**. Kein neues Fenster, damit es auch
+**‹ Zurück**, **Teilen** und **Drucken**. Kein neues Fenster, damit es auch
 in der am iPhone installierten App funktioniert. Die Vorschau lässt sich
 **zoomen**: zwei Finger auseinanderziehen (bis 4-fach), Doppeltippen wechselt
 zwischen 2,5-fach und Seitenbreite, mit einem Finger verschieben, am Desktop
-Strg/⌘ + Mausrad. Der Rest der App bleibt wie bisher nicht zoombar. **📤 Teilen** erzeugt aus
+Strg/⌘ + Mausrad. Der Rest der App bleibt wie bisher nicht zoombar. **Teilen** erzeugt aus
 derselben Vorlage ein **PDF** (z. B. „Tagesplan 2026-10-03.pdf“, „Hendl &
 Brokkoli.pdf“) und öffnet das Teilen-Menü (WhatsApp, Signal, Mail, Dateien); am
 Desktop wird es heruntergeladen. Das PDF entsteht offline in der App (jsPDF);
 Emojis und Zeichen wie „≈“ ersetzt es durch Text („ca.“).
 In der **vom Home-Bildschirm gestarteten iPhone/iPad-App** ignoriert iOS den Druckbefehl
-der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü, in dem man
+der Seite; dort öffnet **Drucken** deshalb dasselbe PDF im Teilen-Menü, in dem man
 **„Drucken“** wählt (AirPrint). In Safari und am Computer kommt der normale Druckdialog.
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
@@ -197,24 +222,24 @@ Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
 die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (abfüllen, dann das Öl
 in die Portion einrühren), ggf. den Eiweiß-Hinweis und die **nummerierten
-Zubereitungsschritte** mit dem Öl als letztem Schritt. **📅 Für
-heute** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
+Zubereitungsschritte** mit dem Öl als letztem Schritt. **Für
+heute einplanen** übernimmt das Rezept in den Tagesplan: für **alle Mahlzeiten**, **nur die
 freien** oder **eine einzelne** (mit Uhrzeit und dem bisherigen Rezept). Danach
 erscheint eine Meldung mit **Rückgängig** und **Ansehen** (wechselt zu Heute).
 Übernommen wird genau die offene Variante (mit oder ohne KetoCal); angepasste
-Portion und Wasser gelten auch im Tagesplan. Am Desktop sind die vier Blätter
-Reiter nebeneinander.
+Portion und Wasser gelten auch im Tagesplan. Ab 1100 px Breite öffnet das Rezept
+als **festes Panel rechts**, die Rezeptliste bleibt daneben bedienbar.
 
-1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Menge,
-   Volumen), die Zutatentabelle je Portion und die Flüssigkeitszeile (Zutaten +
+1. **Mahlzeit** – Kennzahlen **einer Portion** (kcal mit Ziel, Eiweiß, Volumen,
+   Flüssigkeit), die Tabelle „Zum Abwiegen · eine Portion“ (Nährwerte je Zutat zuschaltbar) und die Flüssigkeitszeile (Zutaten +
    Wasser gegen das Ziel je Mahlzeit). Die **Gramm-Werte sind editierbar**:
    ändert man eine Zutat, skalieren alle anderen proportional mit; das
    Verhältnis bleibt, kcal je Mahlzeit ändern sich, Tagesplan und Tag
    rechnen mit der angepassten Portion. **Wasser** ist davon ausgenommen und
    wird für sich gemerkt. Beide Anpassungen stehen gleich in der
-   **Statuszeile** über den Kacheln („Portion angepasst: 80 % … ↺ wie
-   berechnet" bzw. „Wasser angepasst (85 statt 100 ml) · ↺ wie berechnet");
-   in der Wasserzeile steht nur „⟵ eigener Wert".
+   **Statuszeile** über der Tabelle („Portion angepasst: 80 % … · wie
+   berechnet" bzw. „Wasser angepasst (85 statt 100 ml) · wie berechnet",
+   „wie berechnet“ ist ein Textlink zum Zurücksetzen).
 2. **Tag** – **gleiches Layout wie Mahlzeit, nur mit den Mengen für einen
    ganzen Tag** (= N × diese Mahlzeit), direkt daneben, damit man zwischen
    Portion und Tag hin- und herwischen kann. Unter der Überschrift lässt sich
@@ -225,21 +250,21 @@ Reiter nebeneinander.
    mit skalierten Zielen) und die Waage-Tabelle mit editierbaren Gramm-Feldern
    gelten für diese Menge; Gramm-Änderungen wirken genau wie auf „Mahlzeit"
    (Portion angepasst, alle anderen Zutaten skalieren mit; Wasser für sich,
-   je Rezept gemerkt) und stehen mit „↺ wie berechnet" in derselben
+   je Rezept gemerkt) und stehen mit „wie berechnet" in derselben
    Statuszeile. „Tag(e)" folgen der Mahlzeitenzahl. Darunter der
    Wasser-Hinweis (Sondieren zwischen den Mahlzeiten bzw. Fehlmenge), bei
    Compleat die Packungsinfo und eine Warnung, falls ein Tag nur mit diesem
    Rezept unter dem Kalorien-Minimum oder über dem Korridor läge.
 3. **Anpassen** – Link **„Auch als …"** zum Geschwister-Rezept in der anderen Fettbasis,
-   **Fleisch-Umschalter 🍗 Huhn / 🥩 Rind / 🦃 Pute** (gilt nur in der offenen
+   **Fleisch-Umschalter Huhn / Rind / Pute** (gilt nur in der offenen
    Ansicht) und der **Öl-Schalter mit MCT-Anteil** samt Kennzahlen – das ist
    dieselbe Vorgabe wie unter Vorgaben → Öl und gilt für **alle** Rezepte.
    Wie auf Mahlzeit und Tag steht eine Statuszeile darüber: „Fleisch
-   getauscht: 🥩 Rind · ↺ wie im Rezept" bzw. „MCT-Anteil 30 % statt 10 % –
-   gilt für alle Rezepte · ↺ 10 %" (Bezug ist der Wert beim Öffnen).
-   Erklärungen hinter „ⓘ".
+   getauscht: Rind (nur in dieser Ansicht) · wie im Rezept" bzw. „MCT-Anteil 30 % statt 10 % –
+   gilt für alle Rezepte · zurück auf 10 %" (Bezug ist der Wert beim Öffnen).
+   Erklärungen hinter „Mehr dazu".
 4. **Kochen** – oben der Abfüll-Block je Portion (**Menge ohne Öl**, weil das
-   Öl erst in die abgefüllte Portion kommt, ml und Spritzenzahl, Öl-Kacheln),
+   Öl erst in die abgefüllte Portion kommt, ml und Spritzenzahl),
    bei mehreren Portionen die Gesamtmenge, eine kurze Notiz (Sieb, MCT,
    Garzeiten) und darunter die nummerierten Zubereitungsschritte (Varoma
    bevorzugt, Dämpfwasser eingerechnet). **Öl kommt nie in den Topf:** püriert
@@ -253,32 +278,34 @@ Eine einzige **Zeitleiste** für den ganzen Tag, am Handy auf einem Bildschirm
 ohne Scrollen (3, 4 und 5 Mahlzeiten, auch im Browser mit Adress- und Werkzeugleiste). Jede
 Mahlzeit zeigt unter dem Namen über die ganze Breite ihre **Zutaten einer Portion mit Gramm**
 (kurze Namen, roh/gekocht bleibt, Gramm ohne „,0“), das **Öl** als normale Zutat am Ende
-(„… · Rapsöl 14,2 g · MCT-Öl 1,6 g“). Die Zeitleiste **füllt den Bildschirm bis zur Tab-Leiste**:
-Die App wählt die großzügigste Stufe, die ohne Scrollen passt – mit viel Platz größere
-Schrift, zweizeilige Rezeptnamen und kcal/Eiweiß je Mahlzeit, der Rest wird Zeilenhöhe
-(Mahlzeiten mehr als Wasser); wird es eng (5 Mahlzeiten im Browser), rückt alles enger
-zusammen (kleinere Schrift, schmale Wasserzeilen, die Kopf-Pille ohne die Wasserzeile).
-Nur auf sehr kleinen Bildschirmen wird gescrollt. Der Kopf „📅 Heute · 7:00–17:30 · alle 3 h 30
-min" hat drei Knöpfe: **⏰** klappt die Uhrzeiten auf (**erste Mahlzeit**,
-**letzte Mahlzeit**, **Schlafen**; Vorgabe 7:00, 17:30, 20:00), **🖨️** druckt,
-**🗑️** leert den Plan (ohne Rückfrage, mit **Rückgängig**). Darunter eine
-niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
-(Mahlzeiten plus Wassergaben, „≈" solange Mahlzeiten offen sind).
+(„… · Rapsöl 14,2 g · MCT-Öl 1,6 g“). Die App wählt die großzügigste Stufe, die ohne
+Scrollen passt: mit viel Platz eine **Grammtabelle** (eine Zutat je Zeile, Gramm rechtsbündig
+in Mono), sonst zwei Spalten, wird es eng (5 Mahlzeiten im Browser) eine kompakte Zeile mit
+kleinerem Kopf. Nur auf sehr kleinen Bildschirmen wird gescrollt.
+
+Oben steht die **Tagessumme als eine Mono-Zeile**: kcal, Eiweiß und Flüssigkeit am ganzen
+Tag gegen das Ziel („638 / 640 kcal“; „ca.“ solange Mahlzeiten offen sind, rot bei
+Überschreitung). Darunter der Zeitraum („7:00–17:30 · alle 2 h 38 min“) und drei
+Textlinks: **Uhrzeiten** klappt die Uhrzeiten auf (**Erste**, **Letzte**, **Schlafen**;
+Vorgabe 7:00, 17:30, 20:00), **Drucken** druckt, **Leeren** leert den Plan (ohne Rückfrage,
+mit **Rückgängig**). Am Desktop (ab 821 px) steht die Zeitleiste links und die
+**Tagesbilanz** mit Werkzeugen und Hinweisen rechts daneben.
 
 In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondierdauer**
-(etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser schneller,
+(etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „125 ml · ca. 25 min“; Wasser schneller,
 etwa 15 ml pro Minute, mindestens 5 Minuten; in der Zeitleiste rechts in derselben Spalte wie die Dauer der
 Mahlzeiten, die Zeile bleibt einzeilig – auch auf dem Zettel und in
-der Erinnerung), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
-Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
-Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile (mit **Rückgängig**), ein Tipp
-öffnet das Rezept; offene Mahlzeiten („＋ Rezept wählen") zeigen eine geschätzte
-Menge. Erreicht ein geplantes Rezept die Verordnung nicht mehr (z. B. nach einer Änderung
+der Erinnerung), darunter die Zutaten; Warnungen stehen rot mit „▲“ unter dem Namen
+(„▲ Eiweiß 2,1 × Ziel“, „Eiweiß nur …“). Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
+Mahlzeiten), ist die Menge markiert. **„tauschen“** öffnet die Rezeptauswahl, ein Tipp
+öffnet das Rezept; offene Mahlzeiten stehen kursiv („Mahlzeit 3 · offen“) mit **„wählen“**.
+Die **Rezeptauswahl** ist ein Sheet („Rezept für 12:15“) mit Suchfeld; bei gefüllter Mahlzeit
+leert **„Leeren“** dort die Mahlzeit (mit **Rückgängig**). Erreicht ein geplantes Rezept die Verordnung nicht mehr (z. B. nach einer Änderung
 des Verhältnisses), ist es durchgestrichen markiert („passt nicht zu 1,5:1 – anderes Rezept
-wählen“) und zählt nicht in die Tagessummen. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
+wählen“) und zählt nicht in die Tagessummen. Die Rezeptauswahl zeigt je Rezept Gruppe, Fettbasis, kcal, **Volumen der Mahlzeit** („▲“
 über 25 ml/kg) und Eiweiß. Die Mahlzeiten liegen gleichmäßig zwischen erster
-und letzter; dazwischen stehen einzeilig die **Wassergaben** (Mitte jeder Pause
-und eine vor dem Schlafen; „🌙 20:00“ steht ganz rechts in deren Zeile). Die Menge je Wassergabe ergibt sich aus dem
+und letzter; dazwischen stehen einzeilig und **blau mit gepunkteter Linie** die **Wassergaben** (Mitte jeder Pause
+und eine vor dem Schlafen), zuletzt die Zeile **Schlafen** (in der kompakten Stufe in der letzten Wasserzeile). Die Menge je Wassergabe ergibt sich aus dem
 Tagesziel minus der Flüssigkeit der Mahlzeiten, gleich verteilt und auf 5 ml
 gerundet. Kurze Hinweise erscheinen bei weniger als 3 Stunden Abstand, bei
 weniger als 2 Stunden zwischen letzter Mahlzeit und Schlafen und wenn eine
@@ -306,10 +333,10 @@ anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht
 gleichzeitig halten – nur zwei davon; welche, legt die Rechenregel unter
 Vorgaben fest:
 
-- **⚖️ Verhältnis halten:** Das Verhältnis bleibt für jeden MCT-Anteil exakt
+- **Verhältnis halten:** Das Verhältnis bleibt für jeden MCT-Anteil exakt
   gleich; die Kalorien sinken mit dem Anteil, weil MCT weniger kcal je Gramm
   liefert.
-- **🎯 Kalorien halten:** Die Kalorien bleiben gleich; dafür steigt das
+- **Kalorien halten:** Die Kalorien bleiben gleich; dafür steigt das
   Verhältnis mit dem Anteil – die App warnt ab +0,05, denn das ist eine
   Änderung der Verordnung, nicht der Fettart.
 
@@ -330,7 +357,7 @@ abgemessen und mitpüriert. Püriert wird 1 Min./Stufe 10 und anschließend durc
 ein feines Sieb gestrichen, damit die Spritze nicht verstopft.
 
 **Herkunft:** Rezepte direkt von der Diätologie (aus den PDF-/Excel-Vorlagen)
-tragen das Schild **„👩‍⚕️ Diätologie"**. Bei Rezepten ohne KetoCal weist die App
+tragen das Schild **„Diätologie"**. Bei Rezepten ohne KetoCal weist die App
 darauf hin, dass Vitamine und Mineralstoffe separat ergänzt werden müssen.
 
 ## Rezepte (42 Gerichte, 58 Varianten: 22 mit / 36 ohne KetoCal)
@@ -373,7 +400,7 @@ haben eine Varoma-Anleitung, die übrigen werden klassisch zubereitet.
 
 ## Bedarf schätzen
 
-Unter **Vorgaben → 📊 Bedarf schätzen** vergleicht die App die Kalorien mit Studienwerten für Kinder mit
+Unter **Vorgaben → Verordnung → Bedarf schätzen** vergleicht die App die Kalorien mit Studienwerten für Kinder mit
 neurologischen Einschränkungen – **zur Orientierung fürs Gespräch mit dem Team, die Verordnung bleibt
 unverändert**. Eingaben: **Geburtsdatum** (das Alter rechnet die App laufend selbst), Geschlecht,
 **Bewegung** (geht · krabbelt · getragen/Rollstuhl · liegt viel) und **Muskelspannung** (schlaff · normal ·
@@ -382,7 +409,7 @@ einer). Eine Skala ordnet drei Werte ein; die Legende darunter sagt bei jedem, w
 
 - **Krick-Formel (1992)** (persönliche Schätzung): Grundumsatz nach Schofield aus Gewicht, Alter und Geschlecht ×
   Muskelspannung (0,9/1,0/1,1) × Bewegung (1,15/1,2/1,25/1,3) + 5 kcal je g gewünschter Zunahme
-  (halten/normal/aufholen, unter „ⓘ“),
+  (halten/normal/aufholen, unter „Wie wird gerechnet? Quellen“),
 - **ESPGHAN-Leitlinie (2017)**: Faustregel für Kinder, die nicht gehen, 60–70 % des Bedarfs gesunder Kinder
   (Romano et al., JPGN 2017) – rechnet nur mit dem Alter; bei „geht“ ausgeblendet,
 - **FAO/WHO (2004)**: Bedarf gesunder Kinder gleichen Alters (FAO/WHO/UNU, kcal/kg nach Alter).
@@ -395,15 +422,15 @@ Die Krick-Schätzung ist zugleich der **Kalorien-Vorschlag** in der Verordnung (
 eigener Wert steht); bei Kindern, die nicht gehen, wird das Minimum die ESPGHAN-Untergrenze (60 %).
 Dazu die Eiweiß-Prüfung (g/kg gegenüber dem Referenzwert), ein Hinweis zu Vitaminen/Mineralstoffen, wenn
 die verordneten kcal unter 70 % des Referenzwerts liegen, und ein Hinweis auf den Formelwechsel am 3.
-Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „ⓘ“
+Geburtstag. Formeln irren im Einzelfall um 20–40 %; entscheidend ist das Wachstum. Quellen unter „Wie wird gerechnet? Quellen“
 (u. a. Walker 2012, Borsani 2023, Arrowsmith 2012, Kossoff 2018); die Krick-Faktoren und die FAO-Tabelle
 stammen aus Sekundärquellen.
 
 ## Erinnerungen (Push)
 
-Unter **Vorgaben → 🔔 Erinnerungen** lassen sich Push-Nachrichten zu jeder **Mahlzeit** und
-**Wassergabe** einschalten (pünktlich oder 5/10/15 min vorher), z. B. „🍽️ Mahlzeit 2 · 10:30 –
-Hendl & Brokkoli · ≈ 217 ml · 45 min“ oder „💧 Wasser · 12:15 – 115 ml Wasser“. Die Uhrzeiten
+Unter **Vorgaben → Erinnerungen und Daten** lassen sich Push-Nachrichten zu jeder **Mahlzeit** und
+**Wassergabe** einschalten (pünktlich oder 5/10/15 min vorher), z. B. „Mahlzeit 2 · 10:30 –
+Hendl & Brokkoli · ≈ 217 ml · 45 min“ oder „Wasser · 12:15 – 115 ml Wasser“. Die Uhrzeiten
 kommen aus dem Zeitplan; ändern sich Uhrzeiten, Rezepte oder Wassergaben, gleicht die App den
 Dienst automatisch ab (und einmal am Tag beim Öffnen). Verschickt werden die Nachrichten von einem
 kleinen eigenen **Cloudflare Worker** (`push-worker/`, Web Push mit VAPID und aes128gcm,
@@ -413,9 +440,9 @@ ohne Internet keine Nachricht. **Testnachricht** prüft die Einrichtung.
 
 ## Geräte abgleichen (freiwillig)
 
-Unter **Vorgaben → 🔄 Geräte abgleichen** lassen sich iPhone, iPad und Computer auf denselben Stand
+Unter **Vorgaben → Erinnerungen und Daten → Geräte abgleichen** lassen sich iPhone, iPad und Computer auf denselben Stand
 bringen – nur wenn man es einschaltet; ausgeschaltet bleibt alles lokal. **Abgleich einschalten** auf dem
-ersten Gerät, dann **📱 Weiteres Gerät verbinden** zeigt einen 8-stelligen Code (15 Minuten gültig, einmal
+ersten Gerät, dann **Weiteres Gerät verbinden** zeigt einen 8-stelligen Code (15 Minuten gültig, einmal
 verwendbar), den man am anderen Gerät unter **Mit Code verbinden** eingibt; das neue Gerät übernimmt den
 gemeinsamen Stand. Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen
 (nicht: Ansicht, Filter, Sortierung, Darstellung, Erinnerungen, Editor-Entwurf). Jede Einheit – jede einzelne
@@ -456,7 +483,7 @@ machen und `npm run build` ausführen.
 | `26-favorites.js` | Rezeptfamilien (Fettbasis-Varianten), Favoriten, eigene Rezepte |
 | `30-ui-list.js` | Rezeptliste, Wischen zwischen Gruppen, Vorgaben-Felder |
 | `31-ui-header-vorgaben.js` | Ansichten, Kopf-Pille, Vorgaben, Backup |
-| `32-ui-tile.js` | Rezept-Kachel |
+| `32-ui-tile.js` | Rezept-Zeile in der Liste |
 | `34-ui-bedarf.js` | Bedarf schätzen (Schofield, Krick, 60–70 %, Referenz) |
 | `40-ui-detail.js` | Detailansicht (4 Blätter), Mahlzeit-Kennzahlen, Wisch-Gesten |
 | `50-ui-heute.js` | Heute: Zeitleiste, Einpassen auf den Bildschirm, Rezeptauswahl, Tagesplan-Ausdruck |

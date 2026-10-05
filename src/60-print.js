@@ -2,7 +2,7 @@
      Der Ausdruck öffnet sich als Vorschau in der App (kein neues Fenster – in der installierten iPhone-App gäbe es
      dort weder Zurück noch zuverlässig einen Druckdialog). Inhalt und Stil liegen in einem Shadow-DOM, damit die
      Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css).
-     „📤 Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
+     „Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
   function openPrintView(html, file) {
     const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
@@ -19,10 +19,10 @@
     if (!ov) {
       ov = document.createElement("div");
       ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
-      ov.innerHTML = '<div class="print-bar"><button type="button" class="btn secondary" id="print-back">‹ Zurück</button>' +
+      ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
-        '<button type="button" class="btn secondary" id="print-share">📤 Teilen</button>' +
-        '<button type="button" class="btn" id="print-go">🖨️ Drucken</button></div>' +
+        '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
+        '<button type="button" class="btn" id="print-go">Drucken</button></div>' +
         '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);

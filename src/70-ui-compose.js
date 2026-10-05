@@ -1,12 +1,12 @@
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
   const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers NÖM", "Creme Fraîche NÖM", "Mascarpone Kärntnermilch", "Rapsöl", "Olivenöl", "MCT Nutricia (100%)", "Liquigen"];
   // Der Editor sieht aus wie die Detailansicht: fester Kopf, zwei Blätter (Zutaten · Mahlzeit), feste Aktionsleiste.
-  const COMPOSE_PAGES = [["zutaten", "✏️ Zutaten"], ["mahlzeit", "🍽️ Mahlzeit"]];
+  const COMPOSE_PAGES = [["zutaten", "Zutaten"], ["mahlzeit", "Mahlzeit"]];
   let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select" });
-    sel.appendChild(el("option", { value: "" }, "— Lebensmittel wählen —"));
+    sel.appendChild(el("option", { value: "" }, "Lebensmittel wählen"));
     const byCat = {};
     FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
     Object.keys(byCat).sort().forEach(cat => {
@@ -60,36 +60,36 @@
     const c = document.getElementById("compose-content");
     const d = derived();
     const mobile = isMobileLayout();
-    const paneOpen = (k) => '<div class="pane" data-pane="' + k + '"' + (composeTab !== k && !mobile ? " hidden" : "") + ">";
-    const badge = compose.editKey
-      ? '<span class="badge quelle">📝 eigenes Rezept</span>'
-      : (compose.fromRecipe ? '<span class="badge noketo">nach „' + escapeHtml(compose.fromRecipe) + '“</span>' : '<span class="badge noketo">neu</span>');
+    const paneOpen = (k) => '<section class="pane" data-pane="' + k + '"' + (composeTab !== k && !mobile ? " hidden" : "") + '><div class="pane-in">';
+    const paneClose = "</div></section>";
+    const badge = '<span class="dh-tag">' + (compose.editKey ? "eigenes Rezept" : (compose.fromRecipe ? "nach „" + escapeHtml(compose.fromRecipe) + "“" : "neu")) + "</span>";
+    const nutrOn = !!state.settings.detailNutr;
+    c.classList.toggle("show-nutr", nutrOn);
 
     c.innerHTML =
-      '<div class="detail-head"><span class="detail-icon">📝</span>' +
-        '<div class="detail-head-body"><input id="compose-name" class="title title-input" type="text" placeholder="Name für dein Rezept" value="' + escapeHtml(compose.name || "") + '">' +
-        '<div class="meta" id="compose-meta"></div></div></div>' +
-      pagerHead(COMPOSE_PAGES, composeTab, "compose-tabs", "compose-dots") +
+      '<div class="sheet-grip" aria-hidden="true"></div>' +
+      '<div class="detail-head"><div class="dh-tags" id="compose-meta"></div>' +
+        '<input id="compose-name" class="title title-input" type="text" placeholder="Name für dein Rezept" aria-label="Name des Rezepts" value="' + escapeHtml(compose.name || "") + '"></div>' +
+      pagerHead(COMPOSE_PAGES, composeTab, "compose-tabs") +
       '<div class="pages" id="compose-pages">' +
 
       /* ---------- 1 Zutaten ---------- */
       paneOpen("zutaten") +
-      '<h4 class="ph">✏️ Zutaten <span class="hint">für eine Mahlzeit</span></h4>' +
       '<div class="portion-line">Lebensmittel und Mengen frei wählen – das Fett wird für ' + fmtTarget(d.ratio) + ' berechnet' +
         (compose.scale ? ', alles auf ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit skaliert' : '') + '</div>' +
+      '<div class="weigh-head"><h4 class="ph">Zutaten für eine Mahlzeit</h4></div>' +
       '<div class="compose-rows" id="compose-rows"></div>' +
-      '<button type="button" class="btn secondary" id="compose-add">+ Zutat hinzufügen</button>' +
-      '<div class="compose-fat"><label>🧈 Fett(e) zum Ausgleich <span class="hint">stellt das Verhältnis ein</span></label>' +
-        '<div class="compose-rows" id="compose-fats"></div>' +
-        '<button type="button" class="btn secondary" id="compose-addfat">+ weiteres Fett</button></div>' +
-      '<div class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '><label for="compose-scale" class="inline">Mengen automatisch auf eine Mahlzeit (≈ ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label></div>' +
-      "</div>" +
+      '<button type="button" class="tlink add-link" id="compose-add">+ Zutat hinzufügen</button>' +
+      '<div class="weigh-head"><h4 class="ph">Fett zum Ausgleich</h4><span class="wh-hint">stellt das Verhältnis ein</span></div>' +
+      '<div class="compose-rows" id="compose-fats"></div>' +
+      '<button type="button" class="tlink add-link" id="compose-addfat">+ weiteres Fett</button>' +
+      '<label class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '> Mengen automatisch auf eine Mahlzeit (≈ ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label>' +
+      paneClose +
 
       /* ---------- 2 Mahlzeit (Ergebnis, Layout wie in der Detailansicht) ---------- */
       paneOpen("mahlzeit") +
-      '<h4 class="ph">🍽️ Mahlzeit <span class="hint">eine Portion</span></h4>' +
-      '<div id="compose-result"></div>' +
-      "</div>" +
+      '<div id="compose-result" class="compose-result"></div>' +
+      paneClose +
 
       "</div>" + /* pages */
       '<div class="detail-actions" id="compose-actions"></div>';
@@ -116,7 +116,7 @@
           sh.addEventListener("input", e => { ft.share = e.target.value; recompute(); });
           row.appendChild(sh);
           row.appendChild(el("span", { class: "unit" }, "%"));
-          const del = el("button", { class: "btn ghost", title: "Entfernen" }, "✕");
+          const del = el("button", { type: "button", class: "row-del", title: "Fett entfernen", "aria-label": "Fett entfernen" }, "×");
           del.addEventListener("click", () => { compose.fats.splice(i, 1); renderFats(); recompute(); });
           row.appendChild(del);
         }
@@ -132,7 +132,7 @@
         g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
         row.appendChild(g);
         row.appendChild(el("span", { class: "unit" }, "g"));
-        const del = el("button", { class: "btn ghost", title: "Entfernen" }, "✕");
+        const del = el("button", { type: "button", class: "row-del", title: "Zutat entfernen", "aria-label": "Zutat entfernen" }, "×");
         del.addEventListener("click", () => { compose.items.splice(i, 1); if (!compose.items.length) compose.items.push({ food: "", grams: 30 }); renderRows(); recompute(); });
         row.appendChild(del);
         rowsWrap.appendChild(row);
@@ -148,8 +148,8 @@
       const box = c.querySelector("#compose-result"), meta = c.querySelector("#compose-meta");
       if (!res.ok) {
         lastOk = false; lastItems = [];
-        meta.innerHTML = '<span>noch unvollständig</span>' + badge;
-        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div><div class="note warn">⚠️ ' + res.note + "</div>";
+        meta.innerHTML = '<span class="dh-tag">noch unvollständig</span>' + badge;
+        box.innerHTML = '<div class="portion-line">Noch nichts zu berechnen</div><div class="note warn">▲ ' + res.note + "</div>";
         return;
       }
       let items = res.items;
@@ -164,34 +164,31 @@
       const totalG = items.reduce((a, it) => a + num(it.grams), 0);
       const ml = volumeMl(items);
       const proteinOk = sum.eiweiss >= d.eiweissMahl * 0.9, pStateC = proteinState(sum.eiweiss, d.eiweissMahl);
-      meta.innerHTML = '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRatio(r, 2) + '</span><span>' + fmt(sum.kcal, 0) + ' kcal je Portion</span>' + badge;
-      let rows = "";
-      items.forEach(it => {
-        const m = lineMacros(it);
-        rows += "<tr" + (it.isFat ? ' class="fatrow"' : "") + "><td class='name'>" + escapeHtml(it.food) +
-          (it.isFat ? '<small class="adj">⟵ stellt das Verhältnis ein</small>' : "") + "</td><td>" + fmt(it.grams, 1) +
-          "</td><td>" + fmt(m.eiweiss) + "</td><td>" + fmt(m.fett) + "</td><td>" + fmt(m.kh) + "</td><td>" + fmt(m.kcal, 0) + "</td></tr>";
-      });
+      meta.innerHTML = '<span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + '</span><span class="dh-tag">' + fmt(sum.kcal, 0) + ' kcal je Portion</span>' + badge;
+      const nutr = (m) => '<small class="nutr">Eiweiß ' + fmt(m.eiweiss) + ' · Fett ' + fmt(m.fett) + ' · KH ' + fmt(m.kh) + ' · ' + fmt(m.kcal, 0) + ' kcal</small>';
+      const rows = items.map(it => '<div class="ing-row ro' + (it.isFat ? " fatrow" : "") + '"><div class="ing-name"><span class="name">' + escapeHtml(it.food) + "</span>" +
+          (it.isFat ? '<small class="adj">stellt das Verhältnis ein</small>' : "") + nutr(lineMacros(it)) + '</div><span class="sum-g">' + fmt(it.grams, 1) + '</span><span class="unit">' + (/wasser/i.test(it.food) ? "ml" : "g") + "</span></div>").join("");
+      const fact = (cls, v, l) => '<div class="dstat' + (cls ? " " + cls : "") + '"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>';
       box.innerHTML =
-        '<div class="portion-line">' + (compose.scale ? 'Wie berechnet · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit' : 'Feste Zutatenmengen · ' + fmt(sum.kcal, 0) + ' kcal') + ' · Fett für ' + fmtTarget(d.ratio) + ' berechnet</div>' +
-        '<div class="detail-tiles strip">' +
-          '<div class="dstat"><div class="v">' + fmt(sum.kcal, 0) + '</div><div class="l">kcal · Ziel ' + fmt(d.kcalMahl, 0) + '</div></div>' +
-          '<div class="dstat ' + (proteinOk ? "" : "warn") + '"><div class="v">' + fmt(sum.eiweiss) + ' g</div><div class="l">Eiweiß · Ziel ' + fmt(d.eiweissMahl) + ' g</div></div>' +
-          '<div class="dstat"><div class="v">≈ ' + fmt(totalG, 0) + ' g</div><div class="l">Menge</div></div>' +
-          '<div class="dstat"><div class="v">≈ ' + fmt(ml, 0) + ' ml</div><div class="l">Volumen</div></div>' +
+        '<div class="detail-tiles facts">' +
+          fact("", fmt(sum.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
+          fact(proteinOk && pStateC !== "high" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
+          fact("", "≈ " + fmt(totalG, 0) + " g", "Menge") +
+          fact("", "≈ " + fmt(ml, 0) + " ml", "Volumen") +
         "</div>" +
-        (!proteinOk ? '<div class="note warn">⚠️ Liegt unter dem Eiweiß-Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
-        (pStateC === "high" ? '<div class="note warn">↑ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
-        '<div class="tbl-wrap"><table><thead><tr><th>Lebensmittel</th><th>Gramm</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th></tr></thead><tbody>' +
-        rows +
-        "<tr class='sum'><td class='name'>Summe je Portion</td><td>" + fmt(totalG, 0) + "</td><td>" + fmt(sum.eiweiss) + "</td><td>" +
-        fmt(sum.fett) + "</td><td>" + fmt(sum.kh) + "</td><td>" + fmt(sum.kcal, 0) + "</td></tr>" +
-        "</tbody></table></div>";
+        (!proteinOk ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+        (pStateC === "high" ? '<div class="note warn">▲ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
+        '<div class="portion-line">' + (compose.scale ? 'Wie berechnet · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit' : 'Feste Zutatenmengen · ' + fmt(sum.kcal, 0) + ' kcal') + ' · Fett für ' + fmtTarget(d.ratio) + ' berechnet</div>' +
+        '<div class="weigh-head"><h4 class="ph">Zum Abwiegen · eine Portion</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (state.settings.detailNutr ? " checked" : "") + '> Nährwerte</label></div>' +
+        '<div class="ing-list">' + rows +
+          '<div class="ing-row sum"><div class="ing-name"><span class="name">Summe je Portion</span>' + nutr(sum) + '</div><span class="sum-g">' + fmt(totalG, 0) + '</span><span class="unit">g</span></div></div>';
+      box.querySelectorAll(".nw-cb").forEach(cb => cb.addEventListener("change", () => { state.settings.detailNutr = cb.checked; save(); c.classList.toggle("show-nutr", cb.checked); }));
     }
 
-    // Feste Aktionsleiste unten: Speichern · Drucken · Leeren
+    // Feste Fußleiste: Speichern (Primär) · Drucken · Neu beginnen
     const actions = c.querySelector("#compose-actions");
-    const saveBtn = el("button", { class: "btn", id: "compose-save" }, compose.editKey ? "💾 Speichern" : "💾 Als Rezept speichern");
+    const saveLabel = () => compose.editKey ? "Speichern" : "Als Rezept speichern";
+    const saveBtn = el("button", { type: "button", class: "btn primary", id: "compose-save" }, saveLabel());
     saveBtn.addEventListener("click", () => {
       const nm = (nameInp.value || "").trim();
       if (!nm) { alert("Bitte oben einen Namen für das Rezept eingeben."); nameInp.focus(); return; }
@@ -207,10 +204,10 @@
       }
       compose.name = nm;
       save();
-      saveBtn.textContent = "✓ Gespeichert"; setTimeout(() => { saveBtn.textContent = "💾 Speichern"; }, 1500);
+      saveBtn.textContent = "Gespeichert"; setTimeout(() => { saveBtn.textContent = saveLabel(); }, 1500);
     });
     actions.appendChild(saveBtn);
-    const printBtn = el("button", { class: "btn secondary" }, "🖨️ Drucken");
+    const printBtn = el("button", { type: "button", class: "btn round-btn", title: "Drucken" }, ICON.print + '<span class="vh">Drucken</span>');
     printBtn.addEventListener("click", () => {
       if (!lastOk) { alert("Bitte zuerst gültige Zutaten und ein Fett wählen."); return; }
       const recForPrint = { name: (nameInp.value || "").trim() || "Eigenes Rezept", icon: "📝", ketocal: false,
@@ -218,7 +215,7 @@
       printRecipe(recForPrint, { items: lastItems }, derived(), 1);
     });
     actions.appendChild(printBtn);
-    const clearBtn = el("button", { class: "btn ghost", title: "Leeren / neu beginnen" }, "🗑️");
+    const clearBtn = el("button", { type: "button", class: "btn round-btn danger", title: "Leeren / neu beginnen" }, ICON.trash + '<span class="vh">Neu beginnen</span>');
     clearBtn.addEventListener("click", () => {
       state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true };
       save(); composeTab = "zutaten"; openCompose();

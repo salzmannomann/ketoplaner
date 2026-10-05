@@ -237,13 +237,13 @@
     forPrint = forPrint === true;
     let doc = null;
     try { doc = buildPdfFromHtml(printCurrent.html); } catch (e) { doc = null; }
-    if (!doc) { showToast(forPrint ? "📄 PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "📄 PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
+    if (!doc) { showToast(forPrint ? "PDF konnte nicht erstellt werden – bitte die App in Safari öffnen und dort drucken." : "PDF konnte nicht erstellt werden – bitte über „Drucken“ → Teilen als PDF sichern."); return; }
     const name = safeFileName(printCurrent.file) + ".pdf";
     const blob = doc.output("blob");
     let file = null;
     try { file = new File([blob], name, { type: "application/pdf" }); } catch (e) {}
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      if (forPrint) showToast("🖨️ Im Teilen-Menü auf „Drucken“ tippen.");
+      if (forPrint) showToast("Im Teilen-Menü auf „Drucken“ tippen.");
       try { await navigator.share({ files: [file], title: printCurrent.title }); } catch (e) { /* abgebrochen */ }
       return;
     }
@@ -252,6 +252,6 @@
       const url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      showToast("📄 PDF gespeichert: " + escapeHtml(name));
-    } catch (e) { showToast("📄 PDF konnte nicht gespeichert werden."); }
+      showToast("PDF gespeichert: " + escapeHtml(name));
+    } catch (e) { showToast("PDF konnte nicht gespeichert werden."); }
   }
