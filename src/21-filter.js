@@ -4,14 +4,15 @@
      „Angerührt“ (ohne Kochen: Fertigprodukte und Pulver-Mischungen). */
   const FILTERS = [
     { id: "alle", label: "Alle" },
-    { id: "gefluegel", label: "🍗 Geflügel" },
-    { id: "rind", label: "🥩 Rind & Schwein" },
-    { id: "fisch", label: "🐟 Fisch" },
-    { id: "ei", label: "🥚 Ei" },
-    { id: "gemuese", label: "🥔 Erdäpfel & Gemüse" },
-    { id: "obst", label: "🍓 Obst & Brei" },
-    { id: "angeruehrt", label: "🥤 Angerührt" },
+    { id: "gefluegel", label: "Geflügel" },
+    { id: "rind", label: "Rind & Schwein" },
+    { id: "fisch", label: "Fisch" },
+    { id: "ei", label: "Ei" },
+    { id: "gemuese", label: "Erdäpfel & Gemüse" },
+    { id: "obst", label: "Obst & Brei" },
+    { id: "angeruehrt", label: "Angerührt" },
   ];
+  function groupLabel(rec) { const g = recipeGroup(rec), f = FILTERS.find(x => x.id === g); return f ? f.label : ""; }
   // Primäre Gruppe eines Rezepts (aus den Zutaten abgeleitet; Fleisch/Fisch haben Vorrang).
   function recipeGroup(rec) {
     if (rec.angeruehrt) return "angeruehrt";

@@ -182,13 +182,13 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild,
   assert.ok(!tiles(w).some(t => /🥄/.test(badgeOf(t))));
   hk.checked = false; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all);
-  clickChip(w, "🥤 Angerührt");
+  clickChip(w, "Angerührt");
   assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Gemüse & Öl", "HiPP Hühnchen & Öl", "HiPP Rind & Gemüse & Öl", "HiPP Rind & Öl", "KetoCal & Pre Apta"]);
-  clickChip(w, "🥚 Ei");
+  clickChip(w, "Ei");
   assert.ok(tileNames(w).length >= 4 && tileNames(w).every(n => /^Ei /.test(n)));
-  clickChip(w, "🍗 Geflügel");
+  clickChip(w, "Geflügel");
   assert.ok(tileNames(w).length >= 8 && tileNames(w).every(n => /^(Hendl|Pute)/.test(n)));
-  clickChip(w, "🍓 Obst & Brei");
+  clickChip(w, "Obst & Brei");
   assert.ok(tileNames(w).some(n => /Grieß/.test(n)) && tileNames(w).some(n => /Banane/.test(n)));
   clickChip(w, "Alle");
   const s = $(w, "recipe-search"); s.value = "zucchini"; fire(w, s, "input");
@@ -556,7 +556,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   fire(w, hc.querySelector("[data-pick=\"0\"]"));
   assert.equal($(w, "picker-overlay").hidden, false);
   // Auswahl zeigt je Rezept kcal, Volumen der Mahlzeit und Eiweiß
-  assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · ≈ [\d.]+ ml.* · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
+  assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · (≈|▲) [\d.]+ ml · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
   hc = $(w, "heute-content");
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);
@@ -899,25 +899,25 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   assert.equal(activeChip(), "Alle", "unter halbem Weg bleibt die Markierung");
   assert.ok(!w.document.querySelector("#filter-bar .chip.hl"), "kein Überblenden der Chips");
   ptr("pointermove", 100, 402);
-  assert.equal(activeChip(), "🍗 Geflügel", "über halbem Weg springt die Markierung um");
+  assert.equal(activeChip(), "Geflügel", "über halbem Weg springt die Markierung um");
   assert.equal(stored(), "alle", "gespeichert wird erst beim Loslassen");
   ptr("pointermove", 250, 402);
   assert.equal(activeChip(), "Alle", "zurückziehen nimmt die Markierung zurück");
   ptr("pointermove", 100, 402);
   ptr("pointerup", 100, 402); await wait(450);
-  assert.equal(activeChip(), "🍗 Geflügel"); assert.equal(stored(), "gefluegel");
+  assert.equal(activeChip(), "Geflügel"); assert.equal(stored(), "gefluegel");
   assert.equal($(w, "recipe-peek"), null, "zweite Fläche nach dem Wechsel wieder weg");
   assert.equal(list.style.transform, "", "Liste steht wieder in Ruhelage");
   // weiter nach links → nächste Gruppe
   await drag(300, 400, 100, 400);
-  assert.equal(activeChip(), "🥩 Rind & Schwein");
+  assert.equal(activeChip(), "Rind & Schwein");
   // nach rechts ziehen → vorige Gruppe
   await drag(100, 400, 300, 395);
-  assert.equal(activeChip(), "🍗 Geflügel");
+  assert.equal(activeChip(), "Geflügel");
   // senkrechtes Ziehen (Scrollen) wechselt nicht, kurzer Zug auch nicht
   await drag(200, 300, 210, 500);
   await drag(200, 300, 170, 300);
-  assert.equal(activeChip(), "🍗 Geflügel");
+  assert.equal(activeChip(), "Geflügel");
   assert.equal($(w, "recipe-peek"), null, "zweite Fläche nach kurzem Zug wieder weg");
   // am Anfang bleibt „Alle“ stehen
   await drag(100, 400, 300, 400);
@@ -927,7 +927,7 @@ test("Liste: seitliches Ziehen im Rezeptbereich wechselt die Gruppe (links = nä
   // Nach einem Zug öffnet der folgende Klick auf eine Kachel kein Rezept; ein normaler Tipp danach schon
   const tile = () => tiles(w)[0];
   ptr("pointerdown", 300, 400, tile()); ptr("pointermove", 200, 400, tile()); ptr("pointerup", 100, 400, tile()); await wait(450);
-  assert.equal(activeChip(), "🍗 Geflügel");
+  assert.equal(activeChip(), "Geflügel");
   fire(w, tile());
   assert.ok($(w, "detail-overlay").hidden, "Klick nach dem Zug wird geschluckt");
   fire(w, tile());
