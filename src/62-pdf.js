@@ -22,7 +22,7 @@
   // zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
   // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst.
   function kitchenCardPdf(doc, kz) {
-    const CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5, ZS = 11.2, ZGAP = 5;
+    const CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5, ZS = 12.2, ZGAP = 5;
     const L = PX, R = CW - PX;
     const INK = [31, 41, 51], MUTED = [85, 85, 85], GREEN = [47, 133, 90], BLUE = [36, 85, 127], GREY = [122, 133, 139];
     const lineH = (size) => size * 0.3528 * 1.2;
@@ -46,7 +46,7 @@
       y += 0.8;
       // Zeitplan: Uhrzeit · Rezept bzw. Wasser (+ Dauer klein) · Menge
       rows.forEach((r, k) => {
-        const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 11.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 10.2 : 10) * s, ds = 8.5 * s;
+        const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 10.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 9.8 : 10) * s, ds = 9 * s;
         const col = r.kind === "wa" ? BLUE : r.kind === "sl" ? GREY : INK;
         font(big, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
         const avail = R - L - TW - GAP - mw;
@@ -55,10 +55,10 @@
         // Name und Dauer in einer Zeile, sonst Dauer darunter; sehr lange Namen brechen um
         font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail);
         const sameLine = nl.length === 1 && nW + dW <= avail;
-        const h = 1 + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 1;
+        const h = 0.8 + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
-          const base = y + 1 + lineH(big) * 0.8;
+          const base = y + 0.8 + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
           font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, L + TW + GAP, base + i * lineH(nm)));
           if (r.d) {
@@ -77,9 +77,9 @@
       font(10.5 * s, true, GREEN); const sh = lineH(10.5 * s);
       if (draw) { doc.text(pdfText(txt(kz, ".kz-s")), L, y + sh * 0.8); doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.4); doc.line(L, y + sh + 0.8, R, y + sh + 0.8); }
       y += sh + 1.3;
-      const zlh = lineH(ZS * s) * 1.05, cw = (R - L - 2 - ZGAP) / 2;
+      const zlh = lineH(ZS * s) * 1.02, cw = (R - L - 2 - ZGAP) / 2;
       recs.forEach((rc, k) => {
-        const tn = 11.5 * s, ti = 8.5 * s;
+        const tn = 13 * s, ti = 9 * s;
         const pairs = [];
         for (let i = 0; i < rc.z.length; i += 2) {
           const cells = rc.z.slice(i, i + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });

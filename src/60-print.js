@@ -135,14 +135,14 @@
     ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
     ".kz-cut span{position:absolute;top:5mm;left:2mm;font-size:8pt;color:#8a969c;white-space:nowrap}" +
     ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
-    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
-    ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.85em}" +
+    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.8mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
+    ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
     ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
     ".kz-s{margin:3.5mm 0 .5mm;padding-bottom:.8mm;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
-    ".rb{padding:1.2mm 1mm 1.4mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.15em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.3mm;font-size:1.12em;line-height:1.25;margin-top:.6mm}" +
+    ".rb{padding:1.2mm 1mm 1.4mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
+    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.3mm;font-size:1.22em;line-height:1.22;margin-top:.6mm}" +
     ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.rb .z .i b{white-space:nowrap}" +
-    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.12em}.r.wa .w .n{font-size:1.02em;font-weight:normal}.r.wa i{color:#24557f}" +
+    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.02em}.r.wa .w .n{font-size:.98em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w .n{font-size:1em;font-weight:normal}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
   const KITCHEN_SCALE_MAX = 1.5;
