@@ -186,6 +186,11 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .day-sum { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
 .day-tools { display: flex; align-items: center; gap: 4px; margin: -6px -6px 0; }
 .day-tools .dt-range { flex: 1; min-width: 0; padding-left: 6px; font-size: 13px; color: var(--grey); }
+/* Uhrzeiten und Abstand nebeneinander; passt der Abstand nicht mehr, bricht er in eine zweite, abgeschnittene Zeile
+   um und ist damit als Ganzes ausgeblendet */
+.day-tools .dt-range { display: flex; flex-wrap: wrap; align-content: flex-start; height: 20px; line-height: 20px; overflow: hidden; }
+.day-tools .dt-span, .day-tools .dt-int { white-space: nowrap; }
+.day-tools .dt-int { padding-left: .3em; }
 .zp-set { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 0; border-top: 1px dotted var(--dot); border-bottom: 1px dotted var(--dot); }
 .zp-set[hidden] { display: none; }
 .zp-f { display: flex; flex-direction: column; gap: 4px; margin: 0; font-size: 12px; color: var(--grey); }
@@ -306,7 +311,6 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .zp-list.tight .zp-row.water .zp-sleep { display: inline; }
 .zp-list.tight .zp-row.water:has(.zp-sleep) ~ .zp-row.sleep, .zp-list.tight .zp-row.sleep:has(~ .zp-row.water .zp-sleep) { display: none; }
 .zeitplan.tight .day-tools .tlink { min-height: 34px; }
-.zeitplan.tight .day-tools .dt-range { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .zp-list.tight .zp-warn { margin-top: 0; }
 /* knappste Stufe, Feinschliff: niedrigere Zeilen, Tauschen-Link flacher, Zutaten enger */
 .zeitplan.tight { gap: 8px; }
@@ -4680,9 +4684,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Warnungen an den anteiligen Zielen messen
     const eiweissZiel = d.eiweiss * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.filled > 0 && tot.kcal < kcalMinZiel - 0.5;
-    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot)
-    const tools = '<div class="day-tools"><span class="dt-range">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) +
-        (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span>' +
+    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot). Der Abstand („· alle 2:38 h“)
+    // steht in .dt-int und entfällt als Ganzes, wenn die Zeile zu knapp ist (nie mitten im Wort gekürzt).
+    const tools = '<div class="day-tools"><span class="dt-range"><span class="dt-span">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) + '</span>' +
+        (times.interval != null ? '<span class="dt-int">· alle ' + fmtAbstand(times.interval) + '</span>' : '') + '</span>' +
       link("Uhrzeiten", 'id="zp-toggle" aria-expanded="' + (zpEdit ? "true" : "false") + '" title="Uhrzeiten einstellen"', zpEdit ? "open" : "") +
       link("Drucken", 'id="print-day" title="Tagesplan drucken"') +
       link("Leeren", 'id="clear-day" title="Tagesplan leeren"', "danger") + '</div>';
@@ -4953,6 +4958,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function fmtHM(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
+  // Kurzform für knappe Zeilen: „2:38 h“, volle Stunden „3 h“, unter einer Stunde „45 min“
+  function fmtAbstand(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + (m ? ":" + String(m).padStart(2, "0") : "") + " h" : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
   // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
   // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen: etwa 15 ml pro Minute, mindestens 5 Minuten.

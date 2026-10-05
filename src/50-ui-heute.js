@@ -75,9 +75,10 @@
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Warnungen an den anteiligen Zielen messen
     const eiweissZiel = d.eiweiss * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.filled > 0 && tot.kcal < kcalMinZiel - 0.5;
-    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot)
-    const tools = '<div class="day-tools"><span class="dt-range">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) +
-        (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span>' +
+    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot). Der Abstand („· alle 2:38 h“)
+    // steht in .dt-int und entfällt als Ganzes, wenn die Zeile zu knapp ist (nie mitten im Wort gekürzt).
+    const tools = '<div class="day-tools"><span class="dt-range"><span class="dt-span">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) + '</span>' +
+        (times.interval != null ? '<span class="dt-int">· alle ' + fmtAbstand(times.interval) + '</span>' : '') + '</span>' +
       link("Uhrzeiten", 'id="zp-toggle" aria-expanded="' + (zpEdit ? "true" : "false") + '" title="Uhrzeiten einstellen"', zpEdit ? "open" : "") +
       link("Drucken", 'id="print-day" title="Tagesplan drucken"') +
       link("Leeren", 'id="clear-day" title="Tagesplan leeren"', "danger") + '</div>';

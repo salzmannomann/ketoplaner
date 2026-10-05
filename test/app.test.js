@@ -714,7 +714,13 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.equal(hc.querySelector(".zp-row.water .zp-sleep").title, "Schlafen 20:00");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
-  assert.equal(hc.querySelector(".day-tools .dt-range").textContent, "7:00–17:30 · alle 3 h 30 min");
+  // Abstand kurz und in eigenem .dt-int (wird bei knapper Zeile als Ganzes ausgeblendet)
+  assert.equal(hc.querySelector(".day-tools .dt-span").textContent, "7:00–17:30");
+  assert.equal(hc.querySelector(".day-tools .dt-int").textContent, "· alle 3:30 h");
+  const w45 = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, zpErste: "07:00", zpLetzte: "09:15", view: "heute" } });
+  assert.equal(w45.document.querySelector(".day-tools .dt-int").textContent, "· alle 45 min", "unter einer Stunde in Minuten");
+  const w238 = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 5, weight: 8.5, zpErste: "07:00", zpLetzte: "17:30", view: "heute" } });
+  assert.equal(w238.document.querySelector(".day-tools .dt-int").textContent, "· alle 2:38 h");
   assert.deepEqual([...hc.querySelectorAll(".day-tools .tlink")].map(b => b.textContent), ["Uhrzeiten", "Drucken", "Leeren"]);
   fire(w, $(w, "zp-toggle"));
   hc = $(w, "heute-content");

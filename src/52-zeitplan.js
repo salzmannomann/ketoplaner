@@ -12,6 +12,8 @@
   }
   function fmtHM(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
+  // Kurzform für knappe Zeilen: „2:38 h“, volle Stunden „3 h“, unter einer Stunde „45 min“
+  function fmtAbstand(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + (m ? ":" + String(m).padStart(2, "0") : "") + " h" : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
   // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
   // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen: etwa 15 ml pro Minute, mindestens 5 Minuten.

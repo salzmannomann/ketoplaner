@@ -2409,9 +2409,10 @@
     const share = tot.filled / d.mahl; // Anteil geplanter Mahlzeiten → Warnungen an den anteiligen Zielen messen
     const eiweissZiel = d.eiweiss * share, kcalMinZiel = d.kcalMin * share, fluidZiel = d.fluidDay * share;
     const kcalLow = tot.filled > 0 && tot.kcal < kcalMinZiel - 0.5;
-    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot)
-    const tools = '<div class="day-tools"><span class="dt-range">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) +
-        (times.interval != null ? ' · alle ' + fmtDauer(times.interval) : '') + '</span>' +
+    // Werkzeugzeile: Rahmen des Tages links, rechts Textlinks Uhrzeiten · Drucken · Leeren (rot). Der Abstand („· alle 2:38 h“)
+    // steht in .dt-int und entfällt als Ganzes, wenn die Zeile zu knapp ist (nie mitten im Wort gekürzt).
+    const tools = '<div class="day-tools"><span class="dt-range"><span class="dt-span">' + fmtHM(times.meals[0]) + '–' + fmtHM(times.meals[times.meals.length - 1]) + '</span>' +
+        (times.interval != null ? '<span class="dt-int">· alle ' + fmtAbstand(times.interval) + '</span>' : '') + '</span>' +
       link("Uhrzeiten", 'id="zp-toggle" aria-expanded="' + (zpEdit ? "true" : "false") + '" title="Uhrzeiten einstellen"', zpEdit ? "open" : "") +
       link("Drucken", 'id="print-day" title="Tagesplan drucken"') +
       link("Leeren", 'id="clear-day" title="Tagesplan leeren"', "danger") + '</div>';
@@ -2682,6 +2683,8 @@
   }
   function fmtHM(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
   function fmtDauer(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + " h" + (m ? " " + m + " min" : "") : m + " min"; }
+  // Kurzform für knappe Zeilen: „2:38 h“, volle Stunden „3 h“, unter einer Stunde „45 min“
+  function fmtAbstand(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? h + (m ? ":" + String(m).padStart(2, "0") : "") + " h" : m + " min"; }
   const round5 = (m) => Math.round(m / 5) * 5;
   // Sondierdauer einer Mahlzeit: langsam, etwa 5 ml pro Minute (fettreiche Kost dehnt den Magen sonst auf einmal),
   // auf 5 Minuten gerundet, mindestens 10 Minuten. Wasser darf schneller gehen: etwa 15 ml pro Minute, mindestens 5 Minuten.
