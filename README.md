@@ -337,10 +337,12 @@ stückiges Fleisch ohne Haut verwendet (Hühnerbrust, Putenbrust); beim Rind –
 wie von der Diätologin vorgesehen – **Rinderfaschiertes** (lässt sich feiner
 pürieren und verstopft die Spritze weniger).
 
-**Fleisch tauschen:** Beim Umstellen ändert sich nur das Fleisch – Gemüse,
-Wasser und Öl bleiben gleich. Die Fleischmenge wird so berechnet, dass das
-Verhältnis exakt erhalten bleibt; die Kalorien können leicht variieren (wird
-angezeigt). Der Tausch gilt nur für die geöffnete Ansicht.
+**Fleisch tauschen:** Getauscht wird nach den Mengen der Diätologin (20 g Huhn ≙
+30 g Rinderfaschiertes ≙ 18 g Pute); danach wird das Rezept wie jedes andere auf
+Verhältnis **und** Kalorien je Mahlzeit eingestellt – Öl und Gesamtmenge passen sich
+an (Rind bringt selbst Fett mit, also kommt weniger Öl dazu). Lässt sich ein Fleisch
+bei der Verordnung nicht einstellen, ist es gesperrt. Der Tausch gilt nur für die
+geöffnete Ansicht.
 
 **MCT-Anteil (Rapsöl / MCT):** Beim Tausch eines Fettes gegen ein Fett
 anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht

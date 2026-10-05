@@ -3817,17 +3817,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let adjIndex = base.fatIndex, adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
-      // Nur das Fleisch wird getauscht; Gemüse, Wasser UND Öl/Fett bleiben gleich.
-      // Die Fleischmenge wird so berechnet, dass das Verhältnis exakt stimmt.
-      const swapped = base.items.map((it, i) => i === swapSlot.index
-        ? { food: MEATS[meatChoice].food, grams: num(it.grams) }
-        : { food: it.food, grams: num(it.grams) });
-      const solved = solveMeatForRatio(swapped, swapSlot.index, d.ratio);
-      if (solved) {
-        const sm = sumMacros(solved);
-        res = { items: solved, ratio: ratioOf(sm), kcal: sm.kcal, ok: true, fatIndex: base.fatIndex };
-        adjIndex = swapSlot.index; adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
-      }
+      // Fleisch nach den Mengen der Diätologin tauschen (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) und das Rezept danach wie
+      // jedes andere auf Verhältnis UND kcal je Mahlzeit einstellen – Öl und Menge passen sich an.
+      const sw = computeAdjustedRecipe(applyMeatChoice(rec, meatChoice), d.kcalMahl, d.ratio);
+      if (sw.ok) { res = sw; adjIndex = sw.fatIndex; }
     }
     // Öl-Mix (Rapsöl/MCT): Anteil s + Modus aus den Vorgaben; s = 0 lässt alles unverändert.
     // kcal-Ziel für den Modus KALORIEN = Kalorien der Ansicht bei s = 0 (Basis bzw.
@@ -4017,13 +4010,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     pages.addEventListener("pointerup", end);
     pages.addEventListener("pointerleave", end);
   }
-  // Lässt sich das Fleisch bei dieser Verordnung tauschen? (Bei sehr niedrigem Verhältnis bringt z. B. Rind schon zu viel
-  // Fett mit – dann gibt es keine Fleischmenge, die das Verhältnis trifft.)
+  // Lässt sich das Rezept mit diesem Fleisch auf die Verordnung einstellen? (Bei sehr niedrigem Verhältnis bringt z. B. Rind
+  // schon zu viel Fett mit – dann gibt es keine Lösung.)
   function meatSwapPossible(rec, d, k) {
     const slot = recipeMeatSlot(rec); if (!slot || !k || k === slot.baseKey) return true;
-    const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio); if (!base.ok) return false;
-    const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
-    return !!solveMeatForRatio(swapped, slot.index, d.ratio);
+    return computeAdjustedRecipe(applyMeatChoice(rec, k), d.kcalMahl, d.ratio).ok;
   }
   // Mengen, Wasser oder MCT im Rezept geändert: auch Liste, Tagesplan, Kopf und Seitenleiste neu zeichnen
   // (sonst zeigen sie bis zum Neuladen die alten Werte, und der Tagesplan-Ausdruck mischt alt und neu)
@@ -4114,8 +4105,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
         ["huhn", "rind", "pute"].map(k => { const ok = meatSwapPossible(rec, d, k);
           return '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
-            (ok ? "" : ' disabled title="Bei diesem Verhältnis nicht möglich – ' + MEATS[k].label + ' bringt zu viel Fett mit"') + ">" + MEATS[k].label + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Nur das Fleisch wird getauscht – Gemüse, Wasser und Öl bleiben; die Fleischmenge wird neu berechnet, damit das Verhältnis genau stimmt.</div></div>';
+            (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + MEATS[k].label + ' lässt sich das Verhältnis nicht einstellen"') + ">" + MEATS[k].label + "</button>"; }).join("") +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach den Mengen der Diätologie (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute); danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt.</div></div>';
     }
 
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
