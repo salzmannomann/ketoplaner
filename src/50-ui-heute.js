@@ -124,7 +124,7 @@
       state.dayPlan[i] = { key: null }; save(); renderHeute();
       showToast("✕ Mahlzeit " + (i + 1) + " entfernt", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
     }));
-    const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
+    const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts));
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => {
       if (!state.dayPlan.some(sl => sl && sl.key)) return;
@@ -265,65 +265,25 @@
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  function printDayPlan(d, facts, tot, ratioDay) {
+  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Was und
+  // Menge; darunter Rezept und Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
-    const zr = [];
+    const rows = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : m.bad ? " · <small>" + escapeHtml(m.bad.name) + " passt nicht zur Verordnung – anderes Rezept wählen</small>" : " · <small>Rezept offen</small>") + "</td>" +
-        "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
+      const x = m.rec ? "<b>" + escapeHtml(m.rec.name) + "</b> <i>· " + sondierMin(m.vol) + " min</i>"
+        : m.bad ? "<b>" + escapeHtml(m.bad.name) + "</b> <i>passt nicht – anderes Rezept wählen</i>" : "<i>Rezept offen</i>";
+      const z = f ? f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food))
+        .map(it => '<span class="i">' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ") : "";
+      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>Mahlzeit " + (i + 1) + "</span>" +
+        "<span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span><div class='x'>" + x + "</div>" + (z ? "<div class='z'>" + z + "</div>" : "") + "</div>" });
     });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td></tr>" });
-    zr.sort((a, b) => a.t - b.t);
-    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th class='num'>Dauer</th></tr></thead><tbody>" +
-      zr.map(r => r.h).join("") + "</tbody></table>" +
-      "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
-      "Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
-    const share = tot.filled / d.mahl;
-    const kcalZiel = d.kcal * share, eiweissZiel = d.eiweiss * share;
-    const sums = tot.filled
-      ? "<h2>Tagessummen" + (tot.filled < d.mahl ? " <small>(" + tot.filled + " von " + d.mahl + " Mahlzeiten geplant, Ziele anteilig)</small>" : "") + "</h2><div class='sums'>" +
-        "<div><b>" + fmt(tot.kcal, 0) + " kcal</b><span>Ziel " + fmt(kcalZiel, 0) + "</span></div>" +
-        "<div><b>" + fmt(tot.eiweiss) + " g Eiweiß</b><span>Ziel " + fmt(eiweissZiel, 0) + " g" + (proteinState(tot.eiweiss, eiweissZiel) === "high" ? " – deutlich darüber" : "") + "</span></div>" +
-        "<div><b>" + fmtRatio(ratioDay, 2) + "</b><span>Verhältnis · Ziel " + fmtTarget(d.ratio) + "</span></div>" +
-        (d.fluidDay > 0 ? "<div><b>" + (dm.known < d.mahl ? "ca. " : "") + fmt(wp.total, 0) + " ml</b><span>Flüssigkeit · Ziel " + fmt(d.fluidDay, 0) + "</span></div>" : "") + "</div>"
-      : "";
-    // Mahlzeiten im Detail: je Rezept ein Block mit den Zutaten einer Portion (zwei Spalten), gleiche
-    // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), das Öl als normale Zutat, darunter das Abfüllen.
-    const groups = [];
-    facts.forEach((f, i) => {
-      if (!f) return;
-      const sig = f.rec.name + "|" + f.res.items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
-      const g = groups.find(x => x.sig === sig);
-      if (g) g.nums.push(i + 1); else groups.push({ sig, f, nums: [i + 1] });
-    });
-    const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
-    // Jeder Block ist ein eigenes <tbody>, damit er beim Drucken nicht über zwei Seiten reißt.
-    const blockList = groups.map(({ f, nums }) => ({ first: nums[0], html: "<tbody>" + (() => {
-      const all = f.res.items.filter(it => num(it.grams) > 0);
-      const ing = all.filter(it => !isOilName(it.food)).concat(all.filter(it => isOilName(it.food)));
-      const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
-      let rows = "";
-      for (let k = 0; k < ing.length; k += 2) rows += "<tr>" + cell(ing[k]) + cell(ing[k + 1]) + "</tr>";
-      const hi = proteinState(f.sum.eiweiss, d.eiweissMahl) === "high";
-      return "<tr class='grp'><td colspan='4'><b>Mahlzeit " + nums.join(" + ") + " · " + escapeHtml(f.rec.name) + "</b> " +
-        "<small>" + fmt(f.sum.kcal, 0) + " kcal · Eiweiß " + fmt(f.sum.eiweiss) + " g" + (hi ? " (hoch)" : "") + " · Fett " + fmt(f.sum.fett) + " g · KH " + fmt(f.sum.kh) + " g · Verhältnis " + fmtRatio(f.ratio, 2) + "</small></td></tr>" +
-        rows +
-        "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
-          : f.hasOil ? "Je Portion ca. " + fmt(f.gNoOil, 0) + " g abfüllen und das Öl einrühren – zusammen ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
-          : "Je Portion ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml abfüllen") + "</td></tr>";
-    })() + "</tbody>" }));
-    // Offene Mahlzeiten an ihrer Stelle einreihen (nicht immer am Ende)
-    if (open.length) blockList.push({ first: open[0], html: "<tbody><tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr></tbody>" });
-    const blocks = blockList.sort((a, b) => a.first - b.first).map(b => b.html).join("");
-    const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
-    const detail = tot.filled
-      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'>" + blocks + "</table>" +
-        (oilDay ? "<p class='note'><b>Öl für den ganzen Tag:</b> " + oilDay + "</p>" : "")
-      : "";
-    const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +
-      (d.fluidDay > 0 ? " · Flüssigkeit " + fmt(d.fluidDay, 0) + " ml/Tag" : "") + (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + "</p>";
-    const html = printDoc("Tagesplan", escapeHtml(printDateLong()), rx + zeit + sums + detail);
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'>Wasser" + (g.kind === "abend" ? " <i>vor dem Schlafen</i>" : "") + "</span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
+    if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'>Schlafen</span><span class='m'></span></div>" });
+    rows.sort((a, b) => a.t - b.t);
+    const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
+      "<p class='kz-cut'>✂ entlang der gestrichelten Linie ausschneiden</p>" +
+      "<div class='kz'><div class='kz-h'><b>Tagesplan</b><span>" + escapeHtml(printDateLong()) + "</span></div>" + rows.map(r => r.h).join("") + "</div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }

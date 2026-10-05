@@ -4715,7 +4715,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       state.dayPlan[i] = { key: null }; save(); renderHeute();
       showToast("✕ Mahlzeit " + (i + 1) + " entfernt", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
     }));
-    const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts, tot, ratioDay));
+    const pd = box.querySelector("#print-day"); if (pd) pd.addEventListener("click", () => printDayPlan(d, facts));
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => {
       if (!state.dayPlan.some(sl => sl && sl.key)) return;
@@ -4856,66 +4856,26 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  function printDayPlan(d, facts, tot, ratioDay) {
+  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Was und
+  // Menge; darunter Rezept und Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
-    const zr = [];
+    const rows = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      zr.push({ t, h: "<tr><td class='t'>" + fmtHM(t) + "</td><td><b>Mahlzeit " + (i + 1) + "</b>" + (m.rec ? " · " + escapeHtml(m.rec.name) : m.bad ? " · <small>" + escapeHtml(m.bad.name) + " passt nicht zur Verordnung – anderes Rezept wählen</small>" : " · <small>Rezept offen</small>") + "</td>" +
-        "<td class='num'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</td><td class='num'>" + sondierMin(m.vol) + " min</td></tr>" });
+      const x = m.rec ? "<b>" + escapeHtml(m.rec.name) + "</b> <i>· " + sondierMin(m.vol) + " min</i>"
+        : m.bad ? "<b>" + escapeHtml(m.bad.name) + "</b> <i>passt nicht – anderes Rezept wählen</i>" : "<i>Rezept offen</i>";
+      const z = f ? f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food))
+        .map(it => '<span class="i">' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ") : "";
+      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>Mahlzeit " + (i + 1) + "</span>" +
+        "<span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span><div class='x'>" + x + "</div>" + (z ? "<div class='z'>" + z + "</div>" : "") + "</div>" });
     });
-    if (wp.per > 0) times.gifts.forEach(g => zr.push({ t: g.t, h: "<tr class='water'><td class='t'>" + fmtHM(g.t) + "</td><td>Wasser" + (g.kind === "abend" ? " <small>vor dem Schlafen</small>" : "") + "</td><td class='num'>" + fmt(wp.per, 0) + " ml</td><td></td></tr>" }));
-    if (times.schlaf != null) zr.push({ t: times.schlaf, h: "<tr class='sleep'><td class='t'>" + fmtHM(times.schlaf) + "</td><td>Schlafen</td><td></td><td></td></tr>" });
-    zr.sort((a, b) => a.t - b.t);
-    const zeit = "<h2>Zeitplan</h2><table><thead><tr><th>Uhrzeit</th><th>Was</th><th class='num'>Menge</th><th class='num'>Dauer</th></tr></thead><tbody>" +
-      zr.map(r => r.h).join("") + "</tbody></table>" +
-      "<div class='box'><b>So sondieren:</b> Mahlzeit langsam über die angegebene Zeit geben (etwa " + SONDIER_ML_MIN + " ml pro Minute), Wasser darf schneller gehen. " +
-      "Oberkörper hoch – während der Gabe und 30 Minuten danach. Steht beim Öffnen noch Nahrung an: 30–60 Minuten warten.</div>";
-    const share = tot.filled / d.mahl;
-    const kcalZiel = d.kcal * share, eiweissZiel = d.eiweiss * share;
-    const sums = tot.filled
-      ? "<h2>Tagessummen" + (tot.filled < d.mahl ? " <small>(" + tot.filled + " von " + d.mahl + " Mahlzeiten geplant, Ziele anteilig)</small>" : "") + "</h2><div class='sums'>" +
-        "<div><b>" + fmt(tot.kcal, 0) + " kcal</b><span>Ziel " + fmt(kcalZiel, 0) + "</span></div>" +
-        "<div><b>" + fmt(tot.eiweiss) + " g Eiweiß</b><span>Ziel " + fmt(eiweissZiel, 0) + " g" + (proteinState(tot.eiweiss, eiweissZiel) === "high" ? " – deutlich darüber" : "") + "</span></div>" +
-        "<div><b>" + fmtRatio(ratioDay, 2) + "</b><span>Verhältnis · Ziel " + fmtTarget(d.ratio) + "</span></div>" +
-        (d.fluidDay > 0 ? "<div><b>" + (dm.known < d.mahl ? "ca. " : "") + fmt(wp.total, 0) + " ml</b><span>Flüssigkeit · Ziel " + fmt(d.fluidDay, 0) + "</span></div>" : "") + "</div>"
-      : "";
-    // Mahlzeiten im Detail: je Rezept ein Block mit den Zutaten einer Portion (zwei Spalten), gleiche
-    // Mahlzeiten zusammengefasst („Mahlzeit 3 + 4“), das Öl als normale Zutat, darunter das Abfüllen.
-    const groups = [];
-    facts.forEach((f, i) => {
-      if (!f) return;
-      const sig = f.rec.name + "|" + f.res.items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
-      const g = groups.find(x => x.sig === sig);
-      if (g) g.nums.push(i + 1); else groups.push({ sig, f, nums: [i + 1] });
-    });
-    const open = facts.map((f, i) => f ? 0 : i + 1).filter(Boolean);
-    // Jeder Block ist ein eigenes <tbody>, damit er beim Drucken nicht über zwei Seiten reißt.
-    const blockList = groups.map(({ f, nums }) => ({ first: nums[0], html: "<tbody>" + (() => {
-      const all = f.res.items.filter(it => num(it.grams) > 0);
-      const ing = all.filter(it => !isOilName(it.food)).concat(all.filter(it => isOilName(it.food)));
-      const cell = (it) => it ? "<td class='ing'>" + escapeHtml(it.food) + "</td><td class='num g'>" + fmt(num(it.grams), 1) + " g</td>" : "<td class='ing'></td><td class='num g'></td>";
-      let rows = "";
-      for (let k = 0; k < ing.length; k += 2) rows += "<tr>" + cell(ing[k]) + cell(ing[k + 1]) + "</tr>";
-      const hi = proteinState(f.sum.eiweiss, d.eiweissMahl) === "high";
-      return "<tr class='grp'><td colspan='4'><b>Mahlzeit " + nums.join(" + ") + " · " + escapeHtml(f.rec.name) + "</b> " +
-        "<small>" + fmt(f.sum.kcal, 0) + " kcal · Eiweiß " + fmt(f.sum.eiweiss) + " g" + (hi ? " (hoch)" : "") + " · Fett " + fmt(f.sum.fett) + " g · KH " + fmt(f.sum.kh) + " g · Verhältnis " + fmtRatio(f.ratio, 2) + "</small></td></tr>" +
-        rows +
-        "<tr class='ft'><td colspan='4'>" + (f.rec.angeruehrt ? "Alles zusammen anrühren: ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
-          : f.hasOil ? "Je Portion ca. " + fmt(f.gNoOil, 0) + " g abfüllen und das Öl einrühren – zusammen ca. " + fmt(volumeMl(f.res.items), 0) + " ml"
-          : "Je Portion ca. " + fmt(f.gNoOil, 0) + " g / " + fmt(f.mlNoOil, 0) + " ml abfüllen") + "</td></tr>";
-    })() + "</tbody>" }));
-    // Offene Mahlzeiten an ihrer Stelle einreihen (nicht immer am Ende)
-    if (open.length) blockList.push({ first: open[0], html: "<tbody><tr class='grp'><td colspan='4'><b>Mahlzeit " + open.join(" + ") + "</b> <small>noch kein Rezept gewählt</small></td></tr></tbody>" });
-    const blocks = blockList.sort((a, b) => a.first - b.first).map(b => b.html).join("");
-    const oilDay = [tot.raps > 0 ? "Rapsöl " + fmt(tot.raps, 1) + " g" : "", tot.mct > 0 ? "MCT-Öl " + fmt(tot.mct, 1) + " g" : ""].filter(Boolean).join(" + ");
-    const detail = tot.filled
-      ? "<h2>Mahlzeiten im Detail <small>· Zutaten je Portion</small></h2><table class='meals'>" + blocks + "</table>" +
-        (oilDay ? "<p class='note'><b>Öl für den ganzen Tag:</b> " + oilDay + "</p>" : "")
-      : "";
-    const rx = "<p class='rx'>Verordnung " + fmtTarget(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal/Tag (" + d.mahl + " × " + fmt(d.kcalMahl, 0) + " kcal) · Eiweiß-Ziel " + fmt(d.eiweiss, 0) + " g/Tag" +
-      (d.fluidDay > 0 ? " · Flüssigkeit " + fmt(d.fluidDay, 0) + " ml/Tag" : "") + (d.mctShare > 0 ? " · MCT-Anteil " + Math.round(d.mctShare * 100) + " %" : "") + "</p>";
-    const html = printDoc("Tagesplan", escapeHtml(printDateLong()), rx + zeit + sums + detail);
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'>Wasser" + (g.kind === "abend" ? " <i>vor dem Schlafen</i>" : "") + "</span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
+    if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'>Schlafen</span><span class='m'></span></div>" });
+    rows.sort((a, b) => a.t - b.t);
+    const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
+      "<p class='kz-cut'>✂ entlang der gestrichelten Linie ausschneiden</p>" +
+      "<div class='kz'><div class='kz-h'><b>Tagesplan</b><span>" + escapeHtml(printDateLong()) + "</span></div>" + rows.map(r => r.h).join("") + "</div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }
 
@@ -5202,6 +5162,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+    // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
+    sheet.style.zoom = ""; fitKitchenCard(root);
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
@@ -5277,6 +5239,29 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
+  // Küchenzettel (Tagesplan): A6-Karte mit Schnittlinie. Alle Schriftgrößen in em, damit fitKitchenCard die ganze
+  // Karte über --s verkleinern kann, bis sie passt.
+  const KITCHEN_CSS =
+    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
+    ".kz-cut{margin:0 0 1.5mm;font-size:8pt;color:#8a969c}" +
+    ".kz{width:105mm;height:148mm;border:.3mm dashed #8a969c;padding:4.5mm 5mm;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}" +
+    ".kz-h b{font-size:1.3em}.kz-h span{font-size:.85em;color:#555;white-space:nowrap}" +
+    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1.2mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
+    ".r .t{font-weight:bold;font-size:1.45em}.r .w{font-weight:bold;font-size:1.3em}" +
+    ".r .m{font-weight:bold;font-size:1.45em;text-align:right;white-space:nowrap}" +
+    ".r .x{grid-column:2/4;font-size:.95em;margin-top:.5mm}.r .x b{font-weight:600}.r i{font-style:normal;color:#555;font-weight:normal}" +
+    ".r .z{grid-column:2/4;font-size:.78em;color:#3d4a52;line-height:1.35;margin-top:.4mm}.r .z .i{white-space:nowrap}" +
+    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.25em}.r.wa .w{font-size:1.1em;font-weight:normal}.r.wa i{color:#24557f}" +
+    ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w{font-size:1em;font-weight:normal}";
+  // Schrift der Karte so groß wie möglich: von 120 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  function fitKitchenCard(root) {
+    const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
+    let sc = 1.2; kz.style.setProperty("--s", "1.2");
+    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+  }
+
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
   const PRINT_CSS =
     "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
@@ -5288,22 +5273,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     "table{width:100%;border-collapse:collapse;margin:0}" +
     "th{background:#eef5f0;text-align:left;font-size:8.5pt;font-weight:bold;color:#33463b;padding:1.4mm 1.5mm;border-bottom:.6pt solid #9bb8a6}" +
     "td{border-bottom:.4pt solid #d5dbd8;padding:1.6mm 1.5mm;vertical-align:top}" +
-    ".num{text-align:right;white-space:nowrap}.nw{white-space:nowrap}" +
-    "td.t{font-weight:bold;white-space:nowrap;width:15mm}" +
-    "tr.water td{background:#f3f8fc;color:#24557f}tr.sleep td{color:#777}" +
+    ".num{text-align:right;white-space:nowrap}" +
     "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
-    "small{color:#666;font-size:8.5pt}" +
     ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
     ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
-    ".sums{display:flex;gap:3mm;margin:1mm 0}.sums div{flex:1;border:.6pt solid #cfdcd3;border-radius:1.5mm;padding:1.6mm 2mm}" +
-    ".sums b{display:block;font-size:12pt}.sums span{font-size:8.5pt;color:#555}" +
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
-    "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
-    "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
-    "table.meals tbody:first-child tr.grp td{border-top:none}table.meals tbody{break-inside:avoid}" +
-    "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
-    "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
-    ".note{margin:2mm 0 0;font-size:9.5pt}" +
     "tr,li,.box{break-inside:avoid}" +
     ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
   function printDoc(title, meta, bodyHtml) {
@@ -5396,6 +5370,64 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
+  // Küchenzettel: A6-Karte (105 × 148 mm) mit gestrichelter Schnittlinie oben links auf A4, gleiche Gliederung wie die
+  // Vorschau. Die Schrift beginnt bei 120 % und wird schrittweise kleiner, bis alles auf die Karte passt.
+  function kitchenCardPdf(doc, kz) {
+    const X = 16, Y = 18, CW = 105, CH = 148, PX = 5, PY = 4.5, GAP = 1.5;
+    const L = X + PX, R = X + CW - PX;
+    const lineH = (size) => size * 0.3528 * 1.2;
+    const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || [31, 41, 51]); };
+    const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
+    const head = kz.querySelector(".kz-h");
+    const rows = [...kz.querySelectorAll(".r")].map(r => ({
+      kind: r.classList.contains("wa") ? "wa" : r.classList.contains("sl") ? "sl" : "me",
+      t: txt(r, ".t"), w: txt(r, ".w"), m: txt(r, ".m"), x: txt(r, ".x"),
+      z: [...r.querySelectorAll(".z .i")].map(i => pdfText(i.textContent)),
+    }));
+    // Zutaten als Wörter-Gruppen umbrechen („Brokkoli 40 g“ bleibt zusammen)
+    const wrapTokens = (tokens, width) => {
+      const lines = []; let cur = "";
+      tokens.forEach(tk => { const nx = cur ? cur + " · " + tk : tk; if (!cur || doc.getTextWidth(nx) <= width) cur = nx; else { lines.push(cur); cur = tk; } });
+      if (cur) lines.push(cur); return lines;
+    };
+    const layout = (s, draw) => {
+      // Uhrzeit-Spalte wächst mit der Schrift
+      const TW = 15.5 * s, IW = R - L - TW - GAP;
+      let y = Y + PY;
+      font(13 * s, true); const hh = lineH(13 * s);
+      if (draw) { doc.text(txt(head, "b"), L, y + hh * 0.8); font(8.5 * s, false, [85, 85, 85]); doc.text(txt(head, "span"), R, y + hh * 0.8, { align: "right" }); }
+      y += hh + 1.2;
+      if (draw) { doc.setDrawColor(47, 133, 90); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
+      y += 0.8;
+      rows.forEach(r => {
+        const big = r.kind === "me" ? 14.5 : r.kind === "wa" ? 12.5 : 10, mid = r.kind === "me" ? 13 : r.kind === "wa" ? 11 : 10;
+        const h1 = lineH(big);
+        font(9.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
+        font(7.8 * s, false); const zl = r.z.length ? wrapTokens(r.z, IW) : [];
+        const h = 1.2 + h1 * s + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
+        if (draw) {
+          if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
+          const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
+          let yy = y + 1.2 + h1 * s * 0.8;
+          font(big * s, r.kind !== "sl", col); doc.text(r.t, L, yy);
+          font(mid * s, r.kind === "me", col); doc.text(r.w, L + TW + GAP, yy);
+          if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
+          yy = y + 1.2 + h1 * s;
+          if (xl.length) { font(9.5 * s, false, col); yy += 0.5; xl.forEach(l => { yy += lineH(9.5 * s); doc.text(l, L + TW + GAP, yy - lineH(9.5 * s) * 0.22); }); }
+          if (zl.length) { font(7.8 * s, false, [61, 74, 82]); yy += 0.4; zl.forEach(l => { yy += lineH(7.8 * s) * 1.12; doc.text(l, L + TW + GAP, yy - lineH(7.8 * s) * 0.3); }); }
+          if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
+        }
+        y += h;
+      });
+      return y;
+    };
+    let s = 1.2;
+    while (layout(s, false) > Y + CH - PY && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
+    font(8, false, [138, 150, 156]); doc.text("entlang der gestrichelten Linie ausschneiden", X, Y - 2);
+    doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
+    doc.rect(X, Y, CW, CH, "S"); doc.setLineDashPattern([], 0);
+    layout(s, true);
+  }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
@@ -5437,60 +5469,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           if (!el) return;
           const tr = el.parentElement, cls = tr ? tr.className : "";
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
-          if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
           if (data.section === "body") {
-            if (/\bmeals\b/.test(tbl.className)) {
-              data.cell.styles.lineWidth = 0;
-              if (/\bgrp\b/.test(cls)) {
-                // Kopfzeile je Rezept: Name fett, Nährwerte klein dahinter
-                const b = el.querySelector("b"), s = el.querySelector("small");
-                data.cell.text = [pdfText(b ? b.textContent : el.textContent)];
-                data.cell.smallText = s ? pdfText(s.textContent) : "";
-                data.cell.styles.fillColor = [238, 245, 240]; data.cell.styles.fontStyle = "bold";
-                data.cell.styles.lineWidth = { bottom: 0.25 }; data.cell.styles.lineColor = [155, 184, 166];
-                data.cell.styles.cellPadding = { top: 1.6, bottom: 1.4, left: 1.4, right: 1.4 };
-              } else if (/\bft\b/.test(cls)) {
-                data.cell.styles.fontSize = 8.4; data.cell.styles.textColor = [51, 51, 51];
-                data.cell.styles.cellPadding = { top: 1.2, bottom: 3.2, left: 1.4, right: 1.4 };
-              } else {
-                data.cell.styles.cellPadding = { top: 0.8, bottom: 0.8, left: 1.4, right: el.classList.contains("g") ? 6 : 1.4 };
-                data.cell.styles.cellWidth = el.classList.contains("g") ? W * 0.16 : W * 0.34;
-              }
-            }
-            if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
-            if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
             if (/\bsum\b/.test(cls)) { data.cell.styles.fontStyle = "bold"; data.cell.styles.lineWidth = { top: 0.35 }; data.cell.styles.lineColor = [119, 119, 119]; }
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
         },
-        didDrawCell: (data) => {
-          // Nährwerte klein und normal hinter dem fetten Rezeptnamen
-          if (!data.cell.smallText) return;
-          const name = (data.cell.text || []).join(" ");
-          font(data.cell.styles.fontSize, true);
-          const x = data.cell.x + data.cell.padding("left") + doc.getTextWidth(name) + 2.5;
-          font(7.8, false, MUTED);
-          doc.text(data.cell.smallText, x, data.cell.y + data.cell.height / 2, { baseline: "middle" });
-        },
       });
       y = doc.lastAutoTable.finalY + 2.5;
     };
-    const sums = (el) => {
-      // Kennzahlen als Kärtchen nebeneinander: Wert fett, darunter klein die Erläuterung
-      const cells = [...el.children].map(c => { const b = c.querySelector("b"), sp = c.querySelector("span"); return { v: pdfText(b ? b.textContent : ""), l: pdfText(sp ? sp.textContent : "") }; });
-      if (!cells.length) return;
-      const gap = 3, cw = (W - gap * (cells.length - 1)) / cells.length, h = 12.5;
-      ensure(h + 2);
-      cells.forEach((c, k) => {
-        const x = M + k * (cw + gap);
-        doc.setDrawColor(207, 220, 211); doc.setLineWidth(0.25); doc.roundedRect(x, y, cw, h, 1.2, 1.2, "S");
-        font(11, true); doc.text(doc.splitTextToSize(c.v, cw - 4)[0] || "", x + 2, y + 5.3);
-        font(7.8, false, MUTED); doc.text(doc.splitTextToSize(c.l, cw - 4)[0] || "", x + 2, y + 9.8);
-      });
-      y += h + 2.5;
-    };
     const dom = new DOMParser().parseFromString(html, "text/html");
+    const kz = dom.body.querySelector(".kz");
+    if (kz) { kitchenCardPdf(doc, kz); return doc; }
     [...dom.body.children].forEach(el => {
       const tag = el.tagName.toLowerCase(), cls = el.className || "";
       if (cls === "head") {
@@ -5516,14 +5506,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           y += lh + 1;
         }
       }
-      else if (tag === "table" && /\bmeals\b/.test(cls) && el.tBodies.length > 1) {
-        // Mahlzeiten im Detail: jeden Block für sich setzen und vorher umbrechen, wenn er nicht mehr ganz passt
-        [...el.tBodies].forEach(tb => {
-          const t = dom.createElement("table"); t.className = el.className; t.appendChild(tb.cloneNode(true));
-          ensure(tb.rows.length * 5.6 + 5);
-          table(t);
-        });
-      }
       else if (tag === "table") table(el);
       else if (tag === "ol") {
         [...el.children].forEach((li, i) => {
@@ -5536,9 +5518,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         });
         y += 1;
       } else if (/\bbox\b/.test(cls)) box(el);
-      else if (/\bsums\b/.test(cls)) sums(el);
       else if (/\bfoot\b/.test(cls)) { y += 3; para(el.textContent, { size: 8, color: MUTED }); }
-      else if (/\bnote\b/.test(cls)) para(el.textContent, { size: 9.5, gap: 2 });
       else if (/\brx\b/.test(cls)) para(el.textContent, { size: 9.5, color: [51, 51, 51], gap: 2 });
       else para(el.textContent, { size: 10 });
     });

@@ -981,7 +981,16 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const ov = $(w, "print-overlay");
   assert.ok(ov && !ov.hidden, "Vorschau offen"); assert.equal(opened, 0, "kein neues Fenster");
   const root = $(w, "print-sheet").shadowRoot;
-  assert.match(root.textContent, /Zeitplan.*7:00.*Mahlzeit 1/);
+  // Küchenzettel: A6-Karte, groß Uhrzeit · Mahlzeit · ml, darunter Rezept, Dauer und Zutaten
+  const kz = root.querySelector(".kz"); assert.ok(kz, "Küchenzettel");
+  assert.match(root.querySelector("style").textContent, /\.kz\{width:105mm;height:148mm/);
+  const first = kz.querySelector(".r.me");
+  assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Mahlzeit 1");
+  assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
+  assert.match(first.querySelector(".x").textContent, /^Compleat & KetoCal · \d+ min$/);
+  assert.match(first.querySelector(".z").textContent, /Ketocal 3:1\s[\d,]+\sg · Compleat\s[\d,]+\sg/);
+  assert.ok(kz.querySelectorAll(".r.wa").length >= 3, "Wassergaben"); assert.ok(kz.querySelector(".r.sl"), "Schlafen");
+  assert.ok(!root.querySelector("table") && !/Tagessummen|Verordnung/.test(root.textContent), "keine A4-Tabellen und Summen mehr");
   assert.doesNotMatch(root.querySelector("style").textContent, /(^|[}\s])body\s*\{|@page/, "Druckstil berührt die App nicht");
   assert.ok(w.document.body.classList.contains("printing"));
   fire(w, $(w, "print-go")); assert.equal(printed, 1, "Drucken ruft den Druckdialog");
@@ -1009,19 +1018,14 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   fire(w, $(w, "print-share"));
   await new Promise(r => setTimeout(r, 50));
   assert.ok(shared && shared.files && shared.files[0], "Teilen-Menü bekommt eine Datei");
-  assert.equal(w.document.getElementById("print-sheet").shadowRoot.querySelectorAll("td.chk, .chk").length, 0, "keine Kästchen zum Abhaken");
-  // Mahlzeiten im Detail: gleiche Rezepte zusammengefasst, Zutaten je Portion, Öl als normale Zutat
+  // Küchenzettel: gleiche Reihenfolge wie Heute, Öl als normale Zutat am Ende, kein „vor dem Füttern“
   const ps = w.document.getElementById("print-sheet").shadowRoot;
-  const grp = [...ps.querySelectorAll("table.meals tr.grp")].map(r => r.textContent);
-  assert.equal(grp.length, 2, grp.join(" | "));
-  assert.match(grp[0], /Mahlzeit 1 \+ 2 \+ 4 · Compleat & KetoCal.*kcal.*Eiweiß.*Verhältnis/);
-  assert.match(grp[1], /Mahlzeit 3 · Hendl & Brokkoli/);
-  const ing = [...ps.querySelectorAll("table.meals td.ing")].map(td => td.textContent).filter(Boolean);
-  assert.ok(ing.some(t => /Hühnerbrust/.test(t)) && ing.some(t => /Rapsöl/.test(t)), ing.join(", "));
-  assert.match(ps.querySelector("table.meals").textContent, /Je Portion ca\. \d+ g abfüllen und das Öl einrühren – zusammen ca\. \d+ ml/);
+  const meals = [...ps.querySelectorAll(".r.me")];
+  assert.equal(meals.length, 4);
+  assert.match(meals[2].querySelector(".x").textContent, /^Hendl & Brokkoli · \d+ min$/);
+  const ing = [...meals[2].querySelectorAll(".z .i")].map(i => i.textContent);
+  assert.ok(/Hühnerbrust/.test(ing[0]) && /Rapsöl/.test(ing[ing.length - 2]) && /MCT-Öl/.test(ing[ing.length - 1]), ing.join(", "));
   assert.doesNotMatch(ps.textContent, /vor dem Füttern/, "kein „Öl vor dem Füttern“ im Ausdruck");
-  assert.deepEqual([...ps.querySelectorAll("table:not(.meals) th")].map(th => th.textContent), ["Uhrzeit", "Was", "Menge", "Dauer"]);
-  assert.match(ps.querySelector(".note").textContent, /Öl für den ganzen Tag: Rapsöl/);
   const f = shared.files[0];
   assert.match(f.name, /^Tagesplan \d{4}-\d{2}-\d{2}\.pdf$/); assert.equal(f.type, "application/pdf");
   const buf = Buffer.from(await new Promise(res => { const fr = new w.FileReader(); fr.onload = () => res(fr.result); fr.readAsArrayBuffer(f); }));

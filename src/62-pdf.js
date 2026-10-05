@@ -18,6 +18,64 @@
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
+  // Küchenzettel: A6-Karte (105 × 148 mm) mit gestrichelter Schnittlinie oben links auf A4, gleiche Gliederung wie die
+  // Vorschau. Die Schrift beginnt bei 120 % und wird schrittweise kleiner, bis alles auf die Karte passt.
+  function kitchenCardPdf(doc, kz) {
+    const X = 16, Y = 18, CW = 105, CH = 148, PX = 5, PY = 4.5, GAP = 1.5;
+    const L = X + PX, R = X + CW - PX;
+    const lineH = (size) => size * 0.3528 * 1.2;
+    const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || [31, 41, 51]); };
+    const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
+    const head = kz.querySelector(".kz-h");
+    const rows = [...kz.querySelectorAll(".r")].map(r => ({
+      kind: r.classList.contains("wa") ? "wa" : r.classList.contains("sl") ? "sl" : "me",
+      t: txt(r, ".t"), w: txt(r, ".w"), m: txt(r, ".m"), x: txt(r, ".x"),
+      z: [...r.querySelectorAll(".z .i")].map(i => pdfText(i.textContent)),
+    }));
+    // Zutaten als Wörter-Gruppen umbrechen („Brokkoli 40 g“ bleibt zusammen)
+    const wrapTokens = (tokens, width) => {
+      const lines = []; let cur = "";
+      tokens.forEach(tk => { const nx = cur ? cur + " · " + tk : tk; if (!cur || doc.getTextWidth(nx) <= width) cur = nx; else { lines.push(cur); cur = tk; } });
+      if (cur) lines.push(cur); return lines;
+    };
+    const layout = (s, draw) => {
+      // Uhrzeit-Spalte wächst mit der Schrift
+      const TW = 15.5 * s, IW = R - L - TW - GAP;
+      let y = Y + PY;
+      font(13 * s, true); const hh = lineH(13 * s);
+      if (draw) { doc.text(txt(head, "b"), L, y + hh * 0.8); font(8.5 * s, false, [85, 85, 85]); doc.text(txt(head, "span"), R, y + hh * 0.8, { align: "right" }); }
+      y += hh + 1.2;
+      if (draw) { doc.setDrawColor(47, 133, 90); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
+      y += 0.8;
+      rows.forEach(r => {
+        const big = r.kind === "me" ? 14.5 : r.kind === "wa" ? 12.5 : 10, mid = r.kind === "me" ? 13 : r.kind === "wa" ? 11 : 10;
+        const h1 = lineH(big);
+        font(9.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
+        font(7.8 * s, false); const zl = r.z.length ? wrapTokens(r.z, IW) : [];
+        const h = 1.2 + h1 * s + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
+        if (draw) {
+          if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
+          const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
+          let yy = y + 1.2 + h1 * s * 0.8;
+          font(big * s, r.kind !== "sl", col); doc.text(r.t, L, yy);
+          font(mid * s, r.kind === "me", col); doc.text(r.w, L + TW + GAP, yy);
+          if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
+          yy = y + 1.2 + h1 * s;
+          if (xl.length) { font(9.5 * s, false, col); yy += 0.5; xl.forEach(l => { yy += lineH(9.5 * s); doc.text(l, L + TW + GAP, yy - lineH(9.5 * s) * 0.22); }); }
+          if (zl.length) { font(7.8 * s, false, [61, 74, 82]); yy += 0.4; zl.forEach(l => { yy += lineH(7.8 * s) * 1.12; doc.text(l, L + TW + GAP, yy - lineH(7.8 * s) * 0.3); }); }
+          if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
+        }
+        y += h;
+      });
+      return y;
+    };
+    let s = 1.2;
+    while (layout(s, false) > Y + CH - PY && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
+    font(8, false, [138, 150, 156]); doc.text("entlang der gestrichelten Linie ausschneiden", X, Y - 2);
+    doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
+    doc.rect(X, Y, CW, CH, "S"); doc.setLineDashPattern([], 0);
+    layout(s, true);
+  }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
@@ -59,60 +117,18 @@
           if (!el) return;
           const tr = el.parentElement, cls = tr ? tr.className : "";
           if (el.classList.contains("num")) data.cell.styles.halign = "right";
-          if (el.classList.contains("t")) { data.cell.styles.fontStyle = "bold"; data.cell.styles.cellWidth = 15; }
           if (data.section === "body") {
-            if (/\bmeals\b/.test(tbl.className)) {
-              data.cell.styles.lineWidth = 0;
-              if (/\bgrp\b/.test(cls)) {
-                // Kopfzeile je Rezept: Name fett, Nährwerte klein dahinter
-                const b = el.querySelector("b"), s = el.querySelector("small");
-                data.cell.text = [pdfText(b ? b.textContent : el.textContent)];
-                data.cell.smallText = s ? pdfText(s.textContent) : "";
-                data.cell.styles.fillColor = [238, 245, 240]; data.cell.styles.fontStyle = "bold";
-                data.cell.styles.lineWidth = { bottom: 0.25 }; data.cell.styles.lineColor = [155, 184, 166];
-                data.cell.styles.cellPadding = { top: 1.6, bottom: 1.4, left: 1.4, right: 1.4 };
-              } else if (/\bft\b/.test(cls)) {
-                data.cell.styles.fontSize = 8.4; data.cell.styles.textColor = [51, 51, 51];
-                data.cell.styles.cellPadding = { top: 1.2, bottom: 3.2, left: 1.4, right: 1.4 };
-              } else {
-                data.cell.styles.cellPadding = { top: 0.8, bottom: 0.8, left: 1.4, right: el.classList.contains("g") ? 6 : 1.4 };
-                data.cell.styles.cellWidth = el.classList.contains("g") ? W * 0.16 : W * 0.34;
-              }
-            }
-            if (/\bwater\b/.test(cls)) { data.cell.styles.fillColor = [243, 248, 252]; data.cell.styles.textColor = [36, 85, 127]; }
-            if (/\bsleep\b/.test(cls)) data.cell.styles.textColor = [119, 119, 119];
             if (/\bsum\b/.test(cls)) { data.cell.styles.fontStyle = "bold"; data.cell.styles.lineWidth = { top: 0.35 }; data.cell.styles.lineColor = [119, 119, 119]; }
             if (el.querySelector && el.querySelector("b") && !/\bsum\b/.test(cls) && el.textContent.trim() === el.querySelector("b").textContent.trim()) data.cell.styles.fontStyle = "bold";
           }
           rowClass[data.row.index] = cls;
         },
-        didDrawCell: (data) => {
-          // Nährwerte klein und normal hinter dem fetten Rezeptnamen
-          if (!data.cell.smallText) return;
-          const name = (data.cell.text || []).join(" ");
-          font(data.cell.styles.fontSize, true);
-          const x = data.cell.x + data.cell.padding("left") + doc.getTextWidth(name) + 2.5;
-          font(7.8, false, MUTED);
-          doc.text(data.cell.smallText, x, data.cell.y + data.cell.height / 2, { baseline: "middle" });
-        },
       });
       y = doc.lastAutoTable.finalY + 2.5;
     };
-    const sums = (el) => {
-      // Kennzahlen als Kärtchen nebeneinander: Wert fett, darunter klein die Erläuterung
-      const cells = [...el.children].map(c => { const b = c.querySelector("b"), sp = c.querySelector("span"); return { v: pdfText(b ? b.textContent : ""), l: pdfText(sp ? sp.textContent : "") }; });
-      if (!cells.length) return;
-      const gap = 3, cw = (W - gap * (cells.length - 1)) / cells.length, h = 12.5;
-      ensure(h + 2);
-      cells.forEach((c, k) => {
-        const x = M + k * (cw + gap);
-        doc.setDrawColor(207, 220, 211); doc.setLineWidth(0.25); doc.roundedRect(x, y, cw, h, 1.2, 1.2, "S");
-        font(11, true); doc.text(doc.splitTextToSize(c.v, cw - 4)[0] || "", x + 2, y + 5.3);
-        font(7.8, false, MUTED); doc.text(doc.splitTextToSize(c.l, cw - 4)[0] || "", x + 2, y + 9.8);
-      });
-      y += h + 2.5;
-    };
     const dom = new DOMParser().parseFromString(html, "text/html");
+    const kz = dom.body.querySelector(".kz");
+    if (kz) { kitchenCardPdf(doc, kz); return doc; }
     [...dom.body.children].forEach(el => {
       const tag = el.tagName.toLowerCase(), cls = el.className || "";
       if (cls === "head") {
@@ -138,14 +154,6 @@
           y += lh + 1;
         }
       }
-      else if (tag === "table" && /\bmeals\b/.test(cls) && el.tBodies.length > 1) {
-        // Mahlzeiten im Detail: jeden Block für sich setzen und vorher umbrechen, wenn er nicht mehr ganz passt
-        [...el.tBodies].forEach(tb => {
-          const t = dom.createElement("table"); t.className = el.className; t.appendChild(tb.cloneNode(true));
-          ensure(tb.rows.length * 5.6 + 5);
-          table(t);
-        });
-      }
       else if (tag === "table") table(el);
       else if (tag === "ol") {
         [...el.children].forEach((li, i) => {
@@ -158,9 +166,7 @@
         });
         y += 1;
       } else if (/\bbox\b/.test(cls)) box(el);
-      else if (/\bsums\b/.test(cls)) sums(el);
       else if (/\bfoot\b/.test(cls)) { y += 3; para(el.textContent, { size: 8, color: MUTED }); }
-      else if (/\bnote\b/.test(cls)) para(el.textContent, { size: 9.5, gap: 2 });
       else if (/\brx\b/.test(cls)) para(el.textContent, { size: 9.5, color: [51, 51, 51], gap: 2 });
       else para(el.textContent, { size: 10 });
     });

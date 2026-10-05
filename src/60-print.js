@@ -34,6 +34,8 @@
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+    // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
+    sheet.style.zoom = ""; fitKitchenCard(root);
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
@@ -109,6 +111,29 @@
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
+  // Küchenzettel (Tagesplan): A6-Karte mit Schnittlinie. Alle Schriftgrößen in em, damit fitKitchenCard die ganze
+  // Karte über --s verkleinern kann, bis sie passt.
+  const KITCHEN_CSS =
+    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
+    ".kz-cut{margin:0 0 1.5mm;font-size:8pt;color:#8a969c}" +
+    ".kz{width:105mm;height:148mm;border:.3mm dashed #8a969c;padding:4.5mm 5mm;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}" +
+    ".kz-h b{font-size:1.3em}.kz-h span{font-size:.85em;color:#555;white-space:nowrap}" +
+    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1.2mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
+    ".r .t{font-weight:bold;font-size:1.45em}.r .w{font-weight:bold;font-size:1.3em}" +
+    ".r .m{font-weight:bold;font-size:1.45em;text-align:right;white-space:nowrap}" +
+    ".r .x{grid-column:2/4;font-size:.95em;margin-top:.5mm}.r .x b{font-weight:600}.r i{font-style:normal;color:#555;font-weight:normal}" +
+    ".r .z{grid-column:2/4;font-size:.78em;color:#3d4a52;line-height:1.35;margin-top:.4mm}.r .z .i{white-space:nowrap}" +
+    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.25em}.r.wa .w{font-size:1.1em;font-weight:normal}.r.wa i{color:#24557f}" +
+    ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w{font-size:1em;font-weight:normal}";
+  // Schrift der Karte so groß wie möglich: von 120 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  function fitKitchenCard(root) {
+    const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
+    let sc = 1.2; kz.style.setProperty("--s", "1.2");
+    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+  }
+
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
   const PRINT_CSS =
     "@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
@@ -120,22 +145,11 @@
     "table{width:100%;border-collapse:collapse;margin:0}" +
     "th{background:#eef5f0;text-align:left;font-size:8.5pt;font-weight:bold;color:#33463b;padding:1.4mm 1.5mm;border-bottom:.6pt solid #9bb8a6}" +
     "td{border-bottom:.4pt solid #d5dbd8;padding:1.6mm 1.5mm;vertical-align:top}" +
-    ".num{text-align:right;white-space:nowrap}.nw{white-space:nowrap}" +
-    "td.t{font-weight:bold;white-space:nowrap;width:15mm}" +
-    "tr.water td{background:#f3f8fc;color:#24557f}tr.sleep td{color:#777}" +
+    ".num{text-align:right;white-space:nowrap}" +
     "tr.sum td{font-weight:bold;border-top:1pt solid #777;border-bottom:none}" +
-    "small{color:#666;font-size:8.5pt}" +
     ".box{background:#f3f6f4;border-left:2.5pt solid #2f855a;padding:2.2mm 3.2mm;margin:3mm 0;font-size:9.5pt}" +
     ".box.warn{background:#fdf6e3;border-left-color:#b7791f}" +
-    ".sums{display:flex;gap:3mm;margin:1mm 0}.sums div{flex:1;border:.6pt solid #cfdcd3;border-radius:1.5mm;padding:1.6mm 2mm}" +
-    ".sums b{display:block;font-size:12pt}.sums span{font-size:8.5pt;color:#555}" +
     "ol{margin:1mm 0 0;padding-left:6mm}li{margin:0 0 1.4mm}" +
-    "table.meals td{border-bottom:none;padding:.9mm 1.5mm}" +
-    "table.meals tr.grp td{background:#eef5f0;border-top:4mm solid #fff;padding:1.5mm 1.5mm 1.2mm;border-bottom:.6pt solid #9bb8a6}" +
-    "table.meals tbody:first-child tr.grp td{border-top:none}table.meals tbody{break-inside:avoid}" +
-    "table.meals td.ing{width:34%;border-bottom:.4pt dotted #cfd6d2}table.meals td.g{width:16%;border-bottom:.4pt dotted #cfd6d2;padding-right:5mm}" +
-    "table.meals tr.ft td{font-size:9pt;color:#333;padding-top:1.4mm}" +
-    ".note{margin:2mm 0 0;font-size:9.5pt}" +
     "tr,li,.box{break-inside:avoid}" +
     ".foot{margin-top:6mm;padding-top:2mm;border-top:.4pt solid #ccc;color:#777;font-size:8pt}";
   function printDoc(title, meta, bodyHtml) {

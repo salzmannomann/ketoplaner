@@ -178,13 +178,12 @@ der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü
 **„Drucken“** wählt (AirPrint). In Safari und am Computer kommt der normale Druckdialog.
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
-Erstelldatum. Der **Tagesplan** hat die Verordnung in einer Zeile, den
-**Zeitplan** (Uhrzeit, Was, Menge, Dauer; Wasser blau), einen Kasten „So sondieren“, die **Tagessummen** als vier
-Kennzahlen und darunter die **Mahlzeiten im Detail**: je Rezept ein Block
-(gleiche Mahlzeiten zusammengefasst, z. B. „Mahlzeit 3 + 4“) mit kcal, Eiweiß,
-Fett, KH und Verhältnis in der Kopfzeile, den **Zutaten je Portion** in zwei
-Spalten (das Öl als normale Zutat) und darunter Abfüllen und Öl einrühren bzw.
-Anrühren; am Ende das Öl für den ganzen Tag. Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
+Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel**: eine A6-Karte (10,5 × 14,8 cm) mit
+gestrichelter Schnittlinie oben links auf A4 (passt in jeden Drucker, dann ausschneiden). Groß stehen
+**Uhrzeit, Mahlzeit bzw. Wasser und die Menge in ml**, darunter Rezeptname und Sondierdauer, klein die
+**Zutaten je Portion** (Öl am Ende); Wassergaben blau, zuletzt „Schlafen“. Die Schrift ist so groß wie
+möglich: Vorschau und PDF beginnen bei 120 % und verkleinern, bis alles auf die Karte passt (mindestens 60 %).
+Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
 die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (abfüllen, dann das Öl
 in die Portion einrühren), ggf. den Eiweiß-Hinweis und die **nummerierten
