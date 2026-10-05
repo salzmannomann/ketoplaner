@@ -908,7 +908,12 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zp-row.water, .zp-row.sleep { padding-top: 5px; padding-bottom: 5px; }
 .zp-row.water .zp-ic, .zp-row.sleep .zp-ic { font-size: 15px; }
 .zp-row.water .zp-txt, .zp-row.sleep .zp-txt { font-size: 13.5px; }
-.zp-row.water .zp-wmin { display: inline; margin: 0; font-size: .88em; color: var(--muted); font-weight: 500; white-space: nowrap; }
+/* Dauer der Wassergabe rechts in der Spalte der Mahlzeiten-Dauer (--wmin-r misst fitHeute), Zeile bleibt einzeilig */
+.zp-row.water { position: relative; }
+.zp-row.water .zp-wmin { position: absolute; right: var(--wmin-r, 66px); top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.zp-list .zp-row.water { padding-right: calc(var(--wmin-r, 66px) + 42px); }
+.zp-row.water .zp-txt { white-space: nowrap; }
+.zp-row.water .zp-sleep { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); margin: 0; font-size: 11px; }
 .zp-ic.add { color: var(--brand); font-weight: 700; width: 22px; text-align: center; }
 .zp-row.empty-slot { cursor: pointer; }
 .zp-row.empty-slot .zp-name { font-weight: 500; }
@@ -1078,6 +1083,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 .zeitplan.tight .zp-row.meal .zp-name { font-size: 13.5px; }
 .zeitplan.tight .zp-vol { font-size: 11.5px; }
 .zeitplan.tight .zp-vol small { font-size: 10.5px; }
+.zeitplan.tight .zp-row.water .zp-wmin { font-size: 10.5px; }
 .zeitplan.tight .zp-list .zp-row small.zp-ing { font-size: 11px; line-height: 1.25; }
 .zeitplan.tight .note { margin-top: 4px; }
 .zeitplan.tight .note.pack { padding: 4px 8px; font-size: 11.5px; }

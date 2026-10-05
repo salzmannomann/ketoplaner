@@ -260,7 +260,8 @@ niedrige Kachelreihe: kcal, Eiweiß, Verhältnis und Flüssigkeit am ganzen Tag
 
 In der Zeitleiste steht jede **Mahlzeit** mit Uhrzeit, Rezept, Menge und **Sondierdauer**
 (etwa 5 ml pro Minute, auf 5 Minuten gerundet, z. B. „≈ 125 ml · 25 min“; Wasser schneller,
-etwa 15 ml pro Minute, mindestens 5 Minuten, z. B. „75 ml Wasser · 5 min“ – auch auf dem Zettel und in
+etwa 15 ml pro Minute, mindestens 5 Minuten; in der Zeitleiste rechts in derselben Spalte wie die Dauer der
+Mahlzeiten, die Zeile bleibt einzeilig – auch auf dem Zettel und in
 der Erinnerung), darunter die Zutatenzeile; unter dem Namen steht ein Hinweis nur, wenn das
 Eiweiß zu niedrig ist. Liegt eine Mahlzeit über 25 ml/kg auf einmal (z. B. bei 3
 Mahlzeiten), steht die Menge gelb mit ⚠️. ↻ tauscht das Rezept, ✕ leert die Zeile (mit **Rückgängig**), ein Tipp
@@ -270,7 +271,7 @@ des Verhältnisses), ist es durchgestrichen markiert („passt nicht zu 1,5:1 �
 wählen“) und zählt nicht in die Tagessummen. Die Rezeptauswahl zeigt je Rezept kcal, **Volumen der Mahlzeit** (⚠️
 über 25 ml/kg) und Eiweiß. Die Mahlzeiten liegen gleichmäßig zwischen erster
 und letzter; dazwischen stehen einzeilig die **Wassergaben** (Mitte jeder Pause
-und eine vor dem Schlafen; „🌙 Schlafen 20:00“ steht rechts in deren Zeile). Die Menge je Wassergabe ergibt sich aus dem
+und eine vor dem Schlafen; „🌙 20:00“ steht ganz rechts in deren Zeile). Die Menge je Wassergabe ergibt sich aus dem
 Tagesziel minus der Flüssigkeit der Mahlzeiten, gleich verteilt und auf 5 ml
 gerundet. Kurze Hinweise erscheinen bei weniger als 3 Stunden Abstand, bei
 weniger als 2 Stunden zwischen letzter Mahlzeit und Schlafen und wenn eine

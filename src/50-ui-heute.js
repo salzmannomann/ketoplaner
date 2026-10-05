@@ -159,11 +159,16 @@
     zp.classList.remove("tight"); document.body.classList.remove("heute-tight");
     list.classList.remove.apply(list.classList, LV); list.style.minHeight = "";
     if (!box.offsetParent) return;
-    // Zutatenzeile über die ganze Breite, eingerückt bis zum Rezeptnamen (nach dem Festlegen der Stufe messen)
+    // Nach dem Festlegen der Stufe messen: Zutatenzeile über die ganze Breite, eingerückt bis zum Rezeptnamen;
+    // Dauer der Wassergaben rechtsbündig in derselben Spalte wie die Dauer der Mahlzeiten.
     const indent = () => {
-      const r0 = list.querySelector(".zp-row.meal .zp-txt"); if (!r0) return;
-      const row = r0.parentElement;
-      list.style.setProperty("--ing-indent", Math.round(r0.getBoundingClientRect().left - row.getBoundingClientRect().left - (parseFloat(getComputedStyle(row).paddingLeft) || 0) - (row.clientLeft || 0)) + "px");
+      const r0 = list.querySelector(".zp-row.meal .zp-txt");
+      if (r0) {
+        const row = r0.parentElement;
+        list.style.setProperty("--ing-indent", Math.round(r0.getBoundingClientRect().left - row.getBoundingClientRect().left - (parseFloat(getComputedStyle(row).paddingLeft) || 0) - (row.clientLeft || 0)) + "px");
+      }
+      const vs = list.querySelector(".zp-row .zp-vol small"), wr = list.querySelector(".zp-row.water");
+      if (vs && wr) list.style.setProperty("--wmin-r", Math.max(0, Math.round(wr.getBoundingClientRect().right - vs.getBoundingClientRect().right)) + "px");
     };
     // Desktop: Platz genug – kcal/Eiweiß immer zeigen
     if (window.innerWidth > 820 || getComputedStyle(tab).position !== "fixed") { list.classList.add("more"); indent(); return; }

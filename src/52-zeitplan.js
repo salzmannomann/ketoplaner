@@ -106,11 +106,13 @@
   // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute).
   function zeitplanExtraRows(times, wp) {
     const rows = [];
-    // Gibt es eine Abendgabe, steht das Schlafen rechts in derselben Zeile (spart eine Zeile).
+    // Gibt es eine Abendgabe, steht das Schlafen ganz rechts in derselben Zeile (🌙 Uhrzeit, spart eine Zeile).
     const sleepInline = wp.per > 0 && times.schlaf != null && times.gifts.some(g => g.kind === "abend");
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span><span class="zp-ic">💧</span>' +
-      '<span class="zp-txt" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong> <small class="zp-wmin">· ' + wasserMin(wp.per) + ' min</small></span>' +
-      (g.kind === "abend" && sleepInline ? '<span class="zp-sleep">🌙 Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') + '</div>' }));
+      '<span class="zp-txt"><strong>' + fmt(wp.per, 0) + ' ml Wasser</strong></span>' +
+      (g.kind === "abend" && sleepInline ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '">🌙 ' + fmtHM(times.schlaf) + '</span>' : '') +
+      // Dauer in der Spalte, in der bei den Mahlzeiten die Dauer steht (fitHeute misst die Position, --wmin-r)
+      '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
     if (times.schlaf != null && !sleepInline) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-ic">🌙</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;
   }
