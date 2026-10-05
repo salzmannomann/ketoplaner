@@ -1447,7 +1447,7 @@
     const out = document.getElementById("bd-out"); if (!out) return;
     const s = state.settings;
     const put = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
-    put("bd-birth", s.bdBirth || ""); put("bd-mobil", s.bdMobil || "liegt"); put("bd-tonus", s.bdTonus || "normal");
+    put("bd-birth", s.bdBirth || ""); markDateEmpty(); put("bd-mobil", s.bdMobil || "liegt"); put("bd-tonus", s.bdTonus || "normal");
     put("bd-sex", s.bdSex === "m" ? "m" : "w");
     document.querySelectorAll("#bd-gain button").forEach(b => b.classList.toggle("active", num(b.dataset.gain) === (s.bdGain == null ? 5 : num(s.bdGain))));
     const r = bedarfCalc(d, s);
@@ -1484,11 +1484,17 @@
       (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Schätzung übernehmen: ' +
         fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal am Tag</button></p>' : "");
   }
+  // Leeres Datumsfeld: grauer Platzhalter „TT.MM.JJJJ“ (.date-wrap.empty), auch dort, wo der Browser keinen zeigt
+  function markDateEmpty() {
+    const el = document.getElementById("bd-birth"), w = el && el.closest(".date-wrap");
+    if (w) w.classList.toggle("empty", !el.value);
+  }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
+    birth.addEventListener("input", markDateEmpty);
     // Alles neu zeichnen (Skala, Hinweise); die Verordnung ändert sich dadurch nicht
     const set = (k, v) => { state.settings[k] = v; save(); renderRezepte(); };
-    birth.addEventListener("change", () => set("bdBirth", birth.value));
+    birth.addEventListener("change", () => { markDateEmpty(); set("bdBirth", birth.value); });
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));
     document.getElementById("bd-sex").addEventListener("change", (e) => set("bdSex", e.target.value));

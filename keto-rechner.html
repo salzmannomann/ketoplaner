@@ -89,6 +89,16 @@ input:disabled, select:disabled { opacity: .5; }
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position: right 7px top 55%, right 2px top 55%; background-size: 5px 5px; background-repeat: no-repeat; }
 .line-date { font: 600 15px var(--f-mono); -webkit-appearance: none; appearance: none; text-align: right; }
+/* Datumsfeld: so breit wie die Auswahlfelder, rechtsbündig; leer zeigt es grau „TT.MM.JJJJ“ (iOS hat keinen Platzhalter,
+   Chrome einen eigenen) – beim Bearbeiten verschwindet er */
+.date-wrap { position: relative; display: inline-flex; flex: none; min-width: 140px; }
+.date-wrap .line-date { width: 100%; min-width: 140px; }
+.line-date::-webkit-date-and-time-value { text-align: right; }
+.line-date::-webkit-calendar-picker-indicator { margin-left: 6px; opacity: .55; cursor: pointer; }
+.date-wrap .ph { position: absolute; right: 2px; bottom: 0; display: none; align-items: center; min-height: 40px; font: 500 15px var(--f-mono); color: var(--grey); pointer-events: none; }
+.date-wrap.empty:not(:focus-within) .ph { display: flex; }
+.date-wrap.empty:not(:focus-within) .line-date { color: transparent; }
+.date-wrap.empty:not(:focus-within) .line-date::-webkit-calendar-picker-indicator { opacity: 0; }
 .num-input:focus, .line-select:focus, .line-date:focus, .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
 .num-input::placeholder { color: var(--grey); font-weight: 500; }
 textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: transparent; font: 12px/1.4 var(--f-mono); }
@@ -932,7 +942,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
         <button type="button" class="tlink vg-back" data-vgback="verordnung">‹ Verordnung</button>
         <div class="vg-head"><div class="vg-title"><span class="overline">Zur Orientierung</span><h2>Bedarf schätzen</h2></div></div>
         <div class="bd-row">
-          <label class="vo-row bd-birth"><span class="vo-lbl"><span>Geboren</span><span class="src bd-age" id="bd-age"></span></span><input id="bd-birth" class="line-date" type="date" /></label>
+          <label class="vo-row bd-birth"><span class="vo-lbl"><span>Geboren</span><span class="src bd-age" id="bd-age"></span></span><span class="date-wrap empty"><input id="bd-birth" class="line-date" type="date" /><span class="ph" aria-hidden="true">TT.MM.JJJJ</span></span></label>
           <label class="vo-row"><span class="vo-lbl"><span>Geschlecht</span></span>
             <select id="bd-sex" class="line-select"><option value="w">Mädchen</option><option value="m">Bub</option></select>
           </label>
@@ -3717,7 +3727,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const out = document.getElementById("bd-out"); if (!out) return;
     const s = state.settings;
     const put = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
-    put("bd-birth", s.bdBirth || ""); put("bd-mobil", s.bdMobil || "liegt"); put("bd-tonus", s.bdTonus || "normal");
+    put("bd-birth", s.bdBirth || ""); markDateEmpty(); put("bd-mobil", s.bdMobil || "liegt"); put("bd-tonus", s.bdTonus || "normal");
     put("bd-sex", s.bdSex === "m" ? "m" : "w");
     document.querySelectorAll("#bd-gain button").forEach(b => b.classList.toggle("active", num(b.dataset.gain) === (s.bdGain == null ? 5 : num(s.bdGain))));
     const r = bedarfCalc(d, s);
@@ -3754,11 +3764,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       (Math.round(r.krick / 10) * 10 !== Math.round(d.kcal) ? '<p class="bd-one"><button type="button" class="btn outline" id="bd-apply">Krick-Schätzung übernehmen: ' +
         fmt(Math.round(r.krick / 10) * 10, 0) + ' kcal am Tag</button></p>' : "");
   }
+  // Leeres Datumsfeld: grauer Platzhalter „TT.MM.JJJJ“ (.date-wrap.empty), auch dort, wo der Browser keinen zeigt
+  function markDateEmpty() {
+    const el = document.getElementById("bd-birth"), w = el && el.closest(".date-wrap");
+    if (w) w.classList.toggle("empty", !el.value);
+  }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
+    birth.addEventListener("input", markDateEmpty);
     // Alles neu zeichnen (Skala, Hinweise); die Verordnung ändert sich dadurch nicht
     const set = (k, v) => { state.settings[k] = v; save(); renderRezepte(); };
-    birth.addEventListener("change", () => set("bdBirth", birth.value));
+    birth.addEventListener("change", () => { markDateEmpty(); set("bdBirth", birth.value); });
     document.getElementById("bd-mobil").addEventListener("change", (e) => set("bdMobil", e.target.value));
     document.getElementById("bd-tonus").addEventListener("change", (e) => set("bdTonus", e.target.value));
     document.getElementById("bd-sex").addEventListener("change", (e) => set("bdSex", e.target.value));

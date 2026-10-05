@@ -78,6 +78,16 @@ input:disabled, select:disabled { opacity: .5; }
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position: right 7px top 55%, right 2px top 55%; background-size: 5px 5px; background-repeat: no-repeat; }
 .line-date { font: 600 15px var(--f-mono); -webkit-appearance: none; appearance: none; text-align: right; }
+/* Datumsfeld: so breit wie die Auswahlfelder, rechtsbündig; leer zeigt es grau „TT.MM.JJJJ“ (iOS hat keinen Platzhalter,
+   Chrome einen eigenen) – beim Bearbeiten verschwindet er */
+.date-wrap { position: relative; display: inline-flex; flex: none; min-width: 140px; }
+.date-wrap .line-date { width: 100%; min-width: 140px; }
+.line-date::-webkit-date-and-time-value { text-align: right; }
+.line-date::-webkit-calendar-picker-indicator { margin-left: 6px; opacity: .55; cursor: pointer; }
+.date-wrap .ph { position: absolute; right: 2px; bottom: 0; display: none; align-items: center; min-height: 40px; font: 500 15px var(--f-mono); color: var(--grey); pointer-events: none; }
+.date-wrap.empty:not(:focus-within) .ph { display: flex; }
+.date-wrap.empty:not(:focus-within) .line-date { color: transparent; }
+.date-wrap.empty:not(:focus-within) .line-date::-webkit-calendar-picker-indicator { opacity: 0; }
 .num-input:focus, .line-select:focus, .line-date:focus, .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
 .num-input::placeholder { color: var(--grey); font-weight: 500; }
 textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: transparent; font: 12px/1.4 var(--f-mono); }
