@@ -265,18 +265,19 @@
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Was und
-  // Menge; darunter Rezept und Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Rezept und
+  // Menge; darunter die Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
   function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const rows = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      const x = m.rec ? "<b>" + escapeHtml(m.rec.name) + "</b> <i>· " + sondierMin(m.vol) + " min</i>"
-        : m.bad ? "<b>" + escapeHtml(m.bad.name) + "</b> <i>passt nicht – anderes Rezept wählen</i>" : "<i>Rezept offen</i>";
+      // Groß steht der Rezeptname (statt „Mahlzeit n“), darunter die Sondierdauer bzw. der Hinweis
+      const w = m.rec ? escapeHtml(m.rec.name) : m.bad ? escapeHtml(m.bad.name) : "Rezept offen";
+      const x = m.rec ? "<i>" + sondierMin(m.vol) + " min</i>" : m.bad ? "<i>passt nicht – anderes Rezept wählen</i>" : "<i>noch kein Rezept gewählt</i>";
       const z = f ? f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food))
         .map(it => '<span class="i">' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ") : "";
-      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>Mahlzeit " + (i + 1) + "</span>" +
+      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span>" +
         "<span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span><div class='x'>" + x + "</div>" + (z ? "<div class='z'>" + z + "</div>" : "") + "</div>" });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'>Wasser" + (g.kind === "abend" ? " <i>vor dem Schlafen</i>" : "") + "</span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));

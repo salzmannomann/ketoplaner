@@ -985,9 +985,9 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const kz = root.querySelector(".kz"); assert.ok(kz, "Küchenzettel");
   assert.match(root.querySelector("style").textContent, /\.kz\{width:105mm;height:148mm/);
   const first = kz.querySelector(".r.me");
-  assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Mahlzeit 1");
+  assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
   assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
-  assert.match(first.querySelector(".x").textContent, /^Compleat & KetoCal · \d+ min$/);
+  assert.match(first.querySelector(".x").textContent, /^\d+ min$/);
   assert.match(first.querySelector(".z").textContent, /Ketocal 3:1\s[\d,]+\sg · Compleat\s[\d,]+\sg/);
   assert.ok(kz.querySelectorAll(".r.wa").length >= 3, "Wassergaben"); assert.ok(kz.querySelector(".r.sl"), "Schlafen");
   assert.ok(!root.querySelector("table") && !/Tagessummen|Verordnung/.test(root.textContent), "keine A4-Tabellen und Summen mehr");
@@ -1022,7 +1022,8 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   const ps = w.document.getElementById("print-sheet").shadowRoot;
   const meals = [...ps.querySelectorAll(".r.me")];
   assert.equal(meals.length, 4);
-  assert.match(meals[2].querySelector(".x").textContent, /^Hendl & Brokkoli · \d+ min$/);
+  assert.equal(meals[2].querySelector(".w").textContent, "Hendl & Brokkoli");
+  assert.doesNotMatch(ps.textContent, /Mahlzeit \d/);
   const ing = [...meals[2].querySelectorAll(".z .i")].map(i => i.textContent);
   assert.ok(/Hühnerbrust/.test(ing[0]) && /Rapsöl/.test(ing[ing.length - 2]) && /MCT-Öl/.test(ing[ing.length - 1]), ing.join(", "));
   assert.doesNotMatch(ps.textContent, /vor dem Füttern/, "kein „Öl vor dem Füttern“ im Ausdruck");

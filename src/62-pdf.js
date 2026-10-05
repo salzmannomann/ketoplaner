@@ -50,17 +50,21 @@
       rows.forEach(r => {
         const big = r.kind === "me" ? 14.5 : r.kind === "wa" ? 12.5 : 10, mid = r.kind === "me" ? 13 : r.kind === "wa" ? 11 : 10;
         const h1 = lineH(big);
+        // Rezeptname darf umbrechen (Platz bis zur Mengenangabe rechts)
+        font(big * s, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
+        font(mid * s, r.kind === "me"); const wl = doc.splitTextToSize(r.w, R - L - TW - GAP - mw);
+        const wx = (wl.length - 1) * lineH(mid * s);
         font(9.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
         font(7.8 * s, false); const zl = r.z.length ? wrapTokens(r.z, IW) : [];
-        const h = 1.2 + h1 * s + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
+        const h = 1.2 + h1 * s + wx + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
           const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
           let yy = y + 1.2 + h1 * s * 0.8;
           font(big * s, r.kind !== "sl", col); doc.text(r.t, L, yy);
-          font(mid * s, r.kind === "me", col); doc.text(r.w, L + TW + GAP, yy);
+          font(mid * s, r.kind === "me", col); wl.forEach((l, k) => doc.text(l, L + TW + GAP, yy + k * lineH(mid * s)));
           if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
-          yy = y + 1.2 + h1 * s;
+          yy = y + 1.2 + h1 * s + wx;
           if (xl.length) { font(9.5 * s, false, col); yy += 0.5; xl.forEach(l => { yy += lineH(9.5 * s); doc.text(l, L + TW + GAP, yy - lineH(9.5 * s) * 0.22); }); }
           if (zl.length) { font(7.8 * s, false, [61, 74, 82]); yy += 0.4; zl.forEach(l => { yy += lineH(7.8 * s) * 1.12; doc.text(l, L + TW + GAP, yy - lineH(7.8 * s) * 0.3); }); }
           if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }

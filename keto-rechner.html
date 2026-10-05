@@ -4856,18 +4856,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Was und
-  // Menge; darunter Rezept und Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
+  // Tagesplan-Ausdruck als Küchenzettel: eine A6-Karte (10,5 × 14,8 cm) mit Schnittlinie auf A4. Groß Uhrzeit, Rezept und
+  // Menge; darunter die Dauer, klein die Zutaten je Portion. Passt es nicht, wird die Schrift kleiner (fitKitchenCard).
   function printDayPlan(d, facts) {
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const rows = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      const x = m.rec ? "<b>" + escapeHtml(m.rec.name) + "</b> <i>· " + sondierMin(m.vol) + " min</i>"
-        : m.bad ? "<b>" + escapeHtml(m.bad.name) + "</b> <i>passt nicht – anderes Rezept wählen</i>" : "<i>Rezept offen</i>";
+      // Groß steht der Rezeptname (statt „Mahlzeit n“), darunter die Sondierdauer bzw. der Hinweis
+      const w = m.rec ? escapeHtml(m.rec.name) : m.bad ? escapeHtml(m.bad.name) : "Rezept offen";
+      const x = m.rec ? "<i>" + sondierMin(m.vol) + " min</i>" : m.bad ? "<i>passt nicht – anderes Rezept wählen</i>" : "<i>noch kein Rezept gewählt</i>";
       const z = f ? f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food))
         .map(it => '<span class="i">' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "&nbsp;" + gramsShort(num(it.grams)) + "</span>").join(" · ") : "";
-      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>Mahlzeit " + (i + 1) + "</span>" +
+      rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span>" +
         "<span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span><div class='x'>" + x + "</div>" + (z ? "<div class='z'>" + z + "</div>" : "") + "</div>" });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'>Wasser" + (g.kind === "abend" ? " <i>vor dem Schlafen</i>" : "") + "</span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
@@ -5402,17 +5403,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       rows.forEach(r => {
         const big = r.kind === "me" ? 14.5 : r.kind === "wa" ? 12.5 : 10, mid = r.kind === "me" ? 13 : r.kind === "wa" ? 11 : 10;
         const h1 = lineH(big);
+        // Rezeptname darf umbrechen (Platz bis zur Mengenangabe rechts)
+        font(big * s, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
+        font(mid * s, r.kind === "me"); const wl = doc.splitTextToSize(r.w, R - L - TW - GAP - mw);
+        const wx = (wl.length - 1) * lineH(mid * s);
         font(9.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
         font(7.8 * s, false); const zl = r.z.length ? wrapTokens(r.z, IW) : [];
-        const h = 1.2 + h1 * s + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
+        const h = 1.2 + h1 * s + wx + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
           const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
           let yy = y + 1.2 + h1 * s * 0.8;
           font(big * s, r.kind !== "sl", col); doc.text(r.t, L, yy);
-          font(mid * s, r.kind === "me", col); doc.text(r.w, L + TW + GAP, yy);
+          font(mid * s, r.kind === "me", col); wl.forEach((l, k) => doc.text(l, L + TW + GAP, yy + k * lineH(mid * s)));
           if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
-          yy = y + 1.2 + h1 * s;
+          yy = y + 1.2 + h1 * s + wx;
           if (xl.length) { font(9.5 * s, false, col); yy += 0.5; xl.forEach(l => { yy += lineH(9.5 * s); doc.text(l, L + TW + GAP, yy - lineH(9.5 * s) * 0.22); }); }
           if (zl.length) { font(7.8 * s, false, [61, 74, 82]); yy += 0.4; zl.forEach(l => { yy += lineH(7.8 * s) * 1.12; doc.text(l, L + TW + GAP, yy - lineH(7.8 * s) * 0.3); }); }
           if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }

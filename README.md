@@ -180,7 +180,7 @@ der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
 Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel**: eine A6-Karte (10,5 × 14,8 cm) mit
 gestrichelter Schnittlinie oben links auf A4 (passt in jeden Drucker, dann ausschneiden). Groß stehen
-**Uhrzeit, Mahlzeit bzw. Wasser und die Menge in ml**, darunter Rezeptname und Sondierdauer, klein die
+**Uhrzeit, Rezeptname (statt „Mahlzeit 1“) bzw. Wasser und die Menge in ml**, darunter die Sondierdauer, klein die
 **Zutaten je Portion** (Öl am Ende); Wassergaben blau, zuletzt „Schlafen“. Die Schrift ist so groß wie
 möglich: Vorschau und PDF beginnen bei 120 % und verkleinern, bis alles auf die Karte passt (mindestens 60 %).
 Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
