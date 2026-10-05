@@ -27,7 +27,7 @@
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
-        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("landscape"))) { sharePrintPdf(true); return; }
+        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("bleed"))) { sharePrintPdf(true); return; }
         try { window.print(); } catch (e) {}
       });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
@@ -36,6 +36,7 @@
     ov.querySelector(".print-title").textContent = title;
     const sheet = ov.querySelector("#print-sheet");
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
+    sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
@@ -46,7 +47,8 @@
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
   // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
-  // Querformat (Tagesplan) geht am iPhone auch in Safari über das PDF, weil Safari das Seitenformat nicht sicher übernimmt.
+  // Randlose Vorlagen (Küchenzettel mit Falzlinien) gehen am iPhone auch in Safari über das PDF, weil Safari Seitenformat
+  // und Ränder nicht sicher übernimmt.
   function isIOS() {
     const nav = window.navigator || {};
     return /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
@@ -123,32 +125,33 @@
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
-  // Küchenzettel (Tagesplan): A5 hochkant = linke Hälfte einer quer gedruckten A4-Seite (Teilungslinie in der Mitte),
-  // unten 5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
+  // Küchenzettel (Tagesplan): A6 = linkes oberes Viertel einer A4-Seite (zweimal falten, Falzlinien gestrichelt),
+  // unten 2,5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
   // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
-    "@page{size:A4 landscape;margin:0}" +
-    ".kz-page{position:relative;width:297mm;height:209mm;overflow:hidden}" +
-    ".kz{position:absolute;left:0;top:0;width:148.5mm;height:160mm;padding:10mm 10mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
-    ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
-    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
-    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.8mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
+    "@page{size:A4 portrait;margin:0}" +
+    ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
+    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
+    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}" +
+    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
     ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
-    ".kz-s{margin:3.5mm 0 .5mm;padding-bottom:.8mm;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
-    ".rb{padding:1.2mm 1mm 1.4mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.3mm;font-size:1.22em;line-height:1.22;margin-top:.6mm}" +
+    ".kz-s{margin:1em 0 .15em;padding-bottom:.22em;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
+    ".rb{padding:.35em .28em .4em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
+    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.08em;font-size:1.22em;line-height:1.22;margin-top:.15em}" +
     ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.rb .z .i b{white-space:nowrap}" +
     ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.02em}.r.wa .w .n{font-size:.98em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w .n{font-size:1em;font-weight:normal}";
-  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
+  // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
     let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
-    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
   }
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.

@@ -988,12 +988,12 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const root = $(w, "print-sheet").shadowRoot;
   // Küchenzettel: A6-Karte, groß Uhrzeit · Mahlzeit · ml, darunter Rezept, Dauer und Zutaten
   const kz = root.querySelector(".kz"); assert.ok(kz, "Küchenzettel");
-  // A5 hochkant auf A4 quer: Karte 148,5 mm breit, endet 5 cm über dem unteren Rand; ohne Datum
-  assert.match(root.querySelector("style").textContent, /\.kz\{position:absolute;left:0;top:0;width:148\.5mm;height:160mm/);
-  assert.ok($(w, "print-sheet").classList.contains("landscape"), "Vorschau im Querformat");
-  assert.match(w.document.getElementById("print-page-style").textContent, /@page\{size:A4 landscape;margin:0\}/, "Druck im Querformat");
+  // A6 im linken oberen Viertel von A4 (zweimal falten), endet 2,5 cm über der Falzkante; ohne Datum
+  assert.match(root.querySelector("style").textContent, /\.kz\{position:absolute;left:0;top:0;width:105mm;height:123\.5mm/);
+  assert.ok($(w, "print-sheet").classList.contains("bleed") && !$(w, "print-sheet").classList.contains("landscape"), "Vorschau A4 hoch, randlos");
+  assert.match(w.document.getElementById("print-page-style").textContent, /@page\{size:A4 portrait;margin:0\}/, "Druck randlos im Hochformat");
   assert.equal(kz.querySelector(".kz-h").textContent, "Tagesplan", "kein Datum");
-  assert.ok(root.querySelector(".kz-cut"), "Teilungslinie");
+  assert.ok(root.querySelector(".kz-fold.v") && root.querySelector(".kz-fold.h"), "Falzlinien");
   const first = kz.querySelector(".r.me");
   assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w .n").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
   assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
@@ -1017,7 +1017,7 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const c = openRecipe(w, "Compleat & KetoCal");
   fire(w, [...c.querySelectorAll("#detail-actions .btn")].find(b => /Drucken/.test(b.textContent)));
   assert.ok(!ov.hidden); assert.match($(w, "print-sheet").shadowRoot.textContent, /Compleat & KetoCal.*KetoCal.*Zutaten/);
-  assert.ok(!$(w, "print-sheet").classList.contains("landscape"), "Rezept wieder im Hochformat");
+  assert.ok(!$(w, "print-sheet").classList.contains("bleed"), "Rezept wieder mit Seitenrand");
   assert.match(w.document.getElementById("print-page-style").textContent, /size:A4 portrait/);
   fire(w, $(w, "print-back"));
   assert.ok(ov.hidden); assert.ok(!$(w, "detail-overlay").hidden, "Rezept bleibt offen");

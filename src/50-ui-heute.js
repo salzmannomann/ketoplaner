@@ -270,7 +270,7 @@
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: A5 hochkant auf der linken Hälfte einer quer gedruckten A4-Seite, unten 5 cm frei
+  // Tagesplan-Ausdruck als Küchenzettel: A6 im linken oberen Viertel einer A4-Seite (zweimal falten), unten 2,5 cm frei
   // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Oben der Zeitplan (Uhrzeit, Rezept bzw. Wasser, Dauer,
   // Menge – je eine Zeile), darunter jedes Rezept nur einmal mit seinen Zutaten je Portion zum Abwiegen (zwei Spalten,
   // Gramm fett) und den Uhrzeiten, zu denen es gegeben wird. Die Schrift passt sich an (fitKitchenCard).
@@ -297,6 +297,6 @@
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
-      "<div class='kz-cut'></div></div></body></html>";
+      "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }

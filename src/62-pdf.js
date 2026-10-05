@@ -18,11 +18,11 @@
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
-  // Küchenzettel: A4 quer, linke Hälfte = A5 hochkant (148,5 × 210 mm) mit Teilungslinie in der Mitte, unten 5 cm frei
-  // zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
-  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst.
+  // Küchenzettel: A6 (105 × 148,5 mm) im linken oberen Viertel einer A4-Seite, Falzlinien gestrichelt, unten 2,5 cm
+  // frei zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
+  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst (mindestens 40 %).
   function kitchenCardPdf(doc, kz) {
-    const CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5, ZS = 12.2, ZGAP = 5;
+    const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25, GAP = 1.5, ZS = 12.2, ZGAP = 5;
     const L = PX, R = CW - PX;
     const INK = [31, 41, 51], MUTED = [85, 85, 85], GREEN = [47, 133, 90], BLUE = [36, 85, 127], GREY = [122, 133, 139];
     const lineH = (size) => size * 0.3528 * 1.2;
@@ -41,9 +41,9 @@
       let y = PY;
       font(13 * s, true); const hh = lineH(13 * s);
       if (draw) doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
-      y += hh + 1.2;
+      y += hh + 1.2 * s;
       if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
-      y += 0.8;
+      y += 0.8 * s;
       // Zeitplan: Uhrzeit · Rezept bzw. Wasser (+ Dauer klein) · Menge
       rows.forEach((r, k) => {
         const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 10.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 9.8 : 10) * s, ds = 9 * s;
@@ -55,10 +55,10 @@
         // Name und Dauer in einer Zeile, sonst Dauer darunter; sehr lange Namen brechen um
         font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail);
         const sameLine = nl.length === 1 && nW + dW <= avail;
-        const h = 0.8 + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8;
+        const h = 0.8 * s + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8 * s;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
-          const base = y + 0.8 + lineH(big) * 0.8;
+          const base = y + 0.8 * s + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
           font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, L + TW + GAP, base + i * lineH(nm)));
           if (r.d) {
@@ -73,10 +73,10 @@
       });
       if (!recs.length) return y;
       // Zutaten je Portion: jedes Rezept einmal
-      y += 3.5;
+      y += 3.5 * s;
       font(10.5 * s, true, GREEN); const sh = lineH(10.5 * s);
       if (draw) { doc.text(pdfText(txt(kz, ".kz-s")), L, y + sh * 0.8); doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.4); doc.line(L, y + sh + 0.8, R, y + sh + 0.8); }
-      y += sh + 1.3;
+      y += sh + 1.3 * s;
       const zlh = lineH(ZS * s) * 1.02, cw = (R - L - 2 - ZGAP) / 2;
       recs.forEach((rc, k) => {
         const tn = 13 * s, ti = 9 * s;
@@ -85,13 +85,13 @@
           const cells = rc.z.slice(i, i + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
           pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
         }
-        const h = 1.2 + lineH(tn) + 0.6 + pairs.reduce((a, q) => a + q.n * zlh + 0.3, 0) + 1.2;
+        const h = 1.2 * s + lineH(tn) + 0.6 * s + pairs.reduce((a, q) => a + q.n * zlh + 0.3 * s, 0) + 1.2 * s;
         if (draw) {
-          let yy = y + 1.2 + lineH(tn) * 0.8;
+          let yy = y + 1.2 * s + lineH(tn) * 0.8;
           font(tn, true); doc.text(rc.n, L, yy);
           const x2 = L + doc.getTextWidth(rc.n) + 2;
           font(ti, false, MUTED); doc.text(rc.times, x2, yy);
-          yy = y + 1.2 + lineH(tn) + 0.6;
+          yy = y + 1.2 * s + lineH(tn) + 0.6 * s;
           pairs.forEach(q => {
             q.cells.forEach((c, ci) => {
               const x0 = L + 1 + ci * (cw + ZGAP), x1 = x0 + cw;
@@ -100,7 +100,7 @@
               doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
               doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
             });
-            yy += q.n * zlh + 0.3;
+            yy += q.n * zlh + 0.3 * s;
           });
           if (k < recs.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
@@ -109,10 +109,10 @@
       return y;
     };
     let s = 1.5;
-    while (layout(s, false) > BOTTOM && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
-    // Teilungslinie in der Mitte der Seite
-    doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
-    doc.line(CW, 0, CW, 210); doc.setLineDashPattern([], 0);
+    while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    // Falzlinien: A4 zweimal falten → A6
+    doc.setDrawColor(180, 189, 194); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0);
+    doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {
@@ -120,7 +120,7 @@
     if (!J) return null;
     const dom = new DOMParser().parseFromString(html, "text/html");
     const kz = dom.body.querySelector(".kz");
-    if (kz) { const kd = new J({ unit: "mm", format: "a4", orientation: "landscape", compress: true }); kitchenCardPdf(kd, kz); return kd; }
+    if (kz) { const kd = new J({ unit: "mm", format: "a4", compress: true }); kitchenCardPdf(kd, kz); return kd; }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = [31, 41, 51], MUTED = [102, 102, 102], GREEN = [47, 133, 90];

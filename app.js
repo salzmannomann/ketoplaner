@@ -2263,7 +2263,7 @@
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
-  // Tagesplan-Ausdruck als Küchenzettel: A5 hochkant auf der linken Hälfte einer quer gedruckten A4-Seite, unten 5 cm frei
+  // Tagesplan-Ausdruck als Küchenzettel: A6 im linken oberen Viertel einer A4-Seite (zweimal falten), unten 2,5 cm frei
   // zum Einstecken, ohne Datum (der Plan gilt meist mehrere Tage). Oben der Zeitplan (Uhrzeit, Rezept bzw. Wasser, Dauer,
   // Menge – je eine Zeile), darunter jedes Rezept nur einmal mit seinen Zutaten je Portion zum Abwiegen (zwei Spalten,
   // Gramm fett) und den Uhrzeiten, zu denen es gegeben wird. Die Schrift passt sich an (fitKitchenCard).
@@ -2290,7 +2290,7 @@
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
-      "<div class='kz-cut'></div></div></body></html>";
+      "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }
 
@@ -2573,7 +2573,7 @@
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
-        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("landscape"))) { sharePrintPdf(true); return; }
+        if (iosHomeScreenApp() || (isIOS() && ov.querySelector("#print-sheet").classList.contains("bleed"))) { sharePrintPdf(true); return; }
         try { window.print(); } catch (e) {}
       });
       ov.querySelector("#print-share").addEventListener("click", sharePrintPdf);
@@ -2582,6 +2582,7 @@
     ov.querySelector(".print-title").textContent = title;
     const sheet = ov.querySelector("#print-sheet");
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
+    sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
     root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
@@ -2592,7 +2593,8 @@
   }
   // iPhone/iPad als Home-Bildschirm-App: dort ignoriert iOS window.print() (der Knopf täte nichts). „Drucken“ öffnet
   // stattdessen das PDF im Teilen-Menü – darin steht „Drucken“ (AirPrint). In Safari und am Computer: normaler Druck.
-  // Querformat (Tagesplan) geht am iPhone auch in Safari über das PDF, weil Safari das Seitenformat nicht sicher übernimmt.
+  // Randlose Vorlagen (Küchenzettel mit Falzlinien) gehen am iPhone auch in Safari über das PDF, weil Safari Seitenformat
+  // und Ränder nicht sicher übernimmt.
   function isIOS() {
     const nav = window.navigator || {};
     return /iPhone|iPad|iPod/.test(nav.userAgent || "") || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1);
@@ -2669,32 +2671,33 @@
     ov.hidden = true; document.body.classList.remove("printing"); modalClose("print");
   }
 
-  // Küchenzettel (Tagesplan): A5 hochkant = linke Hälfte einer quer gedruckten A4-Seite (Teilungslinie in der Mitte),
-  // unten 5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
+  // Küchenzettel (Tagesplan): A6 = linkes oberes Viertel einer A4-Seite (zweimal falten, Falzlinien gestrichelt),
+  // unten 2,5 cm frei zum Einstecken in eine Hülle. Alle Schriftgrößen in em, damit fitKitchenCard die ganze Karte über
   // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
-    "@page{size:A4 landscape;margin:0}" +
-    ".kz-page{position:relative;width:297mm;height:209mm;overflow:hidden}" +
-    ".kz{position:absolute;left:0;top:0;width:148.5mm;height:160mm;padding:10mm 10mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
-    ".kz-cut{position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #8a969c}" +
-    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:1.2mm;margin-bottom:.8mm}.kz-h b{font-size:1.3em}" +
-    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.8mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
+    "@page{size:A4 portrait;margin:0}" +
+    ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
+    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
+    ".kz-h{border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}" +
+    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
     ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
-    ".kz-s{margin:3.5mm 0 .5mm;padding-bottom:.8mm;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
-    ".rb{padding:1.2mm 1mm 1.4mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.3mm;font-size:1.22em;line-height:1.22;margin-top:.6mm}" +
+    ".kz-s{margin:1em 0 .15em;padding-bottom:.22em;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
+    ".rb{padding:.35em .28em .4em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
+    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.08em;font-size:1.22em;line-height:1.22;margin-top:.15em}" +
     ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.rb .z .i b{white-space:nowrap}" +
     ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.02em}.r.wa .w .n{font-size:.98em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w .n{font-size:1em;font-weight:normal}";
-  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).
+  // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
+  // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
     let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
-    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.6) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
   }
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, grüne Linie, Fußzeile.
@@ -2805,11 +2808,11 @@
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
-  // Küchenzettel: A4 quer, linke Hälfte = A5 hochkant (148,5 × 210 mm) mit Teilungslinie in der Mitte, unten 5 cm frei
-  // zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
-  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst.
+  // Küchenzettel: A6 (105 × 148,5 mm) im linken oberen Viertel einer A4-Seite, Falzlinien gestrichelt, unten 2,5 cm
+  // frei zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
+  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst (mindestens 40 %).
   function kitchenCardPdf(doc, kz) {
-    const CW = 148.5, PX = 10, PY = 10, BOTTOM = 210 - 50, GAP = 1.5, ZS = 12.2, ZGAP = 5;
+    const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25, GAP = 1.5, ZS = 12.2, ZGAP = 5;
     const L = PX, R = CW - PX;
     const INK = [31, 41, 51], MUTED = [85, 85, 85], GREEN = [47, 133, 90], BLUE = [36, 85, 127], GREY = [122, 133, 139];
     const lineH = (size) => size * 0.3528 * 1.2;
@@ -2828,9 +2831,9 @@
       let y = PY;
       font(13 * s, true); const hh = lineH(13 * s);
       if (draw) doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
-      y += hh + 1.2;
+      y += hh + 1.2 * s;
       if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
-      y += 0.8;
+      y += 0.8 * s;
       // Zeitplan: Uhrzeit · Rezept bzw. Wasser (+ Dauer klein) · Menge
       rows.forEach((r, k) => {
         const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 10.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 9.8 : 10) * s, ds = 9 * s;
@@ -2842,10 +2845,10 @@
         // Name und Dauer in einer Zeile, sonst Dauer darunter; sehr lange Namen brechen um
         font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail);
         const sameLine = nl.length === 1 && nW + dW <= avail;
-        const h = 0.8 + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8;
+        const h = 0.8 * s + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8 * s;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
-          const base = y + 0.8 + lineH(big) * 0.8;
+          const base = y + 0.8 * s + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
           font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, L + TW + GAP, base + i * lineH(nm)));
           if (r.d) {
@@ -2860,10 +2863,10 @@
       });
       if (!recs.length) return y;
       // Zutaten je Portion: jedes Rezept einmal
-      y += 3.5;
+      y += 3.5 * s;
       font(10.5 * s, true, GREEN); const sh = lineH(10.5 * s);
       if (draw) { doc.text(pdfText(txt(kz, ".kz-s")), L, y + sh * 0.8); doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.4); doc.line(L, y + sh + 0.8, R, y + sh + 0.8); }
-      y += sh + 1.3;
+      y += sh + 1.3 * s;
       const zlh = lineH(ZS * s) * 1.02, cw = (R - L - 2 - ZGAP) / 2;
       recs.forEach((rc, k) => {
         const tn = 13 * s, ti = 9 * s;
@@ -2872,13 +2875,13 @@
           const cells = rc.z.slice(i, i + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
           pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
         }
-        const h = 1.2 + lineH(tn) + 0.6 + pairs.reduce((a, q) => a + q.n * zlh + 0.3, 0) + 1.2;
+        const h = 1.2 * s + lineH(tn) + 0.6 * s + pairs.reduce((a, q) => a + q.n * zlh + 0.3 * s, 0) + 1.2 * s;
         if (draw) {
-          let yy = y + 1.2 + lineH(tn) * 0.8;
+          let yy = y + 1.2 * s + lineH(tn) * 0.8;
           font(tn, true); doc.text(rc.n, L, yy);
           const x2 = L + doc.getTextWidth(rc.n) + 2;
           font(ti, false, MUTED); doc.text(rc.times, x2, yy);
-          yy = y + 1.2 + lineH(tn) + 0.6;
+          yy = y + 1.2 * s + lineH(tn) + 0.6 * s;
           pairs.forEach(q => {
             q.cells.forEach((c, ci) => {
               const x0 = L + 1 + ci * (cw + ZGAP), x1 = x0 + cw;
@@ -2887,7 +2890,7 @@
               doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
               doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
             });
-            yy += q.n * zlh + 0.3;
+            yy += q.n * zlh + 0.3 * s;
           });
           if (k < recs.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
@@ -2896,10 +2899,10 @@
       return y;
     };
     let s = 1.5;
-    while (layout(s, false) > BOTTOM && s > 0.6) s = Math.round((s - 0.04) * 100) / 100;
-    // Teilungslinie in der Mitte der Seite
-    doc.setDrawColor(138, 150, 156); doc.setLineWidth(0.3); doc.setLineDashPattern([1.6, 1.2], 0);
-    doc.line(CW, 0, CW, 210); doc.setLineDashPattern([], 0);
+    while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    // Falzlinien: A4 zweimal falten → A6
+    doc.setDrawColor(180, 189, 194); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0);
+    doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
   }
   function buildPdfFromHtml(html) {
@@ -2907,7 +2910,7 @@
     if (!J) return null;
     const dom = new DOMParser().parseFromString(html, "text/html");
     const kz = dom.body.querySelector(".kz");
-    if (kz) { const kd = new J({ unit: "mm", format: "a4", orientation: "landscape", compress: true }); kitchenCardPdf(kd, kz); return kd; }
+    if (kz) { const kd = new J({ unit: "mm", format: "a4", compress: true }); kitchenCardPdf(kd, kz); return kd; }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = [31, 41, 51], MUTED = [102, 102, 102], GREEN = [47, 133, 90];

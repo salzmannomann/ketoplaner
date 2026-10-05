@@ -179,13 +179,14 @@ der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
 Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Kopf und Datum (er gilt meist mehrere Tage):
-**A5 hochkant** auf der linken Hälfte einer **quer gedruckten A4-Seite**, gestrichelte Teilungslinie in der
-Mitte; **unten bleiben 5 cm frei** zum Einstecken in eine Hülle. Am iPhone geht dieser Ausdruck immer über das
-PDF (Safari übernimmt das Querformat nicht sicher). Oben der **Zeitplan**, je Eintrag eine Zeile: **Uhrzeit,
+**A6** im linken oberen Viertel einer **A4-Seite** (einfach zweimal falten, gestrichelte Falzlinien);
+**unten bleiben 2,5 cm frei** zum Einstecken in eine Hülle. Am iPhone geht dieser Ausdruck immer über das
+PDF (Safari übernimmt randlose Seiten nicht sicher). Oben der **Zeitplan**, je Eintrag eine Zeile: **Uhrzeit,
 Rezeptname (statt „Mahlzeit 1“) bzw. Wasser, klein die Dauer, rechts die Menge in ml**; Wassergaben blau, zuletzt
 „Schlafen“. Darunter **„Zutaten je Portion“: jedes Rezept nur einmal** mit den Uhrzeiten, zu denen es gegeben
 wird, und den Zutaten zum Abwiegen in zwei Spalten (Name links, Gramm fett rechts, Öl am Ende). Die Schrift ist so groß wie
-möglich: Vorschau und PDF beginnen bei 150 % und verkleinern, bis alles auf die Karte passt (mindestens 60 %).
+möglich: Vorschau und PDF beginnen bei 150 % und verkleinern samt Abständen, bis alles auf die Karte passt
+(mindestens 40 %).
 Das **Rezept** zeigt Fettbasis, Verhältnis, kcal,
 Eiweiß gegen das Ziel, Flüssigkeit und Volumen, die **Zutaten je Portion und für
 die gewählte Menge** mit Eiweiß, Fett, KH und kcal, einen Abfüll-Kasten (abfüllen, dann das Öl
