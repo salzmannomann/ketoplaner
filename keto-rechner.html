@@ -1148,7 +1148,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 
 /* Erinnerungen (Vorgaben) */
 .push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
-.push-opts .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--ink); }
+.push-opts .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
 .push-opts .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
 .push-url-lbl { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .push-url-lbl input { font-size: 14px; }
@@ -1248,6 +1248,48 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #view-vorgaben .segmented button, #view-vorgaben .preset-row .segmented.mini button { padding: 4px 8px; }
   #view-vorgaben #mct-share-ctl button { padding: 4px 4px; }
 }
+/* Vorgaben neu gegliedert ------------------------------------------------ */
+/* Verordnung am Desktop: 3 × 2 statt 4 + 2 Felder – oben Verhältnis, Mahlzeiten, Gewicht; unten Kalorien, mindestens, Eiweiß */
+@media (min-width: 821px) {
+  #verordnung-grid { grid-template-columns: repeat(3, 1fr); }
+  #vo-ratio { order: 1; } #vo-mahl { order: 2; } #vo-weight { order: 3; }
+  #vo-kcal { order: 4; } #vo-kcalmin { order: 5; } #vo-protein { order: 6; }
+  #verordnung-grid #eiweiss-manual { order: 7; grid-column: 3; }
+}
+/* Kennzahl-Kacheln statt langer Zusammenfassungs-Sätze */
+.vg-sum { margin: 6px 0 2px; }
+.vg-sum .note { margin: 0 0 8px; }
+.vg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.vg-fact { background: var(--green-bg); border-radius: 10px; padding: 8px 11px 9px; min-width: 0; }
+.vg-fact small { display: block; font-size: 12px; color: var(--muted); line-height: 1.3; }
+.vg-fact b { display: block; font-size: 19px; line-height: 1.3; color: var(--brand-dark); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vg-fact span { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.vg-more { font-size: 12.5px; color: var(--muted); margin: 7px 2px 0; line-height: 1.4; }
+/* Umschalter wie Eingabefelder beschriften: Bezeichnung grau darüber, Gruppe über die ganze Breite */
+#view-vorgaben .preset-row { display: block; margin: 0 0 14px; }
+#view-vorgaben .preset-row .seg-label { display: block; font-size: 14px; font-weight: 400; color: var(--muted); margin: 0 0 4px; }
+#view-vorgaben .preset-row .segmented.mini { display: flex; flex-wrap: nowrap; width: 100%; }
+#view-vorgaben .preset-row .segmented.mini button { flex: 1 1 auto; white-space: normal; margin: 0; border-bottom: 0; }
+#view-vorgaben .preset-row + .settings-grid { margin-top: 0; }
+#view-vorgaben #mct-zero-hint { margin: -6px 0 2px; }
+/* Küche: Erklärung neben dem Feld statt leerer Fläche */
+#view-vorgaben .field-hint { align-self: center; margin: 0 0 20px; font-size: 12.5px; color: var(--muted); line-height: 1.45; grid-column: 2 / -1; }
+/* Abgleich: „Code von einem anderen Gerät“ abgesetzt */
+#view-vorgaben .sync-join { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+#view-vorgaben .sync-join .push-url-lbl { font-size: 13.5px; }
+
+@media (max-width: 560px) {
+  #view-vorgaben .preset-row { margin: 0 0 10px; }
+  #view-vorgaben .preset-row .seg-label { font-size: 13px; margin-bottom: 3px; }
+  #view-vorgaben .preset-row .segmented.mini button { padding: 2px 6px; line-height: 1.2; }
+  #wasser-modus-ctl button, #view-vorgaben #wasser-modus-ctl button { flex-basis: 50%; text-align: center; }
+  #view-vorgaben .field-hint { margin-bottom: 18px; font-size: 12px; }
+  .vg-fact { padding: 7px 10px 8px; }
+  .vg-fact b { font-size: 17px; }
+  #view-vorgaben .btn-row .btn { flex: 1 1 auto; }
+}
+#mct-more .settings-grid { margin-bottom: 0; }
+#mct-more .settings-grid > div { padding-bottom: 10px; }
 
 </style>
 </head>
@@ -1316,32 +1358,32 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
       <div class="card">
         <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="vg-body">
-        <div class="settings-grid">
-          <div>
+        <div class="settings-grid" id="verordnung-grid">
+          <div id="vo-ratio">
             <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
           </div>
-          <div>
-            <label>Kalorien pro Tag (Ziel)</label>
-            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
-          </div>
-          <div>
-            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
-            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
-          </div>
-          <div>
+          <div id="vo-mahl">
             <label>Mahlzeiten pro Tag</label>
             <div class="segmented mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
               <button type="button" data-mahl="3">3</button><button type="button" data-mahl="4">4</button><button type="button" data-mahl="5">5</button>
             </div>
           </div>
-          <div>
+          <div id="vo-kcal">
+            <label>Kalorien pro Tag (Ziel)</label>
+            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          </div>
+          <div id="vo-kcalmin">
+            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
+            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          </div>
+          <div id="vo-weight">
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div>
+          <div id="vo-protein">
             <label>Eiweiß-Bedarf</label>
             <select id="set-proteinmode">
               <option value="0">manuell (g/Tag)</option>
@@ -1357,7 +1399,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
           </div>
         </div>
-        <div id="verordnung-summary" class="note tip"></div>
+        <div id="verordnung-summary" class="vg-sum"></div>
         </div>
       </div>
 
@@ -1390,7 +1432,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <div id="bd-out"></div>
         <details class="collapsible mini">
           <summary>ⓘ Wie wird gerechnet? Quellen</summary>
-          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme:</span>
+          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme</span>
             <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
           </div>
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
@@ -1404,10 +1446,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <h3>💧 Flüssigkeit</h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">Wasser:</span>
+          <span class="seg-label">Wasser geben</span>
           <div class="segmented mini" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten sondieren</button>
-            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten dabei</button>
+            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten</button>
+            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
           </div>
         </div>
         <div class="settings-grid">
@@ -1422,20 +1464,20 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="linkbtn" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>↺ 1,5</button></div>
           </div>
         </div>
-        <div id="fluid-summary" class="note tip"></div>
+        <div id="fluid-summary" class="vg-sum"></div>
         <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt Heute → ⏰ Uhrzeiten. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
         </div>
       </div>
 
       <div class="card">
-        <h3>⚡ Öl <span class="hint">– MCT-Anteil und Rechenregel, gilt für alle Rezepte mit Öl</span></h3>
+        <h3>⚡ Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse</span>
           <div class="segmented mini" id="mct-share-ctl"></div>
         </div>
         <div class="preset-row">
-          <span class="seg-label">Rechenregel:</span>
+          <span class="seg-label">Rechenregel</span>
           <div class="segmented mini" id="mct-mode-ctl">
             <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
@@ -1443,10 +1485,6 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         </div>
         <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
         <div id="mct-more">
-          <details class="collapsible mini">
-            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
-          </details>
           <div class="settings-grid">
             <div>
               <label>MCT-Öl: Fett je 100 g</label>
@@ -1457,6 +1495,10 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
+          <details class="collapsible mini">
+            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
+          </details>
         </div>
         </div>
       </div>
@@ -1470,6 +1512,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
             <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
+          <p class="field-hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Rundung und Verdunstung</summary>
@@ -1482,7 +1525,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
         <h3>🎨 Darstellung</h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">Hell / Dunkel:</span>
+          <span class="seg-label">Hell oder dunkel</span>
           <div class="segmented mini" id="theme-ctl">
             <button type="button" data-theme="auto">📱 Wie das Gerät</button>
             <button type="button" data-theme="light">☀️ Hell</button>
@@ -1493,7 +1536,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
       </div>
 
       <div class="card" id="push-card">
-        <h3>🔔 Erinnerungen <span class="hint">– Nachricht zu jeder Mahlzeit und Wassergabe</span></h3>
+        <h3>🔔 Erinnerungen <span class="hint">– zu Mahlzeiten und Wasser</span></h3>
         <div class="vg-body">
         <div id="push-status" class="note tip"></div>
         <div class="push-opts">
@@ -1521,7 +1564,7 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
       </div>
 
       <div class="card" id="sync-card">
-        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig: iPhone, iPad und Computer auf demselben Stand</span></h3>
+        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig</span></h3>
         <div class="vg-body">
         <div id="sync-status" class="note info"></div>
         <div id="sync-code" class="note tip sync-code-box" hidden></div>
@@ -3660,28 +3703,45 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1
-      ? '<div id="ratio-hint">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      ? '<div id="ratio-hint" class="note warn">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
       : "";
+    // Zusammenfassung als Kennzahl-Kacheln: Bezeichnung, Wert, kurze Herkunft (Details im title).
+    const fact = (k, label, value, sub, title) => '<div class="vg-fact" data-k="' + k + '"' + (title ? ' title="' + escapeHtml(title) + '"' : "") +
+      "><small>" + label + "</small><b>" + value + "</b><span>" + sub + "</span></div>";
     const sum = document.getElementById("verordnung-summary");
-    if (sum) sum.className = "note " + (d.ratio < 1 ? "warn" : "tip");
-    if (sum) sum.innerHTML = ratioWarn + "<strong>" + fmt(d.kcalMahl, 0) + " kcal pro Mahlzeit</strong> (" + fmt(d.kcal, 0) + " kcal/Tag" + (d.kcalManual ? ", manuell" : d.kcalBasis === "krick" ? ", Vorschlag nach Krick" : (d.weight > 0 ? ", Vorschlag 80 kcal/kg" : ", Vorgabe ohne Gewicht")) + " ÷ " + d.mahl +
-      ") · mindestens " + fmt(d.kcalMinMahl, 0) + " kcal (" + fmt(d.kcalMin, 0) + " kcal/Tag" + (d.kcalMinManual ? ", manuell" : d.kcalBereich ? ", ESPGHAN 60 %" : d.weight > 0 ? ", 70 kcal/kg" : ", 85 % des Ziels") + ")" +
-      (d.kcalBereich ? " · Bereich laut Schätzungen " + fmt(d.kcalLoBd, 0) + "–" + fmt(d.kcalRefBd, 0) + " kcal/Tag (ESPGHAN–FAO/WHO)"
-        : d.kcalRichtwert ? " · Korridor nach Gewicht " + fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0) + " kcal/Tag (70–90 kcal/kg)" : "") +
-      " · Eiweiß-Ziel ca. " + fmt(d.eiweissMahl) + " g/Mahlzeit" +
-      (d.autoProtein ? " (" + fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") + ")" : " (manuell)");
+    if (sum) {
+      const kcalSrc = d.kcalManual ? "manuell" : d.kcalBasis === "krick" ? "Vorschlag nach Krick" : d.weight > 0 ? "Vorschlag 80 kcal/kg" : "Vorgabe ohne Gewicht";
+      const minSrc = d.kcalMinManual ? "manuell" : d.kcalBereich ? "ESPGHAN 60 %" : d.weight > 0 ? "70 kcal/kg" : "85 % des Ziels";
+      const facts = [
+        fact("mahl", "pro Mahlzeit", fmt(d.kcalMahl, 0) + " kcal", fmt(d.kcal, 0) + " kcal/Tag ÷ " + d.mahl, fmt(d.kcal, 0) + " kcal/Tag (" + kcalSrc + ") ÷ " + d.mahl + " Mahlzeiten"),
+        fact("min", "mindestens", fmt(d.kcalMinMahl, 0) + " kcal", "je Mahlzeit · " + fmt(d.kcalMin, 0) + " kcal/Tag", fmt(d.kcalMin, 0) + " kcal/Tag (" + minSrc + ")"),
+        fact("eiweiss", "Eiweiß", fmt(d.eiweissMahl) + " g", "je Mahlzeit · " + (d.autoProtein ? fmt(d.eiweiss, 0) + " g/Tag" : "manuell"),
+          d.autoProtein ? fmt(d.eiweiss, 0) + " g/Tag, " + fmt(d.proteinPerKg, 1) + " g/kg" + (d.proteinPerKg === d.proteinStandard ? " = Standard" : "") : "manuell vorgegeben")
+      ];
+      if (d.kcalBereich) facts.push(fact("bereich", "Bereich laut Schätzungen", fmt(d.kcalLoBd, 0) + "–" + fmt(d.kcalRefBd, 0), "kcal/Tag · ESPGHAN–FAO/WHO", "von der ESPGHAN-Faustregel (60 %) bis zum Bedarf gesunder Kinder (FAO/WHO) – siehe Bedarf schätzen"));
+      else if (d.kcalRichtwert) facts.push(fact("bereich", "Korridor nach Gewicht", fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0), "kcal/Tag · 70–90 kcal/kg", "Richtwert nach Körpergewicht: 70–90 kcal/kg"));
+      sum.innerHTML = ratioWarn + '<div class="vg-facts">' + facts.join("") + "</div>";
+    }
     // Flüssigkeit: Modus-Buttons und Zusammenfassung
     document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
       b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
     const fs = document.getElementById("fluid-summary");
-    if (fs) fs.innerHTML = d.fluidDay > 0
-      ? "<strong>" + fmt(d.fluidDay, 0) + " ml/Tag</strong>" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " · " +
-        (d.wasserModus === "mahlzeit"
-          ? "alles in den Mahlzeiten: je " + fmt(d.fluidMahl, 0) + " ml"
-          : (() => { const wg = waterGiftsText(d); return "Mahlzeiten nur mit dem Rezept-Wasser zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben zwischen den Mahlzeiten: " +
-              (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + "<strong>" + wg.text + "</strong>" : "derzeit keine nötig") +
-              (d.maxMahlMl > 0 ? " (höchstens " + fmt(d.maxMahlMl, 0) + " ml auf einmal, 25 ml/kg)" : "") + ". Uhrzeiten unter Heute → ⏰ Uhrzeiten."; })())
-      : "Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.";
+    if (fs) {
+      if (!(d.fluidDay > 0)) fs.innerHTML = '<div class="note info">Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.</div>';
+      else {
+        const maxF = d.maxMahlMl > 0 ? fact("max", "höchstens auf einmal", fmt(d.maxMahlMl, 0) + " ml", "25 ml/kg", "mehr auf einmal verträgt der Magen oft schlecht") : "";
+        if (d.wasserModus === "mahlzeit") {
+          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "in jeder Mahlzeit", fmt(d.fluidMahl, 0) + " ml", fmt(d.fluidDay, 0) + " ml/Tag ÷ " + d.mahl,
+            fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " ÷ " + d.mahl + " Mahlzeiten") + maxF + "</div>" +
+            '<p class="vg-more">Kein Wasser zwischen den Mahlzeiten nötig.</p>';
+        } else {
+          const wg = waterGiftsText(d);
+          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+              fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
+            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten unter Heute → ⏰.</p>';
+        }
+      }
+    }
     // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
     const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
     if (more) more.hidden = !(d.mctShare > 0);

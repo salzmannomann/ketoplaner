@@ -252,19 +252,22 @@ test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht we
   assert.match(hc, /🧃 Compleat Paediatric/); assert.match(hc, new RegExp(fmtDe(mlK) + " ml") /* Tag = 4 Portionen */);
   assert.ok(!$(w2, "day-sums").querySelector(".dstat").classList.contains("warn"), "Minimum erreicht – keine Warnung");
 });
+// Kennzahl-Kachel unter Verordnung/Flüssigkeit: sichtbarer Text plus Herkunft aus dem title.
+function fact(w, box, k) { const e = $(w, box).querySelector('[data-k="' + k + '"]'); return e ? e.textContent + " · " + e.title : ""; }
 function fmtDe(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
 test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung, Tagesplan warnt bei Unterschreitung", () => {
   const w = boot({ settings: { mctShare: 0, ratio: 2 / 3, mahlzeiten: 4, kcal: 750, weight: 8.5 } });
-  assert.match($(w, "verordnung-summary").textContent, /mindestens 150 kcal \(600 kcal\/Tag, 70 kcal\/kg\)/);
-  assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell ÷ 4.*Korridor nach Gewicht 600–770 kcal\/Tag \(70–90 kcal\/kg\)/);
+  assert.match(fact(w, "verordnung-summary", "min"), /^mindestens150 kcal.*600 kcal\/Tag \(70 kcal\/kg\)/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /750 kcal\/Tag \(manuell\) ÷ 4/);
+  assert.match(fact(w, "verordnung-summary", "bereich"), /^Korridor nach Gewicht600–770kcal\/Tag · 70–90 kcal\/kg/);
   assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /✓ Vorschlag · 70 kcal\/kg/);
   // Manuelles Minimum über dem Ziel → Tagesplan mit 4 × 188 kcal = 750 liegt darunter → Warnung
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 800;
   st.dayPlan = [0, 1, 2, 3].map(() => ({ key: "std:Compleat & KetoCal" }));
   const w2 = boot(st);
-  assert.match($(w2, "verordnung-summary").textContent, /800 kcal\/Tag, manuell/);
+  assert.match(fact(w2, "verordnung-summary", "min"), /800 kcal\/Tag \(manuell\)/);
   fire(w2, $(w2, "tab-heute"));
   const t2 = $(w2, "heute-content").textContent;
   assert.ok($(w2, "day-sums").querySelector(".dstat").classList.contains("warn"), "kcal-Kachel warnt"); assert.match(t2, /unter dem Kalorien-Minimum/);
@@ -293,7 +296,7 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   assert.match($(w, "src-kcal").textContent, /✓ Vorschlag · 80 kcal\/kg/);
   assert.ok($(w, "src-kcal").classList.contains("auto"));
   assert.ok($(w, "reset-kcal").hidden);
-  assert.match($(w, "verordnung-summary").textContent, /170 kcal pro Mahlzeit \(680 kcal\/Tag, Vorschlag 80 kcal\/kg ÷ 4\)/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /^pro Mahlzeit170 kcal.*680 kcal\/Tag \(Vorschlag 80 kcal\/kg\) ÷ 4/);
   assert.match($(w, "rx-chip").textContent, /170 kcal × 4/);
   assert.equal($(w, "set-kcalmin").value, "600");
   assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag · 100 ml\/kg/);
@@ -303,20 +306,20 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
   const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
   assert.ok(!$(w, "reset-kcal").hidden); assert.match($(w, "src-kcal").textContent, /eigener Wert/); assert.match($(w, "reset-kcal").textContent, /↺ Vorschlag 680/);
-  assert.match($(w, "verordnung-summary").textContent, /750 kcal\/Tag, manuell/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /750 kcal\/Tag \(manuell\)/);
   fire(w, $(w, "reset-kcal"));
   assert.equal($(w, "set-kcal").value, "680");
   // Ein getippter Wert bleibt fest – auch wenn er dem Vorschlag entspricht; nur ein leeres Feld ist wieder automatisch
   k.value = "690"; fire(w, k, "input"); assert.ok(!$(w, "reset-kcal").hidden);
   k.value = "680"; fire(w, k, "input"); assert.ok(!$(w, "reset-kcal").hidden, "Vorschlag getippt → bleibt eigener Wert");
-  assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, manuell/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /680 kcal\/Tag \(manuell\)/);
   k.value = ""; fire(w, k, "input"); assert.ok($(w, "reset-kcal").hidden, "leeres Feld → automatisch");
-  assert.match($(w, "verordnung-summary").textContent, /680 kcal\/Tag, Vorschlag/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /680 kcal\/Tag \(Vorschlag/);
   const fl = $(w, "set-fluid"); fl.value = "900"; fire(w, fl, "input");
   assert.ok(!$(w, "reset-fluid").hidden);
   fire(w, $(w, "reset-fluid"));
   assert.equal($(w, "set-fluid").value, "850"); assert.ok($(w, "reset-fluid").hidden);
-  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag \(Vorschlag/);
+  assert.match(fact(w, "fluid-summary", "gabe"), /850 ml\/Tag \(Vorschlag/);
   // Eiweiß abweichend → Standard-Link
   const pm = $(w, "set-proteinmode"); pm.value = "2"; fire(w, pm, "change");
   assert.ok(!$(w, "reset-protein").hidden);
@@ -523,10 +526,10 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   ri.value = "0,67"; fire(w, ri, "input"); fire(w, ri, "change");
   assert.equal(ri.value, "0,67");
   assert.match($(w, "ratio-hint").textContent, /0,67:1 heißt nur 0,67 g Fett je 1 g Eiweiß\+KH – weniger Fett als Eiweiß\+KH/);
-  assert.ok($(w, "verordnung-summary").classList.contains("warn"), "Zusammenfassung als Warnung");
+  assert.ok($(w, "verordnung-summary").querySelector(".note.warn"), "Warnung über den Kennzahlen");
   ri.value = "1,5"; fire(w, ri, "input");
   assert.equal($(w, "ratio-hint"), null, "kein Hinweis bei Werten ab 1:1");
-  assert.ok($(w, "verordnung-summary").classList.contains("tip"));
+  assert.equal($(w, "verordnung-summary").querySelector(".note.warn"), null);
   ri.value = "1:1,5"; fire(w, ri, "input"); // alte Schreibweise wird weiterhin verstanden
   assert.match($(w, "rx-chip").textContent, /^0,67:1 /);
   assert.ok(Math.abs(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.ratio - 2 / 3) < 1e-9);
@@ -590,7 +593,8 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal($(w, "set-zwischen"), null, "kein festes Feld je Zwischenzeit mehr – die Menge rechnet der Zeitplan");
   assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge");
   assert.ok(!$(w, "set-dichte").disabled); assert.equal($(w, "set-dichte").value, "1,5");
-  assert.match($(w, "fluid-summary").textContent, /850 ml\/Tag .*Holliday-Segar.*Rezept-Wasser zum Pürieren bzw. Anrühren.*Wassergaben zwischen den Mahlzeiten: ≈ 4 × \d+ ml/);
+  assert.match(fact(w, "fluid-summary", "gabe"), /^Wassergaben≈ 4 × \d+ mlzwischen den Mahlzeiten · 850 ml\/Tag \(Vorschlag, Holliday-Segar\)/);
+  assert.match($(w, "fluid-summary").textContent, /nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren/);
   // „zwischen“: die Mahlzeit behält ihr Rezept-Wasser, der Tag nennt die Wassergaben
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
@@ -602,7 +606,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   // „in den Mahlzeiten dabei“: Wasser steigt, Mahlzeit ≈ 850 ÷ 4 ≈ 213 ml; Dichte-Feld ausgegraut
   fire(w, w.document.querySelector("#wasser-modus-ctl button[data-wmodus=mahlzeit]"));
   assert.ok($(w, "set-dichte").disabled, "Dichte nur beim Sondieren, Feld bleibt an Ort und Stelle");
-  assert.match($(w, "fluid-summary").textContent, /alles in den Mahlzeiten: je 21[23] ml/);
+  assert.match(fact(w, "fluid-summary", "gabe"), /^in jeder Mahlzeit21[23] ml/);
   assert.match($(w, "rx-chip").textContent, /alles in den Mahlzeiten \(je 21[23] ml\)/);
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
@@ -632,7 +636,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.match($(w2, "rx-chip").textContent, /Wasser zwischen den Mahlzeiten: \d × \d+ ml/);
   // Manuelle Vorgabe
   const fl = $(w2, "set-fluid"); fl.value = "900"; fire(w2, fl, "input");
-  assert.match($(w2, "fluid-summary").textContent, /900 ml\/Tag .*manuell/);
+  assert.match(fact(w2, "fluid-summary", "gabe"), /900 ml\/Tag \(manuell\)/);
   // Energiedichte: Compleat & KetoCal hätte mit Rezept-Wasser > 2 kcal/ml – die App füllt bis 1,5 kcal/ml auf
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
   const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
@@ -1318,14 +1322,13 @@ test("Kalorien-Vorschlag folgt der Krick-Schätzung, sobald ein Geburtsdatum ein
   assert.match($(w, "src-kcal").textContent, /Vorschlag · Krick/);
   assert.equal($(w, "set-kcalmin").value, "410");
   assert.match($(w, "src-kcalmin").textContent, /Vorschlag · ESPGHAN 60 %/);
-  const sum = $(w, "verordnung-summary").textContent;
-  assert.match(sum, /140 kcal pro Mahlzeit \(560 kcal\/Tag, Vorschlag nach Krick ÷ 4\)/);
-  assert.match(sum, /Bereich laut Schätzungen 410–690 kcal\/Tag \(ESPGHAN–FAO\/WHO\)/);
+  assert.match(fact(w, "verordnung-summary", "mahl"), /^pro Mahlzeit140 kcal.*560 kcal\/Tag \(Vorschlag nach Krick\) ÷ 4/);
+  assert.match(fact(w, "verordnung-summary", "bereich"), /^Bereich laut Schätzungen410–690kcal\/Tag · ESPGHAN–FAO\/WHO/);
   // „geht“: Vorschlag weiter nach Krick, Minimum und Korridor wieder nach Gewicht (70–90 kcal/kg)
   const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
   assert.equal($(w, "set-kcal").value, "630");
   assert.equal($(w, "set-kcalmin").value, "600");
-  assert.match($(w, "verordnung-summary").textContent, /Korridor nach Gewicht 600–770/);
+  assert.match(fact(w, "verordnung-summary", "bereich"), /^Korridor nach Gewicht600–770/);
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal || "", "", "kein eigener Wert gespeichert");
 });
 

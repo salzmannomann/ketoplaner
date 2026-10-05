@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=c09965fc" />
+  <link rel="stylesheet" href="styles.css?v=3c716dfb" />
 </head>
 <body>
   <header class="topbar">
@@ -82,32 +82,32 @@
       <div class="card">
         <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
         <div class="vg-body">
-        <div class="settings-grid">
-          <div>
+        <div class="settings-grid" id="verordnung-grid">
+          <div id="vo-ratio">
             <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
             <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
           </div>
-          <div>
-            <label>Kalorien pro Tag (Ziel)</label>
-            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
-          </div>
-          <div>
-            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
-            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
-          </div>
-          <div>
+          <div id="vo-mahl">
             <label>Mahlzeiten pro Tag</label>
             <div class="segmented mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
               <button type="button" data-mahl="3">3</button><button type="button" data-mahl="4">4</button><button type="button" data-mahl="5">5</button>
             </div>
           </div>
-          <div>
+          <div id="vo-kcal">
+            <label>Kalorien pro Tag (Ziel)</label>
+            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          </div>
+          <div id="vo-kcalmin">
+            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
+            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
+            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          </div>
+          <div id="vo-weight">
             <label>Körpergewicht (kg)</label>
             <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
           </div>
-          <div>
+          <div id="vo-protein">
             <label>Eiweiß-Bedarf</label>
             <select id="set-proteinmode">
               <option value="0">manuell (g/Tag)</option>
@@ -123,7 +123,7 @@
             <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
           </div>
         </div>
-        <div id="verordnung-summary" class="note tip"></div>
+        <div id="verordnung-summary" class="vg-sum"></div>
         </div>
       </div>
 
@@ -156,7 +156,7 @@
         <div id="bd-out"></div>
         <details class="collapsible mini">
           <summary>ⓘ Wie wird gerechnet? Quellen</summary>
-          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme:</span>
+          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme</span>
             <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
           </div>
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
@@ -170,10 +170,10 @@
         <h3>💧 Flüssigkeit</h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">Wasser:</span>
+          <span class="seg-label">Wasser geben</span>
           <div class="segmented mini" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten sondieren</button>
-            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten dabei</button>
+            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten</button>
+            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
           </div>
         </div>
         <div class="settings-grid">
@@ -188,20 +188,20 @@
             <div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="linkbtn" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>↺ 1,5</button></div>
           </div>
         </div>
-        <div id="fluid-summary" class="note tip"></div>
+        <div id="fluid-summary" class="vg-sum"></div>
         <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt Heute → ⏰ Uhrzeiten. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
         </div>
       </div>
 
       <div class="card">
-        <h3>⚡ Öl <span class="hint">– MCT-Anteil und Rechenregel, gilt für alle Rezepte mit Öl</span></h3>
+        <h3>⚡ Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse:</span>
+          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse</span>
           <div class="segmented mini" id="mct-share-ctl"></div>
         </div>
         <div class="preset-row">
-          <span class="seg-label">Rechenregel:</span>
+          <span class="seg-label">Rechenregel</span>
           <div class="segmented mini" id="mct-mode-ctl">
             <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
             <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
@@ -209,10 +209,6 @@
         </div>
         <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
         <div id="mct-more">
-          <details class="collapsible mini">
-            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
-          </details>
           <div class="settings-grid">
             <div>
               <label>MCT-Öl: Fett je 100 g</label>
@@ -223,6 +219,10 @@
               <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
             </div>
           </div>
+          <details class="collapsible mini">
+            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
+          </details>
         </div>
         </div>
       </div>
@@ -236,6 +236,7 @@
             <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
             <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
           </div>
+          <p class="field-hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
         </div>
         <details class="collapsible mini">
           <summary>ⓘ Rundung und Verdunstung</summary>
@@ -248,7 +249,7 @@
         <h3>🎨 Darstellung</h3>
         <div class="vg-body">
         <div class="preset-row">
-          <span class="seg-label">Hell / Dunkel:</span>
+          <span class="seg-label">Hell oder dunkel</span>
           <div class="segmented mini" id="theme-ctl">
             <button type="button" data-theme="auto">📱 Wie das Gerät</button>
             <button type="button" data-theme="light">☀️ Hell</button>
@@ -259,7 +260,7 @@
       </div>
 
       <div class="card" id="push-card">
-        <h3>🔔 Erinnerungen <span class="hint">– Nachricht zu jeder Mahlzeit und Wassergabe</span></h3>
+        <h3>🔔 Erinnerungen <span class="hint">– zu Mahlzeiten und Wasser</span></h3>
         <div class="vg-body">
         <div id="push-status" class="note tip"></div>
         <div class="push-opts">
@@ -287,7 +288,7 @@
       </div>
 
       <div class="card" id="sync-card">
-        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig: iPhone, iPad und Computer auf demselben Stand</span></h3>
+        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig</span></h3>
         <div class="vg-body">
         <div id="sync-status" class="note info"></div>
         <div id="sync-code" class="note tip sync-code-box" hidden></div>
@@ -366,7 +367,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=b013390e"></script>
+  <script src="app.js?v=8694889c"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

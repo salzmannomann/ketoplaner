@@ -61,19 +61,22 @@ Vorgaben.
   Feld,
   **Kalorien pro Tag (Ziel)** (leer = Vorschlag nach Gewicht, 80 kcal/kg; ist unter „Bedarf schätzen“ ein
   Geburtsdatum eingetragen, die **Krick-Schätzung**) und
-  **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Zusammenfassung zeigt dazu den Korridor
+  **Kalorien mindestens pro Tag** (leer = Vorschlag 70 kcal/kg; die Kennzahlen zeigen dazu den Korridor
   70–90 kcal/kg nach FAO/WHO/UNU 2004 für 6–24 Monate. Mit Geburtsdatum und einem Kind, das nicht geht:
   Minimum = ESPGHAN-Faustregel 60 % und **Bereich laut Schätzungen** ESPGHAN–FAO/WHO – bitte mit der
   Diätologin abgleichen), **Mahlzeiten pro Tag** (Auswahl **3 · 4 · 5**), Körpergewicht
   und Eiweiß (fix pro Tag oder g/kg; Standard der App 1,5 g/kg/Tag, sichtbar
-  markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit. Ein
+  markiert). Daraus ergeben sich kcal und Eiweiß-Ziel je Mahlzeit – darunter als
+  **Kennzahl-Kacheln** (pro Mahlzeit, mindestens, Eiweiß, Bereich/Korridor; die Herkunft
+  steht im Tooltip). Am Desktop stehen die Felder in 3 × 2: Verhältnis, Mahlzeiten,
+  Gewicht – darunter Kalorien, Minimum, Eiweiß. Ein
   Vorschlag steht als echter Wert im Feld; die Zeile darunter sagt, woher er
   kommt: grün **„✓ Vorschlag · 80 kcal/kg"** bzw. **„✓ Vorschlag · Krick"** oder **„eigener
   Wert · ↺ Vorschlag 680"** zum Zurücksetzen. Tippt man genau den Vorschlag
   ein oder leert das Feld, gilt wieder der Vorschlag. Nichts verschiebt sich
   dabei.
 - **Flüssigkeit:** ein Schalter mit zwei Stellungen – **„💉 zwischen den
-  Mahlzeiten sondieren"** (Standard) oder **„🥣 in den Mahlzeiten dabei"** –
+  Mahlzeiten"** (Standard) oder **„🥣 in den Mahlzeiten"** –
   dazu **Gesamt pro Tag** (leer = Vorschlag nach Holliday-Segar,
   100 ml/kg bis 10 kg) und, nur beim Sondieren, **Höchstens kcal je ml**
   (Vorgabe 1,5). Beim Sondieren behält jede Mahlzeit nur ihr Rezept-Wasser zum
