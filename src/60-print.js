@@ -130,21 +130,32 @@
   // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
+    "body{font-family:Helvetica,Arial,sans-serif;color:#1f2933;margin:0}" +
     "@page{size:A4 portrait;margin:0}" +
     ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
-    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}" +
     ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h .rx{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;line-height:1.15}.kz-h .rx b{font-size:1.1em;color:#2f855a}.kz-h .rx small{font-size:.9em;color:#555}" +
-    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
-    ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
-    ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
-    ".kz-s{margin:1em 0 .15em;padding-bottom:.22em;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
-    ".rb{padding:.35em .28em .4em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.08em;font-size:1.22em;line-height:1.22;margin-top:.15em}" +
-    ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.rb .z .i b{white-space:nowrap}" +
-    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.02em}.r.wa .w .n{font-size:.98em;font-weight:normal}.r.wa i{color:#24557f}" +
-    ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w .n{font-size:1em;font-weight:normal}";
+    // Kopf: kleine Marke über „Tagesplan“, rechts Verhältnis als Pille, darunter kcal und Flüssigkeit
+    ".kz-h{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm}" +
+    ".kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:#2f855a;font-weight:bold;margin-bottom:.3em}" +
+    ".kz-h .ti b{display:block;font-size:1.9em;line-height:1;letter-spacing:-.01em}" +
+    ".kz-h .rx{text-align:right;white-space:nowrap}.kz-h .rx .pill{display:inline-block;background:#e6f4ec;color:#22694a;font-weight:bold;border-radius:99px;padding:.18em .7em;font-size:1.05em}" +
+    ".kz-h .rx small{display:block;color:#7b8794;margin-top:.3em;font-size:.95em}" +
+    ".lbl{font-size:.78em;letter-spacing:.12em;text-transform:uppercase;color:#7b8794;font-weight:bold;margin:1.1em 0 .4em}" +
+    // Zeitplan: Mahlzeit mit folgender Wassergabe als Block, feine Linie nur zwischen den Blöcken
+    ".r{display:grid;grid-template-columns:calc(13mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.38em 0;break-inside:avoid}" +
+    ".r.me,.r.sl{border-top:.2mm solid #e4e8eb}.lbl + .r{border-top:0}" +
+    ".r .t{font-weight:bold;font-size:1.3em}.r .n{font-weight:bold;font-size:1.18em}.r i{font-style:normal}.r .d{color:#7b8794;font-size:.9em;margin-left:.4em}" +
+    ".r .m{font-weight:bold;font-size:1.3em;text-align:right;white-space:nowrap}" +
+    ".r.wa{padding:.1em 0 .32em;color:#2b6cb0}.r.wa .t,.r.wa .m{font-size:1em;font-weight:600}.r.wa .n{font-weight:normal;font-size:1em}.r.wa .d{color:#6b9bd1}" +
+    ".r.wa .n:before{content:'';display:inline-block;width:.55em;height:.55em;border-radius:50%;background:#63a4e8;margin-right:.45em;vertical-align:.05em}" +
+    ".r.sl{color:#9aa5b1;padding-top:.32em}.r.sl .t,.r.sl .n{font-weight:normal;font-size:1em}" +
+    // Zutaten: jedes Rezept als hellgraue Karte, Uhrzeiten grün rechts, Gramm fett
+    ".rb{background:#f5f7f6;border-radius:2mm;padding:.55em .8em .6em;margin-top:.55em;break-inside:avoid}" +
+    ".rn{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;margin-bottom:.35em}.rn b{font-size:1.25em}" +
+    ".rn i{font-style:normal;font-size:.9em;font-weight:600;color:#2f855a;white-space:nowrap}" +
+    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;row-gap:.22em;font-size:1.18em;line-height:1.2}" +
+    ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm}.rb .z .i b{white-space:nowrap}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
   // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;

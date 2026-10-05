@@ -1,6 +1,6 @@
 /* HamHam Keto – Service Worker für Offline-Betrieb und zuverlässige Updates.
    VERSION wird bei jedem Build (build-single.py) automatisch aktualisiert. */
-const VERSION = "hamham-30426dbb";
+const VERSION = "hamham-c1372fa7";
 const CORE = [
   "./",
   "./index.html",
@@ -14,7 +14,7 @@ const CORE = [
   "./recipes.js?v=dab57413",
   "./vendor/jspdf.umd.min.js?v=5224faf1",
   "./vendor/jspdf.plugin.autotable.min.js?v=a416d9f9",
-  "./app.js?v=d7b8284f",
+  "./app.js?v=543f7e3d",
   // ASSETS-END
 ];
 

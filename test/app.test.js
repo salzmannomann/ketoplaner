@@ -992,8 +992,8 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   assert.match(root.querySelector("style").textContent, /\.kz\{position:absolute;left:0;top:0;width:105mm;height:123\.5mm/);
   assert.ok($(w, "print-sheet").classList.contains("bleed") && !$(w, "print-sheet").classList.contains("landscape"), "Vorschau A4 hoch, randlos");
   assert.match(w.document.getElementById("print-page-style").textContent, /@page\{size:A4 portrait;margin:0\}/, "Druck randlos im Hochformat");
-  assert.equal(kz.querySelector(".kz-h > b").textContent, "Tagesplan");
-  assert.equal(kz.querySelector(".kz-h .rx b").textContent, "Verhältnis 1,5:1", "Verhältnis oben rechts, kein Datum");
+  assert.equal(kz.querySelector(".kz-h .ti b").textContent, "Tagesplan");
+  assert.equal(kz.querySelector(".kz-h .rx .pill").textContent, "Verhältnis 1,5:1", "Verhältnis oben rechts, kein Datum");
   assert.equal(kz.querySelector(".kz-h .rx small").textContent, "750 kcal · 850 ml pro Tag");
   assert.ok(root.querySelector(".kz-fold.v") && root.querySelector(".kz-fold.h"), "Falzlinien");
   const first = kz.querySelector(".r.me");

@@ -2288,8 +2288,10 @@
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
       g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b><span class='rx'><b>Verhältnis " + fmtTarget(d.ratio) + "</b><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></span></div>" + rows.map(r => r.h).join("") +
-      (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
+      "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
+      "<div class='lbl'>Zeitplan</div>" + rows.map(r => r.h).join("") +
+      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
   }
@@ -2676,21 +2678,32 @@
   // --s anpassen kann.
   const KITCHEN_CSS =
     "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    "body{font-family:Arial,Helvetica,sans-serif;color:#1f2933;margin:0}" +
+    "body{font-family:Helvetica,Arial,sans-serif;color:#1f2933;margin:0}" +
     "@page{size:A4 portrait;margin:0}" +
     ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
-    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
+    ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}" +
     ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h .rx{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;line-height:1.15}.kz-h .rx b{font-size:1.1em;color:#2f855a}.kz-h .rx small{font-size:.9em;color:#555}" +
-    ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
-    ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
-    ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
-    ".kz-s{margin:1em 0 .15em;padding-bottom:.22em;border-bottom:.4mm solid #2f855a;color:#2f855a;font-weight:bold;font-size:1.05em}" +
-    ".rb{padding:.35em .28em .4em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}.rn b{font-size:1.3em}.rn i{font-style:normal;color:#555;font-size:.85em}" +
-    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:5mm;row-gap:.08em;font-size:1.22em;line-height:1.22;margin-top:.15em}" +
-    ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.rb .z .i b{white-space:nowrap}" +
-    ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.02em}.r.wa .w .n{font-size:.98em;font-weight:normal}.r.wa i{color:#24557f}" +
-    ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w .n{font-size:1em;font-weight:normal}";
+    // Kopf: kleine Marke über „Tagesplan“, rechts Verhältnis als Pille, darunter kcal und Flüssigkeit
+    ".kz-h{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm}" +
+    ".kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:#2f855a;font-weight:bold;margin-bottom:.3em}" +
+    ".kz-h .ti b{display:block;font-size:1.9em;line-height:1;letter-spacing:-.01em}" +
+    ".kz-h .rx{text-align:right;white-space:nowrap}.kz-h .rx .pill{display:inline-block;background:#e6f4ec;color:#22694a;font-weight:bold;border-radius:99px;padding:.18em .7em;font-size:1.05em}" +
+    ".kz-h .rx small{display:block;color:#7b8794;margin-top:.3em;font-size:.95em}" +
+    ".lbl{font-size:.78em;letter-spacing:.12em;text-transform:uppercase;color:#7b8794;font-weight:bold;margin:1.1em 0 .4em}" +
+    // Zeitplan: Mahlzeit mit folgender Wassergabe als Block, feine Linie nur zwischen den Blöcken
+    ".r{display:grid;grid-template-columns:calc(13mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.38em 0;break-inside:avoid}" +
+    ".r.me,.r.sl{border-top:.2mm solid #e4e8eb}.lbl + .r{border-top:0}" +
+    ".r .t{font-weight:bold;font-size:1.3em}.r .n{font-weight:bold;font-size:1.18em}.r i{font-style:normal}.r .d{color:#7b8794;font-size:.9em;margin-left:.4em}" +
+    ".r .m{font-weight:bold;font-size:1.3em;text-align:right;white-space:nowrap}" +
+    ".r.wa{padding:.1em 0 .32em;color:#2b6cb0}.r.wa .t,.r.wa .m{font-size:1em;font-weight:600}.r.wa .n{font-weight:normal;font-size:1em}.r.wa .d{color:#6b9bd1}" +
+    ".r.wa .n:before{content:'';display:inline-block;width:.55em;height:.55em;border-radius:50%;background:#63a4e8;margin-right:.45em;vertical-align:.05em}" +
+    ".r.sl{color:#9aa5b1;padding-top:.32em}.r.sl .t,.r.sl .n{font-weight:normal;font-size:1em}" +
+    // Zutaten: jedes Rezept als hellgraue Karte, Uhrzeiten grün rechts, Gramm fett
+    ".rb{background:#f5f7f6;border-radius:2mm;padding:.55em .8em .6em;margin-top:.55em;break-inside:avoid}" +
+    ".rn{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;margin-bottom:.35em}.rn b{font-size:1.25em}" +
+    ".rn i{font-style:normal;font-size:.9em;font-weight:600;color:#2f855a;white-space:nowrap}" +
+    ".rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;row-gap:.22em;font-size:1.18em;line-height:1.2}" +
+    ".rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm}.rb .z .i b{white-space:nowrap}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
   // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
@@ -2809,15 +2822,18 @@
     throw new Error("AutoTable fehlt");
   }
   // Küchenzettel: A6 (105 × 148,5 mm) im linken oberen Viertel einer A4-Seite, Falzlinien gestrichelt, unten 2,5 cm
-  // frei zum Einstecken. Gleiche Gliederung wie die Vorschau: Zeitplan (je eine Zeile), darunter jedes Rezept einmal mit den
-  // Zutaten je Portion in zwei Spalten. Die Schrift beginnt bei 150 % und wird kleiner, bis alles hineinpasst (mindestens 40 %).
+  // frei zum Einstecken. Gleiches Design wie die Vorschau: Kopf mit Marke und Verhältnis-Pille, Zeitplan als ruhige
+  // Liste (Mahlzeit + folgende Wassergabe als Block), darunter jedes Rezept als hellgraue Karte mit den Zutaten in zwei
+  // Spalten. Die Schrift beginnt bei 150 % und wird samt Abständen kleiner, bis alles hineinpasst (mindestens 40 %).
   function kitchenCardPdf(doc, kz) {
-    const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25, GAP = 1.5, ZS = 12.2, ZGAP = 5;
+    const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25;
     const L = PX, R = CW - PX;
-    const INK = [31, 41, 51], MUTED = [85, 85, 85], GREEN = [47, 133, 90], BLUE = [36, 85, 127], GREY = [122, 133, 139];
-    const lineH = (size) => size * 0.3528 * 1.2;
+    const INK = [31, 41, 51], MUTED = [123, 135, 148], GREEN = [47, 133, 90], PILL_BG = [230, 244, 236], PILL_INK = [34, 105, 74];
+    const BLUE = [43, 108, 176], BLUE_SOFT = [107, 155, 209], DOT = [99, 164, 232], GREY = [154, 165, 177], LINE = [228, 232, 235], CARD = [245, 247, 246];
+    const PT = 0.3528, lineH = (size) => size * PT * 1.2;
     const font = (size, bold, color) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
     const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
+    const spaced = (t, size, x, y, opts) => doc.text(t.toUpperCase(), x, y, Object.assign({ charSpace: size * PT * 0.13 }, opts || {}));
     const rows = [...kz.querySelectorAll(".r")].map(r => ({
       kind: r.classList.contains("wa") ? "wa" : r.classList.contains("sl") ? "sl" : "me",
       t: txt(r, ".t"), n: txt(r, ".n"), d: txt(r, ".d"), m: txt(r, ".m"),
@@ -2826,78 +2842,82 @@
       n: txt(b, ".rn b"), times: txt(b, ".rn i"),
       z: [...b.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
     }));
+    const labels = [...kz.querySelectorAll(".lbl")].map(l => pdfText(l.textContent));
     const layout = (s, draw) => {
-      const TW = 15.5 * s;
+      const em = 10 * s * PT; // 1 em in mm
       let y = PY;
-      // Kopf: links „Tagesplan“, rechts Verhältnis und darunter kcal · Flüssigkeit pro Tag
-      const r1 = lineH(11 * s), r2 = lineH(9 * s), hh = Math.max(lineH(13 * s), r1 + r2);
+      // Kopf
+      const bs = 6.2 * s, ts = 19 * s, ps = 10.5 * s, ks = 9.5 * s;
       if (draw) {
-        font(13 * s, true); doc.text(pdfText(txt(kz, ".kz-h > b")), L, y + hh - lineH(13 * s) * 0.22);
-        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h .rx b")), R, y + r1 * 0.8, { align: "right" });
-        font(9 * s, false, MUTED); doc.text(pdfText(txt(kz, ".kz-h .rx small")), R, y + r1 + r2 * 0.8, { align: "right" });
+        font(bs, true, GREEN); spaced(txt(kz, ".ti small"), bs, L, y + lineH(bs) * 0.8);
+        font(ts, true); doc.text(txt(kz, ".ti b"), L, y + lineH(bs) + 0.3 * em + ts * PT * 0.85);
+        font(ps, true, PILL_INK); const pt = txt(kz, ".rx .pill"), pw = doc.getTextWidth(pt) + 1.4 * ps * PT, ph = ps * PT * 1.45;
+        doc.setFillColor.apply(doc, PILL_BG); doc.roundedRect(R - pw, y, pw, ph, ph / 2, ph / 2, "F");
+        doc.text(pt, R - pw / 2, y + ph / 2, { align: "center", baseline: "middle" });
+        font(ks, false, MUTED); doc.text(txt(kz, ".rx small"), R, y + ph + 0.3 * em + ks * PT * 0.85, { align: "right" });
       }
-      y += hh + 1.2 * s;
-      if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }
-      y += 0.8 * s;
-      // Zeitplan: Uhrzeit · Rezept bzw. Wasser (+ Dauer klein) · Menge
+      y += Math.max(lineH(bs) + 0.3 * em + ts * PT, ps * PT * 1.45 + 0.3 * em + lineH(ks));
+      const label = (t) => {
+        const ls = 7.8 * s;
+        y += 1.1 * 0.78 * em * 1.28;
+        if (draw) { font(ls, true, MUTED); spaced(t, ls, L, y + lineH(ls) * 0.8); }
+        y += lineH(ls) + 0.4 * 0.78 * em;
+      };
+      // Zeitplan
+      label(labels[0] || "Zeitplan");
+      const TW = 13 * s, GAP = 0.6 * em;
       rows.forEach((r, k) => {
-        const big = (r.kind === "me" ? 12.5 : r.kind === "wa" ? 10.2 : 10) * s, nm = (r.kind === "me" ? 11.2 : r.kind === "wa" ? 9.8 : 10) * s, ds = 9 * s;
+        const big = (r.kind === "me" ? 13 : 10) * s, nm = (r.kind === "me" ? 11.8 : 10) * s, ds = 9 * s;
         const col = r.kind === "wa" ? BLUE : r.kind === "sl" ? GREY : INK;
-        font(big, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
-        const avail = R - L - TW - GAP - mw;
-        font(nm, r.kind === "me"); const nW = doc.getTextWidth(r.n);
-        font(ds, false); const dW = r.d ? doc.getTextWidth(" " + r.d) : 0;
-        // Name und Dauer in einer Zeile, sonst Dauer darunter; sehr lange Namen brechen um
-        font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail);
-        const sameLine = nl.length === 1 && nW + dW <= avail;
-        const h = 0.8 * s + lineH(big) + (nl.length - 1) * lineH(nm) + (r.d && !sameLine ? lineH(ds) : 0) + 0.8 * s;
+        const padT = (r.kind === "wa" ? 0.1 : r.kind === "sl" ? 0.32 : 0.38) * em, padB = (r.kind === "wa" ? 0.32 : 0.38) * em;
+        const dotW = r.kind === "wa" ? 0.55 * em + 0.45 * em : 0;
+        font(big, r.kind !== "sl"); const mw = r.m ? doc.getTextWidth(r.m) + GAP : 0;
+        const x0 = L + TW + GAP, avail = R - x0 - mw - dotW;
+        font(nm, r.kind === "me"); const nl = doc.splitTextToSize(r.n, avail), nW = doc.getTextWidth(nl[nl.length - 1] || "");
+        font(ds, false); const dW = r.d ? doc.getTextWidth(r.d) + 0.4 * em : 0;
+        const dInline = !r.d || nW + dW <= avail;
+        const h = padT + lineH(big) + (nl.length - 1) * lineH(nm) + (dInline ? 0 : lineH(ds)) + padB;
         if (draw) {
-          if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
-          const base = y + 0.8 * s + lineH(big) * 0.8;
+          if ((r.kind === "me" || r.kind === "sl") && k > 0) { doc.setDrawColor.apply(doc, LINE); doc.setLineWidth(0.2); doc.line(L, y, R, y); }
+          const base = y + padT + lineH(big) * 0.8;
           font(big, r.kind !== "sl", col); doc.text(r.t, L, base);
-          font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, L + TW + GAP, base + i * lineH(nm)));
+          if (r.kind === "wa") { doc.setFillColor.apply(doc, DOT); doc.circle(x0 + 0.275 * em, base - nm * PT * 0.33, 0.275 * em, "F"); }
+          font(nm, r.kind === "me", col); nl.forEach((l, i) => doc.text(l, x0 + dotW, base + i * lineH(nm)));
           if (r.d) {
-            font(ds, false, r.kind === "wa" ? BLUE : MUTED);
-            if (sameLine) doc.text(r.d, L + TW + GAP + nW + doc.getTextWidth(" "), base);
-            else doc.text(r.d, L + TW + GAP, base + (nl.length - 1) * lineH(nm) + lineH(ds));
+            font(ds, false, r.kind === "wa" ? BLUE_SOFT : MUTED);
+            const lastY = base + (nl.length - 1) * lineH(nm);
+            if (dInline) doc.text(r.d, x0 + dotW + nW + 0.4 * em, lastY); else doc.text(r.d, x0 + dotW, lastY + lineH(ds));
           }
           if (r.m) { font(big, true, col); doc.text(r.m, R, base, { align: "right" }); }
-          if (r.kind !== "sl" && k < rows.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
         y += h;
       });
       if (!recs.length) return y;
-      // Zutaten je Portion: jedes Rezept einmal
-      y += 3.5 * s;
-      font(10.5 * s, true, GREEN); const sh = lineH(10.5 * s);
-      if (draw) { doc.text(pdfText(txt(kz, ".kz-s")), L, y + sh * 0.8); doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.4); doc.line(L, y + sh + 0.8, R, y + sh + 0.8); }
-      y += sh + 1.3 * s;
-      const zlh = lineH(ZS * s) * 1.02, cw = (R - L - 2 - ZGAP) / 2;
-      recs.forEach((rc, k) => {
-        const tn = 13 * s, ti = 9 * s;
+      // Zutaten je Portion: Karten
+      label(labels[1] || "Zutaten je Portion");
+      const ZS = 11.8 * s, zlh = lineH(ZS), padX = 0.8 * em, cw = (R - L - 2 * padX - 4.5) / 2, tn = 12.5 * s, ti = 9 * s;
+      recs.forEach(rc => {
+        y += 0.55 * em;
         const pairs = [];
         for (let i = 0; i < rc.z.length; i += 2) {
-          const cells = rc.z.slice(i, i + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
+          const cells = rc.z.slice(i, i + 2).map(it => { font(ZS, true); const gw = doc.getTextWidth(it.g); font(ZS, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
           pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
         }
-        const h = 1.2 * s + lineH(tn) + 0.6 * s + pairs.reduce((a, q) => a + q.n * zlh + 0.3 * s, 0) + 1.2 * s;
+        const h = 0.55 * em + lineH(tn) + 0.35 * em + pairs.reduce((a, q) => a + q.n * zlh + 0.22 * em, 0) - 0.22 * em + 0.6 * em;
         if (draw) {
-          let yy = y + 1.2 * s + lineH(tn) * 0.8;
-          font(tn, true); doc.text(rc.n, L, yy);
-          const x2 = L + doc.getTextWidth(rc.n) + 2;
-          font(ti, false, MUTED); doc.text(rc.times, x2, yy);
-          yy = y + 1.2 * s + lineH(tn) + 0.6 * s;
+          doc.setFillColor.apply(doc, CARD); doc.roundedRect(L, y, R - L, h, 2, 2, "F");
+          let yy = y + 0.55 * em + lineH(tn) * 0.8;
+          font(tn, true); doc.text(rc.n, L + padX, yy);
+          font(ti, true, GREEN); doc.text(rc.times, R - padX, yy, { align: "right" });
+          yy = y + 0.55 * em + lineH(tn) + 0.35 * em;
           pairs.forEach(q => {
             q.cells.forEach((c, ci) => {
-              const x0 = L + 1 + ci * (cw + ZGAP), x1 = x0 + cw;
-              font(ZS * s, false); c.lines.forEach((l, li) => doc.text(l, x0, yy + (li + 0.78) * zlh));
-              font(ZS * s, true); doc.text(c.it.g, x1, yy + (c.lines.length - 1 + 0.78) * zlh, { align: "right" });
-              doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
-              doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
+              const x0 = L + padX + ci * (cw + 4.5), x1 = x0 + cw;
+              font(ZS, false); c.lines.forEach((l, li) => doc.text(l, x0, yy + (li + 0.8) * zlh));
+              font(ZS, true); doc.text(c.it.g, x1, yy + (c.lines.length - 1 + 0.8) * zlh, { align: "right" });
             });
-            yy += q.n * zlh + 0.3 * s;
+            yy += q.n * zlh + 0.22 * em;
           });
-          if (k < recs.length - 1) { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
         y += h;
       });
