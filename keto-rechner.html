@@ -1085,9 +1085,9 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
 }
 
 /* Mahlzeiten pro Tag: Auswahl 3 · 4 · 5, so hoch wie die Eingabefelder daneben */
-#view-vorgaben .mahl-seg { display: flex; width: 100%; height: 42px; }
+#view-vorgaben .mahl-seg { display: flex; width: 100%; height: 40px; }
 #view-vorgaben .mahl-seg button { padding: 0 6px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-@media (max-width: 560px) { #view-vorgaben .mahl-seg { height: 38px; } }
+#view-vorgaben .mahl-seg button { min-height: 0; }
 .zp-vol.big { color: var(--yellow); font-weight: 600; }
 
 /* Knappste Stufe (5 Mahlzeiten im Browser u. ä.): alles etwas enger, damit die Zutaten ohne Scrollen Platz haben */
@@ -1228,6 +1228,25 @@ td.name small.adj .linkbtn { font-size: 11px; padding: 0; vertical-align: baseli
   #view-vorgaben .card > h3 .hint { font-size: 12px; }
   #view-vorgaben .vg-body { padding: 11px 12px 10px; }
   #view-vorgaben .vg-body .note { font-size: 12.5px; padding: 7px 10px; }
+}
+/* Vorgaben: alle Bedienelemente gleich groß – Felder, Auswahllisten, Umschalter und Knöpfe 40 px hoch.
+   Eingaben 16 px (am iPhone kein Hineinzoomen), Knöpfe 14,5 px, Umschalter 13,5 px. */
+#view-vorgaben input:not([type=checkbox]):not([type=radio]), #view-vorgaben select,
+#view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select,
+#view-vorgaben .bd-row input, #view-vorgaben .bd-row select { height: 40px; font-size: 16px; padding-top: 0; padding-bottom: 0; }
+#view-vorgaben .bd-row input, #view-vorgaben .bd-row select { padding-left: 8px; padding-right: 6px; }
+#view-vorgaben .segmented button, #view-vorgaben .preset-row .segmented.mini button {
+  min-height: 38px; padding: 4px 12px; font-size: 13.5px; line-height: 1.25;
+}
+#view-vorgaben #mahlzeiten-ctl button { font-size: 15px; font-weight: 600; }
+#view-vorgaben .btn, #view-vorgaben .btn.file-btn {
+  height: 40px; padding: 0 16px; font-size: 14.5px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+}
+#view-vorgaben .btn[hidden] { display: none; }
+@media (max-width: 560px) {
+  #view-vorgaben .segmented button, #view-vorgaben .preset-row .segmented.mini button { padding: 4px 8px; }
+  #view-vorgaben #mct-share-ctl button { padding: 4px 4px; }
 }
 
 </style>
