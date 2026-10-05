@@ -5,6 +5,7 @@
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (name !== "heute") document.body.classList.remove("heute-tight"); // kleiner Kopf gilt nur für Heute
     if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
@@ -79,7 +80,14 @@
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
   // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
-  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
+  // Offene Fenster (Rezept, Editor) neu aufbauen – am Handy blättert man, am Desktop schaltet man Reiter um.
+  function onLayoutChange() {
+    if (isDesktop() && !vgPage) showVgPage(null, true);
+    const dv = document.getElementById("detail-overlay");
+    if (dv && !dv.hidden && !dv.closest("#rz-panel") && typeof renderDetail === "function") renderDetail();
+    const cv = document.getElementById("compose-overlay");
+    if (cv && !cv.hidden && typeof openCompose === "function") openCompose();
+  }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {

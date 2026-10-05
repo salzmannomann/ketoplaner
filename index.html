@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=d44bb9dc" />
+  <link rel="stylesheet" href="styles.css?v=b52b17d3" />
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -29,7 +29,7 @@
       <button type="button" data-view="vorgaben">Vorgaben</button>
     </nav>
     <div class="side-rx" id="side-rx"></div>
-    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Alle Daten bleiben auf diesem Gerät.</p>
+    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Die Daten bleiben auf diesem Gerät – außer du schaltest Erinnerungen oder den Geräte-Abgleich ein.</p>
   </aside>
 
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
@@ -340,11 +340,11 @@
       </div>
     </section>
 
-    <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
+    <p class="footnote">Alle Eingaben werden lokal in deinem Browser gespeichert; nur die freiwilligen Erinnerungen und der Geräte-Abgleich schicken Daten an den Dienst (der Abgleich verschlüsselt). Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
   </main>
 
   <!-- Eigenes Rezept zusammenstellen -->
-  <div id="compose-overlay" class="overlay" hidden>
+  <div id="compose-overlay" role="dialog" aria-modal="true" aria-label="Eigenes Rezept" class="overlay" hidden>
     <div class="overlay-card">
       <button class="overlay-close" id="compose-close" aria-label="Schließen">✕</button>
       <div id="compose-content"></div>
@@ -352,7 +352,7 @@
   </div>
 
   <!-- Rezept-Auswahl für den Tagesplan -->
-  <div id="picker-overlay" class="overlay sheet" hidden>
+  <div id="picker-overlay" role="dialog" aria-modal="true" aria-label="Rezept wählen" class="overlay sheet" hidden>
     <div class="overlay-card">
       <div class="sheet-grip" aria-hidden="true"></div>
       <div class="sheet-head">
@@ -366,7 +366,7 @@
   </div>
 
   <!-- Detail-Ansicht eines Rezepts -->
-  <div id="detail-overlay" class="overlay" hidden>
+  <div id="detail-overlay" role="dialog" aria-modal="true" aria-label="Rezept" class="overlay" hidden>
     <div class="overlay-card">
       <button class="overlay-close" id="detail-close" aria-label="Schließen">✕</button>
       <div id="detail-content"></div>
@@ -377,7 +377,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=a250d0a9"></script>
+  <script src="app.js?v=eeb47cc8"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -5,7 +5,7 @@
   let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
-    const sel = el("select", { class: "food-select" });
+    const sel = el("select", { class: "food-select", "aria-label": "Lebensmittel" });
     sel.appendChild(el("option", { value: "" }, "Lebensmittel wählen"));
     const byCat = {};
     FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
@@ -106,13 +106,13 @@
       const multi = compose.fats.length > 1;
       compose.fats.forEach((ft, i) => {
         const row = el("div", { class: "compose-row" });
-        const sel = el("select", { class: "food-select" });
+        const sel = el("select", { class: "food-select", "aria-label": "Fett zum Ausgleich" });
         FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
         sel.value = ft.food;
         sel.addEventListener("change", () => { ft.food = sel.value; recompute(); });
         row.appendChild(sel);
         if (multi) {
-          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams" });
+          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams", "aria-label": "Anteil in Prozent" });
           sh.addEventListener("input", e => { ft.share = e.target.value; recompute(); });
           row.appendChild(sh);
           row.appendChild(el("span", { class: "unit" }, "%"));
@@ -128,7 +128,7 @@
       compose.items.forEach((it, i) => {
         const row = el("div", { class: "compose-row" });
         row.appendChild(buildFoodSelect(it.food, v => { it.food = v; recompute(); }));
-        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal" });
+        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal", "aria-label": "Menge in Gramm" });
         g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
         row.appendChild(g);
         row.appendChild(el("span", { class: "unit" }, "g"));
@@ -233,12 +233,18 @@
     renderRezepte();
   }
   function bindCompose() {
-    document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    // „+“ beginnt ein neues Rezept, wenn der Entwurf ein bereits gespeichertes Rezept ist (sonst würde Speichern unter
+    // neuem Namen das alte überschreiben). Ein noch nicht gespeicherter Entwurf bleibt erhalten.
+    const startNew = () => {
+      if (state.compose && state.compose.editKey) { state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true }; save(); }
+      composeTab = "zutaten"; openCompose();
+    };
+    document.getElementById("compose-btn").addEventListener("click", startNew);
     const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
-    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    if (cl) cl.addEventListener("click", startNew);
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "compose-overlay") closeCompose(); });
     bindSwipeDown(ov, closeCompose);
   }

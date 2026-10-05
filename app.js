@@ -126,7 +126,34 @@
   // Desktop-Ansicht (> 820 px): eigene Anordnung von Tagesplan, Rezepten und Vorgaben (gleiche Bausteine).
   // Wechselt die Fensterbreite über die Grenze, baut die App neu auf (siehe init).
   const DESKTOP_MQ = "(min-width: 821px)";
+  // Rezept als Panel neben der Liste erst ab 1100 px – darunter stünde es unter der langen Liste (Klick → ans Seitenende)
+  const PANEL_MQ = "(min-width: 1100px)";
+  function isPanelWidth() { try { return !!(window.matchMedia && window.matchMedia(PANEL_MQ).matches); } catch (e) { return false; } }
   function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
+  // Escape schließt nur die oberste Ebene: Druckvorschau vor Auswahl „Für heute“ vor Rezept-Auswahl vor Editor vor Rezept
+  const LAYERS = ["print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
+  function topLayer() {
+    for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest("#rz-panel"))) return id; }
+    return null;
+  }
+  // Fehlertext für Meldungen: Netzwerkfehler („Failed to fetch“, „Load failed“) verständlich auf Deutsch
+  function errorText(e) {
+    const m = String(e && e.message || e || "");
+    if ((typeof navigator !== "undefined" && navigator.onLine === false) || /failed to fetch|load failed|networkerror|network request failed/i.test(m))
+      return "keine Verbindung zum Dienst – bitte später noch einmal versuchen";
+    return m || "unbekannter Fehler";
+  }
+  // Umschalter (Segment-Knöpfe): Zustand auch für Screenreader – aria-pressed folgt der Markierung „active“.
+  // Ein Beobachter erledigt das für alle Leisten (Vorgaben, Rezept, Editor), auch nach jedem Neuzeichnen.
+  function markPressed(root) {
+    (root || document).querySelectorAll(".seg-ink button:not([role=tab])").forEach(b => {
+      const v = b.classList.contains("active") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v);
+    });
+  }
+  if (typeof document !== "undefined" && typeof MutationObserver === "function") document.addEventListener("DOMContentLoaded", () => {
+    markPressed();
+    new MutationObserver(() => markPressed()).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  });
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
@@ -200,7 +227,8 @@
   // Zubereitungstext in nummerierte Schritte zerlegen (Satzende + Großbuchstabe; kein Lookbehind wegen iOS-Safari).
   function splitSteps(text) {
     if (!text) return [];
-    const guarded = String(text).replace(/z\. B\./g, "z. B.");
+    // Emojis aus den Rezeptdaten (z. B. „✏️ Editor“) in der Oberfläche weglassen – die Daten bleiben unverändert
+    const guarded = String(text).replace(/\s?[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?/gu, "").replace(/z\. B\./g, "z. B.");
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
@@ -210,21 +238,40 @@
      wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
   const openModals = new Set();
   let lockedScrollY = 0;
+  // Fenster (Rezept, Auswahl, Editor, Druckvorschau): Hintergrund für Tastatur und Screenreader sperren, Fokus ins
+  // Fenster setzen und beim Schließen dorthin zurückgeben, wo er vorher war.
+  const focusBack = {};
+  const BACKDROP = ["main", ".topbar", ".tabbar", "#side", ".footnote"];
+  function setBackdropInert(on) {
+    BACKDROP.forEach(sel => document.querySelectorAll(sel).forEach(el => { if (on) el.setAttribute("inert", ""); else el.removeAttribute("inert"); }));
+  }
   function modalOpen(id) {
     if (openModals.size === 0) {
       lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.body.classList.add("modal-open");
       document.body.style.top = -lockedScrollY + "px";
     }
+    if (!openModals.has(id)) focusBack[id] = document.activeElement;
     openModals.add(id);
+    setBackdropInert(true);
+    const ov = document.getElementById(id + "-overlay");
+    if (ov) setTimeout(() => {
+      if (ov.hidden || ov.contains(document.activeElement)) return; // z. B. Auswahl: Suchfeld hat den Fokus schon
+      const card = ov.querySelector(".overlay-card") || ov.querySelector(".print-bar") || ov;
+      if (!card.hasAttribute("tabindex")) card.setAttribute("tabindex", "-1");
+      try { card.focus({ preventScroll: true }); } catch (e) {}
+    }, 0);
   }
   function modalClose(id) {
     openModals.delete(id);
     if (openModals.size === 0) {
       document.body.classList.remove("modal-open");
       document.body.style.top = "";
+      setBackdropInert(false);
       try { window.scrollTo(0, lockedScrollY); } catch (e) {}
     }
+    const back = focusBack[id]; delete focusBack[id];
+    if (back && back.isConnected && typeof back.focus === "function") { try { back.focus({ preventScroll: true }); } catch (e) {} }
   }
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
@@ -975,6 +1022,7 @@
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (name !== "heute") document.body.classList.remove("heute-tight"); // kleiner Kopf gilt nur für Heute
     if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
@@ -1049,7 +1097,14 @@
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
   // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
-  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
+  // Offene Fenster (Rezept, Editor) neu aufbauen – am Handy blättert man, am Desktop schaltet man Reiter um.
+  function onLayoutChange() {
+    if (isDesktop() && !vgPage) showVgPage(null, true);
+    const dv = document.getElementById("detail-overlay");
+    if (dv && !dv.hidden && !dv.closest("#rz-panel") && typeof renderDetail === "function") renderDetail();
+    const cv = document.getElementById("compose-overlay");
+    if (cv && !cv.hidden && typeof openCompose === "function") openCompose();
+  }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
@@ -1458,10 +1513,10 @@
   }
   /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
      Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
-     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
-     am Handy als Fenster. */
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
+     1100 px öffnet ein Rezept wie am Handy als Fenster. */
   let detailModal = false, detailHome = null;
-  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
   function syncDetailPanel(opened) {
     const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
     if (!ov || !slot) return;
@@ -1714,6 +1769,9 @@
     const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
     return !!solveMeatForRatio(swapped, slot.index, d.ratio);
   }
+  // Mengen, Wasser oder MCT im Rezept geändert: auch Liste, Tagesplan, Kopf und Seitenleiste neu zeichnen
+  // (sonst zeigen sie bis zum Neuladen die alten Werte, und der Tagesplan-Ausdruck mischt alt und neu)
+  function detailChanged() { renderDetail(); if (typeof renderRezepte === "function") renderRezepte(); }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -2030,33 +2088,33 @@
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
-        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); renderDetail(); } return; }
+        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); detailChanged(); } return; }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".portion-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
         if (inp.dataset.water === "1") {
           // Nur das Wasser ändern – Rest bleibt; gemerkt wird der Wert je Portion.
-          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); renderDetail(); }
+          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); detailChanged(); }
           return;
         }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => { detailMeat = null; renderDetail(); }));
-    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); renderDetail(); }));
+    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); detailChanged(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.water[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
@@ -2071,7 +2129,7 @@
       }));
     c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
-        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
+        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); detailChanged();
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
@@ -2244,11 +2302,11 @@
     const overlay = document.getElementById("detail-overlay");
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden && topLayer() === "detail-overlay") closeDetail(); });
     bindSwipeDown(overlay, closeDetail);
     // Auswahl „Für heute“ schließt bei Klick daneben oder Escape
     overlay.addEventListener("click", () => closeTodaySheet());
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeTodaySheet(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && topLayer() === "today-sheet") closeTodaySheet(); });
   }
 
   /* ---------- Heute: Tagesplan ---------- */
@@ -2257,10 +2315,13 @@
   let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
+    let restored = false;
     while (state.dayPlan.length < d.mahl) {
       const i = state.dayPlan.length;
+      if (dayPlanCut[i]) restored = true;
       state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
     }
+    if (restored) save(); // sonst ginge der zurückgeholte Plan beim Neuladen wieder verloren
     if (state.dayPlan.length > d.mahl) {
       state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
       state.dayPlan.length = d.mahl;
@@ -2547,7 +2608,7 @@
     if (pc) pc.addEventListener("click", () => { const i = pickerSlot; closePicker(); if (i >= 0) clearSlot(i); });
     ov.addEventListener("click", e => { if (e.target === ov) closePicker(); });
     document.getElementById("picker-search").addEventListener("input", renderPicker);
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "picker-overlay") closePicker(); });
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
@@ -2574,7 +2635,7 @@
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
-      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
+      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
@@ -2766,7 +2827,7 @@
       await pushPost("/api/sync", { subscription: sub.toJSON(), tz, items });
       try { localStorage.setItem(PUSH_SYNC_KEY, JSON.stringify({ sig, day: today, at: Date.now(), n: items.length })); } catch (e) {}
       pushError = "";
-    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + (e && e.message || e) + ") – wird beim nächsten Öffnen wiederholt."; }
+    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + errorText(e) + ") – wird beim nächsten Öffnen wiederholt."; }
     renderPushCard();
   }
   let pushTimer = null, pushError = "";
@@ -2776,12 +2837,12 @@
     if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast(isIOS() ? "Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben." : "Mitteilungen sind nicht erlaubt – in den Browser-Einstellungen für diese Seite Mitteilungen erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
       showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
-    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(errorText(e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -2798,7 +2859,7 @@
       const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
       showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(errorText(e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {
@@ -2965,7 +3026,7 @@
       }
       m.at = Date.now(); syncError = "";
     } catch (e) {
-      syncError = String(e && e.message || e);
+      syncError = errorText(e);
     } finally {
       syncSaveMeta(); syncBusy = false;
       if (typeof renderSyncCard === "function") renderSyncCard();
@@ -2991,8 +3052,10 @@
     renderSyncCard();
   }
   function randomCode() {
-    const r = crypto.getRandomValues(new Uint8Array(8));
-    return Array.from(r, x => PAIR_ALPHABET[x % PAIR_ALPHABET.length]).join("");
+    // gleichverteilt: Bytes ab 248 (= 8 × 31) verwerfen, sonst kämen die ersten Zeichen etwas häufiger vor
+    const out = [];
+    while (out.length < 8) crypto.getRandomValues(new Uint8Array(16)).forEach(x => { if (x < 248 && out.length < 8) out.push(PAIR_ALPHABET[x % 31]); });
+    return out.join("");
   }
   const fmtCode = (c) => c.slice(0, 4) + "-" + c.slice(4);
   let pairShown = null; // { code, until }
@@ -3005,11 +3068,11 @@
       if (r.status !== 200) throw new Error(r.j.error || "Dienst antwortet " + r.status);
       pairShown = { code, until: Date.now() + 15 * 60000 };
       syncError = "";
-    } catch (e) { syncError = String(e && e.message || e); }
+    } catch (e) { syncError = errorText(e); }
     renderSyncCard();
   }
   async function syncJoin(input) {
-    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
+    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").split("").filter(ch => PAIR_ALPHABET.indexOf(ch) !== -1).join(""); // Code enthält kein O, L, I, 0, 1
     if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
     if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
@@ -3022,7 +3085,7 @@
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
       showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast(escapeHtml(errorText(e))); }
     renderSyncCard();
   }
   function syncDisable() {
@@ -3088,7 +3151,7 @@
     let ov = document.getElementById("print-overlay");
     if (!ov) {
       ov = document.createElement("div");
-      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
+      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Druckvorschau");
       ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
         '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
@@ -3108,7 +3171,9 @@
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
-    root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
+    // Am Bildschirm darf der Küchenzettel über seine Kante laufen: die verkleinerte Vorschau rundet Schriften auf und wird
+    // dadurch etwas höher als der Druck – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
+    root.innerHTML = "<style>:host{display:block}" + css + "@media screen{.kz{overflow:visible}}</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
     // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
@@ -3600,7 +3665,7 @@
   let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
-    const sel = el("select", { class: "food-select" });
+    const sel = el("select", { class: "food-select", "aria-label": "Lebensmittel" });
     sel.appendChild(el("option", { value: "" }, "Lebensmittel wählen"));
     const byCat = {};
     FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
@@ -3701,13 +3766,13 @@
       const multi = compose.fats.length > 1;
       compose.fats.forEach((ft, i) => {
         const row = el("div", { class: "compose-row" });
-        const sel = el("select", { class: "food-select" });
+        const sel = el("select", { class: "food-select", "aria-label": "Fett zum Ausgleich" });
         FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
         sel.value = ft.food;
         sel.addEventListener("change", () => { ft.food = sel.value; recompute(); });
         row.appendChild(sel);
         if (multi) {
-          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams" });
+          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams", "aria-label": "Anteil in Prozent" });
           sh.addEventListener("input", e => { ft.share = e.target.value; recompute(); });
           row.appendChild(sh);
           row.appendChild(el("span", { class: "unit" }, "%"));
@@ -3723,7 +3788,7 @@
       compose.items.forEach((it, i) => {
         const row = el("div", { class: "compose-row" });
         row.appendChild(buildFoodSelect(it.food, v => { it.food = v; recompute(); }));
-        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal" });
+        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal", "aria-label": "Menge in Gramm" });
         g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
         row.appendChild(g);
         row.appendChild(el("span", { class: "unit" }, "g"));
@@ -3828,13 +3893,19 @@
     renderRezepte();
   }
   function bindCompose() {
-    document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    // „+“ beginnt ein neues Rezept, wenn der Entwurf ein bereits gespeichertes Rezept ist (sonst würde Speichern unter
+    // neuem Namen das alte überschreiben). Ein noch nicht gespeicherter Entwurf bleibt erhalten.
+    const startNew = () => {
+      if (state.compose && state.compose.editKey) { state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true }; save(); }
+      composeTab = "zutaten"; openCompose();
+    };
+    document.getElementById("compose-btn").addEventListener("click", startNew);
     const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
-    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    if (cl) cl.addEventListener("click", startNew);
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "compose-overlay") closeCompose(); });
     bindSwipeDown(ov, closeCompose);
   }
 
@@ -3855,8 +3926,10 @@
     showView(state.settings.view || "rezepte");
     // Breite wechselt zwischen Handy und Desktop (> 820 px): Bereiche in der passenden Anordnung neu aufbauen
     try {
-      const mq = window.matchMedia && window.matchMedia(DESKTOP_MQ);
-      if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+      [DESKTOP_MQ, PANEL_MQ].forEach(q => {
+        const mq = window.matchMedia && window.matchMedia(q);
+        if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+      });
     } catch (e) {}
   }
 

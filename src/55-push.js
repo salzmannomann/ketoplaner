@@ -55,7 +55,7 @@
       await pushPost("/api/sync", { subscription: sub.toJSON(), tz, items });
       try { localStorage.setItem(PUSH_SYNC_KEY, JSON.stringify({ sig, day: today, at: Date.now(), n: items.length })); } catch (e) {}
       pushError = "";
-    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + (e && e.message || e) + ") – wird beim nächsten Öffnen wiederholt."; }
+    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + errorText(e) + ") – wird beim nächsten Öffnen wiederholt."; }
     renderPushCard();
   }
   let pushTimer = null, pushError = "";
@@ -65,12 +65,12 @@
     if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast(isIOS() ? "Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben." : "Mitteilungen sind nicht erlaubt – in den Browser-Einstellungen für diese Seite Mitteilungen erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
       showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
-    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(errorText(e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -87,7 +87,7 @@
       const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
       showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(errorText(e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {

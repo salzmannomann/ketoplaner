@@ -18,7 +18,7 @@
     let ov = document.getElementById("print-overlay");
     if (!ov) {
       ov = document.createElement("div");
-      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
+      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Druckvorschau");
       ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
         '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
@@ -38,7 +38,9 @@
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
-    root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
+    // Am Bildschirm darf der Küchenzettel über seine Kante laufen: die verkleinerte Vorschau rundet Schriften auf und wird
+    // dadurch etwas höher als der Druck – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
+    root.innerHTML = "<style>:host{display:block}" + css + "@media screen{.kz{overflow:visible}}</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
     // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen

@@ -3,7 +3,34 @@
   // Desktop-Ansicht (> 820 px): eigene Anordnung von Tagesplan, Rezepten und Vorgaben (gleiche Bausteine).
   // Wechselt die Fensterbreite über die Grenze, baut die App neu auf (siehe init).
   const DESKTOP_MQ = "(min-width: 821px)";
+  // Rezept als Panel neben der Liste erst ab 1100 px – darunter stünde es unter der langen Liste (Klick → ans Seitenende)
+  const PANEL_MQ = "(min-width: 1100px)";
+  function isPanelWidth() { try { return !!(window.matchMedia && window.matchMedia(PANEL_MQ).matches); } catch (e) { return false; } }
   function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
+  // Escape schließt nur die oberste Ebene: Druckvorschau vor Auswahl „Für heute“ vor Rezept-Auswahl vor Editor vor Rezept
+  const LAYERS = ["print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
+  function topLayer() {
+    for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest("#rz-panel"))) return id; }
+    return null;
+  }
+  // Fehlertext für Meldungen: Netzwerkfehler („Failed to fetch“, „Load failed“) verständlich auf Deutsch
+  function errorText(e) {
+    const m = String(e && e.message || e || "");
+    if ((typeof navigator !== "undefined" && navigator.onLine === false) || /failed to fetch|load failed|networkerror|network request failed/i.test(m))
+      return "keine Verbindung zum Dienst – bitte später noch einmal versuchen";
+    return m || "unbekannter Fehler";
+  }
+  // Umschalter (Segment-Knöpfe): Zustand auch für Screenreader – aria-pressed folgt der Markierung „active“.
+  // Ein Beobachter erledigt das für alle Leisten (Vorgaben, Rezept, Editor), auch nach jedem Neuzeichnen.
+  function markPressed(root) {
+    (root || document).querySelectorAll(".seg-ink button:not([role=tab])").forEach(b => {
+      const v = b.classList.contains("active") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v);
+    });
+  }
+  if (typeof document !== "undefined" && typeof MutationObserver === "function") document.addEventListener("DOMContentLoaded", () => {
+    markPressed();
+    new MutationObserver(() => markPressed()).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  });
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
@@ -77,7 +104,8 @@
   // Zubereitungstext in nummerierte Schritte zerlegen (Satzende + Großbuchstabe; kein Lookbehind wegen iOS-Safari).
   function splitSteps(text) {
     if (!text) return [];
-    const guarded = String(text).replace(/z\. B\./g, "z. B.");
+    // Emojis aus den Rezeptdaten (z. B. „✏️ Editor“) in der Oberfläche weglassen – die Daten bleiben unverändert
+    const guarded = String(text).replace(/\s?[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?/gu, "").replace(/z\. B\./g, "z. B.");
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
@@ -87,19 +115,38 @@
      wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
   const openModals = new Set();
   let lockedScrollY = 0;
+  // Fenster (Rezept, Auswahl, Editor, Druckvorschau): Hintergrund für Tastatur und Screenreader sperren, Fokus ins
+  // Fenster setzen und beim Schließen dorthin zurückgeben, wo er vorher war.
+  const focusBack = {};
+  const BACKDROP = ["main", ".topbar", ".tabbar", "#side", ".footnote"];
+  function setBackdropInert(on) {
+    BACKDROP.forEach(sel => document.querySelectorAll(sel).forEach(el => { if (on) el.setAttribute("inert", ""); else el.removeAttribute("inert"); }));
+  }
   function modalOpen(id) {
     if (openModals.size === 0) {
       lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.body.classList.add("modal-open");
       document.body.style.top = -lockedScrollY + "px";
     }
+    if (!openModals.has(id)) focusBack[id] = document.activeElement;
     openModals.add(id);
+    setBackdropInert(true);
+    const ov = document.getElementById(id + "-overlay");
+    if (ov) setTimeout(() => {
+      if (ov.hidden || ov.contains(document.activeElement)) return; // z. B. Auswahl: Suchfeld hat den Fokus schon
+      const card = ov.querySelector(".overlay-card") || ov.querySelector(".print-bar") || ov;
+      if (!card.hasAttribute("tabindex")) card.setAttribute("tabindex", "-1");
+      try { card.focus({ preventScroll: true }); } catch (e) {}
+    }, 0);
   }
   function modalClose(id) {
     openModals.delete(id);
     if (openModals.size === 0) {
       document.body.classList.remove("modal-open");
       document.body.style.top = "";
+      setBackdropInert(false);
       try { window.scrollTo(0, lockedScrollY); } catch (e) {}
     }
+    const back = focusBack[id]; delete focusBack[id];
+    if (back && back.isConnected && typeof back.focus === "function") { try { back.focus({ preventScroll: true }); } catch (e) {} }
   }

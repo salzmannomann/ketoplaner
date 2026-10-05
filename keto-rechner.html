@@ -162,6 +162,7 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
    Küchenzettel – Grundbausteine (Textlink, Hinweiszeile, Fokus)
    ====================================================================== */
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.overlay-card:focus, .print-bar:focus { outline: none; } /* Fokus beim Öffnen eines Fensters: kein Rahmen um die ganze Fläche */
 .tlink { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 6px; margin: 0;
   border: 0; background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap;
   text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -337,7 +338,7 @@ body.heute-tight .page-title { font-size: 28px; }
 .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 999px;
   background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap; cursor: pointer; }
 .chip.active, .chip.toggle.on { background: var(--ink); color: var(--paper); }
-.chip.toggle { border-style: dashed; }
+.chip.toggle { position: relative; border-style: dashed; }
 .chip.toggle.on { border-style: solid; }
 .chip.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
 .chip.toggle:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -396,7 +397,8 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 .ratio-pill.warn, .ratio-pill.bad { border-color: var(--red); color: var(--red); }
 .detail-head .title { margin: 0; font: 600 28px/1.1 var(--f-serif); }
 /* Reiter- und Segmentleiste: 1,5-px-Tintenrahmen, aktiv invertiert */
-.seg-ink { display: inline-flex; max-width: 100%; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.seg-ink { display: inline-flex; max-width: 100%; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; overflow-x: auto; scrollbar-width: none; }
+.seg-ink::-webkit-scrollbar { display: none; }
 .seg-ink button { flex: 1 1 auto; min-height: 38px; margin: 0; padding: 0 12px; border: 0; border-radius: 0; background: transparent; color: var(--ink);
   font: 600 14px var(--f-sans); white-space: nowrap; cursor: pointer; }
 .seg-ink button.active { background: var(--ink); color: var(--paper); }
@@ -749,6 +751,8 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .tile { padding: 10px 8px 10px 12px; }
   .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }
   .rz-panel { flex: 1 1 340px; max-width: 440px; min-width: 0; position: sticky; top: 34px; }
+  /* Unter 1100 px kein Panel (es stünde unter der langen Liste) – das Rezept öffnet dann als Fenster */
+  @media (max-width: 1099px) { .rz-panel { display: none; } }
   .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
   .rz-panel #detail-overlay[hidden] { display: none; }
   .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
@@ -791,7 +795,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
       <button type="button" data-view="vorgaben">Vorgaben</button>
     </nav>
     <div class="side-rx" id="side-rx"></div>
-    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Alle Daten bleiben auf diesem Gerät.</p>
+    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Die Daten bleiben auf diesem Gerät – außer du schaltest Erinnerungen oder den Geräte-Abgleich ein.</p>
   </aside>
 
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
@@ -1102,11 +1106,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
       </div>
     </section>
 
-    <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
+    <p class="footnote">Alle Eingaben werden lokal in deinem Browser gespeichert; nur die freiwilligen Erinnerungen und der Geräte-Abgleich schicken Daten an den Dienst (der Abgleich verschlüsselt). Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
   </main>
 
   <!-- Eigenes Rezept zusammenstellen -->
-  <div id="compose-overlay" class="overlay" hidden>
+  <div id="compose-overlay" role="dialog" aria-modal="true" aria-label="Eigenes Rezept" class="overlay" hidden>
     <div class="overlay-card">
       <button class="overlay-close" id="compose-close" aria-label="Schließen">✕</button>
       <div id="compose-content"></div>
@@ -1114,7 +1118,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   </div>
 
   <!-- Rezept-Auswahl für den Tagesplan -->
-  <div id="picker-overlay" class="overlay sheet" hidden>
+  <div id="picker-overlay" role="dialog" aria-modal="true" aria-label="Rezept wählen" class="overlay sheet" hidden>
     <div class="overlay-card">
       <div class="sheet-grip" aria-hidden="true"></div>
       <div class="sheet-head">
@@ -1128,7 +1132,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   </div>
 
   <!-- Detail-Ansicht eines Rezepts -->
-  <div id="detail-overlay" class="overlay" hidden>
+  <div id="detail-overlay" role="dialog" aria-modal="true" aria-label="Rezept" class="overlay" hidden>
     <div class="overlay-card">
       <button class="overlay-close" id="detail-close" aria-label="Schließen">✕</button>
       <div id="detail-content"></div>
@@ -2378,7 +2382,34 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // Desktop-Ansicht (> 820 px): eigene Anordnung von Tagesplan, Rezepten und Vorgaben (gleiche Bausteine).
   // Wechselt die Fensterbreite über die Grenze, baut die App neu auf (siehe init).
   const DESKTOP_MQ = "(min-width: 821px)";
+  // Rezept als Panel neben der Liste erst ab 1100 px – darunter stünde es unter der langen Liste (Klick → ans Seitenende)
+  const PANEL_MQ = "(min-width: 1100px)";
+  function isPanelWidth() { try { return !!(window.matchMedia && window.matchMedia(PANEL_MQ).matches); } catch (e) { return false; } }
   function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
+  // Escape schließt nur die oberste Ebene: Druckvorschau vor Auswahl „Für heute“ vor Rezept-Auswahl vor Editor vor Rezept
+  const LAYERS = ["print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
+  function topLayer() {
+    for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest("#rz-panel"))) return id; }
+    return null;
+  }
+  // Fehlertext für Meldungen: Netzwerkfehler („Failed to fetch“, „Load failed“) verständlich auf Deutsch
+  function errorText(e) {
+    const m = String(e && e.message || e || "");
+    if ((typeof navigator !== "undefined" && navigator.onLine === false) || /failed to fetch|load failed|networkerror|network request failed/i.test(m))
+      return "keine Verbindung zum Dienst – bitte später noch einmal versuchen";
+    return m || "unbekannter Fehler";
+  }
+  // Umschalter (Segment-Knöpfe): Zustand auch für Screenreader – aria-pressed folgt der Markierung „active“.
+  // Ein Beobachter erledigt das für alle Leisten (Vorgaben, Rezept, Editor), auch nach jedem Neuzeichnen.
+  function markPressed(root) {
+    (root || document).querySelectorAll(".seg-ink button:not([role=tab])").forEach(b => {
+      const v = b.classList.contains("active") ? "true" : "false"; if (b.getAttribute("aria-pressed") !== v) b.setAttribute("aria-pressed", v);
+    });
+  }
+  if (typeof document !== "undefined" && typeof MutationObserver === "function") document.addEventListener("DOMContentLoaded", () => {
+    markPressed();
+    new MutationObserver(() => markPressed()).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  });
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
@@ -2452,7 +2483,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // Zubereitungstext in nummerierte Schritte zerlegen (Satzende + Großbuchstabe; kein Lookbehind wegen iOS-Safari).
   function splitSteps(text) {
     if (!text) return [];
-    const guarded = String(text).replace(/z\. B\./g, "z. B.");
+    // Emojis aus den Rezeptdaten (z. B. „✏️ Editor“) in der Oberfläche weglassen – die Daten bleiben unverändert
+    const guarded = String(text).replace(/\s?[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?/gu, "").replace(/z\. B\./g, "z. B.");
     return guarded.split(/\.\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean)
       .map(s => (/[.!?]$/.test(s) ? s : s + ".").replace(/z\. B\./g, "z. B."));
   }
@@ -2462,21 +2494,40 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      wiederhergestellt. Mehrere Overlays (Detail → Editor, Picker) werden gezählt. */
   const openModals = new Set();
   let lockedScrollY = 0;
+  // Fenster (Rezept, Auswahl, Editor, Druckvorschau): Hintergrund für Tastatur und Screenreader sperren, Fokus ins
+  // Fenster setzen und beim Schließen dorthin zurückgeben, wo er vorher war.
+  const focusBack = {};
+  const BACKDROP = ["main", ".topbar", ".tabbar", "#side", ".footnote"];
+  function setBackdropInert(on) {
+    BACKDROP.forEach(sel => document.querySelectorAll(sel).forEach(el => { if (on) el.setAttribute("inert", ""); else el.removeAttribute("inert"); }));
+  }
   function modalOpen(id) {
     if (openModals.size === 0) {
       lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.body.classList.add("modal-open");
       document.body.style.top = -lockedScrollY + "px";
     }
+    if (!openModals.has(id)) focusBack[id] = document.activeElement;
     openModals.add(id);
+    setBackdropInert(true);
+    const ov = document.getElementById(id + "-overlay");
+    if (ov) setTimeout(() => {
+      if (ov.hidden || ov.contains(document.activeElement)) return; // z. B. Auswahl: Suchfeld hat den Fokus schon
+      const card = ov.querySelector(".overlay-card") || ov.querySelector(".print-bar") || ov;
+      if (!card.hasAttribute("tabindex")) card.setAttribute("tabindex", "-1");
+      try { card.focus({ preventScroll: true }); } catch (e) {}
+    }, 0);
   }
   function modalClose(id) {
     openModals.delete(id);
     if (openModals.size === 0) {
       document.body.classList.remove("modal-open");
       document.body.style.top = "";
+      setBackdropInert(false);
       try { window.scrollTo(0, lockedScrollY); } catch (e) {}
     }
+    const back = focusBack[id]; delete focusBack[id];
+    if (back && back.isConnected && typeof back.focus === "function") { try { back.focus({ preventScroll: true }); } catch (e) {} }
   }
 
   /* ---------- Lebensmittel (nur intern für die Berechnung) ---------- */
@@ -3227,6 +3278,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (name !== "heute") document.body.classList.remove("heute-tight"); // kleiner Kopf gilt nur für Heute
     if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
@@ -3301,7 +3353,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
   }
   // Breite wechselt (Handy ↔ Desktop): am Desktop braucht die rechte Seite der Vorgaben eine Unterseite
-  function onLayoutChange() { if (isDesktop() && !vgPage) showVgPage(null, true); }
+  // Offene Fenster (Rezept, Editor) neu aufbauen – am Handy blättert man, am Desktop schaltet man Reiter um.
+  function onLayoutChange() {
+    if (isDesktop() && !vgPage) showVgPage(null, true);
+    const dv = document.getElementById("detail-overlay");
+    if (dv && !dv.hidden && !dv.closest("#rz-panel") && typeof renderDetail === "function") renderDetail();
+    const cv = document.getElementById("compose-overlay");
+    if (cv && !cv.hidden && typeof openCompose === "function") openCompose();
+  }
   function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
@@ -3710,10 +3769,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
      Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
-     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
-     am Handy als Fenster. */
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
+     1100 px öffnet ein Rezept wie am Handy als Fenster. */
   let detailModal = false, detailHome = null;
-  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
   function syncDetailPanel(opened) {
     const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
     if (!ov || !slot) return;
@@ -3966,6 +4025,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
     return !!solveMeatForRatio(swapped, slot.index, d.ratio);
   }
+  // Mengen, Wasser oder MCT im Rezept geändert: auch Liste, Tagesplan, Kopf und Seitenleiste neu zeichnen
+  // (sonst zeigen sie bis zum Neuladen die alten Werte, und der Tagesplan-Ausdruck mischt alt und neu)
+  function detailChanged() { renderDetail(); if (typeof renderRezepte === "function") renderRezepte(); }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -4282,33 +4344,33 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
-        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); renderDetail(); } return; }
+        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); detailChanged(); } return; }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".portion-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
         if (inp.dataset.water === "1") {
           // Nur das Wasser ändern – Rest bleibt; gemerkt wird der Wert je Portion.
-          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); renderDetail(); }
+          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); detailChanged(); }
           return;
         }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => { detailMeat = null; renderDetail(); }));
-    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); renderDetail(); }));
+    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); detailChanged(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.water[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
@@ -4323,7 +4385,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       }));
     c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
-        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
+        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); detailChanged();
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
@@ -4496,11 +4558,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const overlay = document.getElementById("detail-overlay");
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden && topLayer() === "detail-overlay") closeDetail(); });
     bindSwipeDown(overlay, closeDetail);
     // Auswahl „Für heute“ schließt bei Klick daneben oder Escape
     overlay.addEventListener("click", () => closeTodaySheet());
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeTodaySheet(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && topLayer() === "today-sheet") closeTodaySheet(); });
   }
 
   /* ---------- Heute: Tagesplan ---------- */
@@ -4509,10 +4571,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
+    let restored = false;
     while (state.dayPlan.length < d.mahl) {
       const i = state.dayPlan.length;
+      if (dayPlanCut[i]) restored = true;
       state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
     }
+    if (restored) save(); // sonst ginge der zurückgeholte Plan beim Neuladen wieder verloren
     if (state.dayPlan.length > d.mahl) {
       state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
       state.dayPlan.length = d.mahl;
@@ -4799,7 +4864,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (pc) pc.addEventListener("click", () => { const i = pickerSlot; closePicker(); if (i >= 0) clearSlot(i); });
     ov.addEventListener("click", e => { if (e.target === ov) closePicker(); });
     document.getElementById("picker-search").addEventListener("input", renderPicker);
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "picker-overlay") closePicker(); });
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
@@ -4826,7 +4891,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
-      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
+      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
@@ -5018,7 +5083,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       await pushPost("/api/sync", { subscription: sub.toJSON(), tz, items });
       try { localStorage.setItem(PUSH_SYNC_KEY, JSON.stringify({ sig, day: today, at: Date.now(), n: items.length })); } catch (e) {}
       pushError = "";
-    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + (e && e.message || e) + ") – wird beim nächsten Öffnen wiederholt."; }
+    } catch (e) { pushError = "Abgleich fehlgeschlagen (" + errorText(e) + ") – wird beim nächsten Öffnen wiederholt."; }
     renderPushCard();
   }
   let pushTimer = null, pushError = "";
@@ -5028,12 +5093,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast(isIOS() ? "Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben." : "Mitteilungen sind nicht erlaubt – in den Browser-Einstellungen für diese Seite Mitteilungen erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
       showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
-    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(errorText(e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -5050,7 +5115,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
       showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(errorText(e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {
@@ -5217,7 +5282,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       }
       m.at = Date.now(); syncError = "";
     } catch (e) {
-      syncError = String(e && e.message || e);
+      syncError = errorText(e);
     } finally {
       syncSaveMeta(); syncBusy = false;
       if (typeof renderSyncCard === "function") renderSyncCard();
@@ -5243,8 +5308,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderSyncCard();
   }
   function randomCode() {
-    const r = crypto.getRandomValues(new Uint8Array(8));
-    return Array.from(r, x => PAIR_ALPHABET[x % PAIR_ALPHABET.length]).join("");
+    // gleichverteilt: Bytes ab 248 (= 8 × 31) verwerfen, sonst kämen die ersten Zeichen etwas häufiger vor
+    const out = [];
+    while (out.length < 8) crypto.getRandomValues(new Uint8Array(16)).forEach(x => { if (x < 248 && out.length < 8) out.push(PAIR_ALPHABET[x % 31]); });
+    return out.join("");
   }
   const fmtCode = (c) => c.slice(0, 4) + "-" + c.slice(4);
   let pairShown = null; // { code, until }
@@ -5257,11 +5324,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (r.status !== 200) throw new Error(r.j.error || "Dienst antwortet " + r.status);
       pairShown = { code, until: Date.now() + 15 * 60000 };
       syncError = "";
-    } catch (e) { syncError = String(e && e.message || e); }
+    } catch (e) { syncError = errorText(e); }
     renderSyncCard();
   }
   async function syncJoin(input) {
-    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
+    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").split("").filter(ch => PAIR_ALPHABET.indexOf(ch) !== -1).join(""); // Code enthält kein O, L, I, 0, 1
     if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
     if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
@@ -5274,7 +5341,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
       showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast(escapeHtml(errorText(e))); }
     renderSyncCard();
   }
   function syncDisable() {
@@ -5340,7 +5407,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let ov = document.getElementById("print-overlay");
     if (!ov) {
       ov = document.createElement("div");
-      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Druckvorschau");
+      ov.id = "print-overlay"; ov.className = "print-overlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Druckvorschau");
       ov.innerHTML = '<div class="print-bar"><button type="button" class="tlink" id="print-back">‹ Zurück</button>' +
         '<span class="print-title"></span>' +
         '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
@@ -5360,7 +5427,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
-    root.innerHTML = "<style>:host{display:block}" + css + "</style>" + body;
+    // Am Bildschirm darf der Küchenzettel über seine Kante laufen: die verkleinerte Vorschau rundet Schriften auf und wird
+    // dadurch etwas höher als der Druck – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
+    root.innerHTML = "<style>:host{display:block}" + css + "@media screen{.kz{overflow:visible}}</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
     // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
@@ -5852,7 +5921,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
-    const sel = el("select", { class: "food-select" });
+    const sel = el("select", { class: "food-select", "aria-label": "Lebensmittel" });
     sel.appendChild(el("option", { value: "" }, "Lebensmittel wählen"));
     const byCat = {};
     FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
@@ -5953,13 +6022,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const multi = compose.fats.length > 1;
       compose.fats.forEach((ft, i) => {
         const row = el("div", { class: "compose-row" });
-        const sel = el("select", { class: "food-select" });
+        const sel = el("select", { class: "food-select", "aria-label": "Fett zum Ausgleich" });
         FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
         sel.value = ft.food;
         sel.addEventListener("change", () => { ft.food = sel.value; recompute(); });
         row.appendChild(sel);
         if (multi) {
-          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams" });
+          const sh = el("input", { type: "number", min: "0", step: "5", value: ft.share, class: "compose-grams", "aria-label": "Anteil in Prozent" });
           sh.addEventListener("input", e => { ft.share = e.target.value; recompute(); });
           row.appendChild(sh);
           row.appendChild(el("span", { class: "unit" }, "%"));
@@ -5975,7 +6044,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       compose.items.forEach((it, i) => {
         const row = el("div", { class: "compose-row" });
         row.appendChild(buildFoodSelect(it.food, v => { it.food = v; recompute(); }));
-        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal" });
+        const g = el("input", { type: "number", min: "0", step: "5", value: it.grams, class: "compose-grams", inputmode: "decimal", "aria-label": "Menge in Gramm" });
         g.addEventListener("input", e => { it.grams = e.target.value; recompute(); });
         row.appendChild(g);
         row.appendChild(el("span", { class: "unit" }, "g"));
@@ -6080,13 +6149,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderRezepte();
   }
   function bindCompose() {
-    document.getElementById("compose-btn").addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    // „+“ beginnt ein neues Rezept, wenn der Entwurf ein bereits gespeichertes Rezept ist (sonst würde Speichern unter
+    // neuem Namen das alte überschreiben). Ein noch nicht gespeicherter Entwurf bleibt erhalten.
+    const startNew = () => {
+      if (state.compose && state.compose.editKey) { state.compose = { items: [{ food: "", grams: 60 }], fats: [{ food: "Schlagobers NÖM", share: 100 }], scale: true }; save(); }
+      composeTab = "zutaten"; openCompose();
+    };
+    document.getElementById("compose-btn").addEventListener("click", startNew);
     const cl = document.getElementById("compose-link"); // Desktop: Textlink „+ Eigenes Rezept“ im Kopf der Rezepte
-    if (cl) cl.addEventListener("click", () => { composeTab = "zutaten"; openCompose(); });
+    if (cl) cl.addEventListener("click", startNew);
     document.getElementById("compose-close").addEventListener("click", closeCompose);
     const ov = document.getElementById("compose-overlay");
     ov.addEventListener("click", e => { if (e.target === ov) closeCompose(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closeCompose(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "compose-overlay") closeCompose(); });
     bindSwipeDown(ov, closeCompose);
   }
 
@@ -6107,8 +6182,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     showView(state.settings.view || "rezepte");
     // Breite wechselt zwischen Handy und Desktop (> 820 px): Bereiche in der passenden Anordnung neu aufbauen
     try {
-      const mq = window.matchMedia && window.matchMedia(DESKTOP_MQ);
-      if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+      [DESKTOP_MQ, PANEL_MQ].forEach(q => {
+        const mq = window.matchMedia && window.matchMedia(q);
+        if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
+      });
     } catch (e) {}
   }
 

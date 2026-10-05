@@ -30,10 +30,10 @@
   }
   /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
      Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
-     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan öffnet ein Rezept wie
-     am Handy als Fenster. */
+     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
+     1100 px öffnet ein Rezept wie am Handy als Fenster. */
   let detailModal = false, detailHome = null;
-  function panelMode() { return isDesktop() && state.settings.view === "rezepte"; }
+  function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
   function syncDetailPanel(opened) {
     const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
     if (!ov || !slot) return;
@@ -286,6 +286,9 @@
     const swapped = base.items.map((it, i) => i === slot.index ? { food: MEATS[k].food, grams: num(it.grams) } : { food: it.food, grams: num(it.grams) });
     return !!solveMeatForRatio(swapped, slot.index, d.ratio);
   }
+  // Mengen, Wasser oder MCT im Rezept geändert: auch Liste, Tagesplan, Kopf und Seitenleiste neu zeichnen
+  // (sonst zeigen sie bis zum Neuladen die alten Werte, und der Tagesplan-Ausdruck mischt alt und neu)
+  function detailChanged() { renderDetail(); if (typeof renderRezepte === "function") renderRezepte(); }
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
@@ -602,33 +605,33 @@
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
-        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); renderDetail(); } return; }
+        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); detailChanged(); } return; }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".portion-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
         if (inp.dataset.water === "1") {
           // Nur das Wasser ändern – Rest bleibt; gemerkt wird der Wert je Portion.
-          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); renderDetail(); }
+          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); detailChanged(); }
           return;
         }
         if (oldG > 0 && nv > 0) {
           const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
           if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); renderDetail();
+          save(); detailChanged();
         }
       }));
     c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => { detailMeat = null; renderDetail(); }));
-    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); renderDetail(); }));
+    c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); detailChanged(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.water[waterKey]; save(); renderDetail(); }));
+      b.addEventListener("click", () => { delete state.water[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
@@ -643,7 +646,7 @@
       }));
     c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
-        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderDetail();
+        state.settings.mctShare = num(b.dataset.mcts) / 100; save(); detailChanged();
       }));
     // Blätter: am Desktop Reiter (nur das aktive Blatt sichtbar), am Handy nebeneinander mit seitlichem Wischen.
     setupPager(c, DETAIL_PAGES, dtab, (k) => { state.settings.detailTab = k; save(); }, renderDetail);
@@ -816,9 +819,9 @@
     const overlay = document.getElementById("detail-overlay");
     document.getElementById("detail-close").addEventListener("click", closeDetail);
     overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeDetail(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden && topLayer() === "detail-overlay") closeDetail(); });
     bindSwipeDown(overlay, closeDetail);
     // Auswahl „Für heute“ schließt bei Klick daneben oder Escape
     overlay.addEventListener("click", () => closeTodaySheet());
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeTodaySheet(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && topLayer() === "today-sheet") closeTodaySheet(); });
   }

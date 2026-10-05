@@ -4,10 +4,13 @@
   let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
+    let restored = false;
     while (state.dayPlan.length < d.mahl) {
       const i = state.dayPlan.length;
+      if (dayPlanCut[i]) restored = true;
       state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
     }
+    if (restored) save(); // sonst ginge der zurückgeholte Plan beim Neuladen wieder verloren
     if (state.dayPlan.length > d.mahl) {
       state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
       state.dayPlan.length = d.mahl;
@@ -294,7 +297,7 @@
     if (pc) pc.addEventListener("click", () => { const i = pickerSlot; closePicker(); if (i >= 0) clearSlot(i); });
     ov.addEventListener("click", e => { if (e.target === ov) closePicker(); });
     document.getElementById("picker-search").addEventListener("input", renderPicker);
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePicker(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden && topLayer() === "picker-overlay") closePicker(); });
   }
   // Tagesplan zum Aufhängen oder Weitergeben: Zeitplan (Uhrzeit, Was, Menge, Dauer), Hinweise zum
   // Sondieren, Tagessummen und die Mahlzeiten im Detail fürs Team.
@@ -321,7 +324,7 @@
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
-      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
+      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +

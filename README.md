@@ -7,8 +7,8 @@ werden – wahlweise **mit oder ohne KetoCal**, mit Anleitung für die
 **Varoma-Zubereitung (Dämpfen im Thermomix)**, mit Abfüllhilfe für
 vorgekochte Portionen und mit einem **Tagesplan**.
 
-Die App läuft komplett im Browser – ohne Server, ohne Konto, ohne
-Internetverbindung – und ist für das **Smartphone** gemacht. Über GitHub
+Die App läuft komplett im Browser – ohne Konto und ohne Internetverbindung; einen
+Server brauchen nur die freiwilligen Erinnerungen und der Geräte-Abgleich – und ist für das **Smartphone** gemacht. Über GitHub
 Pages ist sie als **PWA offline-fähig** (Service Worker `sw.js`): Nach dem
 ersten Laden funktioniert sie auch ohne Netz und aktualisiert sich zuverlässig
 (die Service-Worker-Version und die Vorladeliste aller Dateien schreibt der Build

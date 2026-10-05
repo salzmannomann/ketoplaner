@@ -132,7 +132,7 @@
       }
       m.at = Date.now(); syncError = "";
     } catch (e) {
-      syncError = String(e && e.message || e);
+      syncError = errorText(e);
     } finally {
       syncSaveMeta(); syncBusy = false;
       if (typeof renderSyncCard === "function") renderSyncCard();
@@ -158,8 +158,10 @@
     renderSyncCard();
   }
   function randomCode() {
-    const r = crypto.getRandomValues(new Uint8Array(8));
-    return Array.from(r, x => PAIR_ALPHABET[x % PAIR_ALPHABET.length]).join("");
+    // gleichverteilt: Bytes ab 248 (= 8 × 31) verwerfen, sonst kämen die ersten Zeichen etwas häufiger vor
+    const out = [];
+    while (out.length < 8) crypto.getRandomValues(new Uint8Array(16)).forEach(x => { if (x < 248 && out.length < 8) out.push(PAIR_ALPHABET[x % 31]); });
+    return out.join("");
   }
   const fmtCode = (c) => c.slice(0, 4) + "-" + c.slice(4);
   let pairShown = null; // { code, until }
@@ -172,11 +174,11 @@
       if (r.status !== 200) throw new Error(r.j.error || "Dienst antwortet " + r.status);
       pairShown = { code, until: Date.now() + 15 * 60000 };
       syncError = "";
-    } catch (e) { syncError = String(e && e.message || e); }
+    } catch (e) { syncError = errorText(e); }
     renderSyncCard();
   }
   async function syncJoin(input) {
-    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
+    const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").split("").filter(ch => PAIR_ALPHABET.indexOf(ch) !== -1).join(""); // Code enthält kein O, L, I, 0, 1
     if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
     if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
@@ -189,7 +191,7 @@
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
       showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
+    } catch (e) { showToast(escapeHtml(errorText(e))); }
     renderSyncCard();
   }
   function syncDisable() {
