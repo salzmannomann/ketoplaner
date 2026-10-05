@@ -39,10 +39,12 @@
     const layout = (s, draw) => {
       const TW = 15.5 * s;
       let y = PY;
-      font(13 * s, true); const hh = lineH(13 * s);
+      // Kopf: links „Tagesplan“, rechts Verhältnis und darunter kcal · Flüssigkeit pro Tag
+      const r1 = lineH(11 * s), r2 = lineH(9 * s), hh = Math.max(lineH(13 * s), r1 + r2);
       if (draw) {
-        doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
-        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h span")), R, y + hh * 0.8, { align: "right" }); // Verhältnis
+        font(13 * s, true); doc.text(pdfText(txt(kz, ".kz-h > b")), L, y + hh - lineH(13 * s) * 0.22);
+        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h .rx b")), R, y + r1 * 0.8, { align: "right" });
+        font(9 * s, false, MUTED); doc.text(pdfText(txt(kz, ".kz-h .rx small")), R, y + r1 + r2 * 0.8, { align: "right" });
       }
       y += hh + 1.2 * s;
       if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }

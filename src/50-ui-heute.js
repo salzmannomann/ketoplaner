@@ -295,7 +295,7 @@
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
       g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b><span>Verhältnis " + fmtTarget(d.ratio) + "</span></div>" + rows.map(r => r.h).join("") +
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b><span class='rx'><b>Verhältnis " + fmtTarget(d.ratio) + "</b><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></span></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());

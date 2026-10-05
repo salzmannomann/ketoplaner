@@ -2288,7 +2288,7 @@
     const rez = groups.map(g => "<div class='rb'><div class='rn'><b>" + escapeHtml(g.name) + "</b> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
       g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + gramsShort(num(it.grams)) + "</b></span>").join("") + "</div></div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b><span>Verhältnis " + fmtTarget(d.ratio) + "</span></div>" + rows.map(r => r.h).join("") +
+      "<div class='kz-page'><div class='kz'><div class='kz-h'><b>Tagesplan</b><span class='rx'><b>Verhältnis " + fmtTarget(d.ratio) + "</b><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></span></div>" + rows.map(r => r.h).join("") +
       (rez ? "<div class='kz-s'>Zutaten je Portion</div>" + rez : "") + "</div>" +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate());
@@ -2681,7 +2681,7 @@
     ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
     ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
     ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h span{font-size:1.1em;font-weight:bold;color:#2f855a;white-space:nowrap}" +
+    ".kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h .rx{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;line-height:1.15}.kz-h .rx b{font-size:1.1em;color:#2f855a}.kz-h .rx small{font-size:.9em;color:#555}" +
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
     ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
@@ -2829,10 +2829,12 @@
     const layout = (s, draw) => {
       const TW = 15.5 * s;
       let y = PY;
-      font(13 * s, true); const hh = lineH(13 * s);
+      // Kopf: links „Tagesplan“, rechts Verhältnis und darunter kcal · Flüssigkeit pro Tag
+      const r1 = lineH(11 * s), r2 = lineH(9 * s), hh = Math.max(lineH(13 * s), r1 + r2);
       if (draw) {
-        doc.text(pdfText(txt(kz, ".kz-h b")), L, y + hh * 0.8);
-        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h span")), R, y + hh * 0.8, { align: "right" }); // Verhältnis
+        font(13 * s, true); doc.text(pdfText(txt(kz, ".kz-h > b")), L, y + hh - lineH(13 * s) * 0.22);
+        font(11 * s, true, GREEN); doc.text(pdfText(txt(kz, ".kz-h .rx b")), R, y + r1 * 0.8, { align: "right" });
+        font(9 * s, false, MUTED); doc.text(pdfText(txt(kz, ".kz-h .rx small")), R, y + r1 + r2 * 0.8, { align: "right" });
       }
       y += hh + 1.2 * s;
       if (draw) { doc.setDrawColor.apply(doc, GREEN); doc.setLineWidth(0.5); doc.line(L, y, R, y); }

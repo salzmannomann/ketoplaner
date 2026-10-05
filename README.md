@@ -178,7 +178,7 @@ der Seite; dort öffnet **🖨️ Drucken** deshalb dasselbe PDF im Teilen-Menü
 **„Drucken“** wählt (AirPrint). In Safari und am Computer kommt der normale Druckdialog.
 
 **Ausdrucke:** einheitlicher Kopf (Titel, Datum, grüne Linie), Fußzeile mit
-Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Datum (er gilt meist mehrere Tage), oben rechts das **Verhältnis**:
+Erstelldatum. Der **Tagesplan** ist ein **Küchenzettel** ohne Datum (er gilt meist mehrere Tage), oben rechts das **Verhältnis** und darunter **kcal und Flüssigkeit pro Tag** (Verordnung):
 **A6** im linken oberen Viertel einer **A4-Seite** (einfach zweimal falten, gestrichelte Falzlinien);
 **unten bleiben 2,5 cm frei** zum Einstecken in eine Hülle. Am iPhone geht dieser Ausdruck immer über das
 PDF (Safari übernimmt randlose Seiten nicht sicher). Oben der **Zeitplan**, je Eintrag eine Zeile: **Uhrzeit,

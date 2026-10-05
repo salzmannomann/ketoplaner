@@ -135,7 +135,7 @@
     ".kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}" +
     ".kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2}" +
     ".kz-fold{position:absolute;border:0 dashed #b4bdc2}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}" +
-    ".kz-h{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h span{font-size:1.1em;font-weight:bold;color:#2f855a;white-space:nowrap}" +
+    ".kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;border-bottom:.5mm solid #2f855a;padding-bottom:.35em;margin-bottom:.2em}.kz-h b{font-size:1.3em}.kz-h .rx{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;line-height:1.15}.kz-h .rx b{font-size:1.1em;color:#2f855a}.kz-h .rx small{font-size:.9em;color:#555}" +
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:.22em .28em;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.25em}.r .w .n{font-weight:bold;font-size:1.12em}.r i{font-style:normal;color:#555;font-weight:normal}.r .d{font-size:.9em}" +
     ".r .m{font-weight:bold;font-size:1.25em;text-align:right;white-space:nowrap}" +
