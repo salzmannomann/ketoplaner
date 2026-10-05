@@ -41,7 +41,7 @@
       if (m.bad) {
         facts.push(null);
         rows.push({ t, html: '<div class="zp-row meal slot empty-slot bad-slot" role="button" tabindex="0" data-pick="' + i + '" title="Dieses Rezept erreicht die Verordnung nicht – anderes Rezept wählen">' + time +
-          '<span class="zp-txt"><span class="zp-name">' + escapeHtml(m.bad.name) + '</span><span class="zp-warn">passt nicht zu ' + escapeHtml(fmtRx(d.ratio)) + ' – anderes Rezept wählen</span></span>' +
+          '<span class="zp-txt"><span class="zp-name">' + displayHtml(m.bad) + '</span><span class="zp-warn">passt nicht zu ' + escapeHtml(fmtRx(d.ratio)) + ' – anderes Rezept wählen</span></span>' +
           '<span class="tlink">wählen</span></div>' });
         return;
       }
@@ -62,7 +62,7 @@
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
-        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + '</span>' +
+        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
           warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
@@ -267,7 +267,7 @@
     const recs = allRecipes()
       .map(rec => ({ fam: { name: familyOf(rec) }, rec }))
       .filter(x => !state.settings.hideKeto || !x.rec.ketocal)
-      .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
+      .filter(x => !q || (x.rec.name + " " + x.fam.name).toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
       .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
       .map(x => Object.assign(x, { res: computeMealView(x.rec, d, null).res }))
       .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0)); });
@@ -276,7 +276,7 @@
       const s = sumMacros(x.res.items), vol = volumeMl(x.res.items);
       const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5, ps = proteinState(s.eiweiss, d.eiweissMahl);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
-        '<span class="pick-name">' + escapeHtml(x.fam.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
+        '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
         '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + escapeHtml(basisLabel(x.rec)) : "") + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
           ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
@@ -310,15 +310,15 @@
     const rows = [], groups = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      const w = m.rec ? "<span class='n'>" + escapeHtml(m.rec.name) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
-        : "<span class='n'>" + (m.bad ? escapeHtml(m.bad.name) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
+      const w = m.rec ? "<span class='n'>" + escapeHtml(displayText(m.rec)) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
+        : "<span class='n'>" + (m.bad ? escapeHtml(displayText(m.bad)) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
       rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span><span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span></div>" });
       if (!f) return;
       // gleiches Rezept mit gleichen Mengen nur einmal, mit allen Uhrzeiten
       const items = f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food));
       const sig = f.rec.name + "|" + items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
       const g = groups.find(x => x.sig === sig);
-      if (g) g.times.push(t); else groups.push({ sig, name: f.rec.name, items, times: [t] });
+      if (g) g.times.push(t); else groups.push({ sig, name: displayText(f.rec), items, times: [t] });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });

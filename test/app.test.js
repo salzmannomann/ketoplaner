@@ -163,23 +163,22 @@ test("Abfüllen: Menge je Portion ohne Öl × Portionen = ölfreie Gesamtmenge",
 });
 
 const badgeOf = (t) => t.querySelector(".tile-badge").textContent;
-test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild, KetoCal ausblendbar, Gruppen, Suche", () => {
+test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Name mit Zusatz statt Fettbasis-Schild, KetoCal ausblendbar, Gruppen, Suche", () => {
   const w = boot();
   const all = tileNames(w).length;
   assert.ok(all >= 45 && all <= 60, "Rezepte: " + all);
-  assert.ok(!tileNames(w).some(n => /mit KetoCal|Flasche|Variante/.test(n)), "Varianten-Zusätze dürfen nicht im Namen stehen");
-  assert.ok(new Set(tileNames(w)).size < all, "Gerichte in beiden Fettbasen erscheinen zweimal (gleicher Name)");
-  const kc = tiles(w).filter(t => /KetoCal/.test(badgeOf(t))).length;
-  assert.ok(kc >= 20, "KetoCal-Rezepte mit Fettbasis „KetoCal“: " + kc);
-  assert.ok(!tiles(w).some(t => /nur mit|nur ohne/.test(badgeOf(t))), "keine „nur mit/ohne“-Schilder mehr");
-  // Doppel-Gericht: beide Einträge nebeneinander, ohne KetoCal zuerst, beide mit Fettbasis-Schild
-  const hz = tiles(w).filter(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
-  assert.equal(hz.length, 2);
-  assert.match(badgeOf(hz[0]), /Rapsöl/); assert.match(badgeOf(hz[1]), /KetoCal/);
-  // Häkchen „Rezepte mit KetoCal ausblenden“
+  assert.ok(!tileNames(w).some(n => /\(mit KetoCal\)|\(Obstbrei|Flasche|Variante/.test(n)), "keine Klammerzusätze im Namen");
+  assert.equal(new Set(tileNames(w)).size, all, "kein Name steht zweimal gleich da");
+  const kc = tileNames(w).filter(n => / · mit KetoCal$/.test(n)).length;
+  assert.equal(kc, 19, "alle 22 KetoCal-Rezepte außer der Sondennahrung (3) zeigen „· mit KetoCal“");
+  assert.ok(!tiles(w).some(t => /Rapsöl|KetoCal|Butter|nur mit|nur ohne/.test(badgeOf(t))), "graue Zeile nur noch Herkunft");
+  // Doppel-Gericht: beide Einträge nebeneinander, ohne KetoCal zuerst
+  const hz = tileNames(w).filter(n => /^Hendl & Zucchini( · mit KetoCal)?$/.test(n));
+  assert.deepEqual(hz, ["Hendl & Zucchini", "Hendl & Zucchini · mit KetoCal"]);
+  // Häkchen „ohne KetoCal“ blendet alle 22 KetoCal-Rezepte aus
   const hk = $(w, "hide-keto"); hk.checked = true; fire(w, hk, "change");
-  assert.equal(tileNames(w).length, all - kc);
-  assert.ok(!tiles(w).some(t => /KetoCal/.test(badgeOf(t))));
+  assert.equal(tileNames(w).length, all - 22);
+  assert.ok(!tileNames(w).some(n => /KetoCal/.test(n)));
   hk.checked = false; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all);
   clickChip(w, "Angerührt");
@@ -193,6 +192,36 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Fettbasis-Schild,
   clickChip(w, "Alle");
   const s = $(w, "recipe-search"); s.value = "zucchini"; fire(w, s, "input");
   assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n)));
+});
+
+test("Rezeptnamen: einheitliche Anzeige mit „· mit KetoCal“, Suche nach vollem Namen, alte Favoriten und Tagesplan bleiben", () => {
+  const w = boot({ favorites: ["std:Rind & Karotte (mit KetoCal)", "fam:Apfelmus (Obstbrei)"],
+    dayPlan: [{ key: "std:Rind & Karotte (mit KetoCal)" }, { key: "std:Apfelmus (Obstbrei)" }, { key: null }, { key: null }, { key: null }] });
+  const names = tileNames(w);
+  ["Rind & Karotte", "Rind & Karotte · mit KetoCal", "Apfelmus", "Apfelmus · mit KetoCal", "Zucchini · mit KetoCal", "Compleat & KetoCal"]
+    .forEach(n => assert.ok(names.indexOf(n) !== -1, "Name fehlt: " + n));
+  // Zusatz als eigenes, kleines Element
+  const t = tiles(w).find(x => x.querySelector(".tile-name").textContent.trim() === "Rind & Karotte · mit KetoCal");
+  assert.equal(t.querySelector(".name-suffix").textContent, " · mit KetoCal");
+  // alte Schlüssel (voller Datenname bzw. Familie) gelten weiter
+  assert.ok(t.querySelector(".favbtn").classList.contains("on"), "Favorit über vollen Datennamen");
+  assert.ok(tiles(w).filter(x => /^Apfelmus/.test(x.querySelector(".tile-name").textContent.trim())).every(x => x.querySelector(".favbtn").classList.contains("on")), "Familien-Favorit gilt für beide");
+  // Suche findet auch „ketocal“ und „obstbrei“ (Datenname)
+  const s = $(w, "recipe-search");
+  s.value = "obstbrei"; fire(w, s, "input");
+  assert.ok(tileNames(w).some(n => n === "Apfelmus") && tileNames(w).some(n => n === "Banane · mit KetoCal"), "Suche „obstbrei“: " + tileNames(w).join(", "));
+  s.value = "ketocal"; fire(w, s, "input");
+  assert.ok(tileNames(w).some(n => n === "Rind & Karotte · mit KetoCal"));
+  s.value = ""; fire(w, s, "input");
+  // Tagesplan: Mahlzeitzeilen mit Anzeigename, Plan bleibt erhalten
+  fire(w, w.document.querySelector('.tabbar button[data-view="heute"]'));
+  const zp = [...w.document.querySelectorAll(".zp-name")].map(e => e.textContent.trim());
+  assert.deepEqual(zp.slice(0, 2), ["Rind & Karotte · mit KetoCal", "Apfelmus"]);
+  // Auswahlfenster: kein Name doppelt
+  fire(w, w.document.querySelector("[data-pick]"));
+  const pk = [...w.document.querySelectorAll("#picker-list .pick-name")].map(e => e.textContent.replace(" ★", "").trim());
+  assert.equal(new Set(pk).size, pk.length, "Auswahl ohne doppelte Namen");
+  assert.ok(pk.indexOf("Rind & Karotte · mit KetoCal") !== -1);
 });
 
 test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt je Gericht, Favorit je Rezept", () => {
@@ -213,17 +242,16 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   // Stern sofort gefüllt, Ansicht bleibt (Menge nicht zurückgesetzt), Liste dahinter zeigt den Favoriten schon
   assert.ok(favB.classList.contains("on") && favB.getAttribute("aria-pressed") === "true", "Stern gefüllt");
   assert.equal($(w, "detail-content").querySelector("#portion-input").value, "4", "Stern setzt die Ansicht nicht zurück");
-  assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini" && /KetoCal/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
+  assert.ok(tiles(w).find(t => t.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini · mit KetoCal").querySelector(".favbtn").classList.contains("on"), "Liste sofort aktualisiert");
   fire(w, $(w, "detail-close"));
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   assert.deepEqual(st.favorites, ["std:Hendl & Zucchini (mit KetoCal)"]);
   assert.equal(st.scales["fam:Hendl & Zucchini"], undefined, "Menge wird nicht gemerkt");
   // Neustart: nur der KetoCal-Eintrag ist Favorit
   const w2 = boot(st);
-  const hz = tiles(w2).filter(x => x.querySelector(".tile-name").textContent.trim() === "Hendl & Zucchini");
-  assert.equal(hz.length, 2);
-  assert.ok(hz.find(t => /KetoCal/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
-  assert.ok(!hz.find(t => /Rapsöl/.test(badgeOf(t))).querySelector(".favbtn").classList.contains("on"));
+  const hzName = (n) => tiles(w2).find(x => x.querySelector(".tile-name").textContent.trim() === n);
+  assert.ok(hzName("Hendl & Zucchini · mit KetoCal").querySelector(".favbtn").classList.contains("on"));
+  assert.ok(!hzName("Hendl & Zucchini").querySelector(".favbtn").classList.contains("on"));
 });
 
 test("Compleat-Rezepte: Verhältnis und kcal exakt, Pre-Apta-Variante braucht weniger Compleat, Packungs-Hinweis und Packungsstand", () => {

@@ -358,6 +358,9 @@ body.heute-tight .page-title { font-size: 28px; }
 .tile:hover .tile-name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .tile-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .tile-name { font: 600 18px/1.2 var(--f-serif); }
+/* Zusatz zum Rezeptnamen („· mit KetoCal“): Plex Sans 13 px, grau, normal – im Rezeptkopf 15 px */
+.name-suffix { font: 400 13px/1.2 var(--f-sans); font-style: normal; color: var(--grey); white-space: nowrap; }
+.detail-head .title .name-suffix { font-size: 15px; }
 .tile-stats { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
 .tile-stats b { font-weight: 600; white-space: nowrap; }
 .tile-stats .prot-ok { color: var(--green); }
@@ -2913,6 +2916,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
   const FAMILY_STRIP_RE = / \(mit KetoCal\)|, mit KetoCal/g;
   function familyOf(rec) { return rec.custom ? rec.name : (rec.familie || rec.name.replace(FAMILY_STRIP_RE, "")); }
+  /* Anzeigename (nur Anzeige – Schlüssel bleiben die vollen Datennamen): Klammerzusätze „(mit KetoCal)“, „(Obstbrei)“ und
+     „(Obstbrei, mit KetoCal)“ fallen weg; enthält das Rezept KetoCal und steht „KetoCal“ nicht schon im Namen, folgt der
+     Zusatz „mit KetoCal“ – unabhängig davon, ob es ein Geschwisterrezept gibt. Sondennahrung wie „Compleat & KetoCal“
+     bleibt ohne Zusatz. */
+  function displayName(rec) {
+    const name = String(rec && rec.name || "").replace(/ \((?:Obstbrei, mit KetoCal|mit KetoCal|Obstbrei)\)/g, "").replace(/, mit KetoCal/g, "").trim();
+    return { name, suffix: rec && rec.ketocal && !/ketocal/i.test(name) ? "mit KetoCal" : "" };
+  }
+  // als Text („Rind & Karotte · mit KetoCal“) und als HTML (Zusatz klein und grau in .name-suffix)
+  function displayText(rec) { const dn = displayName(rec); return dn.name + (dn.suffix ? " · " + dn.suffix : ""); }
+  function displayHtml(rec) { const dn = displayName(rec); return escapeHtml(dn.name) + (dn.suffix ? '<span class="name-suffix"> · ' + escapeHtml(dn.suffix) + "</span>" : ""); }
   function familyKey(rec) { return rec.custom ? rec.key : ("fam:" + familyOf(rec)); }
   // Favoriten gelten je Rezept (Variante); ältere Favoriten je Gericht („fam:…“) zählen weiter.
   function isFav(rec) { return state.favorites.indexOf(recipeKey(rec)) !== -1 || state.favorites.indexOf(familyKey(rec)) !== -1; }
@@ -3112,7 +3126,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (hideKeto && rec.ketocal) return;
       const fav = isFav(rec);
       if (!fav && !matchesFilter(rec, filter)) return;
-      if (q && name.toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
+      // Suche findet Anzeige- und vollen Datennamen (also auch „ketocal“, „obstbrei“) und Zutaten
+      if (q && (rec.name + " " + name).toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
       const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       if (!res.ok) return;
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
@@ -3624,25 +3639,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
 
   /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */
-  // Rezeptzeile (Küchenzettel): Name (Serif), darunter Mono „128 kcal · 131 ml · Eiweiß 2,4 g“ (Eiweiß grün ok,
-  // rot mit „hoch“/„niedrig“), darunter grau „Diätologie · KetoCal + Butter“ statt bunter Schilder; rechts der Stern.
+  // Rezeptzeile (Küchenzettel): Name (Serif, ggf. „· mit KetoCal“ klein und grau), darunter Mono „128 kcal · 131 ml ·
+  // Eiweiß 2,4 g“ (Eiweiß grün ok, rot mit „hoch“/„niedrig“), darunter grau die Herkunft („Diätologie“); rechts der Stern.
   const STAR_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
   function renderRecipeTile(rec, res, d, fam) {
     const sum = sumMacros(res.items);
     const r = ratioOf(sum);
     const ml = volumeMl(res.items);
     const pState = proteinState(sum.eiweiss, d.eiweissMahl);
-    const name = fam ? fam.name : familyOf(rec);
-    const multi = isMulti(rec);
     const fav = isFav(rec);
     const tags = [];
     if (rec.quelle) tags.push("Diätologie");
-    if (multi || rec.ketocal) tags.push(escapeHtml(basisLabel(rec)));
+    // Fettbasis steht nicht mehr hier (der Name zeigt „mit KetoCal“, die Zutatenliste den Rest) – nur die Herkunft
     if (rec.custom) tags.push("eigenes Rezept");
     const tile = el("div", { class: "tile", tabindex: "0", role: "button", "data-key": recipeKey(rec) });
     tile._rec = rec; // Desktop: erstes Rezept der Liste ins Panel
     tile.innerHTML =
-      '<div class="tile-body"><span class="tile-name">' + escapeHtml(name) + '</span>' +
+      '<div class="tile-body"><span class="tile-name">' + displayHtml(rec) + '</span>' +
       '<span class="tile-stats">' + fmt(sum.kcal, 0) + " kcal · " + fmt(ml, 0) + " ml · " +
         '<b class="prot-' + pState + '"' + (pState === "high" ? ' title="mehr als das Doppelte des Eiweiß-Ziels"' : "") + '>Eiweiß ' + fmt(sum.eiweiss) + " g" + (pState === "high" ? " · hoch" : pState === "low" ? " · niedrig" : "") + "</b>" +
         (ratioClass(r, d.ratio) !== "ok" ? ' · <b class="ratio-pill ' + ratioClass(r, d.ratio) + '">▲ ' + fmtRxA(r, 2) + "</b>" : "") + "</span>" +
@@ -4050,7 +4063,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (!mv.res.ok) {
       const cc = document.getElementById("detail-content");
       cc.innerHTML = '<div class="sheet-grip" aria-hidden="true"></div><div class="detail-head"><div class="dh-tags"><span class="ratio-pill bad">' +
-        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + escapeHtml(familyOf(rec)) + '</h2></div>' +
+        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + displayHtml(rec) + '</h2></div>' +
         '<div class="pages"><section class="pane"><div class="pane-in"><div class="note warn">▲ Dieses Rezept lässt sich nicht auf die Verordnung (' +
         escapeHtml(fmtRx(d.ratio)) + ', ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) einstellen. Bitte ein anderes Rezept wählen – die Mengen dieses Rezepts dürfen so nicht verwendet werden.</div></div></section></div>';
       return;
@@ -4102,7 +4115,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let basisSeg = "";
     if (sibs.length) {
       basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">' + escapeHtml(basisLabel(rec)) + ' – dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
-        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch mit ' + escapeHtml(basisLabel(v)) + "</button>").join("") + "</div>";
+        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch als „' + escapeHtml(displayText(v)) + "“</button>").join("") + "</div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 3 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -4279,7 +4292,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       '<div class="sheet-grip" aria-hidden="true"></div>' +
       '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
         headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") + "</div>" +
-        '<h2 class="title">' + escapeHtml(familyOf(rec)) + "</h2></div>" +
+        '<h2 class="title">' + displayHtml(rec) + "</h2></div>" +
       pagerHead(DETAIL_PAGES, dtab, "detail-tabs") +
       '<div class="pages" id="detail-pages">' +
 
@@ -4424,7 +4437,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     actions.appendChild(favBtn);
     const del = c.querySelector("#del-btn");
     if (del) del.addEventListener("click", () => {
-      if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
+      if (confirm("Eigenes Rezept „" + displayText(rec) + "“ wirklich löschen?")) {
         state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
         const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
         // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
@@ -4460,7 +4473,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     html += '<div class="today-sep">oder eine Mahlzeit ersetzen</div>';
     state.dayPlan.forEach((sl, i) => {
       const cur = recipeByKey(sl && sl.key), same = sl && sl.key === key;
-      html += opt(String(i), fmtHM(times.meals[i]) + " · Mahlzeit " + (i + 1) + (same ? " ✓" : ""), cur ? escapeHtml(cur.name) : "frei", same ? "same" : "");
+      html += opt(String(i), fmtHM(times.meals[i]) + " · Mahlzeit " + (i + 1) + (same ? " ✓" : ""), cur ? escapeHtml(displayText(cur)) : "frei", same ? "same" : "");
     });
     const sh = el("div", { class: "today-sheet", id: "today-sheet", role: "menu" }, html);
     const actions = document.getElementById("detail-actions");
@@ -4472,7 +4485,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       idx.forEach(i => { state.dayPlan[i] = { key }; });
       save(); closeTodaySheet(); renderRezepte();
       const what = v === "all" ? "für alle " + d.mahl + " Mahlzeiten" : v === "free" ? "für " + idx.length + " freie Mahlzeit" + (idx.length === 1 ? "" : "en") : "für Mahlzeit " + (idx[0] + 1) + " (" + fmtHM(times.meals[idx[0]]) + ")";
-      showToast(escapeHtml(familyOf(rec)) + " " + what + " übernommen", [
+      showToast(escapeHtml(displayText(rec)) + " " + what + " übernommen", [
         ["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }],
         ["Ansehen", () => { closeDetail(); showView("heute"); }],
       ]);
@@ -4619,7 +4632,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (m.bad) {
         facts.push(null);
         rows.push({ t, html: '<div class="zp-row meal slot empty-slot bad-slot" role="button" tabindex="0" data-pick="' + i + '" title="Dieses Rezept erreicht die Verordnung nicht – anderes Rezept wählen">' + time +
-          '<span class="zp-txt"><span class="zp-name">' + escapeHtml(m.bad.name) + '</span><span class="zp-warn">passt nicht zu ' + escapeHtml(fmtRx(d.ratio)) + ' – anderes Rezept wählen</span></span>' +
+          '<span class="zp-txt"><span class="zp-name">' + displayHtml(m.bad) + '</span><span class="zp-warn">passt nicht zu ' + escapeHtml(fmtRx(d.ratio)) + ' – anderes Rezept wählen</span></span>' +
           '<span class="tlink">wählen</span></div>' });
         return;
       }
@@ -4640,7 +4653,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
-        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + escapeHtml(rec.name) + '</span>' +
+        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
           warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
@@ -4845,7 +4858,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const recs = allRecipes()
       .map(rec => ({ fam: { name: familyOf(rec) }, rec }))
       .filter(x => !state.settings.hideKeto || !x.rec.ketocal)
-      .filter(x => !q || x.fam.name.toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
+      .filter(x => !q || (x.rec.name + " " + x.fam.name).toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
       .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
       .map(x => Object.assign(x, { res: computeMealView(x.rec, d, null).res }))
       .sort((a, b) => { const fa = isFav(a.rec) ? 0 : 1, fb = isFav(b.rec) ? 0 : 1; if (fa !== fb) return fa - fb; return a.fam.name.localeCompare(b.fam.name, "de") || ((a.rec.ketocal ? 1 : 0) - (b.rec.ketocal ? 1 : 0)); });
@@ -4854,7 +4867,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const s = sumMacros(x.res.items), vol = volumeMl(x.res.items);
       const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5, ps = proteinState(s.eiweiss, d.eiweissMahl);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
-        '<span class="pick-name">' + escapeHtml(x.fam.name) + (isFav(x.rec) ? " ★" : "") + '</span>' +
+        '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
         '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + escapeHtml(basisLabel(x.rec)) : "") + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
           ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
@@ -4888,15 +4901,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const rows = [], groups = [];
     times.meals.forEach((t, i) => {
       const m = dm.meals[i], f = facts[i];
-      const w = m.rec ? "<span class='n'>" + escapeHtml(m.rec.name) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
-        : "<span class='n'>" + (m.bad ? escapeHtml(m.bad.name) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
+      const w = m.rec ? "<span class='n'>" + escapeHtml(displayText(m.rec)) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
+        : "<span class='n'>" + (m.bad ? escapeHtml(displayText(m.bad)) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
       rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span><span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span></div>" });
       if (!f) return;
       // gleiches Rezept mit gleichen Mengen nur einmal, mit allen Uhrzeiten
       const items = f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food));
       const sig = f.rec.name + "|" + items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
       const g = groups.find(x => x.sig === sig);
-      if (g) g.times.push(t); else groups.push({ sig, name: f.rec.name, items, times: [t] });
+      if (g) g.times.push(t); else groups.push({ sig, name: displayText(f.rec), items, times: [t] });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
@@ -5058,7 +5071,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
       items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
-        body: (m.rec ? m.rec.name + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
+        body: (m.rec ? displayText(m.rec) + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
       items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
@@ -5617,7 +5630,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const rx = "<p class='rx'><b>" + escapeHtml(basisLabel(rec)) + "</b>" + (rec.quelle ? " · Rezept der Diätologie" : "") + " · Verhältnis " + fmtRatio(r, 2) +
       " · " + fmt(sumPer.kcal, 0) + " kcal je Portion · Eiweiß " + fmt(sumPer.eiweiss) + " g (Ziel " + fmt(d.eiweissMahl) + " g) · Flüssigkeit ≈ " + fmt(fluidPer, 0) + " ml · Volumen ≈ " + fmt(volPer, 0) + " ml</p>";
     const warn = pState === "high" ? "<div class='box warn'>Eiweiß " + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + "-mal so hoch wie das Ziel – mit dem Team abklären.</div>" : "";
-    const title = rec.name;
+    const title = displayText(rec);
     const html = printDoc(title, escapeHtml(printDateLong()) + "<br>" + escapeHtml(portionLabel), rx + "<h2>Zutaten</h2>" + table + fill + warn + prep);
     openPrintView(html, title);
   }

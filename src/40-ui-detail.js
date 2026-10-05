@@ -291,7 +291,7 @@
     if (!mv.res.ok) {
       const cc = document.getElementById("detail-content");
       cc.innerHTML = '<div class="sheet-grip" aria-hidden="true"></div><div class="detail-head"><div class="dh-tags"><span class="ratio-pill bad">' +
-        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + escapeHtml(familyOf(rec)) + '</h2></div>' +
+        escapeHtml(fmtRxA(mv.res.ratio, 2)) + '</span></div><h2 class="title">' + displayHtml(rec) + '</h2></div>' +
         '<div class="pages"><section class="pane"><div class="pane-in"><div class="note warn">▲ Dieses Rezept lässt sich nicht auf die Verordnung (' +
         escapeHtml(fmtRx(d.ratio)) + ', ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit) einstellen. Bitte ein anderes Rezept wählen – die Mengen dieses Rezepts dürfen so nicht verwendet werden.</div></div></section></div>';
       return;
@@ -343,7 +343,7 @@
     let basisSeg = "";
     if (sibs.length) {
       basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">' + escapeHtml(basisLabel(rec)) + ' – dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
-        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch mit ' + escapeHtml(basisLabel(v)) + "</button>").join("") + "</div>";
+        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch als „' + escapeHtml(displayText(v)) + "“</button>").join("") + "</div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 3 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -520,7 +520,7 @@
       '<div class="sheet-grip" aria-hidden="true"></div>' +
       '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
         headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") + "</div>" +
-        '<h2 class="title">' + escapeHtml(familyOf(rec)) + "</h2></div>" +
+        '<h2 class="title">' + displayHtml(rec) + "</h2></div>" +
       pagerHead(DETAIL_PAGES, dtab, "detail-tabs") +
       '<div class="pages" id="detail-pages">' +
 
@@ -665,7 +665,7 @@
     actions.appendChild(favBtn);
     const del = c.querySelector("#del-btn");
     if (del) del.addEventListener("click", () => {
-      if (confirm("Eigenes Rezept „" + rec.name + "“ wirklich löschen?")) {
+      if (confirm("Eigenes Rezept „" + displayText(rec) + "“ wirklich löschen?")) {
         state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
         const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
         // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
@@ -701,7 +701,7 @@
     html += '<div class="today-sep">oder eine Mahlzeit ersetzen</div>';
     state.dayPlan.forEach((sl, i) => {
       const cur = recipeByKey(sl && sl.key), same = sl && sl.key === key;
-      html += opt(String(i), fmtHM(times.meals[i]) + " · Mahlzeit " + (i + 1) + (same ? " ✓" : ""), cur ? escapeHtml(cur.name) : "frei", same ? "same" : "");
+      html += opt(String(i), fmtHM(times.meals[i]) + " · Mahlzeit " + (i + 1) + (same ? " ✓" : ""), cur ? escapeHtml(displayText(cur)) : "frei", same ? "same" : "");
     });
     const sh = el("div", { class: "today-sheet", id: "today-sheet", role: "menu" }, html);
     const actions = document.getElementById("detail-actions");
@@ -713,7 +713,7 @@
       idx.forEach(i => { state.dayPlan[i] = { key }; });
       save(); closeTodaySheet(); renderRezepte();
       const what = v === "all" ? "für alle " + d.mahl + " Mahlzeiten" : v === "free" ? "für " + idx.length + " freie Mahlzeit" + (idx.length === 1 ? "" : "en") : "für Mahlzeit " + (idx[0] + 1) + " (" + fmtHM(times.meals[idx[0]]) + ")";
-      showToast(escapeHtml(familyOf(rec)) + " " + what + " übernommen", [
+      showToast(escapeHtml(displayText(rec)) + " " + what + " übernommen", [
         ["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }],
         ["Ansehen", () => { closeDetail(); showView("heute"); }],
       ]);

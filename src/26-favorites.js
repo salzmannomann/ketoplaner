@@ -7,6 +7,17 @@
   function recipeKey(rec) { return rec.custom ? rec.key : ("std:" + rec.name); }
   const FAMILY_STRIP_RE = / \(mit KetoCal\)|, mit KetoCal/g;
   function familyOf(rec) { return rec.custom ? rec.name : (rec.familie || rec.name.replace(FAMILY_STRIP_RE, "")); }
+  /* Anzeigename (nur Anzeige – Schlüssel bleiben die vollen Datennamen): Klammerzusätze „(mit KetoCal)“, „(Obstbrei)“ und
+     „(Obstbrei, mit KetoCal)“ fallen weg; enthält das Rezept KetoCal und steht „KetoCal“ nicht schon im Namen, folgt der
+     Zusatz „mit KetoCal“ – unabhängig davon, ob es ein Geschwisterrezept gibt. Sondennahrung wie „Compleat & KetoCal“
+     bleibt ohne Zusatz. */
+  function displayName(rec) {
+    const name = String(rec && rec.name || "").replace(/ \((?:Obstbrei, mit KetoCal|mit KetoCal|Obstbrei)\)/g, "").replace(/, mit KetoCal/g, "").trim();
+    return { name, suffix: rec && rec.ketocal && !/ketocal/i.test(name) ? "mit KetoCal" : "" };
+  }
+  // als Text („Rind & Karotte · mit KetoCal“) und als HTML (Zusatz klein und grau in .name-suffix)
+  function displayText(rec) { const dn = displayName(rec); return dn.name + (dn.suffix ? " · " + dn.suffix : ""); }
+  function displayHtml(rec) { const dn = displayName(rec); return escapeHtml(dn.name) + (dn.suffix ? '<span class="name-suffix"> · ' + escapeHtml(dn.suffix) + "</span>" : ""); }
   function familyKey(rec) { return rec.custom ? rec.key : ("fam:" + familyOf(rec)); }
   // Favoriten gelten je Rezept (Variante); ältere Favoriten je Gericht („fam:…“) zählen weiter.
   function isFav(rec) { return state.favorites.indexOf(recipeKey(rec)) !== -1 || state.favorites.indexOf(familyKey(rec)) !== -1; }

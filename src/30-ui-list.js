@@ -151,7 +151,8 @@
       if (hideKeto && rec.ketocal) return;
       const fav = isFav(rec);
       if (!fav && !matchesFilter(rec, filter)) return;
-      if (q && name.toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
+      // Suche findet Anzeige- und vollen Datennamen (also auch „ketocal“, „obstbrei“) und Zutaten
+      if (q && (rec.name + " " + name).toLowerCase().indexOf(q) === -1 && !hitItems(rec)) return;
       const res = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
       if (!res.ok) return;
       // Kachel zeigt die tatsächliche Mahlzeit (inkl. MCT-Mix, gemerktem Wasser) – wie Detail und Tagesplan.
