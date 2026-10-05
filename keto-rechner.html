@@ -65,214 +65,44 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Layout */
-
-/* Kopfleiste */
-.iconbtn {
-  display: inline-flex; align-items: center; gap: 6px;
-  border: 1px solid var(--line); background: #fff; color: var(--ink);
-  border-radius: 9px; padding: 7px 12px;
-  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.iconbtn:hover { background: var(--brand-soft); }
-.iconbtn.open { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-dark); }
-.iconbtn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
-.iconbtn.primary:hover { background: var(--brand-dark); }
-
-h1 { font-size: 26px; margin: 0 0 4px; }
-
-/* Cards */
-.card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
-  margin-bottom: 18px;
-}
-.card h3 { margin: 0 0 12px; font-size: 16px; }
-.hint { color: var(--muted); font-size: 14px; }
-.tip {
-  background: var(--brand-soft); color: var(--brand-dark);
-  border-radius: 9px; padding: 10px 14px; font-size: 14px; margin-top: 12px;
-}
-
-/* Forms */
-label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-input, select {
-  width: 100%; padding: 10px 11px; font-size: 16px;
-  border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink);
-}
-input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
-.grid { display: grid; gap: 14px; }
-
-.btn {
-  background: var(--brand); color: #fff; border: 0; cursor: pointer;
-  padding: 10px 16px; border-radius: 9px; font-size: 15px; font-weight: 600;
-}
-.btn:hover { background: var(--brand-dark); }
-.btn.secondary { background: #edf2f7; color: var(--ink); }
-.btn.secondary:hover { background: #e2e8f0; }
-.btn.ghost { background: transparent; color: var(--red); padding: 6px 10px; font-weight: 500; }
-.btn.ghost:hover { background: var(--red-bg); }
-.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-
-/* Tables */
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--line); }
-th:first-child, td:first-child { text-align: left; }
-th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
-tr.sum td { font-weight: 700; border-top: 2px solid var(--line); border-bottom: none; }
-tr.target td { color: var(--muted); }
-td select, td input { padding: 7px 9px; font-size: 14px; }
-.tbl-wrap { overflow-x: auto; }
-
-/* Status badges */
-.status {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 9px; font-weight: 600; font-size: 15px; margin-top: 14px;
-}
-.status.ok { background: var(--green-bg); color: var(--green); }
-.status.warn { background: var(--yellow-bg); color: var(--yellow); }
-.status.bad { background: var(--red-bg); color: var(--red); }
-.status.idle { background: #edf2f7; color: var(--muted); }
-
-/* Stat tiles */
-
-.empty { color: var(--muted); font-style: italic; padding: 8px 0; }
-
-.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-.toolbar input[type=search] { max-width: 280px; }
-.toolbar select { max-width: 200px; }
-
-/* Mobile */
-@media (max-width: 820px) {
-  h1 { font-size: 22px; }
-  .card { padding: 16px; }
-  .overlay { padding: 0; }
-}
-@media (max-width: 560px) {
-  .iconbtn .lbl { display: none; }
-  .iconbtn { padding: 7px 10px; font-size: 16px; }
-}
-
-.footnote { color: var(--muted); font-size: 13px; margin-top: 24px; }
-
-/* Einstellungen auf der Rezepte-Seite */
-.settings-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: end;
-}
-.settings-grid[hidden] { display: none; }
-
-/* Segmentierte Auswahl (KetoCal) */
-.segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; width: 100%; }
-.segmented button {
-  flex: 1; border: 0; background: #fff; color: var(--ink); padding: 9px 8px;
-  cursor: pointer; font-size: 14px; border-right: 1px solid var(--line);
-}
-.segmented button:last-child { border-right: 0; }
-.segmented button:hover { background: var(--bg); }
-.segmented button.active { background: var(--brand); color: #fff; font-weight: 600; }
-
-/* Eigenes Rezept (Composer) */
-
-/* Schnellfilter-Chips */
-/* Rezeptliste: eine Zeile – wischbare Gruppen-Chips + Lupe / Eigenes Rezept / Mehr; darunter sofort die Rezepte */
-.iconbtn.round { width: 38px; height: 38px; padding: 0; justify-content: center; border-radius: 999px; font-size: 17px; }
-.iconbtn.round.open { background: var(--brand-soft); border-color: var(--brand-soft); }
-
-/* Portions-Umschalter im Detail */
-.segmented.mini { display: inline-flex; width: auto; }
-.segmented.mini button { padding: 7px 14px; font-size: 13px; flex: 0 0 auto; }
-
-/* Fleisch-Tausch im Rezept */
-
-/* Rezept-Kacheln (Übersicht) */
-
-/* Detail-Overlay */
-.overlay {
-  position: fixed; inset: 0; background: rgba(16,24,40,.55);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 24px 16px; overflow-y: auto; z-index: 100;
-}
-.overlay[hidden] { display: none; }
-/* Overlay offen: Seite dahinter einfrieren (position: fixed wirkt auch auf iOS; top setzt das Skript auf −scrollY) */
-body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
-.overlay { overscroll-behavior: contain; }
-
-/* Koch-Modus: ✕ über dem Timer-Balken, Tabs volle Breite, Safe-Area unten */
-
-@keyframes ctflash { 0%,100% { filter: none; } 50% { filter: brightness(1.25); } }
-
-@media (max-width: 820px) {
-  .settings-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 520px) {
-  .settings-grid { grid-template-columns: 1fr; }
-  .segmented button { padding: 9px 4px; font-size: 13px; }
-}
-label.inline { display: inline; margin: 0; color: var(--ink); font-size: 14px; }
-
-/* ===== Neue Struktur: Tab-Leiste, Verordnungs-Chip, Ansichten ===== */
+/* ======================================================================
+   Grundlagen: Formulare, Knöpfe, Tabellen (Küchenzettel)
+   ====================================================================== */
+h1, h2, h3 { margin: 0; }
 .view[hidden] { display: none; }
-.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
-.settings-grid { border: 0; margin-bottom: 8px; }
-.card h3 .hint { font-weight: 400; font-size: 13px; }
-.file-btn { display: inline-flex; align-items: center; cursor: pointer; }
-textarea { width: 100%; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 9px; }
-
-/* Hinweis-Hierarchie: info (grau) · tip (grün) · warn (gelb) · stop (rot) */
-.note p { margin: 8px 0 0; }
-.collapsible summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
-.collapsible summary::-webkit-details-marker { display: none; }
-.collapsible summary::after { content: " ▸"; color: var(--muted); }
-.collapsible[open] summary::after { content: " ▾"; }
-.collapsible p { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
-details.note.collapsible { margin: 0 0 14px; }
-details.collapsible { margin: 8px 0; }
-
-/* Kacheln: schlanker */
-#ratio-hint { margin-top: 6px; font-size: 13px; }
-.inline-row { display: flex; align-items: center; gap: 10px; }
-.inline-row select { flex: 1; min-width: 0; }
-.inline-row .calc { white-space: nowrap; font-weight: 600; color: var(--green); }
-.inline-row input { flex: 1; min-width: 0; }
-.inline-row .ratio-suffix { font-size: 18px; color: var(--ink); }
-.werte-table td, .werte-table th { font-size: 13px; padding: 4px 6px; text-align: right; }
-.werte-table td:first-child, .werte-table th:first-child { text-align: left; }
-.werte-table .ovr { color: var(--yellow); font-weight: 600; }
-
-/* ===== Detailansicht mit drei Reitern: Kochen / Abfüllen / Rechnen ===== */
-.linkbtn { background: none; border: 0; color: var(--brand-dark); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0 4px; }
-.btn-row.actions { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
-
-/* ===== Heute: Tagesplan ===== */
-/* Verordnungs-Chip (zweizeilig): am Handy als eigene Zeile unter dem Logo, mit Umbruch; am Desktop feste Kopfhöhe */
-/* Kein Querscrollen am Handy: Segment-Schalter in den Vorgaben füllen die Breite und brechen um, statt abgeschnitten zu werden */
-@media (max-width: 560px) {
-  html, body { overflow-x: hidden; }
-  .overlay { overflow-x: hidden; }
-  .preset-row .segmented.mini { display: flex; flex-wrap: wrap; width: 100%; }
-  .preset-row .segmented.mini button {
-    flex: 1 1 auto; white-space: normal; line-height: 1.25; padding: 8px 8px;
-    border-bottom: 1px solid var(--line); margin-bottom: -1px; margin-right: -1px;
-  }
-  #wasser-modus-ctl button { flex-basis: 100%; text-align: left; }
-  #mct-share-ctl button { padding: 8px 4px; }
-}
-/* Vorgaben: unter jedem Feld ist eine feste Zeile für den Zurücksetzen-Link reserviert – die Höhe bleibt
-   immer gleich, egal ob ein Link gerade sichtbar ist. Beschriftungen bleiben unverändert. */
-.settings-grid > div { position: relative; padding-bottom: 20px; }
-.reset-line { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; }
-.reset-line .linkbtn { font-size: 12px; padding: 0; }
-.reset-line .linkbtn[hidden] { display: none; }
-input:disabled { background: var(--bg); color: var(--muted); }
-#verordnung-summary #ratio-hint { margin: 0 0 8px; }
-/* Rechnen: Gramm je Portion editierbar (kompakt, damit die Tabelle am Handy nicht breiter wird); feste Statuszeile */
-.g-edit { width: 62px; font-size: 14px; padding: 4px 5px; }
-/* Detailansicht kompakter: Kopfzeile in einer Reihe, klebende Reiter, dichte Kacheln, kleine Hinweise in Tabellen */
-.collapsible.mini summary { font-size: 12px; color: var(--muted); font-weight: 500; }
-.collapsible.mini p { font-size: 12px; }
+.hint { font-size: 13px; line-height: 1.45; color: var(--grey); }
+label { display: block; margin: 0; font-size: 14px; color: var(--grey); }
+input, select, textarea { font-family: var(--f-sans); color: var(--ink); }
+input:disabled, select:disabled { opacity: .5; }
+/* Felder als Unterstrich (Zahlen rechtsbündig in Mono); Fokus: Unterstrich blau */
+.num-input, .line-select, .line-date, .line-input { min-height: 40px; padding: 0 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); }
+.num-input { width: 96px; font: 600 17px var(--f-mono); text-align: right; -moz-appearance: textfield; appearance: textfield; }
+.num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.line-select { max-width: 100%; padding-right: 18px; font: 600 15px var(--f-sans); -webkit-appearance: none; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 7px top 55%, right 2px top 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+.line-date { font: 600 15px var(--f-mono); -webkit-appearance: none; appearance: none; text-align: right; }
+.num-input:focus, .line-select:focus, .line-date:focus, .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
+.num-input::placeholder { color: var(--grey); font-weight: 500; }
+textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: transparent; font: 12px/1.4 var(--f-mono); }
+/* Knöpfe: Primär = Tinte-Fläche, „outline“ = 1,5-px-Rahmen */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; padding: 0 16px; border: 0; border-radius: 8px;
+  background: var(--ink); color: var(--paper); font: 600 15px var(--f-sans); cursor: pointer; white-space: nowrap; }
+.btn.outline, .btn.secondary { border: 1.5px solid var(--ink); background: transparent; color: var(--ink); }
+.btn.outline:hover, .btn.secondary:hover { background: var(--paper-2); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.file-btn { cursor: pointer; }
+/* Tabellen (Werte prüfen) */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 6px 6px; text-align: right; border-bottom: 1px dotted var(--dot); }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 400; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--grey); border-bottom: 2px solid var(--ink); }
+td { font-family: var(--f-mono); font-size: 12px; }
+td:first-child { font-family: var(--f-sans); font-size: 13px; }
+.tbl-wrap { overflow-x: auto; }
+.empty { color: var(--grey); font-style: italic; padding: 8px 0; }
+@media (max-width: 560px) { html, body { overflow-x: hidden; } }
 /* Rezept-Zeilen statt Karten: eine Zeile je Gericht, am Desktop zwei Spalten */
 /* Detailansicht als sechs Blätter: Desktop = Reiter; Handy = Blätter nebeneinander, seitlich wischen, feste Kopf- und Fußzeile */
 /* Kopf der Detailansicht kompakt (zwei Zeilen); Seiten wie im Rezeptbuch: Punkte + Seitenzahl, nächste Seite schaut rechts herein */
@@ -282,37 +112,9 @@ input:disabled { background: var(--bg); color: var(--muted); }
 /* Rezeptbuch-Optik am Handy: hinter der Seite schauen unten rechts zwei weitere Kartenränder hervor (Stapel);
    auf der letzten Seite ist der Stapel weg. Dazu „Seite 3 von 6“ in normaler Schrift. */
 /* Quelle des Werts unter Vorschlags-Feldern: grün mit Haken = Vorschlag aktiv, grau = eigener Wert */
-.reset-line { display: flex; align-items: center; gap: 8px; }
-.reset-line .src { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.reset-line .src.auto { color: var(--green); font-weight: 600; }
 /* Vorgaben kompakt: am Handy zwei Felder je Reihe, dichtere Karten, kürzere Statuszeilen */
-@media (max-width: 560px) {
-  #view-vorgaben .card { padding: 12px 12px 10px; margin-bottom: 10px; }
-  #view-vorgaben .card h3 { font-size: 16px; margin: 0 0 8px; }
-  #view-vorgaben .card h3 .hint { font-size: 12px; }
-  #view-vorgaben .settings-grid { grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-bottom: 4px; }
-  #view-vorgaben .settings-grid > div { padding-bottom: 18px; }
-  #view-vorgaben .settings-grid > div.wide { grid-column: span 2; }
-  #view-vorgaben label .lh { display: none; }
-  #view-vorgaben label { font-size: 13px; margin-bottom: 3px; }
-  #view-vorgaben input, #view-vorgaben select { padding: 8px 10px; font-size: 16px; }
-  #view-vorgaben .reset-line { height: 16px; line-height: 16px; }
-  #view-vorgaben .reset-line .src { font-size: 11px; }
-  #view-vorgaben .reset-line .linkbtn { font-size: 11px; }
-  #view-vorgaben .preset-row { margin: 0 0 8px; gap: 6px 10px; }
-  #view-vorgaben .preset-row .segmented.mini button { padding: 7px 6px; font-size: 12.5px; }
-  #view-vorgaben .note { padding: 8px 10px; font-size: 12.5px; margin: 6px 0; line-height: 1.4; }
-  #view-vorgaben details.collapsible { margin: 4px 0 0; }
-  #view-vorgaben .collapsible.mini summary { font-size: 12px; }
-  #view-vorgaben .btn-row { gap: 6px; }
-}
 /* Eingabe und Auswahl gleich hoch (select ist sonst 1 px höher) */
-#view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select { height: 42px; }
-@media (max-width: 560px) { #view-vorgaben .settings-grid { align-items: end; } #view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select { height: 38px; } }
 /* Rezeptleiste am Desktop: alle Gruppen in einer Zeile (schmalere Chips), Knöpfe oben ausgerichtet */
-@media (min-width: 821px) {
-  .iconbtn.round { width: 34px; height: 34px; font-size: 15px; }
-}
 /* Blatt „Zubereiten & Abfüllen“: Abfüll-Block kompakt unter den Schritten, Öl-Zeilen mit eigener Kopfzeile */
 /* „Eigenes Rezept“: klares Plus statt Reagenzglas (sah wie ein Stift/Bearbeiten aus) */
 #compose-btn { font-size: 22px; font-weight: 700; line-height: 1; }
@@ -336,15 +138,11 @@ input:disabled { background: var(--bg); color: var(--muted); }
   color-scheme: dark;
   }
   :root:not([data-theme="light"]) body { background: var(--bg); }
-  :root:not([data-theme="light"]) .iconbtn, :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea, :root:not([data-theme="light"]) .segmented button { background: var(--panel); color: var(--ink); }
-  :root:not([data-theme="light"]) .iconbtn.primary, :root:not([data-theme="light"]) .btn { color: #fff; }
-  :root:not([data-theme="light"]) .btn:hover, :root:not([data-theme="light"]) .iconbtn.primary:hover { background: #3a9a68; }
+   :root:not([data-theme="light"]) .slot, :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea { background: var(--panel); color: var(--ink); }
+   :root:not([data-theme="light"]) .btn { color: #fff; }
+  :root:not([data-theme="light"]) .btn:hover { background: #3a9a68; }
   :root:not([data-theme="light"]) .btn.secondary { background: #26322c; color: var(--ink); }
   :root:not([data-theme="light"]) .btn.secondary:hover { background: #30403a; }
-  :root:not([data-theme="light"]) .iconbtn.round.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
-  :root:not([data-theme="light"]) .iconbtn.round.open, :root:not([data-theme="light"]) .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
-  :root:not([data-theme="light"]) .segmented button.active { background: var(--brand); color: #fff; }
-  :root:not([data-theme="light"]) .segmented button:hover { background: var(--brand-soft); }
   :root:not([data-theme="light"]) .note.info { border-left-color: #4a5a52; color: var(--muted); }
   :root:not([data-theme="light"]) .note.warn { color: #f0cf8a; }
   :root:not([data-theme="light"]) .status.idle { background: #26322c; color: var(--muted); }
@@ -359,15 +157,11 @@ input:disabled { background: var(--bg); color: var(--muted); }
   color-scheme: dark;
 }
 [data-theme="dark"] body { background: var(--bg); }
-[data-theme="dark"] .iconbtn, [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea, [data-theme="dark"] .segmented button { background: var(--panel); color: var(--ink); }
-[data-theme="dark"] .iconbtn.primary, [data-theme="dark"] .btn { color: #fff; }
-[data-theme="dark"] .btn:hover, [data-theme="dark"] .iconbtn.primary:hover { background: #3a9a68; }
+ [data-theme="dark"] .slot, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { background: var(--panel); color: var(--ink); }
+ [data-theme="dark"] .btn { color: #fff; }
+[data-theme="dark"] .btn:hover { background: #3a9a68; }
 [data-theme="dark"] .btn.secondary { background: #26322c; color: var(--ink); }
 [data-theme="dark"] .btn.secondary:hover { background: #30403a; }
-[data-theme="dark"] .iconbtn.round.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
-[data-theme="dark"] .iconbtn.round.open, [data-theme="dark"] .iconbtn.open { background: var(--brand-soft); color: var(--brand-dark); border-color: var(--brand-soft); }
-[data-theme="dark"] .segmented button.active { background: var(--brand); color: #fff; }
-[data-theme="dark"] .segmented button:hover { background: var(--brand-soft); }
 [data-theme="dark"] .note.info { border-left-color: #4a5a52; color: var(--muted); }
 [data-theme="dark"] .note.warn { color: #f0cf8a; }
 [data-theme="dark"] .status.idle { background: #26322c; color: var(--muted); }
@@ -393,9 +187,6 @@ input:disabled { background: var(--bg); color: var(--muted); }
 
 /* Heute auf einen Bildschirm: niedrige Kachelreihe, dichte Zeitleiste, kurze Hinweise; Haftungstext am Handy nur
    auf den anderen Reitern (er steht auch im Ausdruck und unter Rezepte/Vorgaben). */
-@media (max-width: 820px) {
-  body[data-view="heute"] .footnote { display: none; }
-}
 /* Zweite Zeile einer Mahlzeit (Öl, Eiweiß) darf umbrechen statt abgeschnitten zu werden – Mengen nie verstecken */
 /* Menge und Sondierdauer rechts übereinander (kostet keine Breite) */
 
@@ -436,9 +227,6 @@ input:disabled { background: var(--bg); color: var(--muted); }
 /* Zutaten (+ Öl) je Mahlzeit: immer, als eigene Zeile über die ganze Breite, eingerückt bis zum Rezeptnamen */
 
 /* Mahlzeiten pro Tag: Auswahl 3 · 4 · 5, so hoch wie die Eingabefelder daneben */
-#view-vorgaben .mahl-seg { display: flex; width: 100%; height: 40px; }
-#view-vorgaben .mahl-seg button { padding: 0 6px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-#view-vorgaben .mahl-seg button { min-height: 0; }
 
 /* Knappste Stufe (5 Mahlzeiten im Browser u. ä.): alles etwas enger, damit die Zutaten ohne Scrollen Platz haben */
 /* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
@@ -453,106 +241,19 @@ input:disabled { background: var(--bg); color: var(--muted); }
 /* Kopf-Pille darf schrumpfen (sonst ragt sie bei 320 px aus dem Bild); Logo-Schrift auf sehr schmalen Handys kleiner */
 
 /* Erinnerungen (Vorgaben) */
-.push-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
-.push-act .push-lead { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--muted); }
-.push-act .push-lead select { width: auto; height: 38px; padding: 4px 8px; }
-.push-url-lbl { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--muted); }
-.push-url-lbl input { font-size: 14px; }
-.push-opts label.check { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: 14px; color: var(--ink); }
-.push-opts label.check input { width: 18px; height: 18px; min-width: 18px; margin: 0; padding: 0; }
 #push-toggle:disabled { opacity: .45; cursor: not-allowed; }
 /* Geräte abgleichen (Vorgaben) */
-.sync-join { margin-top: 10px; }
-.sync-join-in { display: flex; gap: 8px; }
-.sync-join-in input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .08em; font-size: 15px; }
-.sync-join-in .btn { white-space: nowrap; }
-.sync-code-box .sync-code { font-size: 22px; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
 
 /* Bedarf schätzen (Vorgaben) */
-.bd-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 8px; margin: 6px 0 8px; align-items: start; }
-@media (min-width: 700px) { .bd-row { grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); } }
 /* iOS: Datumsfeld hat sonst eine eigene Mindestbreite, ragt aus der Spalte und zentriert den Text */
-#view-vorgaben .bd-row input[type=date] { -webkit-appearance: none; appearance: none; display: block; max-width: 100%; text-align: left; }
-.bd-row input[type=date]::-webkit-date-and-time-value { text-align: left; }
-#view-vorgaben .bd-row label { display: flex; flex-direction: column; gap: 3px; margin: 0; font-size: 12.5px; color: var(--muted); min-width: 0; position: relative; }
-.bd-row .bd-age { position: absolute; right: 2px; top: 0; font-size: 11.5px; line-height: 1.45; color: var(--brand-dark); font-weight: 600; }
-#view-vorgaben .bd-row input, #view-vorgaben .bd-row select { height: 38px; font-size: 14.5px; padding: 4px 6px; width: 100%; min-width: 0; }
-.bd-one { font-size: 13px; line-height: 1.4; margin: 8px 0 0; }
-.bd-one .ok { color: var(--green); font-weight: 600; }
-.bd-one .warn-t { color: var(--yellow); font-weight: 600; }
-.bd-gain-row { margin-top: 8px; }
-.bd-main { background: var(--bg); border-radius: 10px; padding: 8px 11px 9px; margin: 4px 0 6px; }
-.bd-scale { position: relative; height: 82px; margin: 0 2px; }
-.bd-scale .axis { position: absolute; left: 0; right: 0; top: 33px; height: 6px; border-radius: 3px; background: var(--line); }
-.bd-scale .band { position: absolute; top: 28px; height: 16px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 24%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); box-sizing: border-box; }
-.bd-scale .mk { position: absolute; width: 2px; margin-left: -1px; background: var(--muted); }
-.bd-scale .mk.ref { top: 26px; height: 20px; }
-.bd-scale .mk.krick { top: 20px; height: 26px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--brand); }
-.bd-scale .lab { position: absolute; font-size: 11px; line-height: 1.2; white-space: nowrap; color: var(--muted); text-align: center; }
-.bd-scale .lab b { font-size: 12.5px; color: var(--ink); }
-.bd-scale .lab.below { top: 49px; }
-.bd-scale .lab.below b { display: block; }
-.bd-scale .lab.above { top: 0; font-size: 12px; font-weight: 600; }
-.bd-scale .lab.krick, .bd-scale .lab.krick b { color: var(--brand-dark); }
-.bd-scale .lab.krick b { font-size: 14px; }
-.bd-legend { list-style: none; margin: 2px 0 6px; padding: 0; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
-.bd-legend li { position: relative; padding-left: 17px; margin-top: 4px; }
-.bd-legend li b { color: var(--ink); font-weight: 600; }
-.bd-legend .sw { position: absolute; left: 0; top: 4px; width: 11px; height: 9px; border-radius: 3px; background: var(--muted); }
-.bd-legend .sw.krick { background: var(--brand); }
-.bd-legend .sw.band { background: color-mix(in srgb, var(--accent) 24%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); box-sizing: border-box; }
-.bd-legend .sw.ref { width: 3px; left: 4px; height: 11px; top: 3px; border-radius: 1px; }
-.bd-main .bd-s.bd-m { font-size: 12px; line-height: 1.35; color: var(--muted); }
-.bd-one small { color: var(--muted); }
 
 /* Vorgaben am Desktop: Verordnung über die ganze Breite, darunter zwei Spalten (links Ernährung, rechts Küche und App).
    In den halb so breiten Karten stehen Eingabefelder zu zweit nebeneinander. */
-@media (min-width: 1080px) {
-  .vg-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
-  .vg-col > .card:last-child { margin-bottom: 0; }
-  .vg-col .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .vg-col .bd-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-}
 
 /* Vorgaben in der Sprache von Heute und Rezepte: grüne Abschnitts-Überschrift mit feiner Linie auf dem grauen Grund
    (wie „🍗 Geflügel“), darunter der Inhalt in einem schlanken weißen Feld (wie Zeitleiste und Rezept-Kacheln). */
-#view-vorgaben .card { background: transparent; border: 0; box-shadow: none; padding: 0; margin-bottom: 20px; }
-#view-vorgaben .card > h3 {
-  font-size: 16px; font-weight: 700; color: var(--brand-dark); margin: 0 0 10px;
-  padding-bottom: 6px; border-bottom: 2px solid var(--brand-soft); line-height: 1.3;
-}
-#view-vorgaben .card > h3 .hint { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-#view-vorgaben .vg-body { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px 12px; }
-#view-vorgaben .vg-body > :first-child { margin-top: 0; }
-#view-vorgaben .vg-body > :last-child { margin-bottom: 0; }
-#view-vorgaben .vg-body .note { font-size: 13px; padding: 8px 11px; line-height: 1.45; border-radius: 9px; }
-#view-vorgaben .vg-body details.collapsible > summary { font-size: 12.5px; }
-@media (max-width: 560px) {
-  #view-vorgaben .card { padding: 0; margin-bottom: 16px; }
-  #view-vorgaben .card > h3 { font-size: 15.5px; margin-bottom: 8px; padding-bottom: 5px; }
-  #view-vorgaben .card > h3 .hint { font-size: 12px; }
-  #view-vorgaben .vg-body { padding: 11px 12px 10px; }
-  #view-vorgaben .vg-body .note { font-size: 12.5px; padding: 7px 10px; }
-}
 /* Vorgaben: alle Bedienelemente gleich groß – Felder, Auswahllisten, Umschalter und Knöpfe 40 px hoch.
    Eingaben 16 px (am iPhone kein Hineinzoomen), Knöpfe 14,5 px, Umschalter 13,5 px. */
-#view-vorgaben input:not([type=checkbox]):not([type=radio]), #view-vorgaben select,
-#view-vorgaben .settings-grid input, #view-vorgaben .settings-grid select,
-#view-vorgaben .bd-row input, #view-vorgaben .bd-row select { height: 40px; font-size: 16px; padding-top: 0; padding-bottom: 0; }
-#view-vorgaben .bd-row input, #view-vorgaben .bd-row select { padding-left: 8px; padding-right: 6px; }
-#view-vorgaben .segmented button, #view-vorgaben .preset-row .segmented.mini button {
-  min-height: 38px; padding: 4px 12px; font-size: 13.5px; line-height: 1.25;
-}
-#view-vorgaben #mahlzeiten-ctl button { font-size: 15px; font-weight: 600; }
-#view-vorgaben .btn, #view-vorgaben .btn.file-btn {
-  height: 40px; padding: 0 16px; font-size: 14.5px; line-height: 1;
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
-}
-#view-vorgaben .btn[hidden] { display: none; }
-@media (max-width: 560px) {
-  #view-vorgaben .segmented button, #view-vorgaben .preset-row .segmented.mini button { padding: 4px 8px; }
-  #view-vorgaben #mct-share-ctl button { padding: 4px 4px; }
-}
 /* Vorgaben neu gegliedert ------------------------------------------------ */
 /* Verordnung am Desktop: 3 × 2 statt 4 + 2 Felder – oben Verhältnis, Mahlzeiten, Gewicht; unten Kalorien, mindestens, Eiweiß */
 @media (min-width: 821px) {
@@ -562,41 +263,14 @@ input:disabled { background: var(--bg); color: var(--muted); }
   #verordnung-grid #eiweiss-manual { order: 7; grid-column: 3; }
 }
 /* Kennzahl-Kacheln statt langer Zusammenfassungs-Sätze */
-.vg-sum { margin: 6px 0 2px; }
-.vg-sum .note { margin: 0 0 8px; }
-.vg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
-.vg-fact { background: var(--green-bg); border-radius: 10px; padding: 8px 11px 9px; min-width: 0; }
-.vg-fact small { display: block; font-size: 12px; color: var(--muted); line-height: 1.3; }
-.vg-fact b { display: block; font-size: 19px; line-height: 1.3; color: var(--brand-dark); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.vg-fact span { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.3; }
-.vg-more { font-size: 12.5px; color: var(--muted); margin: 7px 2px 0; line-height: 1.4; }
 /* Umschalter wie Eingabefelder beschriften: Bezeichnung grau darüber, Gruppe über die ganze Breite */
-#view-vorgaben .preset-row { display: block; margin: 0 0 14px; }
-#view-vorgaben .preset-row .segmented.mini { display: flex; flex-wrap: nowrap; width: 100%; }
-#view-vorgaben .preset-row .segmented.mini button { flex: 1 1 auto; white-space: normal; margin: 0; border-bottom: 0; }
-#view-vorgaben .preset-row + .settings-grid { margin-top: 0; }
-#view-vorgaben #mct-zero-hint { margin: -6px 0 2px; }
 /* Küche: Erklärung neben dem Feld statt leerer Fläche */
-#view-vorgaben .field-hint { align-self: center; margin: 0 0 20px; font-size: 12.5px; color: var(--muted); line-height: 1.45; grid-column: 2 / -1; }
 /* Abgleich: „Code von einem anderen Gerät“ abgesetzt */
-#view-vorgaben .sync-join { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
-#view-vorgaben .sync-join .push-url-lbl { font-size: 13.5px; }
 
 @media (max-width: 560px) {
-  #view-vorgaben .preset-row { margin: 0 0 10px; }
-  #view-vorgaben .preset-row .segmented.mini button { padding: 2px 6px; line-height: 1.2; }
-  #wasser-modus-ctl button, #view-vorgaben #wasser-modus-ctl button { flex-basis: 50%; text-align: center; }
-  #view-vorgaben .field-hint { margin-bottom: 18px; font-size: 12px; }
-  .vg-fact { padding: 7px 10px 8px; }
-  .vg-fact b { font-size: 17px; }
-  #view-vorgaben .btn-row .btn { flex: 1 1 auto; }
+  #wasser-modus-ctl button { flex-basis: 50%; text-align: center; }
 }
-#mct-more .settings-grid { margin-bottom: 0; }
-#mct-more .settings-grid > div { padding-bottom: 10px; }
 /* Erinnerungen: Zeitpunkt und Knöpfe nebeneinander */
-.push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 4px 0 2px; }
-.push-act .btn-row { margin: 0; }
-@media (max-width: 560px) { .push-act .btn-row { flex: 1 1 100%; } }
 
 /* ======================================================================
    Küchenzettel – Grundbausteine (Textlink, Hinweiszeile, Fokus)
@@ -870,7 +544,6 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 .note { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; font-size: 13px; line-height: 1.45; color: var(--grey); text-wrap: pretty; }
 .note.warn { padding: 10px 12px; border-radius: 6px; background: var(--red-bg); color: var(--red); }
 .note strong { color: inherit; }
-.warn-txt { color: var(--red); }
 .portion-line { font-size: 12px; line-height: 1.45; color: var(--grey); }
 .portion-line strong { color: var(--ink); font-weight: 600; }
 .portion-line .tlink { min-height: 32px; vertical-align: middle; margin: -8px 0; }
@@ -987,6 +660,111 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 .toast-btn.pill { padding: 0 12px; background: var(--paper); color: var(--ink); text-decoration: none; }
 body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
 
+/* ======================================================================
+   Vorgaben: Liste mit Unterseiten
+   ====================================================================== */
+#view-vorgaben { display: flex; flex-direction: column; }
+#view-vorgaben[hidden] { display: none; }
+.vg-list { display: flex; flex-direction: column; }
+.vg-list[hidden], .vg-page[hidden] { display: none; }
+.vg-group { padding: 18px 0 8px; border-bottom: 1px solid var(--ink); }
+.vg-group:first-child { padding-top: 6px; }
+.vg-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; margin: 0; padding: 10px 0; border: 0; border-bottom: 1px dotted var(--dot); border-radius: 0;
+  background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.vg-row:hover .vg-name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.vg-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.vg-name { font: 600 19px/1.2 var(--f-serif); }
+.vg-row .vg-sum { font-family: var(--f-mono); font-size: 12px; color: var(--grey); }
+.chev { flex: none; font: 400 22px/1 var(--f-sans); color: var(--ink); }
+/* Unterseite: „‹ Vorgaben“, Überlinie + Titel (Serif 32) mit 2-px-Linie, rechts „Bearbeiten“ */
+body.vg-sub .topbar { display: none; }
+body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top)); }
+.vg-page { display: flex; flex-direction: column; gap: 14px; }
+.vg-back { align-self: flex-start; margin: 0 0 0 -6px; font-size: 15px; text-decoration: none; }
+.vg-back:hover { text-decoration: underline; }
+.vg-head { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); margin-top: -4px; }
+.vg-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.vg-title h2 { font: 600 32px/1.05 var(--f-serif); }
+.vg-head .tlink { margin-bottom: -8px; }
+.vg-head .tlink[hidden] { display: none; }
+/* Zeilen: Bezeichnung + Herkunft links, Wert bzw. Feld rechts */
+.vo-view, .vo-editbox, .vo-rows, .bd-row { display: flex; flex-direction: column; margin-top: -14px; }
+.vo-view[hidden], .vo-editbox[hidden], .vo-row[hidden] { display: none; }
+.vo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 10px 0; border-bottom: 1px dotted var(--dot); margin: 0; }
+.vo-lbl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--ink); }
+.vo-lbl label, .vo-lbl > span:first-child { font-size: 15px; color: var(--ink); }
+.vo-lbl .src, .reset-line .src { font-size: 11.5px; line-height: 1.3; color: var(--grey); }
+.reset-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; }
+.reset-line .tlink { min-height: 28px; font-size: 12px; margin: -4px 0; }
+.vo-val { flex: none; font: 600 17px var(--f-mono); white-space: nowrap; }
+.vo-in { flex: none; display: flex; align-items: center; gap: 8px; }
+.vo-in .unit { min-width: 30px; font: 500 13px var(--f-mono); color: var(--grey); }
+.mahl-seg button { min-width: 40px; font-family: var(--f-mono); }
+.btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 14px; }
+.btn-pair .btn { min-height: 48px; }
+:root .btn-pair .btn.primary { flex: none; }
+/* Abgeleitete Kennzahlen (Verordnung, Flüssigkeit) */
+.vg-sum .note { margin: 0 0 8px; }
+.vg-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+.vg-fact { min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 8px 0; border-bottom: 1px dotted var(--dot); background: none; border-radius: 0; }
+.vg-fact small { font-size: 12px; color: var(--grey); }
+.vg-fact b { font: 600 17px/1.3 var(--f-mono); color: var(--ink); white-space: nowrap; }
+.vg-fact span { font-size: 12px; color: var(--grey); }
+.vg-more { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--grey); }
+/* Felder mit Überlinie + Segment, Abschnitte auf der Seite „Erinnerungen und Daten“ */
+.vg-field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.vg-field .hint { margin: 0; }
+.vg-stack { display: flex; flex-direction: column; gap: 14px; }
+.vg-stack[hidden] { display: none; }
+.vg-page details.more p { margin: 6px 0 0; }
+.vg-sec { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.vg-sec-title { display: flex; align-items: baseline; gap: 8px; padding: 10px 0 6px; border-bottom: 2px solid var(--ink); font: 600 21px/1.15 var(--f-serif); }
+.vg-sec-title .hint { font-family: var(--f-sans); font-size: 12px; }
+/* Erinnerungen */
+.push-opts { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.check { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 15px; color: var(--ink); cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+.push-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.push-lead { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--grey); }
+.push-url-lbl { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--grey); }
+.push-act .btn-row .btn.primary, .vg-sec .btn-row .btn.primary { flex: none; }
+/* Geräte abgleichen */
+.sync-code-box .sync-code { font: 600 22px var(--f-mono); letter-spacing: .08em; color: var(--ink); }
+.sync-join { padding-top: 10px; border-top: 1px dotted var(--dot); }
+.sync-join-in { display: flex; align-items: center; gap: 10px; }
+.sync-join-in .line-input { flex: 1; min-width: 0; font: 600 16px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
+.btn-row [hidden] { display: none; }
+/* Bedarf schätzen: Skala mit drei Einordnungen (Linien statt Farbe) */
+.bd-row label.vo-row { cursor: pointer; }
+.bd-age { font-family: var(--f-mono); }
+.bd-main { display: flex; flex-direction: column; gap: 10px; }
+.bd-scale { position: relative; height: 62px; margin: 22px 0 6px; }
+.bd-scale .axis { position: absolute; left: 0; right: 0; top: 50%; height: 0; border-top: 1px dotted var(--dot); }
+.bd-scale .band { position: absolute; top: calc(50% - 7px); height: 14px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper-2); }
+.bd-scale .mk { position: absolute; top: calc(50% - 12px); width: 0; height: 24px; border-left: 1.5px solid var(--grey); }
+.bd-scale .mk.krick { border-left: 3px solid var(--ink); margin-left: -1px; }
+.bd-scale .lab { position: absolute; display: flex; flex-direction: column; align-items: inherit; font-size: 11px; line-height: 1.25; color: var(--grey); white-space: nowrap; text-align: center; }
+.bd-scale .lab b { font: 600 12px var(--f-mono); color: var(--ink); }
+.bd-scale .lab.below { top: calc(50% + 14px); }
+.bd-scale .lab.above { bottom: calc(50% + 14px); flex-direction: row; gap: 4px; align-items: baseline; color: var(--ink); font-weight: 600; }
+.bd-legend { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; line-height: 1.45; color: var(--grey); }
+.bd-legend li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; }
+.bd-legend b { color: var(--ink); font-weight: 600; }
+.bd-legend .sw { display: inline-block; width: 14px; margin-top: 4px; }
+.bd-legend .sw.krick { height: 12px; border-left: 3px solid var(--ink); width: 0; margin-left: 5px; }
+.bd-legend .sw.band { height: 10px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper-2); }
+.bd-legend .sw.ref { height: 12px; border-left: 1.5px solid var(--grey); width: 0; margin-left: 6px; }
+.bd-s { font-size: 12px; line-height: 1.45; color: var(--grey); }
+.bd-one { margin: 0; font-size: 13px; color: var(--grey); }
+.bd-one .ok { color: var(--green); font-weight: 600; }
+.bd-one .warn-t { color: var(--red); font-weight: 600; }
+#bd-gain button { font-size: 13px; padding: 0 10px; }
+/* Haftungshinweis: auf der Vorgaben-Liste und unter Rezepte; nicht auf Heute und auf Unterseiten */
+.footnote { margin: 24px 0 0; font-size: 12px; line-height: 1.5; color: var(--grey); }
+body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
+@media (max-width: 380px) { .num-input { width: 80px; } .vg-title h2 { font-size: 28px; } }
+.vg-sec-title .hint { font-weight: 400; }
+
 </style>
 </head>
 <body>
@@ -1035,74 +813,84 @@ body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
 
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
-      <div class="card">
-        <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
-        <div class="vg-body">
-        <div class="settings-grid" id="verordnung-grid">
-          <div id="vo-ratio">
-            <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
-            <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
+      <!-- Liste: Gruppen „Ernährung“ und „App“, jede Zeile öffnet eine Unterseite -->
+      <div id="vg-list" class="vg-list">
+        <div class="overline vg-group">Ernährung</div>
+        <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="fluessigkeit"><span class="vg-txt"><span class="vg-name">Flüssigkeit</span><span class="vg-sum" id="vgs-fluessigkeit"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="oel"><span class="vg-txt"><span class="vg-name">Öl und MCT</span><span class="vg-sum" id="vgs-oel"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <div class="overline vg-group">App</div>
+        <button type="button" class="vg-row" data-vg="kueche"><span class="vg-txt"><span class="vg-name">Küche</span><span class="vg-sum" id="vgs-kueche"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="app"><span class="vg-txt"><span class="vg-name">Erinnerungen und Daten</span><span class="vg-sum" id="vgs-app"></span></span><span class="chev" aria-hidden="true">›</span></button>
+      </div>
+
+      <!-- Unterseite Verordnung: Ansicht gesperrt, „Bearbeiten“ öffnet die Felder (Abbrechen / Speichern) -->
+      <div class="vg-page" data-vgpage="verordnung" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><span class="overline">Vom Behandlungsteam</span><h2>Verordnung</h2></div><button type="button" class="tlink" id="vo-edit">Bearbeiten</button></div>
+        <div id="vo-view" class="vo-view"></div>
+        <div id="vo-editbox" class="vo-editbox" hidden>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-ratio">Verhältnis (Fett : Eiweiß + KH)</label><span class="src">Verordnung</span></div>
+            <div class="vo-in"><input id="set-ratio" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,8" /><span class="unit ratio-suffix">: 1</span></div>
           </div>
-          <div id="vo-mahl">
-            <label>Mahlzeiten pro Tag</label>
-            <div class="segmented mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
+          <div class="vo-row">
+            <div class="vo-lbl"><label>Mahlzeiten pro Tag</label></div>
+            <div class="seg-ink mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
               <button type="button" data-mahl="3">3</button><button type="button" data-mahl="4">4</button><button type="button" data-mahl="5">5</button>
             </div>
           </div>
-          <div id="vo-kcal">
-            <label>Kalorien pro Tag (Ziel)</label>
-            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-weight">Körpergewicht</label><span class="src">zuletzt gewogen</span></div>
+            <div class="vo-in"><input id="set-weight" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="8,5" /><span class="unit">kg</span></div>
           </div>
-          <div id="vo-kcalmin">
-            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
-            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-kcal">Kalorien pro Tag</label><div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="tlink" id="reset-kcal" data-reset="kcal" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-kcal" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
           </div>
-          <div id="vo-weight">
-            <label>Körpergewicht (kg)</label>
-            <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-kcalmin">Kalorien mindestens</label><div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="tlink" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-kcalmin" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
           </div>
-          <div id="vo-protein">
-            <label>Eiweiß-Bedarf</label>
-            <select id="set-proteinmode">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-proteinmode">Eiweiß pro Tag</label><div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="tlink" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>Standard</button></div></div>
+            <div class="vo-in"><select id="set-proteinmode" class="line-select">
               <option value="0">manuell (g/Tag)</option>
-              <option value="1">1,0 g/kg/Tag</option>
-              <option value="1.2">1,2 g/kg/Tag</option>
-              <option value="1.5">1,5 g/kg/Tag</option>
-              <option value="2">2,0 g/kg/Tag</option>
-            </select>
-            <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+              <option value="1">1,0 g/kg</option>
+              <option value="1.2">1,2 g/kg</option>
+              <option value="1.5">1,5 g/kg</option>
+              <option value="2">2,0 g/kg</option>
+            </select></div>
           </div>
-          <div id="eiweiss-manual">
-            <label>Eiweiß pro Tag (g)</label>
-            <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
+          <div class="vo-row" id="eiweiss-manual">
+            <div class="vo-lbl"><label for="set-eiweiss">Eiweiß pro Tag (manuell)</label></div>
+            <div class="vo-in"><input id="set-eiweiss" class="num-input" type="number" min="0" step="1" inputmode="numeric" /><span class="unit">g</span></div>
           </div>
+          <div class="btn-pair"><button type="button" class="btn outline" id="vo-cancel">Abbrechen</button><button type="button" class="btn primary" id="vo-save">Speichern</button></div>
         </div>
         <div id="verordnung-summary" class="vg-sum"></div>
-        </div>
+        <button type="button" class="vg-row" data-vg="bedarf"><span class="vg-txt"><span class="vg-name">Bedarf schätzen</span><span class="vg-sum">zur Orientierung fürs Gespräch mit dem Team</span></span><span class="chev" aria-hidden="true">›</span></button>
       </div>
 
-      <!-- Desktop: zwei Spalten – links Ernährung (Bedarf, Flüssigkeit, Öl), rechts Küche und App; am Handy untereinander -->
-      <div class="vg-cols"><div class="vg-col">
-      <div class="card" id="bedarf-card">
-        <h3>📊 Bedarf schätzen <span class="hint">– zur Orientierung</span></h3>
-        <div class="vg-body">
+      <!-- Unterseite Bedarf schätzen -->
+      <div class="vg-page" data-vgpage="bedarf" id="bedarf-card" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="verordnung">‹ Verordnung</button>
+        <div class="vg-head"><div class="vg-title"><span class="overline">Zur Orientierung</span><h2>Bedarf schätzen</h2></div></div>
         <div class="bd-row">
-          <label class="bd-birth">Geboren <span class="bd-age" id="bd-age"></span><input id="bd-birth" type="date" /></label>
-          <label>Geschlecht
-            <select id="bd-sex"><option value="w">Mädchen</option><option value="m">Bub</option></select>
+          <label class="vo-row bd-birth"><span class="vo-lbl"><span>Geboren</span><span class="src bd-age" id="bd-age"></span></span><input id="bd-birth" class="line-date" type="date" /></label>
+          <label class="vo-row"><span class="vo-lbl"><span>Geschlecht</span></span>
+            <select id="bd-sex" class="line-select"><option value="w">Mädchen</option><option value="m">Bub</option></select>
           </label>
-          <label>Bewegung
-            <select id="bd-mobil">
-              <option value="geht">🚶 geht</option>
-              <option value="krabbelt">🐾 krabbelt</option>
-              <option value="getragen">🤱 getragen</option>
-              <option value="liegt">🛏️ liegt viel</option>
+          <label class="vo-row"><span class="vo-lbl"><span>Bewegung</span></span>
+            <select id="bd-mobil" class="line-select">
+              <option value="geht">geht</option>
+              <option value="krabbelt">krabbelt</option>
+              <option value="getragen">getragen</option>
+              <option value="liegt">liegt viel</option>
             </select>
           </label>
-          <label>Muskelspannung
-            <select id="bd-tonus">
+          <label class="vo-row"><span class="vo-lbl"><span>Muskelspannung</span></span>
+            <select id="bd-tonus" class="line-select">
               <option value="schlaff">schlaff</option>
               <option value="normal">normal</option>
               <option value="erhoeht">erhöht</option>
@@ -1110,187 +898,171 @@ body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
           </label>
         </div>
         <div id="bd-out"></div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie wird gerechnet? Quellen</summary>
-          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme</span>
-            <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
-          </div>
+        <div class="vg-field"><div class="overline">Gewünschte Zunahme</div>
+          <div class="seg-ink" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal · 35 g/Woche</button><button type="button" data-gain="10">aufholen · 70 g/Woche</button></div>
+        </div>
+        <details class="more"><summary class="tlink">Wie wird gerechnet? Quellen</summary>
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
           <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>Faustregel 60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen – ein gröberer zweiter Rechenweg, nur nach Alter, ohne Muskelspannung und Bewegung (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
           <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ≈ 31 % weniger als gesunde, Formeln unterschätzten um ≈ 22 %), Borsani 2023 (Ruheverbrauch ≈ 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
         </details>
-        </div>
       </div>
 
-      <div class="card">
-        <h3>💧 Flüssigkeit</h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">Wasser geben</span>
-          <div class="segmented mini" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten</button>
-            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
+      <!-- Unterseite Flüssigkeit -->
+      <div class="vg-page" data-vgpage="fluessigkeit" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Flüssigkeit</h2></div></div>
+        <div class="vg-field"><div class="overline">Wasser geben</div>
+          <div class="seg-ink" id="wasser-modus-ctl">
+            <button type="button" data-wmodus="zwischen">Zwischen den Mahlzeiten</button>
+            <button type="button" data-wmodus="mahlzeit">In den Mahlzeiten</button>
           </div>
         </div>
-        <div class="settings-grid">
-          <div>
-            <label>Gesamt pro Tag (ml)</label>
-            <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+        <div class="vo-rows">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-fluid">Gesamt pro Tag</label><div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="tlink" id="reset-fluid" data-reset="fluidMl" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-fluid" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">ml</span></div>
           </div>
-          <div id="dichte-field">
-            <label>Höchstens kcal je ml</label>
-            <input id="set-dichte" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" />
-            <div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="linkbtn" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>↺ 1,5</button></div>
+          <div class="vo-row" id="dichte-field">
+            <div class="vo-lbl"><label for="set-dichte">Höchstens kcal je ml</label><div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="tlink" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>1,5</button></div></div>
+            <div class="vo-in"><input id="set-dichte" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" /><span class="unit">kcal</span></div>
           </div>
         </div>
         <div id="fluid-summary" class="vg-sum"></div>
-        <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt Heute → ⏰ Uhrzeiten. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
-        </div>
+        <details class="more"><summary class="tlink">Mehr dazu</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
       </div>
 
-      <div class="card">
-        <h3>⚡ Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse</span>
-          <div class="segmented mini" id="mct-share-ctl"></div>
-        </div>
-        <div class="preset-row">
-          <span class="seg-label">Rechenregel</span>
-          <div class="segmented mini" id="mct-mode-ctl">
-            <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
-            <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
-          </div>
-        </div>
+      <!-- Unterseite Öl und MCT -->
+      <div class="vg-page" data-vgpage="oel" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Öl und MCT</h2></div></div>
+        <div class="vg-field"><div class="overline">MCT-Anteil an der Ölmenge</div><div class="seg-ink" id="mct-share-ctl"></div></div>
         <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
-        <div id="mct-more">
-          <div class="settings-grid">
-            <div>
-              <label>MCT-Öl: Fett je 100 g</label>
-              <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+        <div id="mct-more" class="vg-stack">
+          <div class="vg-field"><div class="overline">Wenn nicht beides geht</div>
+            <div class="seg-ink" id="mct-mode-ctl">
+              <button type="button" data-mctmode="verhaeltnis">Verhältnis halten</button>
+              <button type="button" data-mctmode="kalorien">Kalorien halten</button>
             </div>
-            <div>
-              <label>MCT-Öl: kcal je 100 g</label>
-              <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+            <p class="hint" id="mct-mode-text"></p>
+          </div>
+          <div class="vo-rows">
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-fett">MCT-Öl: Fett je 100 g</label><span class="src">vom Etikett</span></div>
+              <div class="vo-in"><input id="set-mct-fett" class="num-input" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" /><span class="unit">g</span></div>
+            </div>
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-kcal">MCT-Öl: kcal je 100 g</label><span class="src">830 ist ein Praxiswert</span></div>
+              <div class="vo-in"><input id="set-mct-kcal" class="num-input" type="number" min="1" step="10" inputmode="numeric" placeholder="830" /><span class="unit">kcal</span></div>
             </div>
           </div>
-          <details class="collapsible mini">
-            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+          <details class="more"><summary class="tlink">Mehr dazu</summary>
             <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
           </details>
         </div>
-        </div>
       </div>
 
-      </div><div class="vg-col">
-      <div class="card">
-        <h3>🍳 Küche</h3>
-        <div class="vg-body">
-        <div class="settings-grid">
-          <div>
-            <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
-            <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
+      <!-- Unterseite Küche -->
+      <div class="vg-page" data-vgpage="kueche" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Küche</h2></div></div>
+        <div class="vo-rows">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-verdunstung">Verdunstung beim Dämpfen</label><span class="src">für die Varoma-Anleitung</span></div>
+            <div class="vo-in"><input id="set-verdunstung" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="150" /><span class="unit">ml</span></div>
           </div>
-          <p class="field-hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
         </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Rundung und Verdunstung</summary>
+        <p class="hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
+        <details class="more"><summary class="tlink">Rundung und Verdunstung</summary>
           <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
-        </div>
       </div>
 
-      <div class="card">
-        <h3>🎨 Darstellung</h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">Hell oder dunkel</span>
-          <div class="segmented mini" id="theme-ctl">
-            <button type="button" data-theme="auto">📱 Wie das Gerät</button>
-            <button type="button" data-theme="light">☀️ Hell</button>
-            <button type="button" data-theme="dark">🌙 Dunkel</button>
+      <!-- Unterseite Erinnerungen und Daten: Erinnerungen, Geräte abgleichen, Daten (Backup, Werte), Darstellung -->
+      <div class="vg-page" data-vgpage="app" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Erinnerungen und Daten</h2></div></div>
+
+        <div class="vg-sec" id="push-card">
+          <h3 class="vg-sec-title">Erinnerungen <span class="hint">zu Mahlzeiten und Wasser</span></h3>
+          <div id="push-status" class="note info"></div>
+          <div class="push-opts">
+            <label class="check"><input type="checkbox" id="push-meals" /> Mahlzeiten</label>
+            <label class="check"><input type="checkbox" id="push-water" /> Wassergaben</label>
           </div>
+          <div class="push-act">
+            <label class="push-lead">Zeitpunkt
+              <select id="push-lead" class="line-select">
+                <option value="0">pünktlich</option>
+                <option value="5">5 min vorher</option>
+                <option value="10">10 min vorher</option>
+                <option value="15">15 min vorher</option>
+              </select>
+            </label>
+            <div class="btn-row">
+              <button id="push-toggle" class="btn primary" type="button">Erinnerungen einschalten</button>
+              <button id="push-test" class="btn outline" type="button">Testnachricht</button>
+            </div>
+          </div>
+          <details class="more">
+            <summary class="tlink">Wie funktioniert das?</summary>
+            <p>Die Uhrzeiten kommen aus dem Tagesplan. Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
+            <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" class="line-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
+          </details>
         </div>
-        </div>
-      </div>
 
-      <div class="card" id="push-card">
-        <h3>🔔 Erinnerungen <span class="hint">– zu Mahlzeiten und Wasser</span></h3>
-        <div class="vg-body">
-        <div id="push-status" class="note tip"></div>
-        <div class="push-opts">
-          <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
-          <label class="check"><input type="checkbox" id="push-water" /> 💧 Wassergaben</label>
-        </div>
-        <!-- Zeitpunkt und Einschalten in einer Zeile (am Handy: Knopf darunter über die ganze Breite) -->
-        <div class="push-act">
-          <label class="push-lead">Zeitpunkt
-            <select id="push-lead">
-              <option value="0">pünktlich</option>
-              <option value="5">5 min vorher</option>
-              <option value="10">10 min vorher</option>
-              <option value="15">15 min vorher</option>
-            </select>
-          </label>
+        <div class="vg-sec" id="sync-card">
+          <h3 class="vg-sec-title">Geräte abgleichen <span class="hint">freiwillig</span></h3>
+          <div id="sync-status" class="note info"></div>
+          <div id="sync-code" class="note tip sync-code-box" hidden></div>
           <div class="btn-row">
-            <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
-            <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+            <button id="sync-enable" class="btn primary" type="button">Abgleich einschalten</button>
+            <button id="sync-code-btn" class="btn primary" type="button" hidden>Weiteres Gerät verbinden</button>
+            <button id="sync-now" class="btn outline" type="button" hidden>Jetzt abgleichen</button>
+            <button id="sync-off" class="tlink danger" type="button" hidden>Ausschalten</button>
+          </div>
+          <div class="sync-join" id="sync-join-row">
+            <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
+              <span class="sync-join-in"><input id="sync-join-code" class="line-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" />
+              <button id="sync-join" class="btn outline" type="button">Mit Code verbinden</button></span>
+            </label>
+          </div>
+          <details class="more">
+            <summary class="tlink">Wie funktioniert das?</summary>
+            <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
+          </details>
+        </div>
+
+        <div class="vg-sec">
+          <h3 class="vg-sec-title">Daten <span class="hint">nur auf diesem Gerät</span></h3>
+          <p class="hint">Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+          <div class="btn-row">
+            <button id="export-btn" class="btn primary" type="button">Backup exportieren</button>
+            <label class="btn outline file-btn">Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+          </div>
+          <details class="more" id="export-details" hidden>
+            <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
+            <textarea id="export-text" rows="5" spellcheck="false"></textarea>
+            <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
+          </details>
+          <details class="more">
+            <summary class="tlink">Werte prüfen – verwendete Lebensmittel</summary>
+            <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
+            <div id="werte-list" class="tbl-wrap"></div>
+          </details>
+        </div>
+
+        <div class="vg-sec">
+          <h3 class="vg-sec-title">Darstellung</h3>
+          <div class="vg-field"><div class="overline">Hell oder dunkel</div>
+            <div class="seg-ink" id="theme-ctl">
+              <button type="button" data-theme="auto">Wie das Gerät</button>
+              <button type="button" data-theme="light">Hell</button>
+              <button type="button" data-theme="dark">Dunkel</button>
+            </div>
           </div>
         </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie funktioniert das?</summary>
-          <p>Die Uhrzeiten kommen aus Heute (⏰). Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
-          <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
-        </details>
-        </div>
       </div>
-
-      <div class="card" id="sync-card">
-        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig</span></h3>
-        <div class="vg-body">
-        <div id="sync-status" class="note info"></div>
-        <div id="sync-code" class="note tip sync-code-box" hidden></div>
-        <div class="btn-row">
-          <button id="sync-enable" class="btn" type="button">🔄 Abgleich einschalten</button>
-          <button id="sync-code-btn" class="btn" type="button" hidden>📱 Weiteres Gerät verbinden</button>
-          <button id="sync-now" class="btn secondary" type="button" hidden>Jetzt abgleichen</button>
-          <button id="sync-off" class="btn ghost" type="button" hidden>Ausschalten</button>
-        </div>
-        <div class="sync-join" id="sync-join-row">
-          <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
-            <span class="sync-join-in"><input id="sync-join-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" />
-            <button id="sync-join" class="btn secondary" type="button">Mit Code verbinden</button></span>
-          </label>
-        </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie funktioniert das?</summary>
-          <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
-        </details>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>💾 Daten</h3>
-        <div class="vg-body">
-        <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
-        <div class="btn-row">
-          <button id="export-btn" class="btn" type="button">⬇️ Backup exportieren</button>
-          <label class="btn secondary file-btn">⬆️ Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
-        </div>
-        <details class="collapsible" id="export-details" hidden>
-          <summary>Backup als Text (kopieren / einfügen)</summary>
-          <textarea id="export-text" rows="5" spellcheck="false"></textarea>
-          <div class="btn-row"><button id="import-text-btn" class="btn secondary" type="button">Eingefügten Text importieren</button></div>
-        </details>
-        <details class="collapsible">
-          <summary>🔍 Werte prüfen – verwendete Lebensmittel</summary>
-          <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
-          <div id="werte-list" class="tbl-wrap"></div>
-        </details>
-        </div>
-      </div>
-      </div></div>
     </section>
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
@@ -3284,34 +3056,34 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
     const d = derived();
     // Vorschläge stehen als echte Werte im Feld (nicht als grauer Platzhalter). Die Zeile darunter sagt, woher der
-    // Wert kommt: „✓ Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
+    // Wert kommt: „Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
     const src = (id, manual, autoText, resetLabel) => {
       const sp = $("src-" + id), bt = $("reset-" + id);
-      if (sp) { sp.textContent = manual ? "eigener Wert" : "✓ " + autoText; sp.classList.toggle("auto", !manual); }
+      if (sp) { sp.textContent = manual ? "eigener Wert" : autoText; sp.classList.toggle("auto", !manual); }
       if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
     };
     put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
-    src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "Vorschlag " + fmt(d.kcalAuto, 0));
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
-    src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "Vorschlag " + fmt(d.kcalMinAuto, 0));
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
-    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
+    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "Vorschlag " + fmt(d.fluidAuto, 0));
     // Energiedichte (nur Modus „zwischen“; im anderen Modus ausgegraut, das Feld bleibt an seinem Platz)
     {
       const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
       put("set-dichte", on ? fmtNum(d.maxDichte) : "");
       if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "– (alles in den Mahlzeiten)"; }
-      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "↺ 1,5");
+      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "auf 1,5");
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     {
       const sp = $("src-protein"), bt = $("reset-protein"), isStd = d.proteinPerKg === d.proteinStandard, hasW = num(s.weight) > 0;
-      const txt = d.autoProtein ? (hasW ? (isStd ? "✓ Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
+      const txt = d.autoProtein ? (hasW ? (isStd ? "Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
       if (sp) { sp.textContent = txt; sp.classList.toggle("auto", d.autoProtein && isStd && hasW); }
-      if (bt) { bt.hidden = isStd; bt.textContent = "↺ Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
+      if (bt) { bt.hidden = isStd; bt.textContent = "Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
     }
     renderHeader(d);
     renderVorgaben(d);
@@ -3361,6 +3133,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
@@ -3402,15 +3175,76 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     markChip();
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
+  /* ---------- Vorgaben: Liste mit Unterseiten ----------
+     Die Liste zeigt je Bereich eine Zusammenfassung; jede Zeile öffnet eine Unterseite („‹ Vorgaben“ zurück).
+     Die Verordnung ist gesperrt, bis man „Bearbeiten“ tippt: Felder wirken sofort (die Kennzahlen rechnen mit),
+     „Abbrechen“ stellt den Stand von vorher wieder her, „Speichern“ schließt die Felder (Meldung mit Rückgängig). */
+  let vgPage = null, voEdit = false, voSnap = null;
+  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
+  function showVgPage(name, quiet) {
+    if (voEdit && name !== "verordnung") voFinish(true);
+    vgPage = name || null;
+    const list = document.getElementById("vg-list"); if (!list) return;
+    list.hidden = !!vgPage;
+    document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
+    document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
+    if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
+  }
+  function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
+  function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
+  function voFinish(keep) {
+    const snap = voSnap, changed = snap && JSON.stringify(voSnapshot()) !== JSON.stringify(snap);
+    voEdit = false; voSnap = null;
+    if (!keep && snap) voRestore(snap); else renderRezepte();
+    if (keep && changed) showToast("Verordnung gespeichert", [["Rückgängig", () => voRestore(snap)]]);
+  }
+  function renderVgList(d) {
+    const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+    put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
+    put("vgs-fluessigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel");
+    put("vgs-oel", d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " · Kalorien halten" : "") : "nur Rapsöl");
+    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
+    let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
+    const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
+    put("vgs-app", app.length ? app.join(" · ") : "nur auf diesem Gerät");
+    // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
+    const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
+    const rows = [
+      ["Verhältnis (Fett : Eiweiß + KH)", "Verordnung", fmtRx(d.ratio)],
+      ["Mahlzeiten pro Tag", "", String(d.mahl)],
+      ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
+      ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
+      ["Kalorien mindestens", src("src-kcalmin"), fmt(d.kcalMin, 0) + " kcal"],
+      ["Eiweiß pro Tag", d.autoProtein ? (d.proteinPerKg === d.proteinStandard ? "Standard · " : "") + fmt(d.proteinPerKg, 1) + " g/kg" : "manuell", fmt(d.eiweiss, 0) + " g"],
+    ];
+    const vv = document.getElementById("vo-view");
+    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>").join("");
+    const eb = document.getElementById("vo-editbox"); if (eb) eb.hidden = !voEdit;
+    if (vv) vv.hidden = voEdit;
+    const ed = document.getElementById("vo-edit"); if (ed) ed.hidden = voEdit;
+    const mt = document.getElementById("mct-mode-text");
+    if (mt) mt.textContent = d.mctMode === "kalorien"
+      ? "Die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung."
+      : "Das Verhältnis bleibt exakt. Die Kalorien sinken etwas, weil MCT weniger kcal je Gramm liefert.";
+  }
+  function bindVgPages() {
+    document.querySelectorAll("#view-vorgaben [data-vg]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vg)));
+    document.querySelectorAll("#view-vorgaben [data-vgback]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vgback === "list" ? null : b.dataset.vgback)));
+    const ed = document.getElementById("vo-edit"), ca = document.getElementById("vo-cancel"), sv = document.getElementById("vo-save");
+    if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
+    if (ca) ca.addEventListener("click", () => voFinish(false));
+    if (sv) sv.addEventListener("click", () => voFinish(true));
+  }
   function renderVorgaben(d) {
     const s = state.settings;
+    renderVgList(d);
     if (typeof renderPushCard === "function") renderPushCard();
     if (typeof renderSyncCard === "function") renderSyncCard();
     if (typeof renderBedarf === "function") renderBedarf(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1
-      ? '<div id="ratio-hint" class="note warn">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      ? '<div id="ratio-hint" class="note warn">▲ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
       : "";
     // Zusammenfassung als Kennzahl-Kacheln: Bezeichnung, Wert, kurze Herkunft (Details im title).
     const fact = (k, label, value, sub, title) => '<div class="vg-fact" data-k="' + k + '"' + (title ? ' title="' + escapeHtml(title) + '"' : "") +
@@ -3445,7 +3279,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           const wg = waterGiftsText(d);
           fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten unter Heute → ⏰.</p>';
+            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
         }
       }
     }
@@ -3561,7 +3395,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         try { window.scrollTo(0, back.y); } catch (e) {}
       } else if (cur !== "vorgaben") {
         chipReturn = { view: cur, y: window.pageYOffset || document.documentElement.scrollTop || 0 };
-        showView("vorgaben");
+        showView("vorgaben"); showVgPage("verordnung");
       }
       markChip();
     });
@@ -3702,16 +3536,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         '<span class="mk krick" style="left:' + p(r.krick).toFixed(1) + '%"></span>' + lab("above krick", r.krick, "Krick <b>" + fmt(r.krick, 0) + " kcal</b>") +
         "</div>" +
         '<ul class="bd-legend">' +
-          '<li><i class="sw krick"></i><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</li>" +
-          (walks ? "" : '<li><i class="sw band"></i><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</li>") +
-          '<li><i class="sw ref"></i><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</li>" +
+          '<li><i class="sw krick"></i><span><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</span></li>" +
+          (walks ? "" : '<li><i class="sw band"></i><span><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</span></li>") +
+          '<li><i class="sw ref"></i><span><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</span></li>" +
         "</ul>" +
         '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
-      '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
-        : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
-      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
+      '<p class="bd-one">Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
+        ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
+        : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
+      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
+      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
@@ -4923,11 +4757,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const o = pushOpt(), times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times), items = [];
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
-      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "🍽️ Mahlzeit " + (i + 1) + " · " + fmtHM(t),
+      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
         body: (m.rec ? m.rec.name + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
-      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "💧 Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
+      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
     });
     return items;
   }
@@ -4966,16 +4800,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   let pushTimer = null, pushError = "";
   function schedulePushSync() { if (!state.settings.pushOn) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => pushSync(false), 1500); }
   async function pushEnable() {
-    const sup = pushSupport(); if (!sup.ok) { showToast("🔔 " + escapeHtml(sup.why)); return; }
-    if (!pushUrl()) { showToast("🔔 Zuerst die Adresse des Dienstes eintragen (ⓘ Wie funktioniert das?)."); return; }
+    const sup = pushSupport(); if (!sup.ok) { showToast(escapeHtml(sup.why)); return; }
+    if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("🔔 Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
-      showToast(pushError ? "🔔 " + escapeHtml(pushError) : "🔔 Erinnerungen eingeschaltet");
-    } catch (e) { showToast("🔔 Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -4985,14 +4819,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (sub) { try { await pushPost("/api/remove", { endpoint: sub.endpoint }); } catch (e) {} await sub.unsubscribe(); }
     } catch (e) {}
     try { localStorage.removeItem(PUSH_SYNC_KEY); } catch (e) {}
-    showToast("🔕 Erinnerungen ausgeschaltet"); renderPushCard();
+    showToast("Erinnerungen ausgeschaltet"); renderPushCard();
   }
   async function pushTest() {
     try {
-      const sub = await pushSubscription(false); if (!sub) { showToast("🔔 Erst die Erinnerungen einschalten."); return; }
+      const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
-      showToast("🔔 Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("🔔 Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {
@@ -5001,11 +4835,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_SYNC_KEY) || "null"); } catch (e) {}
     st.className = "note " + (!sup.ok || pushError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !sup.ok ? escapeHtml(sup.why)
-      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „ⓘ Wie funktioniert das?“ eintragen."
+      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „Wie funktioniert das?“ eintragen."
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet.";
-    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "🔕 Ausschalten" : "🔔 Erinnerungen einschalten"; t.classList.toggle("secondary", on); t.disabled = !sup.ok; }
+    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.classList.toggle("outline", on); t.classList.toggle("primary", !on); t.disabled = !sup.ok; }
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;
@@ -5102,7 +4936,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   async function syncPost(path, data) {
     const r = await fetch(pushUrl() + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     let j = null; try { j = await r.json(); } catch (e) {}
-    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren (ⓘ).");
+    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren („Wie funktioniert das?“).");
     return { status: r.status, j: j || {} };
   }
 
@@ -5170,12 +5004,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
   // ---- Ein-/Ausschalten und Koppeln ----
   async function syncEnable() {
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     const raw = crypto.getRandomValues(new Uint8Array(32));
     syncMeta = { key: b64u(raw), rev: 0, ts: {}, dirty: true }; syncLastJson = null;
     syncMarkChanges(Date.now()); syncMeta.dirty = true; syncSaveMeta();
     await syncNow(); syncStartTimer();
-    showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
+    showToast(syncError ? escapeHtml(syncError) : "Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
     renderSyncCard();
   }
   function randomCode() {
@@ -5198,8 +5032,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   async function syncJoin(input) {
     const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
-    if (code.length !== 8) { showToast("🔄 Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
       const id = await sha256hex("hamham-pair:" + code);
       const r = await syncPost("/api/pair/get", { id });
@@ -5209,14 +5043,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       // Beim Koppeln übernimmt dieses Gerät den gemeinsamen Stand (eigene Daten werden ersetzt)
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
-      showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast("🔄 " + escapeHtml(String(e && e.message || e))); }
+      showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
+    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
     renderSyncCard();
   }
   function syncDisable() {
     if (!confirm("Abgleich auf diesem Gerät ausschalten? Die Daten bleiben hier erhalten, werden aber nicht mehr mit den anderen Geräten abgeglichen.")) return;
     syncMeta = null; syncLastJson = null; pairShown = null; syncError = ""; syncSaveMeta();
-    showToast("🔄 Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
+    showToast("Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
   }
 
   // ---- Karte in den Vorgaben ----
@@ -5236,7 +5070,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (pc) {
       const valid = on && pairShown && pairShown.until > Date.now();
       pc.hidden = !valid;
-      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → 🔄 Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
+      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → Erinnerungen und Daten → Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
         new Date(pairShown.until).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) + ", nur einmal verwendbar.</small>";
     }
   }
@@ -6018,6 +5852,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     rebuildFoodIndex();
     applyTheme();
     bindSettingsBar();
+    bindVgPages();
     bindPush();
     bindSync();
     bindBedarf();

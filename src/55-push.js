@@ -18,11 +18,11 @@
     const o = pushOpt(), times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times), items = [];
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
-      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "🍽️ Mahlzeit " + (i + 1) + " · " + fmtHM(t),
+      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
         body: (m.rec ? m.rec.name + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
-      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "💧 Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
+      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
     });
     return items;
   }
@@ -61,16 +61,16 @@
   let pushTimer = null, pushError = "";
   function schedulePushSync() { if (!state.settings.pushOn) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => pushSync(false), 1500); }
   async function pushEnable() {
-    const sup = pushSupport(); if (!sup.ok) { showToast("🔔 " + escapeHtml(sup.why)); return; }
-    if (!pushUrl()) { showToast("🔔 Zuerst die Adresse des Dienstes eintragen (ⓘ Wie funktioniert das?)."); return; }
+    const sup = pushSupport(); if (!sup.ok) { showToast(escapeHtml(sup.why)); return; }
+    if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("🔔 Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
-      showToast(pushError ? "🔔 " + escapeHtml(pushError) : "🔔 Erinnerungen eingeschaltet");
-    } catch (e) { showToast("🔔 Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -80,14 +80,14 @@
       if (sub) { try { await pushPost("/api/remove", { endpoint: sub.endpoint }); } catch (e) {} await sub.unsubscribe(); }
     } catch (e) {}
     try { localStorage.removeItem(PUSH_SYNC_KEY); } catch (e) {}
-    showToast("🔕 Erinnerungen ausgeschaltet"); renderPushCard();
+    showToast("Erinnerungen ausgeschaltet"); renderPushCard();
   }
   async function pushTest() {
     try {
-      const sub = await pushSubscription(false); if (!sub) { showToast("🔔 Erst die Erinnerungen einschalten."); return; }
+      const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
-      showToast("🔔 Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("🔔 Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {
@@ -96,11 +96,11 @@
     let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_SYNC_KEY) || "null"); } catch (e) {}
     st.className = "note " + (!sup.ok || pushError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !sup.ok ? escapeHtml(sup.why)
-      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „ⓘ Wie funktioniert das?“ eintragen."
+      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „Wie funktioniert das?“ eintragen."
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet.";
-    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "🔕 Ausschalten" : "🔔 Erinnerungen einschalten"; t.classList.toggle("secondary", on); t.disabled = !sup.ok; }
+    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.classList.toggle("outline", on); t.classList.toggle("primary", !on); t.disabled = !sup.ok; }
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;

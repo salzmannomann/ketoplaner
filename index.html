@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=5736392d" />
+  <link rel="stylesheet" href="styles.css?v=7ca26e38" />
 </head>
 <body>
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
@@ -64,74 +64,84 @@
 
     <!-- ===== Vorgaben ===== -->
     <section id="view-vorgaben" class="view" hidden>
-      <div class="card">
-        <h3>🩺 Verordnung <span class="hint">– vom Behandlungsteam</span></h3>
-        <div class="vg-body">
-        <div class="settings-grid" id="verordnung-grid">
-          <div id="vo-ratio">
-            <label>Verhältnis <span class="lh">(Fett : Eiweiß+KH)</span></label>
-            <div class="inline-row"><input id="set-ratio" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 1,8" /><span class="calc ratio-suffix">:1</span></div>
+      <!-- Liste: Gruppen „Ernährung“ und „App“, jede Zeile öffnet eine Unterseite -->
+      <div id="vg-list" class="vg-list">
+        <div class="overline vg-group">Ernährung</div>
+        <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="fluessigkeit"><span class="vg-txt"><span class="vg-name">Flüssigkeit</span><span class="vg-sum" id="vgs-fluessigkeit"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="oel"><span class="vg-txt"><span class="vg-name">Öl und MCT</span><span class="vg-sum" id="vgs-oel"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <div class="overline vg-group">App</div>
+        <button type="button" class="vg-row" data-vg="kueche"><span class="vg-txt"><span class="vg-name">Küche</span><span class="vg-sum" id="vgs-kueche"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="app"><span class="vg-txt"><span class="vg-name">Erinnerungen und Daten</span><span class="vg-sum" id="vgs-app"></span></span><span class="chev" aria-hidden="true">›</span></button>
+      </div>
+
+      <!-- Unterseite Verordnung: Ansicht gesperrt, „Bearbeiten“ öffnet die Felder (Abbrechen / Speichern) -->
+      <div class="vg-page" data-vgpage="verordnung" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><span class="overline">Vom Behandlungsteam</span><h2>Verordnung</h2></div><button type="button" class="tlink" id="vo-edit">Bearbeiten</button></div>
+        <div id="vo-view" class="vo-view"></div>
+        <div id="vo-editbox" class="vo-editbox" hidden>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-ratio">Verhältnis (Fett : Eiweiß + KH)</label><span class="src">Verordnung</span></div>
+            <div class="vo-in"><input id="set-ratio" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,8" /><span class="unit ratio-suffix">: 1</span></div>
           </div>
-          <div id="vo-mahl">
-            <label>Mahlzeiten pro Tag</label>
-            <div class="segmented mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
+          <div class="vo-row">
+            <div class="vo-lbl"><label>Mahlzeiten pro Tag</label></div>
+            <div class="seg-ink mahl-seg" id="mahlzeiten-ctl" role="group" aria-label="Mahlzeiten pro Tag">
               <button type="button" data-mahl="3">3</button><button type="button" data-mahl="4">4</button><button type="button" data-mahl="5">5</button>
             </div>
           </div>
-          <div id="vo-kcal">
-            <label>Kalorien pro Tag (Ziel)</label>
-            <input id="set-kcal" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="linkbtn" id="reset-kcal" data-reset="kcal" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-weight">Körpergewicht</label><span class="src">zuletzt gewogen</span></div>
+            <div class="vo-in"><input id="set-weight" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="8,5" /><span class="unit">kg</span></div>
           </div>
-          <div id="vo-kcalmin">
-            <label>Kalorien mindestens<span class="lh"> pro Tag</span></label>
-            <input id="set-kcalmin" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="linkbtn" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-kcal">Kalorien pro Tag</label><div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="tlink" id="reset-kcal" data-reset="kcal" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-kcal" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
           </div>
-          <div id="vo-weight">
-            <label>Körpergewicht (kg)</label>
-            <input id="set-weight" type="text" inputmode="decimal" autocomplete="off" placeholder="z. B. 8,5" />
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-kcalmin">Kalorien mindestens</label><div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="tlink" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-kcalmin" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
           </div>
-          <div id="vo-protein">
-            <label>Eiweiß-Bedarf</label>
-            <select id="set-proteinmode">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-proteinmode">Eiweiß pro Tag</label><div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="tlink" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>Standard</button></div></div>
+            <div class="vo-in"><select id="set-proteinmode" class="line-select">
               <option value="0">manuell (g/Tag)</option>
-              <option value="1">1,0 g/kg/Tag</option>
-              <option value="1.2">1,2 g/kg/Tag</option>
-              <option value="1.5">1,5 g/kg/Tag</option>
-              <option value="2">2,0 g/kg/Tag</option>
-            </select>
-            <div class="reset-line"><span class="src" id="src-protein"></span><button type="button" class="linkbtn" id="reset-protein" data-reset="proteinPerKg" title="Standard 1,5 g/kg/Tag übernehmen" hidden>↺ Standard</button></div>
+              <option value="1">1,0 g/kg</option>
+              <option value="1.2">1,2 g/kg</option>
+              <option value="1.5">1,5 g/kg</option>
+              <option value="2">2,0 g/kg</option>
+            </select></div>
           </div>
-          <div id="eiweiss-manual">
-            <label>Eiweiß pro Tag (g)</label>
-            <input id="set-eiweiss" type="number" min="0" step="1" inputmode="numeric" />
+          <div class="vo-row" id="eiweiss-manual">
+            <div class="vo-lbl"><label for="set-eiweiss">Eiweiß pro Tag (manuell)</label></div>
+            <div class="vo-in"><input id="set-eiweiss" class="num-input" type="number" min="0" step="1" inputmode="numeric" /><span class="unit">g</span></div>
           </div>
+          <div class="btn-pair"><button type="button" class="btn outline" id="vo-cancel">Abbrechen</button><button type="button" class="btn primary" id="vo-save">Speichern</button></div>
         </div>
         <div id="verordnung-summary" class="vg-sum"></div>
-        </div>
+        <button type="button" class="vg-row" data-vg="bedarf"><span class="vg-txt"><span class="vg-name">Bedarf schätzen</span><span class="vg-sum">zur Orientierung fürs Gespräch mit dem Team</span></span><span class="chev" aria-hidden="true">›</span></button>
       </div>
 
-      <!-- Desktop: zwei Spalten – links Ernährung (Bedarf, Flüssigkeit, Öl), rechts Küche und App; am Handy untereinander -->
-      <div class="vg-cols"><div class="vg-col">
-      <div class="card" id="bedarf-card">
-        <h3>📊 Bedarf schätzen <span class="hint">– zur Orientierung</span></h3>
-        <div class="vg-body">
+      <!-- Unterseite Bedarf schätzen -->
+      <div class="vg-page" data-vgpage="bedarf" id="bedarf-card" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="verordnung">‹ Verordnung</button>
+        <div class="vg-head"><div class="vg-title"><span class="overline">Zur Orientierung</span><h2>Bedarf schätzen</h2></div></div>
         <div class="bd-row">
-          <label class="bd-birth">Geboren <span class="bd-age" id="bd-age"></span><input id="bd-birth" type="date" /></label>
-          <label>Geschlecht
-            <select id="bd-sex"><option value="w">Mädchen</option><option value="m">Bub</option></select>
+          <label class="vo-row bd-birth"><span class="vo-lbl"><span>Geboren</span><span class="src bd-age" id="bd-age"></span></span><input id="bd-birth" class="line-date" type="date" /></label>
+          <label class="vo-row"><span class="vo-lbl"><span>Geschlecht</span></span>
+            <select id="bd-sex" class="line-select"><option value="w">Mädchen</option><option value="m">Bub</option></select>
           </label>
-          <label>Bewegung
-            <select id="bd-mobil">
-              <option value="geht">🚶 geht</option>
-              <option value="krabbelt">🐾 krabbelt</option>
-              <option value="getragen">🤱 getragen</option>
-              <option value="liegt">🛏️ liegt viel</option>
+          <label class="vo-row"><span class="vo-lbl"><span>Bewegung</span></span>
+            <select id="bd-mobil" class="line-select">
+              <option value="geht">geht</option>
+              <option value="krabbelt">krabbelt</option>
+              <option value="getragen">getragen</option>
+              <option value="liegt">liegt viel</option>
             </select>
           </label>
-          <label>Muskelspannung
-            <select id="bd-tonus">
+          <label class="vo-row"><span class="vo-lbl"><span>Muskelspannung</span></span>
+            <select id="bd-tonus" class="line-select">
               <option value="schlaff">schlaff</option>
               <option value="normal">normal</option>
               <option value="erhoeht">erhöht</option>
@@ -139,187 +149,171 @@
           </label>
         </div>
         <div id="bd-out"></div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie wird gerechnet? Quellen</summary>
-          <div class="preset-row bd-gain-row"><span class="seg-label">Gewünschte Zunahme</span>
-            <div class="segmented mini" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal (≈ 35 g/Woche)</button><button type="button" data-gain="10">aufholen (≈ 70 g/Woche)</button></div>
-          </div>
+        <div class="vg-field"><div class="overline">Gewünschte Zunahme</div>
+          <div class="seg-ink" id="bd-gain"><button type="button" data-gain="0">halten</button><button type="button" data-gain="5">normal · 35 g/Woche</button><button type="button" data-gain="10">aufholen · 70 g/Woche</button></div>
+        </div>
+        <details class="more"><summary class="tlink">Wie wird gerechnet? Quellen</summary>
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
           <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>Faustregel 60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen – ein gröberer zweiter Rechenweg, nur nach Alter, ohne Muskelspannung und Bewegung (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
           <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ≈ 31 % weniger als gesunde, Formeln unterschätzten um ≈ 22 %), Borsani 2023 (Ruheverbrauch ≈ 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
         </details>
-        </div>
       </div>
 
-      <div class="card">
-        <h3>💧 Flüssigkeit</h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">Wasser geben</span>
-          <div class="segmented mini" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">💉 zwischen den Mahlzeiten</button>
-            <button type="button" data-wmodus="mahlzeit">🥣 in den Mahlzeiten</button>
+      <!-- Unterseite Flüssigkeit -->
+      <div class="vg-page" data-vgpage="fluessigkeit" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Flüssigkeit</h2></div></div>
+        <div class="vg-field"><div class="overline">Wasser geben</div>
+          <div class="seg-ink" id="wasser-modus-ctl">
+            <button type="button" data-wmodus="zwischen">Zwischen den Mahlzeiten</button>
+            <button type="button" data-wmodus="mahlzeit">In den Mahlzeiten</button>
           </div>
         </div>
-        <div class="settings-grid">
-          <div>
-            <label>Gesamt pro Tag (ml)</label>
-            <input id="set-fluid" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" />
-            <div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="linkbtn" id="reset-fluid" data-reset="fluidMl" title="Vorschlag nach Gewicht übernehmen" hidden>↺ Vorschlag</button></div>
+        <div class="vo-rows">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-fluid">Gesamt pro Tag</label><div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="tlink" id="reset-fluid" data-reset="fluidMl" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
+            <div class="vo-in"><input id="set-fluid" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">ml</span></div>
           </div>
-          <div id="dichte-field">
-            <label>Höchstens kcal je ml</label>
-            <input id="set-dichte" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" />
-            <div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="linkbtn" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>↺ 1,5</button></div>
+          <div class="vo-row" id="dichte-field">
+            <div class="vo-lbl"><label for="set-dichte">Höchstens kcal je ml</label><div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="tlink" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>1,5</button></div></div>
+            <div class="vo-in"><input id="set-dichte" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" /><span class="unit">kcal</span></div>
           </div>
         </div>
         <div id="fluid-summary" class="vg-sum"></div>
-        <details class="collapsible mini"><summary>ⓘ Wie wird gerechnet?</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten sondieren:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt Heute → ⏰ Uhrzeiten. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten dabei:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
-        </div>
+        <details class="more"><summary class="tlink">Mehr dazu</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
       </div>
 
-      <div class="card">
-        <h3>⚡ Öl <span class="hint">– gilt für alle Rezepte mit Öl</span></h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">MCT-Anteil an der Öl-Fettmasse</span>
-          <div class="segmented mini" id="mct-share-ctl"></div>
-        </div>
-        <div class="preset-row">
-          <span class="seg-label">Rechenregel</span>
-          <div class="segmented mini" id="mct-mode-ctl">
-            <button type="button" data-mctmode="verhaeltnis">⚖️ Verhältnis halten</button>
-            <button type="button" data-mctmode="kalorien">🎯 Kalorien halten</button>
-          </div>
-        </div>
+      <!-- Unterseite Öl und MCT -->
+      <div class="vg-page" data-vgpage="oel" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Öl und MCT</h2></div></div>
+        <div class="vg-field"><div class="overline">MCT-Anteil an der Ölmenge</div><div class="seg-ink" id="mct-share-ctl"></div></div>
         <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
-        <div id="mct-more">
-          <div class="settings-grid">
-            <div>
-              <label>MCT-Öl: Fett je 100 g</label>
-              <input id="set-mct-fett" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" />
+        <div id="mct-more" class="vg-stack">
+          <div class="vg-field"><div class="overline">Wenn nicht beides geht</div>
+            <div class="seg-ink" id="mct-mode-ctl">
+              <button type="button" data-mctmode="verhaeltnis">Verhältnis halten</button>
+              <button type="button" data-mctmode="kalorien">Kalorien halten</button>
             </div>
-            <div>
-              <label>MCT-Öl: kcal je 100 g</label>
-              <input id="set-mct-kcal" type="number" min="1" step="10" inputmode="numeric" placeholder="830" />
+            <p class="hint" id="mct-mode-text"></p>
+          </div>
+          <div class="vo-rows">
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-fett">MCT-Öl: Fett je 100 g</label><span class="src">vom Etikett</span></div>
+              <div class="vo-in"><input id="set-mct-fett" class="num-input" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" /><span class="unit">g</span></div>
+            </div>
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-kcal">MCT-Öl: kcal je 100 g</label><span class="src">830 ist ein Praxiswert</span></div>
+              <div class="vo-in"><input id="set-mct-kcal" class="num-input" type="number" min="1" step="10" inputmode="numeric" placeholder="830" /><span class="unit">kcal</span></div>
             </div>
           </div>
-          <details class="collapsible mini">
-            <summary>ⓘ MCT-Anteil und Rechenregel</summary>
+          <details class="more"><summary class="tlink">Mehr dazu</summary>
             <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
           </details>
         </div>
-        </div>
       </div>
 
-      </div><div class="vg-col">
-      <div class="card">
-        <h3>🍳 Küche</h3>
-        <div class="vg-body">
-        <div class="settings-grid">
-          <div>
-            <label>Verdunstung<span class="lh"> beim Dämpfen</span> (ml)</label>
-            <input id="set-verdunstung" type="number" min="0" step="10" inputmode="numeric" placeholder="z. B. 150" />
+      <!-- Unterseite Küche -->
+      <div class="vg-page" data-vgpage="kueche" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Küche</h2></div></div>
+        <div class="vo-rows">
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-verdunstung">Verdunstung beim Dämpfen</label><span class="src">für die Varoma-Anleitung</span></div>
+            <div class="vo-in"><input id="set-verdunstung" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="150" /><span class="unit">ml</span></div>
           </div>
-          <p class="field-hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
         </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Rundung und Verdunstung</summary>
+        <p class="hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
+        <details class="more"><summary class="tlink">Rundung und Verdunstung</summary>
           <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
-        </div>
       </div>
 
-      <div class="card">
-        <h3>🎨 Darstellung</h3>
-        <div class="vg-body">
-        <div class="preset-row">
-          <span class="seg-label">Hell oder dunkel</span>
-          <div class="segmented mini" id="theme-ctl">
-            <button type="button" data-theme="auto">📱 Wie das Gerät</button>
-            <button type="button" data-theme="light">☀️ Hell</button>
-            <button type="button" data-theme="dark">🌙 Dunkel</button>
+      <!-- Unterseite Erinnerungen und Daten: Erinnerungen, Geräte abgleichen, Daten (Backup, Werte), Darstellung -->
+      <div class="vg-page" data-vgpage="app" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Erinnerungen und Daten</h2></div></div>
+
+        <div class="vg-sec" id="push-card">
+          <h3 class="vg-sec-title">Erinnerungen <span class="hint">zu Mahlzeiten und Wasser</span></h3>
+          <div id="push-status" class="note info"></div>
+          <div class="push-opts">
+            <label class="check"><input type="checkbox" id="push-meals" /> Mahlzeiten</label>
+            <label class="check"><input type="checkbox" id="push-water" /> Wassergaben</label>
           </div>
+          <div class="push-act">
+            <label class="push-lead">Zeitpunkt
+              <select id="push-lead" class="line-select">
+                <option value="0">pünktlich</option>
+                <option value="5">5 min vorher</option>
+                <option value="10">10 min vorher</option>
+                <option value="15">15 min vorher</option>
+              </select>
+            </label>
+            <div class="btn-row">
+              <button id="push-toggle" class="btn primary" type="button">Erinnerungen einschalten</button>
+              <button id="push-test" class="btn outline" type="button">Testnachricht</button>
+            </div>
+          </div>
+          <details class="more">
+            <summary class="tlink">Wie funktioniert das?</summary>
+            <p>Die Uhrzeiten kommen aus dem Tagesplan. Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
+            <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" class="line-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
+          </details>
         </div>
-        </div>
-      </div>
 
-      <div class="card" id="push-card">
-        <h3>🔔 Erinnerungen <span class="hint">– zu Mahlzeiten und Wasser</span></h3>
-        <div class="vg-body">
-        <div id="push-status" class="note tip"></div>
-        <div class="push-opts">
-          <label class="check"><input type="checkbox" id="push-meals" /> 🍽️ Mahlzeiten</label>
-          <label class="check"><input type="checkbox" id="push-water" /> 💧 Wassergaben</label>
-        </div>
-        <!-- Zeitpunkt und Einschalten in einer Zeile (am Handy: Knopf darunter über die ganze Breite) -->
-        <div class="push-act">
-          <label class="push-lead">Zeitpunkt
-            <select id="push-lead">
-              <option value="0">pünktlich</option>
-              <option value="5">5 min vorher</option>
-              <option value="10">10 min vorher</option>
-              <option value="15">15 min vorher</option>
-            </select>
-          </label>
+        <div class="vg-sec" id="sync-card">
+          <h3 class="vg-sec-title">Geräte abgleichen <span class="hint">freiwillig</span></h3>
+          <div id="sync-status" class="note info"></div>
+          <div id="sync-code" class="note tip sync-code-box" hidden></div>
           <div class="btn-row">
-            <button id="push-toggle" class="btn" type="button">🔔 Erinnerungen einschalten</button>
-            <button id="push-test" class="btn secondary" type="button">Testnachricht</button>
+            <button id="sync-enable" class="btn primary" type="button">Abgleich einschalten</button>
+            <button id="sync-code-btn" class="btn primary" type="button" hidden>Weiteres Gerät verbinden</button>
+            <button id="sync-now" class="btn outline" type="button" hidden>Jetzt abgleichen</button>
+            <button id="sync-off" class="tlink danger" type="button" hidden>Ausschalten</button>
+          </div>
+          <div class="sync-join" id="sync-join-row">
+            <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
+              <span class="sync-join-in"><input id="sync-join-code" class="line-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" />
+              <button id="sync-join" class="btn outline" type="button">Mit Code verbinden</button></span>
+            </label>
+          </div>
+          <details class="more">
+            <summary class="tlink">Wie funktioniert das?</summary>
+            <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
+          </details>
+        </div>
+
+        <div class="vg-sec">
+          <h3 class="vg-sec-title">Daten <span class="hint">nur auf diesem Gerät</span></h3>
+          <p class="hint">Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+          <div class="btn-row">
+            <button id="export-btn" class="btn primary" type="button">Backup exportieren</button>
+            <label class="btn outline file-btn">Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+          </div>
+          <details class="more" id="export-details" hidden>
+            <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
+            <textarea id="export-text" rows="5" spellcheck="false"></textarea>
+            <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
+          </details>
+          <details class="more">
+            <summary class="tlink">Werte prüfen – verwendete Lebensmittel</summary>
+            <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
+            <div id="werte-list" class="tbl-wrap"></div>
+          </details>
+        </div>
+
+        <div class="vg-sec">
+          <h3 class="vg-sec-title">Darstellung</h3>
+          <div class="vg-field"><div class="overline">Hell oder dunkel</div>
+            <div class="seg-ink" id="theme-ctl">
+              <button type="button" data-theme="auto">Wie das Gerät</button>
+              <button type="button" data-theme="light">Hell</button>
+              <button type="button" data-theme="dark">Dunkel</button>
+            </div>
           </div>
         </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie funktioniert das?</summary>
-          <p>Die Uhrzeiten kommen aus Heute (⏰). Ein kleiner eigener Dienst bei Cloudflare schickt zur richtigen Minute die Nachricht – jeden Tag, bis sich der Plan ändert; Änderungen werden automatisch übernommen. Dort liegen nur Uhrzeiten und Rezeptnamen, keine Namen oder Verordnung. Nur in der App vom Home-Bildschirm (ab iOS 16.4), auf jedem Handy einzeln einschalten. Ohne Internet und im Fokus-Modus kommt keine bzw. eine stumme Nachricht.</p>
-          <label class="push-url-lbl">Adresse des Dienstes <input id="push-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://hamham-push.….workers.dev" /></label>
-        </details>
-        </div>
       </div>
-
-      <div class="card" id="sync-card">
-        <h3>🔄 Geräte abgleichen <span class="hint">– freiwillig</span></h3>
-        <div class="vg-body">
-        <div id="sync-status" class="note info"></div>
-        <div id="sync-code" class="note tip sync-code-box" hidden></div>
-        <div class="btn-row">
-          <button id="sync-enable" class="btn" type="button">🔄 Abgleich einschalten</button>
-          <button id="sync-code-btn" class="btn" type="button" hidden>📱 Weiteres Gerät verbinden</button>
-          <button id="sync-now" class="btn secondary" type="button" hidden>Jetzt abgleichen</button>
-          <button id="sync-off" class="btn ghost" type="button" hidden>Ausschalten</button>
-        </div>
-        <div class="sync-join" id="sync-join-row">
-          <label class="push-url-lbl">Schon auf einem anderen Gerät eingeschaltet? Code von dort eingeben:
-            <span class="sync-join-in"><input id="sync-join-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" />
-            <button id="sync-join" class="btn secondary" type="button">Mit Code verbinden</button></span>
-          </label>
-        </div>
-        <details class="collapsible mini">
-          <summary>ⓘ Wie funktioniert das?</summary>
-          <p>Abgeglichen werden Vorgaben, Tagesplan, eigene Rezepte, Favoriten und gemerkte Mengen – nicht die Ansicht, Filter, Erinnerungen und der Entwurf im Editor (die gelten je Gerät). Ändert ihr auf zwei Geräten Verschiedenes, bleibt beides erhalten; bei derselben Einstellung gilt die zuletzt geänderte. Die Daten werden auf dem Gerät verschlüsselt und liegen nur unlesbar beim eigenen Dienst bei Cloudflare (derselbe wie für die Erinnerungen) – den Schlüssel kennen nur eure Geräte. Beim Verbinden übernimmt das neue Gerät den gemeinsamen Stand. Ohne Internet wird später abgeglichen. Ausschalten wirkt nur auf dem jeweiligen Gerät, die Daten dort bleiben erhalten.</p>
-        </details>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>💾 Daten</h3>
-        <div class="vg-body">
-        <p class="hint">Alles liegt nur auf diesem Gerät. Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
-        <div class="btn-row">
-          <button id="export-btn" class="btn" type="button">⬇️ Backup exportieren</button>
-          <label class="btn secondary file-btn">⬆️ Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
-        </div>
-        <details class="collapsible" id="export-details" hidden>
-          <summary>Backup als Text (kopieren / einfügen)</summary>
-          <textarea id="export-text" rows="5" spellcheck="false"></textarea>
-          <div class="btn-row"><button id="import-text-btn" class="btn secondary" type="button">Eingefügten Text importieren</button></div>
-        </details>
-        <details class="collapsible">
-          <summary>🔍 Werte prüfen – verwendete Lebensmittel</summary>
-          <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
-          <div id="werte-list" class="tbl-wrap"></div>
-        </details>
-        </div>
-      </div>
-      </div></div>
     </section>
 
     <p class="footnote">Alle Eingaben werden nur lokal in deinem Browser gespeichert. Dieses Werkzeug ersetzt keine ärztliche oder diätologische Beratung – die ketogene Ernährung über Sonde bitte nur mit dem Behandlungsteam abstimmen und die Mengen fachlich prüfen lassen. Keine Behandlungsempfehlung: Fettart, Anteil und Präparat entscheiden Diätologie und Neuropädiatrie; die ketogene Diät ist selbst eine antiepileptische Therapie.</p>
@@ -359,7 +353,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=9e02d37d"></script>
+  <script src="app.js?v=71c796e5"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

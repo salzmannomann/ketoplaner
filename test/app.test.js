@@ -265,7 +265,7 @@ test("Kalorien-Minimum: automatisch 70 kcal/kg, Korridor in der Zusammenfassung,
   assert.match(fact(w, "verordnung-summary", "min"), /^mindestens150 kcal.*600 kcal\/Tag \(70 kcal\/kg\)/);
   assert.match(fact(w, "verordnung-summary", "mahl"), /750 kcal\/Tag \(manuell\) ÷ 4/);
   assert.match(fact(w, "verordnung-summary", "bereich"), /^Korridor nach Gewicht600–770kcal\/Tag · 70–90 kcal\/kg/);
-  assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /✓ Vorschlag · 70 kcal\/kg/);
+  assert.equal($(w, "set-kcalmin").value, "600"); assert.match($(w, "src-kcalmin").textContent, /Vorschlag · 70 kcal\/kg/);
   // Manuelles Minimum über dem Ziel → Tagesplan mit 4 × 188 kcal = 750 liegt darunter → Warnung
   const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   st.settings.kcalMin = 800;
@@ -297,19 +297,19 @@ test("Vorgaben: Kalorien, Minimum und Flüssigkeit kommen vom Gewicht; eigener W
   const w = boot({ settings: { weight: 8.5, mahlzeiten: 4, kcal: "" } });
   // Vorschlag: 80 kcal/kg → 680 kcal/Tag, Feld leer, kein Zurücksetzen-Link
   assert.equal($(w, "set-kcal").value, "680", "Vorschlag steht als Wert im Feld");
-  assert.match($(w, "src-kcal").textContent, /✓ Vorschlag · 80 kcal\/kg/);
+  assert.match($(w, "src-kcal").textContent, /Vorschlag · 80 kcal\/kg/);
   assert.ok($(w, "src-kcal").classList.contains("auto"));
   assert.ok($(w, "reset-kcal").hidden);
   assert.match(fact(w, "verordnung-summary", "mahl"), /^pro Mahlzeit170 kcal.*680 kcal\/Tag \(Vorschlag 80 kcal\/kg\) ÷ 4/);
   assert.match($(w, "rx-chip").getAttribute("aria-label"), /170 kcal × 4/);
   assert.equal($(w, "set-kcalmin").value, "600");
-  assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /✓ Vorschlag · 100 ml\/kg/);
+  assert.equal($(w, "set-fluid").value, "850"); assert.match($(w, "src-fluid").textContent, /Vorschlag · 100 ml\/kg/);
   // Eiweiß: Standard 1,5 g/kg erkennbar
-  assert.match($(w, "src-protein").textContent, /✓ Standard · \d+ g\/Tag/, "Standard steht in der Zeile unter der Auswahl");
+  assert.match($(w, "src-protein").textContent, /Standard · \d+ g\/Tag/, "Standard steht in der Zeile unter der Auswahl");
   assert.ok($(w, "reset-protein").hidden, "kein Standard-Link, solange der Standard gilt");
   // Eigener Wert → Link erscheint → Zurücksetzen bringt den Vorschlag zurück
   const k = $(w, "set-kcal"); k.value = "750"; fire(w, k, "input");
-  assert.ok(!$(w, "reset-kcal").hidden); assert.match($(w, "src-kcal").textContent, /eigener Wert/); assert.match($(w, "reset-kcal").textContent, /↺ Vorschlag 680/);
+  assert.ok(!$(w, "reset-kcal").hidden); assert.match($(w, "src-kcal").textContent, /eigener Wert/); assert.match($(w, "reset-kcal").textContent, /Vorschlag 680/);
   assert.match(fact(w, "verordnung-summary", "mahl"), /750 kcal\/Tag \(manuell\)/);
   fire(w, $(w, "reset-kcal"));
   assert.equal($(w, "set-kcal").value, "680");
@@ -495,9 +495,9 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   const w = boot({ settings: { kcal: 700 } });
   const ri = $(w, "set-ratio");
   assert.equal(ri.value, "1,8");
-  assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ":1");
+  assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ": 1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
-  assert.match($(w, "src-protein").textContent, /✓ Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
+  assert.match($(w, "src-protein").textContent, /Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
   assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
@@ -1320,7 +1320,7 @@ test("Bedarf schätzen: Schofield × Krick-Faktoren, 60–70 % und Referenz gesu
   assert.match(t, /ESPGHAN-Leitlinie \(2017\): 411–480 kcal – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern/);
   assert.match(t, /FAO\/WHO \(2004\): 685 kcal \(81\/kg\) – Bedarf gesunder Kinder gleichen Alters/);
   assert.match(t, /Keine feste Empfehlung/);
-  assert.match(t, /Eiweiß 1,5 g\/kg ✓ ausreichend/);
+  assert.match(t, /Eiweiß 1,5 g\/kg ausreichend/);
   // Bewegung „geht“, Spannung „erhöht“ → 464,6 × 1,1 × 1,3 + 25 = 689
   const m = $(w, "bd-mobil"); m.value = "geht"; fire(w, m, "change");
   const to = $(w, "bd-tonus"); to.value = "erhoeht"; fire(w, to, "change");
@@ -1438,4 +1438,48 @@ test("Geräte-Abgleich: verschlüsselt über den Dienst, Koppeln per Code, jüng
     assert.equal(sB().settings.weight, 9, "Daten bleiben auf dem Gerät");
     assert.equal(meta(B), null);
   } finally { await new Promise(r => setTimeout(r, 300)); A.close(); B.close(); }
+});
+
+test("Vorgaben: Liste mit Unterseiten; Verordnung gesperrt bis „Bearbeiten“, Abbrechen stellt her, Speichern mit Rückgängig", () => {
+  const w = boot({ settings: { view: "vorgaben", weight: 8, ratio: 1.8, mahlzeiten: 5, mctShare: 0.1, kcal: "", kcalMin: "" } });
+  const d = w.document;
+  assert.equal($(w, "vg-list").hidden, false);
+  assert.deepEqual([...d.querySelectorAll("#vg-list .vg-name")].map(e => e.textContent), ["Verordnung", "Flüssigkeit", "Öl und MCT", "Küche", "Erinnerungen und Daten"]);
+  assert.equal($(w, "vgs-verordnung").textContent, "1,8 : 1 · 640 kcal");
+  assert.equal($(w, "vgs-oel").textContent, "MCT 10 %");
+  // Unterseite öffnen und zurück
+  fire(w, d.querySelector('[data-vg="fluessigkeit"]'));
+  assert.equal($(w, "vg-list").hidden, true);
+  assert.equal(d.querySelector('[data-vgpage="fluessigkeit"]').hidden, false);
+  fire(w, d.querySelector('[data-vgpage="fluessigkeit"] [data-vgback]'));
+  assert.equal($(w, "vg-list").hidden, false);
+  // Verordnung: Ansicht gesperrt, Werte mit Herkunft
+  fire(w, d.querySelector('[data-vg="verordnung"]'));
+  assert.equal($(w, "vo-editbox").hidden, true, "Felder erst nach „Bearbeiten“");
+  assert.match($(w, "vo-view").textContent, /Verhältnis \(Fett : Eiweiß \+ KH\)Verordnung1,8 : 1/);
+  assert.match($(w, "vo-view").textContent, /Kalorien pro TagVorschlag · 80 kcal\/kg640 kcal/);
+  // Bearbeiten → Feld ändern → Abbrechen stellt den alten Stand her
+  fire(w, $(w, "vo-edit"));
+  assert.equal($(w, "vo-editbox").hidden, false); assert.equal($(w, "vo-view").hidden, true);
+  const k = $(w, "set-kcal"); k.value = "700"; fire(w, k, "input");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 700, "wirkt sofort (Kennzahlen rechnen mit)");
+  fire(w, $(w, "vo-cancel"));
+  assert.equal($(w, "vo-editbox").hidden, true);
+  assert.notEqual(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kcal, 700, "Abbrechen: alter Stand");
+  assert.match($(w, "vo-view").textContent, /640 kcal/);
+  // Bearbeiten → ändern → Speichern → Meldung mit Rückgängig
+  fire(w, $(w, "vo-edit"));
+  const k2 = $(w, "set-kcal"); k2.value = "720"; fire(w, k2, "input");
+  fire(w, $(w, "vo-save"));
+  assert.match($(w, "vo-view").textContent, /720 kcal/);
+  assert.match($(w, "toast").textContent, /Verordnung gespeichert/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.match($(w, "vo-view").textContent, /640 kcal/, "Rückgängig");
+  // Bedarf schätzen ist eine Unterseite der Verordnung
+  fire(w, d.querySelector('[data-vgpage="verordnung"] [data-vg="bedarf"]'));
+  assert.equal($(w, "bedarf-card").hidden, false);
+  // Pille im Kopf öffnet Vorgaben › Verordnung
+  fire(w, d.querySelector('.tabbar button[data-view="rezepte"]'));
+  fire(w, $(w, "rx-chip"));
+  assert.equal(d.querySelector('[data-vgpage="verordnung"]').hidden, false);
 });

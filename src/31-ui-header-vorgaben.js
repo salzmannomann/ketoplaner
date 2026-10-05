@@ -5,6 +5,7 @@
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
@@ -46,15 +47,76 @@
     markChip();
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
+  /* ---------- Vorgaben: Liste mit Unterseiten ----------
+     Die Liste zeigt je Bereich eine Zusammenfassung; jede Zeile öffnet eine Unterseite („‹ Vorgaben“ zurück).
+     Die Verordnung ist gesperrt, bis man „Bearbeiten“ tippt: Felder wirken sofort (die Kennzahlen rechnen mit),
+     „Abbrechen“ stellt den Stand von vorher wieder her, „Speichern“ schließt die Felder (Meldung mit Rückgängig). */
+  let vgPage = null, voEdit = false, voSnap = null;
+  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
+  function showVgPage(name, quiet) {
+    if (voEdit && name !== "verordnung") voFinish(true);
+    vgPage = name || null;
+    const list = document.getElementById("vg-list"); if (!list) return;
+    list.hidden = !!vgPage;
+    document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
+    document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
+    if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
+  }
+  function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
+  function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
+  function voFinish(keep) {
+    const snap = voSnap, changed = snap && JSON.stringify(voSnapshot()) !== JSON.stringify(snap);
+    voEdit = false; voSnap = null;
+    if (!keep && snap) voRestore(snap); else renderRezepte();
+    if (keep && changed) showToast("Verordnung gespeichert", [["Rückgängig", () => voRestore(snap)]]);
+  }
+  function renderVgList(d) {
+    const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+    put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
+    put("vgs-fluessigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel");
+    put("vgs-oel", d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " · Kalorien halten" : "") : "nur Rapsöl");
+    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
+    let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
+    const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
+    put("vgs-app", app.length ? app.join(" · ") : "nur auf diesem Gerät");
+    // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
+    const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
+    const rows = [
+      ["Verhältnis (Fett : Eiweiß + KH)", "Verordnung", fmtRx(d.ratio)],
+      ["Mahlzeiten pro Tag", "", String(d.mahl)],
+      ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
+      ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
+      ["Kalorien mindestens", src("src-kcalmin"), fmt(d.kcalMin, 0) + " kcal"],
+      ["Eiweiß pro Tag", d.autoProtein ? (d.proteinPerKg === d.proteinStandard ? "Standard · " : "") + fmt(d.proteinPerKg, 1) + " g/kg" : "manuell", fmt(d.eiweiss, 0) + " g"],
+    ];
+    const vv = document.getElementById("vo-view");
+    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>").join("");
+    const eb = document.getElementById("vo-editbox"); if (eb) eb.hidden = !voEdit;
+    if (vv) vv.hidden = voEdit;
+    const ed = document.getElementById("vo-edit"); if (ed) ed.hidden = voEdit;
+    const mt = document.getElementById("mct-mode-text");
+    if (mt) mt.textContent = d.mctMode === "kalorien"
+      ? "Die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung."
+      : "Das Verhältnis bleibt exakt. Die Kalorien sinken etwas, weil MCT weniger kcal je Gramm liefert.";
+  }
+  function bindVgPages() {
+    document.querySelectorAll("#view-vorgaben [data-vg]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vg)));
+    document.querySelectorAll("#view-vorgaben [data-vgback]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vgback === "list" ? null : b.dataset.vgback)));
+    const ed = document.getElementById("vo-edit"), ca = document.getElementById("vo-cancel"), sv = document.getElementById("vo-save");
+    if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
+    if (ca) ca.addEventListener("click", () => voFinish(false));
+    if (sv) sv.addEventListener("click", () => voFinish(true));
+  }
   function renderVorgaben(d) {
     const s = state.settings;
+    renderVgList(d);
     if (typeof renderPushCard === "function") renderPushCard();
     if (typeof renderSyncCard === "function") renderSyncCard();
     if (typeof renderBedarf === "function") renderBedarf(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1
-      ? '<div id="ratio-hint" class="note warn">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      ? '<div id="ratio-hint" class="note warn">▲ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
       : "";
     // Zusammenfassung als Kennzahl-Kacheln: Bezeichnung, Wert, kurze Herkunft (Details im title).
     const fact = (k, label, value, sub, title) => '<div class="vg-fact" data-k="' + k + '"' + (title ? ' title="' + escapeHtml(title) + '"' : "") +
@@ -89,7 +151,7 @@
           const wg = waterGiftsText(d);
           fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten unter Heute → ⏰.</p>';
+            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
         }
       }
     }
@@ -205,7 +267,7 @@
         try { window.scrollTo(0, back.y); } catch (e) {}
       } else if (cur !== "vorgaben") {
         chipReturn = { view: cur, y: window.pageYOffset || document.documentElement.scrollTop || 0 };
-        showView("vorgaben");
+        showView("vorgaben"); showVgPage("verordnung");
       }
       markChip();
     });

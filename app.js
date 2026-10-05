@@ -841,34 +841,34 @@
 
     const d = derived();
     // Vorschläge stehen als echte Werte im Feld (nicht als grauer Platzhalter). Die Zeile darunter sagt, woher der
-    // Wert kommt: „✓ Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
+    // Wert kommt: „Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
     const src = (id, manual, autoText, resetLabel) => {
       const sp = $("src-" + id), bt = $("reset-" + id);
-      if (sp) { sp.textContent = manual ? "eigener Wert" : "✓ " + autoText; sp.classList.toggle("auto", !manual); }
+      if (sp) { sp.textContent = manual ? "eigener Wert" : autoText; sp.classList.toggle("auto", !manual); }
       if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
     };
     put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
-    src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "↺ Vorschlag " + fmt(d.kcalAuto, 0));
+    src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "Vorschlag " + fmt(d.kcalAuto, 0));
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
-    src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "↺ Vorschlag " + fmt(d.kcalMinAuto, 0));
+    src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "Vorschlag " + fmt(d.kcalMinAuto, 0));
     put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
     $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
-    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "↺ Vorschlag " + fmt(d.fluidAuto, 0));
+    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "Vorschlag " + fmt(d.fluidAuto, 0));
     // Energiedichte (nur Modus „zwischen“; im anderen Modus ausgegraut, das Feld bleibt an seinem Platz)
     {
       const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
       put("set-dichte", on ? fmtNum(d.maxDichte) : "");
       if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "– (alles in den Mahlzeiten)"; }
-      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "↺ 1,5");
+      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "auf 1,5");
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);
     const em = $("eiweiss-manual"); if (em) em.hidden = d.autoProtein;
     {
       const sp = $("src-protein"), bt = $("reset-protein"), isStd = d.proteinPerKg === d.proteinStandard, hasW = num(s.weight) > 0;
-      const txt = d.autoProtein ? (hasW ? (isStd ? "✓ Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
+      const txt = d.autoProtein ? (hasW ? (isStd ? "Standard · " : "") + fmt(d.eiweiss, 0) + " g/Tag" : "Gewicht eintragen") : "eigener Wert";
       if (sp) { sp.textContent = txt; sp.classList.toggle("auto", d.autoProtein && isStd && hasW); }
-      if (bt) { bt.hidden = isStd; bt.textContent = "↺ Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
+      if (bt) { bt.hidden = isStd; bt.textContent = "Standard " + fmt(d.proteinStandard, 1) + " g/kg"; }
     }
     renderHeader(d);
     renderVorgaben(d);
@@ -918,6 +918,7 @@
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
+    if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
@@ -959,15 +960,76 @@
     markChip();
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
+  /* ---------- Vorgaben: Liste mit Unterseiten ----------
+     Die Liste zeigt je Bereich eine Zusammenfassung; jede Zeile öffnet eine Unterseite („‹ Vorgaben“ zurück).
+     Die Verordnung ist gesperrt, bis man „Bearbeiten“ tippt: Felder wirken sofort (die Kennzahlen rechnen mit),
+     „Abbrechen“ stellt den Stand von vorher wieder her, „Speichern“ schließt die Felder (Meldung mit Rückgängig). */
+  let vgPage = null, voEdit = false, voSnap = null;
+  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
+  function showVgPage(name, quiet) {
+    if (voEdit && name !== "verordnung") voFinish(true);
+    vgPage = name || null;
+    const list = document.getElementById("vg-list"); if (!list) return;
+    list.hidden = !!vgPage;
+    document.querySelectorAll("#view-vorgaben .vg-page").forEach(p => { p.hidden = p.dataset.vgpage !== vgPage; });
+    document.body.classList.toggle("vg-sub", !!vgPage && state.settings.view === "vorgaben");
+    if (!quiet) { try { window.scrollTo(0, 0); } catch (e) {} }
+  }
+  function voSnapshot() { const o = {}; VO_KEYS.forEach(k => { o[k] = Object.prototype.hasOwnProperty.call(state.settings, k) ? state.settings[k] : undefined; }); return o; }
+  function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
+  function voFinish(keep) {
+    const snap = voSnap, changed = snap && JSON.stringify(voSnapshot()) !== JSON.stringify(snap);
+    voEdit = false; voSnap = null;
+    if (!keep && snap) voRestore(snap); else renderRezepte();
+    if (keep && changed) showToast("Verordnung gespeichert", [["Rückgängig", () => voRestore(snap)]]);
+  }
+  function renderVgList(d) {
+    const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+    put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
+    put("vgs-fluessigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel");
+    put("vgs-oel", d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " · Kalorien halten" : "") : "nur Rapsöl");
+    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
+    let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
+    const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
+    put("vgs-app", app.length ? app.join(" · ") : "nur auf diesem Gerät");
+    // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
+    const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
+    const rows = [
+      ["Verhältnis (Fett : Eiweiß + KH)", "Verordnung", fmtRx(d.ratio)],
+      ["Mahlzeiten pro Tag", "", String(d.mahl)],
+      ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
+      ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
+      ["Kalorien mindestens", src("src-kcalmin"), fmt(d.kcalMin, 0) + " kcal"],
+      ["Eiweiß pro Tag", d.autoProtein ? (d.proteinPerKg === d.proteinStandard ? "Standard · " : "") + fmt(d.proteinPerKg, 1) + " g/kg" : "manuell", fmt(d.eiweiss, 0) + " g"],
+    ];
+    const vv = document.getElementById("vo-view");
+    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>").join("");
+    const eb = document.getElementById("vo-editbox"); if (eb) eb.hidden = !voEdit;
+    if (vv) vv.hidden = voEdit;
+    const ed = document.getElementById("vo-edit"); if (ed) ed.hidden = voEdit;
+    const mt = document.getElementById("mct-mode-text");
+    if (mt) mt.textContent = d.mctMode === "kalorien"
+      ? "Die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung."
+      : "Das Verhältnis bleibt exakt. Die Kalorien sinken etwas, weil MCT weniger kcal je Gramm liefert.";
+  }
+  function bindVgPages() {
+    document.querySelectorAll("#view-vorgaben [data-vg]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vg)));
+    document.querySelectorAll("#view-vorgaben [data-vgback]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vgback === "list" ? null : b.dataset.vgback)));
+    const ed = document.getElementById("vo-edit"), ca = document.getElementById("vo-cancel"), sv = document.getElementById("vo-save");
+    if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
+    if (ca) ca.addEventListener("click", () => voFinish(false));
+    if (sv) sv.addEventListener("click", () => voFinish(true));
+  }
   function renderVorgaben(d) {
     const s = state.settings;
+    renderVgList(d);
     if (typeof renderPushCard === "function") renderPushCard();
     if (typeof renderSyncCard === "function") renderSyncCard();
     if (typeof renderBedarf === "function") renderBedarf(d);
     // Richtung des Verhältnisses klarstellen: Fett zuerst. „1,5“ = 1,5:1 (mehr Fett), „1:1,5“ = 0,67 (weniger Fett).
     // Die Warnung steht in der Zusammenfassung, nicht im Feldraster – dort darf sich nichts verschieben.
     const ratioWarn = d.ratio < 1
-      ? '<div id="ratio-hint" class="note warn">⚠️ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
+      ? '<div id="ratio-hint" class="note warn">▲ ' + fmtTarget(d.ratio) + " heißt nur " + fmt(d.ratio, 2) + " g Fett je 1 g Eiweiß+KH – <strong>weniger Fett als Eiweiß+KH</strong>, also unterhalb von 1:1. Das ist beim Ausschleichen möglich, bitte prüfen, ob die Verordnung wirklich so lautet.</div>"
       : "";
     // Zusammenfassung als Kennzahl-Kacheln: Bezeichnung, Wert, kurze Herkunft (Details im title).
     const fact = (k, label, value, sub, title) => '<div class="vg-fact" data-k="' + k + '"' + (title ? ' title="' + escapeHtml(title) + '"' : "") +
@@ -1002,7 +1064,7 @@
           const wg = waterGiftsText(d);
           fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten unter Heute → ⏰.</p>';
+            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
         }
       }
     }
@@ -1118,7 +1180,7 @@
         try { window.scrollTo(0, back.y); } catch (e) {}
       } else if (cur !== "vorgaben") {
         chipReturn = { view: cur, y: window.pageYOffset || document.documentElement.scrollTop || 0 };
-        showView("vorgaben");
+        showView("vorgaben"); showVgPage("verordnung");
       }
       markChip();
     });
@@ -1259,16 +1321,16 @@
         '<span class="mk krick" style="left:' + p(r.krick).toFixed(1) + '%"></span>' + lab("above krick", r.krick, "Krick <b>" + fmt(r.krick, 0) + " kcal</b>") +
         "</div>" +
         '<ul class="bd-legend">' +
-          '<li><i class="sw krick"></i><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</li>" +
-          (walks ? "" : '<li><i class="sw band"></i><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</li>") +
-          '<li><i class="sw ref"></i><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</li>" +
+          '<li><i class="sw krick"></i><span><b>Krick-Formel (1992): ' + fmt(r.krick, 0) + " kcal</b> (" + kg(r.krick) + ") – Schätzung für euer Kind aus Gewicht, Alter und Geschlecht, bei „" + escapeHtml(r.mob[1]) + "“ und " + r.ton[1] + " Muskelspannung</span></li>" +
+          (walks ? "" : '<li><i class="sw band"></i><span><b>ESPGHAN-Leitlinie (2017): ' + fmt(r.lo, 0) + "–" + fmt(r.hi, 0) + " kcal</b> – Faustregel für Kinder, die nicht gehen: 60–70 % von gesunden Kindern; rechnet nur mit dem Alter</span></li>") +
+          '<li><i class="sw ref"></i><span><b>FAO/WHO (2004): ' + fmt(r.ref, 0) + " kcal</b> (" + kg(r.ref) + ") – Bedarf gesunder Kinder gleichen Alters, ohne Einschränkung</span></li>" +
         "</ul>" +
         '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
-      '<p class="bd-one">🥚 Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">✓ ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
-        : '<span class="warn-t">⚠️ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
-      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">💊 Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
-      (r.jump ? '<p class="bd-one">ℹ️ Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
+      '<p class="bd-one">Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
+        ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
+        : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
+      (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
+      (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "");
   }
   function bindBedarf() {
     const birth = document.getElementById("bd-birth"); if (!birth) return;
@@ -2480,11 +2542,11 @@
     const o = pushOpt(), times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times), items = [];
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
-      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "🍽️ Mahlzeit " + (i + 1) + " · " + fmtHM(t),
+      items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
         body: (m.rec ? m.rec.name + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
-      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "💧 Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
+      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
     });
     return items;
   }
@@ -2523,16 +2585,16 @@
   let pushTimer = null, pushError = "";
   function schedulePushSync() { if (!state.settings.pushOn) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => pushSync(false), 1500); }
   async function pushEnable() {
-    const sup = pushSupport(); if (!sup.ok) { showToast("🔔 " + escapeHtml(sup.why)); return; }
-    if (!pushUrl()) { showToast("🔔 Zuerst die Adresse des Dienstes eintragen (ⓘ Wie funktioniert das?)."); return; }
+    const sup = pushSupport(); if (!sup.ok) { showToast(escapeHtml(sup.why)); return; }
+    if (!pushUrl()) { showToast("Zuerst die Adresse des Dienstes eintragen („Wie funktioniert das?“)."); return; }
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { showToast("🔔 Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
+      if (perm !== "granted") { showToast("Mitteilungen sind nicht erlaubt – in den iPhone-Einstellungen unter Mitteilungen → HamHam Keto erlauben."); return; }
       await pushSubscription(true);
       state.settings.pushOn = true; save();
       await pushSync(true);
-      showToast(pushError ? "🔔 " + escapeHtml(pushError) : "🔔 Erinnerungen eingeschaltet");
-    } catch (e) { showToast("🔔 Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast(pushError ? "" + escapeHtml(pushError) : "Erinnerungen eingeschaltet");
+    } catch (e) { showToast("Einschalten fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
     renderPushCard();
   }
   async function pushDisable() {
@@ -2542,14 +2604,14 @@
       if (sub) { try { await pushPost("/api/remove", { endpoint: sub.endpoint }); } catch (e) {} await sub.unsubscribe(); }
     } catch (e) {}
     try { localStorage.removeItem(PUSH_SYNC_KEY); } catch (e) {}
-    showToast("🔕 Erinnerungen ausgeschaltet"); renderPushCard();
+    showToast("Erinnerungen ausgeschaltet"); renderPushCard();
   }
   async function pushTest() {
     try {
-      const sub = await pushSubscription(false); if (!sub) { showToast("🔔 Erst die Erinnerungen einschalten."); return; }
+      const sub = await pushSubscription(false); if (!sub) { showToast("Erst die Erinnerungen einschalten."); return; }
       await pushPost("/api/test", { subscription: sub.toJSON() });
-      showToast("🔔 Testnachricht verschickt – sie sollte gleich erscheinen.");
-    } catch (e) { showToast("🔔 Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
+      showToast("Testnachricht verschickt – sie sollte gleich erscheinen.");
+    } catch (e) { showToast("Test fehlgeschlagen: " + escapeHtml(String(e && e.message || e))); }
   }
   // Karte in den Vorgaben
   function renderPushCard() {
@@ -2558,11 +2620,11 @@
     let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_SYNC_KEY) || "null"); } catch (e) {}
     st.className = "note " + (!sup.ok || pushError ? "warn" : on ? "tip" : "info");
     st.innerHTML = !sup.ok ? escapeHtml(sup.why)
-      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „ⓘ Wie funktioniert das?“ eintragen."
+      : !pushUrl() ? "Noch nicht eingerichtet: Adresse des Dienstes unter „Wie funktioniert das?“ eintragen."
       : pushError ? escapeHtml(pushError)
       : on ? "<strong>Eingeschaltet</strong>" + (last ? " · " + last.n + " Erinnerungen am Tag, zuletzt abgeglichen " + new Date(last.at).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) : "")
       : "Ausgeschaltet.";
-    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "🔕 Ausschalten" : "🔔 Erinnerungen einschalten"; t.classList.toggle("secondary", on); t.disabled = !sup.ok; }
+    const t = document.getElementById("push-toggle"); if (t) { t.textContent = on ? "Ausschalten" : "Erinnerungen einschalten"; t.classList.toggle("outline", on); t.classList.toggle("primary", !on); t.disabled = !sup.ok; }
     const te = document.getElementById("push-test"); if (te) te.hidden = !on;
     const pm = document.getElementById("push-meals"); if (pm) pm.checked = o.meals;
     const pw = document.getElementById("push-water"); if (pw) pw.checked = o.water;
@@ -2659,7 +2721,7 @@
   async function syncPost(path, data) {
     const r = await fetch(pushUrl() + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     let j = null; try { j = await r.json(); } catch (e) {}
-    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren (ⓘ).");
+    if (r.status === 404 && path.indexOf("/api/state/") === 0 && j && j.error === "not found") throw new Error("Der Dienst kennt den Abgleich noch nicht – bitte den Worker aktualisieren („Wie funktioniert das?“).");
     return { status: r.status, j: j || {} };
   }
 
@@ -2727,12 +2789,12 @@
 
   // ---- Ein-/Ausschalten und Koppeln ----
   async function syncEnable() {
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     const raw = crypto.getRandomValues(new Uint8Array(32));
     syncMeta = { key: b64u(raw), rev: 0, ts: {}, dirty: true }; syncLastJson = null;
     syncMarkChanges(Date.now()); syncMeta.dirty = true; syncSaveMeta();
     await syncNow(); syncStartTimer();
-    showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
+    showToast(syncError ? escapeHtml(syncError) : "Abgleich eingeschaltet – jetzt weitere Geräte verbinden.");
     renderSyncCard();
   }
   function randomCode() {
@@ -2755,8 +2817,8 @@
   }
   async function syncJoin(input) {
     const code = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/0/g, "O").replace(/[1I]/g, "L");
-    if (code.length !== 8) { showToast("🔄 Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
-    if (!syncSupport()) { showToast("🔄 Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
+    if (code.length !== 8) { showToast("Bitte den 8-stelligen Code eingeben (z. B. ABCD-EFGH)."); return; }
+    if (!syncSupport()) { showToast("Dieses Gerät kann nicht verschlüsselt abgleichen."); return; }
     try {
       const id = await sha256hex("hamham-pair:" + code);
       const r = await syncPost("/api/pair/get", { id });
@@ -2766,14 +2828,14 @@
       // Beim Koppeln übernimmt dieses Gerät den gemeinsamen Stand (eigene Daten werden ersetzt)
       syncMeta = { key: keyB64, rev: 0, ts: {}, fresh: true, dirty: false }; syncLastJson = null; syncSaveMeta();
       await syncNow(); syncStartTimer();
-      showToast(syncError ? "🔄 " + escapeHtml(syncError) : "🔄 Verbunden – dieses Gerät ist jetzt abgeglichen.");
-    } catch (e) { showToast("🔄 " + escapeHtml(String(e && e.message || e))); }
+      showToast(syncError ? escapeHtml(syncError) : "Verbunden – dieses Gerät ist jetzt abgeglichen.");
+    } catch (e) { showToast(escapeHtml(String(e && e.message || e))); }
     renderSyncCard();
   }
   function syncDisable() {
     if (!confirm("Abgleich auf diesem Gerät ausschalten? Die Daten bleiben hier erhalten, werden aber nicht mehr mit den anderen Geräten abgeglichen.")) return;
     syncMeta = null; syncLastJson = null; pairShown = null; syncError = ""; syncSaveMeta();
-    showToast("🔄 Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
+    showToast("Abgleich auf diesem Gerät ausgeschaltet."); renderSyncCard();
   }
 
   // ---- Karte in den Vorgaben ----
@@ -2793,7 +2855,7 @@
     if (pc) {
       const valid = on && pairShown && pairShown.until > Date.now();
       pc.hidden = !valid;
-      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → 🔄 Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
+      if (valid) pc.innerHTML = "Code für das andere Gerät: <strong class=\"sync-code\">" + fmtCode(pairShown.code) + "</strong><br><small>Am anderen Gerät unter Vorgaben → Erinnerungen und Daten → Geräte abgleichen → „Mit Code verbinden“ eingeben. Gültig bis " +
         new Date(pairShown.until).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }) + ", nur einmal verwendbar.</small>";
     }
   }
@@ -3575,6 +3637,7 @@
     rebuildFoodIndex();
     applyTheme();
     bindSettingsBar();
+    bindVgPages();
     bindPush();
     bindSync();
     bindBedarf();
