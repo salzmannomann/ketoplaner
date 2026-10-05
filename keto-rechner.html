@@ -2965,7 +2965,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }));
     return saved.concat(RECIPES_SONDE);
   }
-  // Fettbasis einer Variante als Kurztext: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
+  // Fettbasis einer Variante als Kurztext für den Ausdruck: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
   function basisLabel(rec) {
     const fi = fatItemIndex(rec.items);
     const lever = fi >= 0 ? String(rec.items[fi].food).replace(/ NÖM$/, "") : "";
@@ -2989,7 +2989,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // Jedes Rezept steht für sich (mit oder ohne KetoCal). Gibt es ein Gericht in beiden Fettbasen, sind das
   // zwei Einträge; „Geschwister“ ist die jeweils andere Variante (für den „Auch als“-Link im Rezept).
   function siblingVariants(rec) { return familyOfRecipe(rec).variants.filter(v => recipeKey(v) !== recipeKey(rec)); }
-  function isMulti(rec) { return familyOfRecipe(rec).variants.length > 1; }
 
   /* ---------- Wischen in der Rezeptliste: links = nächste Gruppe, rechts = vorige ----------
      Drücken und Ziehen im Bereich der Rezepte (Finger oder Maus) blättert zwischen den Gruppen wie zwischen
@@ -4143,12 +4142,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept (Blatt Anpassen).
     // Nur Geschwister, die sich auf die Verordnung einstellen lassen (sonst wären ihre Mengen unbrauchbar)
     const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
-    // Kopf: Verhältnis-Pille, grau Diätologie · Fettbasis · eigenes Rezept
-    const headTags = [rec.quelle ? "Diätologie" : "", (rec.ketocal || sibs.length) ? escapeHtml(basisLabel(rec)) : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
+    // Kopf: Verhältnis-Pille, grau Diätologie · eigenes Rezept. Die Fettbasis steht nicht als Schild da – sie zeigt sich
+    // am Namenszusatz „· mit KetoCal“ und in der Zutatenliste.
+    const headTags = [rec.quelle ? "Diätologie" : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
     if (sibs.length) {
-      basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">' + escapeHtml(basisLabel(rec)) + ' – dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
-        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch als „' + escapeHtml(displayText(v)) + "“</button>").join("") + "</div>";
+      // Link „Auch mit KetoCal“ / „Auch ohne KetoCal“ (ohne Butter/Rapsöl im Text)
+      const sibText = (v) => !!v.ketocal !== !!rec.ketocal ? (v.ketocal ? "Auch mit KetoCal" : "Auch ohne KetoCal") : "Auch als „" + escapeHtml(displayText(v)) + "“";
+      basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">Dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
+        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' + sibText(v) + "</button>").join("") + "</div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 3 Tage haltbar): reine Information, wie weit eine Packung reicht.
@@ -4902,7 +4904,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5, ps = proteinState(s.eiweiss, d.eiweissMahl);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
         '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + ((x.rec.ketocal || isMulti(x.rec)) ? " · " + escapeHtml(basisLabel(x.rec)) : "") + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
+        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
           ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {

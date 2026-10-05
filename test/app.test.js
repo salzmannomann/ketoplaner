@@ -231,8 +231,12 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   const pin = c.querySelector("#portion-input"); pin.value = "4"; fire(w, pin, "change");
   c = $(w, "detail-content");
   const link = c.querySelector("button[data-open-rec]");
-  assert.ok(link && /KetoCal/.test(link.textContent), "Auch-als-Link zur KetoCal-Variante fehlt"); fire(w, link);
+  assert.ok(link && link.textContent === "Auch mit KetoCal", "Link zur KetoCal-Variante: " + (link && link.textContent));
+  assert.ok(![...c.querySelectorAll(".dh-tags .dh-tag")].some(t => /Rapsöl|Butter|KetoCal/.test(t.textContent)), "kein Fett-Schild im Detailkopf");
+  fire(w, link);
   c = $(w, "detail-content");
+  assert.equal(c.querySelector("button[data-open-rec]").textContent, "Auch ohne KetoCal");
+  assert.ok(![...c.querySelectorAll(".dh-tags .dh-tag")].some(t => /Rapsöl|Butter|KetoCal/.test(t.textContent)), "auch bei KetoCal kein Fett-Schild");
   const rows = kitchenRows(c);
   assert.ok(rows["Ketocal 3:1"] > 0 && rows["Rapsöl"] === undefined, "Geschwister-Rezept geöffnet");
   assert.equal(c.querySelector("#portion-input").value, "4", "Zubereitungsmenge bleibt beim Wechsel zum Geschwister-Rezept");
@@ -585,6 +589,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   assert.equal($(w, "picker-overlay").hidden, false);
   // Auswahl zeigt je Rezept kcal, Volumen der Mahlzeit und Eiweiß
   assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · (≈|▲) [\d.]+ ml · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
+  assert.ok(![...w.document.querySelectorAll("#picker-list .pick-meta")].some(m => /Rapsöl|Butter|KetoCal/.test(m.textContent)), "keine Fettbasis in der grauen Zeile der Auswahl");
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
   hc = $(w, "heute-content");
   assert.equal(hc.querySelectorAll(".slot:not(.empty-slot)").length, 1);

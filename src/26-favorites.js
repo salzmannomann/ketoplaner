@@ -38,7 +38,7 @@
     }));
     return saved.concat(RECIPES_SONDE);
   }
-  // Fettbasis einer Variante als Kurztext: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
+  // Fettbasis einer Variante als Kurztext für den Ausdruck: „Rapsöl“, „Butter“, „KetoCal + Butter“ …
   function basisLabel(rec) {
     const fi = fatItemIndex(rec.items);
     const lever = fi >= 0 ? String(rec.items[fi].food).replace(/ NÖM$/, "") : "";
@@ -62,4 +62,3 @@
   // Jedes Rezept steht für sich (mit oder ohne KetoCal). Gibt es ein Gericht in beiden Fettbasen, sind das
   // zwei Einträge; „Geschwister“ ist die jeweils andere Variante (für den „Auch als“-Link im Rezept).
   function siblingVariants(rec) { return familyOfRecipe(rec).variants.filter(v => recipeKey(v) !== recipeKey(rec)); }
-  function isMulti(rec) { return familyOfRecipe(rec).variants.length > 1; }

@@ -347,12 +347,15 @@
     // Gibt es das Gericht auch in der anderen Fettbasis, führt ein Link zum Geschwister-Rezept (Blatt Anpassen).
     // Nur Geschwister, die sich auf die Verordnung einstellen lassen (sonst wären ihre Mengen unbrauchbar)
     const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
-    // Kopf: Verhältnis-Pille, grau Diätologie · Fettbasis · eigenes Rezept
-    const headTags = [rec.quelle ? "Diätologie" : "", (rec.ketocal || sibs.length) ? escapeHtml(basisLabel(rec)) : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
+    // Kopf: Verhältnis-Pille, grau Diätologie · eigenes Rezept. Die Fettbasis steht nicht als Schild da – sie zeigt sich
+    // am Namenszusatz „· mit KetoCal“ und in der Zutatenliste.
+    const headTags = [rec.quelle ? "Diätologie" : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
     if (sibs.length) {
-      basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">' + escapeHtml(basisLabel(rec)) + ' – dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
-        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">Auch als „' + escapeHtml(displayText(v)) + "“</button>").join("") + "</div>";
+      // Link „Auch mit KetoCal“ / „Auch ohne KetoCal“ (ohne Butter/Rapsöl im Text)
+      const sibText = (v) => !!v.ketocal !== !!rec.ketocal ? (v.ketocal ? "Auch mit KetoCal" : "Auch ohne KetoCal") : "Auch als „" + escapeHtml(displayText(v)) + "“";
+      basisSeg = '<div class="adj-block basis"><div class="overline">Fettbasis</div><div class="adj-text">Dieses Gericht gibt es auch als eigenes Rezept mit eigenen Mengen:</div>' +
+        sibs.map(v => '<button type="button" class="tlink" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' + sibText(v) + "</button>").join("") + "</div>";
     }
 
     // Packungs-Hinweis (z. B. Compleat 500 ml, 3 Tage haltbar): reine Information, wie weit eine Packung reicht.
