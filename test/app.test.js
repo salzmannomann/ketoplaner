@@ -987,8 +987,9 @@ test("Drucken: Vorschau in der App statt neuem Fenster, mit Zurück und Drucken 
   const first = kz.querySelector(".r.me");
   assert.equal(first.querySelector(".t").textContent, "7:00"); assert.equal(first.querySelector(".w").textContent, "Compleat & KetoCal", "Rezeptname statt „Mahlzeit 1“");
   assert.match(first.querySelector(".m").textContent, /^\d+ ml$/);
-  assert.match(first.querySelector(".x").textContent, /^\d+ min$/);
-  assert.match(first.querySelector(".z").textContent, /Ketocal 3:1\s[\d,]+\sg · Compleat\s[\d,]+\sg/);
+  assert.match(first.querySelector(".x.d").textContent, /^\d+ min$/, "Dauer unter der Uhrzeit");
+  const z1 = [...first.querySelectorAll(".z .i")].map(i => i.querySelector("span").textContent + " | " + i.querySelector("b").textContent.replace(/\s/g, " "));
+  assert.ok(/^Ketocal 3:1 \| [\d,]+ g$/.test(z1[0]) && /^Compleat \| [\d,]+ g$/.test(z1[1]), z1.join(", "));
   assert.ok(kz.querySelectorAll(".r.wa").length >= 3, "Wassergaben"); assert.ok(kz.querySelector(".r.sl"), "Schlafen");
   assert.ok(!root.querySelector("table") && !/Tagessummen|Verordnung/.test(root.textContent), "keine A4-Tabellen und Summen mehr");
   assert.doesNotMatch(root.querySelector("style").textContent, /(^|[}\s])body\s*\{|@page/, "Druckstil berührt die App nicht");
@@ -1024,7 +1025,7 @@ test("Teilen: PDF aus der Druckvorschau wird erzeugt und ans Teilen-Menü überg
   assert.equal(meals.length, 4);
   assert.equal(meals[2].querySelector(".w").textContent, "Hendl & Brokkoli");
   assert.doesNotMatch(ps.textContent, /Mahlzeit \d/);
-  const ing = [...meals[2].querySelectorAll(".z .i")].map(i => i.textContent);
+  const ing = [...meals[2].querySelectorAll(".z .i span")].map(i => i.textContent);
   assert.ok(/Hühnerbrust/.test(ing[0]) && /Rapsöl/.test(ing[ing.length - 2]) && /MCT-Öl/.test(ing[ing.length - 1]), ing.join(", "));
   assert.doesNotMatch(ps.textContent, /vor dem Füttern/, "kein „Öl vor dem Füttern“ im Ausdruck");
   const f = shared.files[0];

@@ -123,8 +123,10 @@
     ".r{display:grid;grid-template-columns:calc(15.5mm * var(--s, 1)) 1fr auto;column-gap:1.5mm;align-items:baseline;padding:1.2mm 1mm;border-bottom:.2mm solid #d5dbd8;break-inside:avoid}" +
     ".r .t{font-weight:bold;font-size:1.45em}.r .w{font-weight:bold;font-size:1.3em}" +
     ".r .m{font-weight:bold;font-size:1.45em;text-align:right;white-space:nowrap}" +
-    ".r .x{grid-column:2/4;font-size:.95em;margin-top:.5mm}.r .x b{font-weight:600}.r i{font-style:normal;color:#555;font-weight:normal}" +
-    ".r .z{grid-column:2/4;font-size:.78em;color:#3d4a52;line-height:1.35;margin-top:.4mm}.r .z .i{white-space:nowrap}" +
+    ".r .x{grid-column:2/4;font-size:.85em;margin-top:.3mm}.r i{font-style:normal;color:#555;font-weight:normal}" +
+    ".r .x.d{grid-column:1;grid-row:2;align-self:start;color:#555;margin-top:1mm}" +
+    ".r .z{grid-column:2/4;grid-row:2;display:grid;grid-template-columns:1fr 1fr;column-gap:4mm;row-gap:.3mm;font-size:1em;line-height:1.25;margin-top:.8mm}" +
+    ".r .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;border-bottom:.15mm dotted #b9c2c7}.r .z .i b{white-space:nowrap}" +
     ".r.wa{background:#eaf3fa;color:#24557f}.r.wa .t,.r.wa .m{font-size:1.25em}.r.wa .w{font-size:1.1em;font-weight:normal}.r.wa i{color:#24557f}" +
     ".r.sl{color:#7a858b;border-bottom:none}.r.sl .t,.r.sl .w{font-size:1em;font-weight:normal}";
   // Schrift der Karte so groß wie möglich: von 120 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 60 %).

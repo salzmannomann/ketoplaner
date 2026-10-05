@@ -29,14 +29,18 @@
     const head = kz.querySelector(".kz-h");
     const rows = [...kz.querySelectorAll(".r")].map(r => ({
       kind: r.classList.contains("wa") ? "wa" : r.classList.contains("sl") ? "sl" : "me",
-      t: txt(r, ".t"), w: txt(r, ".w"), m: txt(r, ".m"), x: txt(r, ".x"),
-      z: [...r.querySelectorAll(".z .i")].map(i => pdfText(i.textContent)),
+      t: txt(r, ".t"), w: txt(r, ".w"), m: txt(r, ".m"), x: txt(r, ".x:not(.d)"), d: txt(r, ".x.d"),
+      z: [...r.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
     }));
-    // Zutaten als Wörter-Gruppen umbrechen („Brokkoli 40 g“ bleibt zusammen)
-    const wrapTokens = (tokens, width) => {
-      const lines = []; let cur = "";
-      tokens.forEach(tk => { const nx = cur ? cur + " · " + tk : tk; if (!cur || doc.getTextWidth(nx) <= width) cur = nx; else { lines.push(cur); cur = tk; } });
-      if (cur) lines.push(cur); return lines;
+    // Zutaten in zwei Spalten: links der Name (darf umbrechen), rechts fett die Gramm
+    const ZS = 10, ZGAP = 4;
+    const ingRows = (z, width, s) => {
+      const cw = (width - ZGAP) / 2, out = [];
+      for (let k = 0; k < z.length; k += 2) {
+        const cells = z.slice(k, k + 2).map(it => { font(ZS * s, true); const gw = doc.getTextWidth(it.g); font(ZS * s, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
+        out.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)), cw });
+      }
+      return out;
     };
     const layout = (s, draw) => {
       // Uhrzeit-Spalte wächst mit der Schrift
@@ -54,9 +58,10 @@
         font(big * s, true); const mw = r.m ? doc.getTextWidth(r.m) + 2 : 0;
         font(mid * s, r.kind === "me"); const wl = doc.splitTextToSize(r.w, R - L - TW - GAP - mw);
         const wx = (wl.length - 1) * lineH(mid * s);
-        font(9.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
-        font(7.8 * s, false); const zl = r.z.length ? wrapTokens(r.z, IW) : [];
-        const h = 1.2 + h1 * s + wx + (xl.length ? 0.5 + xl.length * lineH(9.5 * s) : 0) + (zl.length ? 0.4 + zl.length * lineH(7.8 * s) * 1.12 : 0) + 1.2;
+        font(8.5 * s, false); const xl = r.x ? doc.splitTextToSize(r.x, IW) : [];
+        const zr = r.z.length ? ingRows(r.z, IW, s) : [], zlh = lineH(ZS * s) * 1.05;
+        const zh = zr.reduce((a, q) => a + q.n * zlh + 0.3, 0);
+        const h = 1.2 + h1 * s + wx + (xl.length ? 0.3 + xl.length * lineH(8.5 * s) : 0) + (zr.length ? 0.8 + zh : 0) + 1.2;
         if (draw) {
           if (r.kind === "wa") { doc.setFillColor(234, 243, 250); doc.rect(L - 1, y, R - L + 2, h, "F"); }
           const col = r.kind === "wa" ? [36, 85, 127] : r.kind === "sl" ? [122, 133, 139] : [31, 41, 51];
@@ -65,8 +70,21 @@
           font(mid * s, r.kind === "me", col); wl.forEach((l, k) => doc.text(l, L + TW + GAP, yy + k * lineH(mid * s)));
           if (r.m) { font(big * s, true, col); doc.text(r.m, R, yy, { align: "right" }); }
           yy = y + 1.2 + h1 * s + wx;
-          if (xl.length) { font(9.5 * s, false, col); yy += 0.5; xl.forEach(l => { yy += lineH(9.5 * s); doc.text(l, L + TW + GAP, yy - lineH(9.5 * s) * 0.22); }); }
-          if (zl.length) { font(7.8 * s, false, [61, 74, 82]); yy += 0.4; zl.forEach(l => { yy += lineH(7.8 * s) * 1.12; doc.text(l, L + TW + GAP, yy - lineH(7.8 * s) * 0.3); }); }
+          if (r.d) { font(8.5 * s, false, [85, 85, 85]); doc.text(r.d, L, yy + 1 + lineH(8.5 * s) * 0.78); }
+          if (xl.length) { font(8.5 * s, false, [85, 85, 85]); yy += 0.3; xl.forEach(l => { yy += lineH(8.5 * s); doc.text(l, L + TW + GAP, yy - lineH(8.5 * s) * 0.22); }); }
+          if (zr.length) {
+            yy += 0.8;
+            zr.forEach(q => {
+              q.cells.forEach((c, ci) => {
+                const x0 = L + TW + GAP + ci * (q.cw + ZGAP), x1 = x0 + q.cw;
+                font(ZS * s, false, [31, 41, 51]); c.lines.forEach((l, li) => doc.text(l, x0, yy + (li + 0.78) * zlh));
+                font(ZS * s, true, [31, 41, 51]); doc.text(c.it.g, x1, yy + (c.lines.length - 1 + 0.78) * zlh, { align: "right" });
+                doc.setDrawColor(185, 194, 199); doc.setLineWidth(0.15); doc.setLineDashPattern([0.4, 0.6], 0);
+                doc.line(x0, yy + q.n * zlh + 0.15, x1, yy + q.n * zlh + 0.15); doc.setLineDashPattern([], 0);
+              });
+              yy += q.n * zlh + 0.3;
+            });
+          }
           if (r.kind !== "sl") { doc.setDrawColor(213, 219, 216); doc.setLineWidth(0.2); doc.line(L - 1, y + h, R + 1, y + h); }
         }
         y += h;
