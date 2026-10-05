@@ -283,9 +283,6 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .tabbar button.active { background: var(--ink); color: var(--paper); }
 .tabbar button:focus-visible { outline-offset: -4px; outline-color: var(--paper); }
 .tabbar button:not(.active):focus-visible { outline-color: var(--ink); }
-@media (min-width: 821px) {
-  .tabbar { left: 50%; right: auto; width: min(420px, calc(100% - 40px)); transform: translateX(-50%); bottom: 20px; }
-}
 @media (max-width: 380px) { .page-title { font-size: 31px; } }
 .zp-list.tight .zp-head .zp-txt { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 0; }
 .zp-list.tight .zp-vol { font-size: 11px; }
@@ -363,11 +360,6 @@ body.heute-tight .page-title { font-size: 28px; }
 .list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; }
 #recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; will-change: transform; }
 #recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
-@media (min-width: 821px) {
-  .listbar { margin: 0; }
-  .chips { flex-wrap: wrap; overflow: visible; padding: 0; }
-  .tiles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
-}
 
 /* ======================================================================
    Overlays und Sheets (Auswahl, Rezept, Editor)
@@ -384,7 +376,6 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 #picker-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: max(56px, 17vh); width: auto; max-width: none; min-height: 0; margin: 0 auto;
   display: flex; flex-direction: column; gap: 10px; padding: 8px 20px calc(14px + env(safe-area-inset-bottom));
   border-radius: 20px 20px 0 0; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
-@media (min-width: 821px) { #picker-overlay .overlay-card { top: 8vh; bottom: 8vh; max-width: 560px; border-radius: 20px; } }
 /* Rezept/Editor: Sheet von oben bis unten, Kopf + Reiter + Blätter + feste Fußleiste */
 #detail-overlay .overlay-card, #compose-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: calc(env(safe-area-inset-top) + 10px);
   max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px 20px 0 0;
@@ -654,41 +645,61 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 @media (max-width: 560px) { .print-bar { gap: 8px; padding-left: 16px; padding-right: 16px; } .print-bar .print-title { display: none; } .print-bar #print-back { margin-right: auto; } .print-bar .btn { padding: 0 12px; } }
 
 /* ======================================================================
-   Desktop (> 820 px): gleiche Bausteine, Inhalt max. 1100 px
+   Desktop (> 820 px): linke Spalte, Inhalt daneben. Gleiche Bausteine und Tokens wie am Handy;
+   alles Desktop-Spezifische steht in dieser Breitenabfrage (Mobil bleibt unverändert).
    ====================================================================== */
+.side, .dk-only { display: none; }
 @media (min-width: 821px) {
-  /* Heute: Zeitleiste links, rechts Tagesbilanz, Werkzeuge, Uhrzeiten und Hinweise */
-  .zeitplan { display: grid; grid-template-columns: minmax(0, 1fr) 300px; column-gap: 48px; row-gap: 14px; align-items: start; }
-  .zeitplan > .zp-list { grid-column: 1; grid-row: 1 / 8; }
-  .zeitplan > .day-sum, .zeitplan > .day-tools, .zeitplan > .zp-set, .zeitplan > .zp-hints { grid-column: 2; }
-  .zeitplan > .day-sum { flex-direction: column; flex-wrap: nowrap; gap: 6px; padding-bottom: 10px; border-bottom: 1px dotted var(--dot); font-size: 13px; }
-  .zeitplan > .day-sum::before { content: "Tagesbilanz"; padding-bottom: 6px; margin-bottom: 2px; border-bottom: 2px solid var(--ink); font: 600 21px/1.15 var(--f-serif); color: var(--ink); }
-  .zeitplan > .day-tools { margin: -6px -6px 0; flex-wrap: wrap; }
-  .zeitplan > .day-tools .dt-range { flex-basis: 100%; padding: 4px 6px; }
-  .zeitplan > .zp-set { grid-template-columns: 1fr; }
-  .zeitplan > .zp-hints { border-top: 0; padding-top: 0; }
-  .zp-list .zp-row.meal { padding: 14px 0; }
-  .zp-row { grid-template-columns: 56px minmax(0, 1fr) auto; }
-  .zp-row.meal { grid-template-columns: 56px minmax(0, 1fr); }
-  .zp-row.empty-slot { grid-template-columns: 56px minmax(0, 1fr) auto; }
-  .zp-row.sleep { grid-template-columns: 56px minmax(0, 1fr); }
-  .zp-list.roomy .zp-ing { grid-template-columns: minmax(0, 260px) auto; justify-content: start; }
-  /* Vorgaben: schmale Spalte in der Mitte */
-  #view-vorgaben, .footnote { max-width: 720px; margin-left: auto; margin-right: auto; }
-}
-/* Ab 1100 px: Rezept als festes Panel rechts, Liste daneben */
-@media (min-width: 1100px) {
-  body.detail-panel { padding-right: 500px; }
-  body.detail-panel #detail-overlay { left: auto; width: 500px; background: transparent; pointer-events: none; }
-  body.detail-panel #detail-overlay .overlay-card { pointer-events: auto; top: 0; bottom: 0; max-width: none; border-radius: 0; border-left: 2px solid var(--ink); box-shadow: -8px 0 30px rgba(42,38,33,.12); }
-  body.detail-panel #detail-content > .sheet-grip { visibility: hidden; }
-  body.detail-panel .tabbar { left: calc((100% - 500px) / 2); }
-  body.detail-panel .tiles { grid-template-columns: 1fr; }
+  body { padding-left: 224px; }
+  .topbar, .tabbar, .footnote { display: none; }
+  .main { max-width: none; margin: 0; padding: 34px 36px 80px; }
+  /* Linke Spalte: 224 px, Tintenlinie rechts, läuft mit */
+  .side { position: fixed; z-index: 50; left: 0; top: 0; bottom: 0; width: 224px; display: flex; flex-direction: column; gap: 26px;
+    padding: 28px 22px; border-right: 2px solid var(--ink); background: var(--paper); overflow: auto; }
+  .side-brand { display: flex; align-items: center; gap: 12px; }
+  .side-brand img { flex: none; width: 40px; height: 40px; border-radius: 9px; }
+  .side-brand-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .side-name { font: 600 22px/1 var(--f-serif); }
+  .side-nav { display: flex; flex-direction: column; gap: 4px; }
+  .side-nav button { display: flex; align-items: center; min-height: 44px; margin: 0; padding: 0 14px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--ink); font: 600 15px var(--f-sans); text-align: left; cursor: pointer; }
+  .side-nav button:hover { background: var(--paper-2); }
+  .side-nav button.active { background: var(--ink); color: var(--paper); }
+  .side-nav button.active:focus-visible { outline-color: var(--ink); }
+  .side-rx { display: flex; flex-direction: column; padding-top: 12px; border-top: 2px solid var(--ink); }
+  .side-rx-head { display: flex; align-items: center; gap: 8px; }
+  .side-rx-head .tlink { min-width: 0; min-height: 40px; margin: 0 -6px 0 auto; font-size: 13px; }
+  .side-ratio { display: flex; flex-direction: column; gap: 4px; padding: 6px 0 10px; border-bottom: 1px solid var(--ink); }
+  .side-ratio b { font: 600 30px/1 var(--f-mono); white-space: nowrap; }
+  .side-ratio span { font-size: 12px; color: var(--grey); }
+  .side-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px dotted var(--dot); font-size: 13px; }
+  .side-row span { flex: 1; color: var(--grey); }
+  .side-row b { font: 600 14px var(--f-mono); white-space: nowrap; }
+  .side-foot { padding-top: 8px; font: 500 12px var(--f-mono); color: var(--grey); }
+  .side-note { margin: auto 0 0; font-size: 11px; line-height: 1.5; color: var(--grey); text-wrap: pretty; }
+  /* Kopf jeder Seite: Überlinie + Titel 42 px, Tintenlinie unten */
+  .dk-only { display: revert; }
+  .dk-head { display: flex; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .dk-title { display: flex; flex-direction: column; gap: 2px; margin-right: auto; min-width: 0; }
+  .dk-title h1 { margin: 0; font: 600 42px/1 var(--f-serif); }
 }
 
 </style>
 </head>
 <body>
+  <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
+       Am Handy ausgeblendet; dort übernehmen Kopf und schwebende Navigation. -->
+  <aside class="side" id="side" aria-label="HamHam Keto">
+    <div class="side-brand"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjU1OGJjYzdiLTM4ZDAtNGRjNi05ZjIyLWRjMDMyODUyMzM3NwAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNofKO5Fs3B4/eMae5nZ1b8tgAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NDEwYjUyOGItNjU5Mi00ZWMwLWI2ZWMtNjhjZmY2OWYwYmE2bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaAcEZyUp5cNYol6hlLm7vUgAAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIBm1dyNAlnbLeu9sO9EkawPTqyDiQuseqm1/p5/kSU0qpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2ivUFxW4Q3SOeMyQ0AHkqPeAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggDgjBEJ6IVf6wrGabMfwWXOtJX3aYkN0Oh/Oc4IyQDJdkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTo1NThiY2M3Yi0zOGQwLTRkYzYtOWYyMi1kYzAzMjg1MjMzNzcvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo1ODZiYjMyMy1mNzUwLTQzMDItODY1MC1mNGVjOWQwOWJiNzFyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggGbV3I0CWdst672w70SRrA9OrIOJC6x6qbX+nn+RJTSqiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIE2lCGFtVwSAjQDi+Qwt9D/90vkf7mq8lE4aJoYu69G8omN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKo8rG+wkCf8Uzk+uazqTX0PvGTnFUo7oA/FZhYxH/U8dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="" width="40" height="40" /><div class="side-brand-txt"><span class="overline">Ketogene Diät</span><span class="side-name">HamHam Keto</span></div></div>
+    <nav class="side-nav" aria-label="Bereiche">
+      <button type="button" data-view="heute">Tagesplan</button>
+      <button type="button" data-view="rezepte">Rezepte</button>
+      <button type="button" data-view="vorgaben">Vorgaben</button>
+    </nav>
+    <div class="side-rx" id="side-rx"></div>
+    <p class="side-note">Ersetzt keine ärztliche oder diätologische Beratung. Mengen bitte mit dem Behandlungsteam abstimmen. Alle Daten bleiben auf diesem Gerät.</p>
+  </aside>
+
   <!-- Kopf: Überlinie „HamHam Keto“ + Seitentitel; rechts die Verordnung (tippen öffnet die Vorgaben) -->
   <header class="topbar">
     <div class="brand"><span class="brand-kicker">HamHam Keto</span><h1 class="page-title" id="page-title">Rezepte</h1></div>
@@ -3058,7 +3069,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;
     });
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     try { window.scrollTo(0, 0); } catch (e) {}
@@ -3094,6 +3105,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
     chip.dataset.full = l1 + (l2 ? "\n" + l2 : "");
     markChip();
+    renderSideRx(d);
+  }
+  // Desktop: Verordnung in der linken Spalte als Wertetabelle (Verhältnis groß in Mono, darunter die Tageswerte)
+  function renderSideRx(d) {
+    const box = document.getElementById("side-rx"); if (!box) return;
+    const row = (l, v) => '<div class="side-row"><span>' + l + '</span><b>' + escapeHtml(v) + '</b></div>';
+    box.innerHTML = '<div class="side-rx-head"><span class="overline">Verordnung vom Team</span>' +
+      '<button type="button" class="tlink" id="side-rx-edit" title="Verordnung in den Vorgaben ändern">Ändern</button></div>' +
+      '<div class="side-ratio"><b>' + escapeHtml(fmtRx(d.ratio)) + '</b><span>Fett : Eiweiß + KH</span></div>' +
+      row("Kalorien am Tag", fmt(d.kcal, 0) + " kcal") + row("je Mahlzeit", d.mahl + " × " + fmt(d.kcalMahl, 0)) +
+      row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
+      '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   /* ---------- Vorgaben: Liste mit Unterseiten ----------
@@ -3305,7 +3328,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
     // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
-    document.querySelectorAll(".tabbar button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
+    // Desktop: „Ändern“ in der Verordnung der linken Spalte öffnet Vorgaben → Verordnung
+    const side = document.getElementById("side-rx");
+    if (side) side.addEventListener("click", (e) => { if (!e.target.closest("#side-rx-edit")) return; chipReturn = null; showView("vorgaben"); showVgPage("verordnung"); });
     // Pille: öffnet die Vorgaben; ein zweiter Tipp führt dorthin zurück, wo man war (inkl. Scrollposition).
     const chip = document.getElementById("rx-chip");
     if (chip) chip.addEventListener("click", () => {
