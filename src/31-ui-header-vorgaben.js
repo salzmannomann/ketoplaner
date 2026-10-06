@@ -12,8 +12,10 @@
     });
     document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => { b.classList.toggle("active", b.dataset.view === name); b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"); });
     const pt = document.getElementById("page-title"); if (pt) pt.textContent = PAGE_TITLES[name];
+    const sh = document.getElementById("side-heute"); if (sh && name !== "heute") sh.hidden = true;
+    if (name === "heute" && typeof planPick !== "undefined") planPick = null; // Panel zeigt wieder die nächste Mahlzeit
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
-    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel nur im Bereich Rezepte
+    if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel in Rezepte und Tagesplan
     try { window.scrollTo(0, 0); } catch (e) {}
     if (typeof markChip === "function") markChip();
   }
@@ -84,7 +86,7 @@
   function onLayoutChange() {
     if (isDesktop() && !vgPage) showVgPage(null, true);
     const dv = document.getElementById("detail-overlay");
-    if (dv && !dv.hidden && !dv.closest("#rz-panel") && typeof renderDetail === "function") renderDetail();
+    if (dv && !dv.hidden && !dv.closest(".rz-panel") && typeof renderDetail === "function") renderDetail();
     const cv = document.getElementById("compose-overlay");
     if (cv && !cv.hidden && typeof openCompose === "function") openCompose();
   }

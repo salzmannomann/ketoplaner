@@ -1762,3 +1762,56 @@ test("Werte prüfen: Lebensmittelwerte in der Tabelle ändern, Rezepte rechnen d
   assert.equal(b2.children[2].textContent, "82,0", "ungültiger Wert verworfen → Standard");
   assert.match($(w2, "vgs-lebensmittel").textContent, /1 Wert geändert/, "unbekannte Namen und kaputte Einträge zählen nicht");
 });
+
+test("Desktop ab 1100 px: Tagesplan mit Rezept-Panel (nächste Mahlzeit, angetippte, Mahlzeit tauschen) und „Heute“ in der linken Spalte", () => {
+  const w = boot({ settings: { view: "heute", weight: 8, ratio: 1.5, mahlzeiten: 4, kcal: 650, mctShare: 0 },
+    dayPlan: [{ key: "std:Compleat & KetoCal" }, { key: "std:Hendl & Zucchini (mit KetoCal)" }, { key: "std:Compleat & KetoCal" }, { key: "std:Lachs & Brokkoli" }] }, (win) => {
+    win.matchMedia = () => ({ matches: true, addEventListener() {}, addListener() {} });
+    const RD = win.Date; // 9:40 Uhr
+    win.Date = class extends RD { constructor(...a) { if (a.length) super(...a); else super(2026, 9, 6, 9, 40); } static now() { return new RD(2026, 9, 6, 9, 40).getTime(); } };
+  });
+  try {
+    const ov = $(w, "detail-overlay"), title = () => ov.querySelector(".detail-head .title").textContent;
+    const sel = () => [...w.document.querySelectorAll("#heute-content .zp-row.slot.sel")].map(r => r.dataset.open);
+    assert.equal(ov.parentElement.id, "hp-panel"); assert.equal(ov.hidden, false);
+    assert.match(title(), /^Hendl & Zucchini/); assert.deepEqual(sel(), ["1"]);
+    assert.equal(ov.querySelector(".dh-when").textContent, "Nächste Mahlzeit · 10:30");
+    assert.ok($(w, "slot-swap-btn") && !$(w, "today-btn"), "Mahlzeit tauschen statt Für heute einplanen");
+    // linke Spalte: Verordnung bleibt, darunter „Heute“ ohne Tagesbilanz rechts
+    const side = $(w, "side-heute");
+    assert.equal(side.hidden, false); assert.match(side.textContent, /4 von 4 geplant/);
+    assert.deepEqual([...side.querySelectorAll(".side-row span")].map(s => s.textContent), ["Verhältnis", "Kalorien", "Eiweiß", "Flüssigkeit"]);
+    assert.equal(w.document.querySelector(".dk-bilanz"), null);
+    assert.match($(w, "side-rx").textContent, /Kalorien am Tag/);
+    // andere Mahlzeit antippen → Panel zeigt sie; „Mahlzeit tauschen“ öffnet die Auswahl für diese Uhrzeit
+    fire(w, w.document.querySelector('#heute-content .zp-row.slot[data-open="3"]'));
+    assert.match(title(), /^Lachs & Brokkoli/); assert.deepEqual(sel(), ["3"]);
+    assert.equal(ov.querySelector(".dh-when").textContent, "Mahlzeit um 17:30");
+    fire(w, $(w, "slot-swap-btn"));
+    assert.equal($(w, "picker-overlay").hidden, false); assert.equal($(w, "picker-title").textContent, "Rezept für 17:30");
+    fire(w, $(w, "picker-close"));
+    // Rezepte: Panel dort, linke Spalte ohne „Heute“; zurück im Tagesplan wieder die nächste Mahlzeit
+    w.document.querySelector('.side-nav [data-view="rezepte"]').click();
+    assert.equal(ov.parentElement.id, "rz-panel"); assert.equal(side.hidden, true);
+    assert.ok($(w, "today-btn") && !ov.querySelector(".dh-when"));
+    w.document.querySelector('.side-nav [data-view="heute"]').click();
+    assert.equal(ov.parentElement.id, "hp-panel"); assert.match(title(), /^Hendl & Zucchini/); assert.deepEqual(sel(), ["1"]);
+  } finally { w.close(); }
+});
+
+test("Rezept aus dem Tagesplan als Fenster (Handy / schmal): Uhrzeit im Kopf, „Mahlzeit tauschen“ öffnet die Auswahl", () => {
+  const w = boot({ settings: { view: "heute", weight: 8, ratio: 1.5, mahlzeiten: 4, kcal: 650, mctShare: 0 },
+    dayPlan: [{ key: "std:Compleat & KetoCal" }, { key: "std:Hendl & Zucchini (mit KetoCal)" }, { key: null }, { key: null }] });
+  fire(w, w.document.querySelector('#heute-content .zp-row.slot[data-open="1"]'));
+  const ov = $(w, "detail-overlay");
+  assert.equal(ov.hidden, false); assert.equal(ov.querySelector(".dh-when").textContent, "Mahlzeit um 10:30");
+  assert.ok(!$(w, "today-btn"));
+  fire(w, $(w, "slot-swap-btn"));
+  assert.equal(ov.hidden, true, "Fenster schließt");
+  assert.equal($(w, "picker-overlay").hidden, false); assert.equal($(w, "picker-title").textContent, "Rezept für 10:30");
+  // aus Rezepte geöffnet bleibt es „Für heute einplanen“
+  fire(w, $(w, "picker-close"));
+  w.document.querySelector('.tabbar [data-view="rezepte"]').click();
+  openRecipe(w, "Hendl & Zucchini · mit KetoCal");
+  assert.ok($(w, "today-btn") && !ov.querySelector(".dh-when"));
+});

@@ -818,30 +818,22 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .dk-head { display: flex; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
   .dk-title { display: flex; flex-direction: column; gap: 2px; margin-right: auto; min-width: 0; }
   .dk-title h1 { margin: 0; font: 600 42px/1 var(--f-serif); }
-  /* Tagesplan: links Kopf und Zeitleiste, rechts mitlaufend die Tagesbilanz (rutscht bei wenig Platz darunter) */
-  .zeitplan.dk { display: flex; flex-direction: row; flex-wrap: wrap; gap: 40px; align-items: flex-start; max-width: 1160px; }
-  .dk-day { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  /* Tagesplan: Kopf und Zeitleiste; die Tagesbilanz steht links in der Spalte („Heute“ unter der Verordnung),
+     ab 1100 px rechts das Rezept einer Mahlzeit als Panel (eigener Block unten) */
+  .zeitplan.dk { display: flex; flex-direction: column; max-width: 1160px; }
+  .dk-day { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
   .dk-head .day-tools { margin: 0; gap: 2px; padding-bottom: 2px; }
   .dk-head .day-tools .dt-range { flex: none; padding: 0 6px 0 0; font: 500 13px var(--f-mono); white-space: nowrap; }
   .dk-head .day-tools .tlink { min-width: 0; min-height: 40px; font-size: 13px; }
   .dk-day .zp-list .zp-row:first-child { border-top: 0; }
-  .dk-bilanz { flex: 1 1 260px; max-width: 320px; position: sticky; top: 34px; display: flex; flex-direction: column; gap: 14px; }
-  .bil-box { display: flex; flex-direction: column; padding-top: 12px; border-top: 2px solid var(--ink); }
-  .bil-head { display: flex; align-items: baseline; gap: 8px; padding-bottom: 6px; }
-  .bil-title { font: 600 22px/1.15 var(--f-serif); }
-  .bil-planned { margin-left: auto; font-size: 12px; color: var(--grey); text-align: right; }
-  .dk-bilanz .day-sum { display: flex; flex-direction: column; gap: 0; font: inherit; color: inherit; }
-  .bil-row { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px dotted var(--dot); }
-  .bil-line { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
-  .bil-l { flex: 1; }
-  .bil-line .v { font: 600 15px var(--f-mono); white-space: nowrap; }
-  .bil-goal { font: 500 12px var(--f-mono); color: var(--grey); white-space: nowrap; }
-  .bil-bar { height: 4px; background: var(--rule); }
-  .bil-bar i { display: block; height: 100%; background: var(--ink); }
-  .bil-row.warn .v, .bil-ratio.warn .v { color: var(--red); }
-  .bil-row.warn .bil-bar i { background: var(--red); }
-  .bil-ratio { padding: 10px 0; }
-  .dk-bilanz .zp-hints { padding-top: 10px; }
+  /* „Heute“ in der linken Spalte: Zeilenraster wie die Verordnung darüber, rechts im Kopf „4 von 4 geplant“ */
+  .side-heute[hidden] { display: none; }
+  .side-heute .side-rx-head { min-height: 40px; }
+  .side-plan { margin-left: auto; font-size: 12px; color: var(--grey); }
+  .side-heute .day-sum { display: flex; flex-direction: column; gap: 0; font: inherit; color: inherit; }
+  .side-row.warn b { color: var(--red); }
+  .side-heute .zp-hints { padding-top: 8px; border-top: 0; }
+  .side-heute .zp-hints .hint { font-size: 12px; line-height: 1.4; }
   /* Rezepte: Kopf mit Anzahl, Titel, Suche, Häkchen und „+ Eigenes Rezept“; Chips klein in einer Zeile;
      Liste in Spalten (ab 250 px, auto-fill). Unter 1100 px nimmt die Liste die volle Breite und ein Rezept öffnet als
      Fenster; ab 1100 px steht rechts das Rezept als festes Panel (eigener Block unten) */
@@ -906,7 +898,15 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 /* Rezepte ab 1100 px: Liste (wächst doppelt so schnell, ab etwa 1240 px zwei Spalten) und daneben das Rezept als
    festes Panel; die Markierung des gewählten Rezepts gibt es nur hier. Darunter kein Panel – das Rezept öffnet als Fenster. */
 .rz-panel { display: none; }
+.hp-layout { display: contents; }
 @media (min-width: 1100px) {
+  /* Tagesplan wie Rezepte: Plan (wächst doppelt so schnell) und daneben das Rezept der Mahlzeit */
+  .hp-layout { display: flex; gap: 36px; align-items: flex-start; max-width: 1240px; }
+  .hp-layout > #heute-content { flex: 2 1 420px; min-width: 0; }
+  .hp-layout .zeitplan.dk { max-width: none; }
+  /* gewählte Mahlzeit: Fläche wie bei der Rezeptkachel, seitlich etwas über die Zeile hinaus (Inhalt bleibt stehen) */
+  .zp-row.slot.sel { background: var(--paper-2); box-shadow: -12px 0 0 var(--paper-2), -15px 0 0 var(--ink), 12px 0 0 var(--paper-2); }
+  .rz-panel .dh-when { margin-bottom: 4px; }
   .rz-layout { flex-wrap: nowrap; }
   .rz-main { flex: 2 1 420px; }
   .tile.sel { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--ink); }

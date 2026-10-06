@@ -22,6 +22,65 @@
     for (let i = 0; i < all.length; i++) if (recipeKey(all[i]) === key) return all[i];
     return null;
   }
+  /* Desktop ab 1100 px: rechts neben dem Plan steht das Rezept einer Mahlzeit als festes Panel (wie unter Rezepte).
+     Ohne Auswahl ist es die nächste Mahlzeit nach der Uhrzeit (bis 30 Minuten nach ihrer Zeit gilt sie noch als
+     „jetzt“); nach der letzten des Tages die erste von morgen. Ein Tipp auf eine Mahlzeit zeigt diese – bis der
+     Tagesplan neu geöffnet wird. Im Panel heißt der Hauptknopf „Mahlzeit tauschen“ (öffnet die Auswahl). */
+  const PLAN_NOW_MIN = 30;
+  let planPick = null;   // vom Nutzer gewählte Mahlzeit (Platz-Nummer) oder null = automatisch die nächste
+  let planShown = null;  // zuletzt im Panel geladene Mahlzeit („Platz|Rezept“) – lädt nur bei einem Wechsel neu
+  function planSlots() { return [...document.querySelectorAll("#heute-content .zp-row.slot[data-open]")].map(r => num(r.dataset.open)); }
+  function planNext() {
+    const filled = planSlots(); if (!filled.length) return null;
+    const times = zeitTimes(derived()).meals, now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+    const i = filled.find(k => times[k] + PLAN_NOW_MIN > m);
+    return i != null ? { i, now: times[i] <= m, tomorrow: false } : { i: filled[0], now: false, tomorrow: true };
+  }
+  function planPanelIndex() {
+    if (planPick != null && planSlots().indexOf(planPick) !== -1) return planPick;
+    const n = planNext(); return n ? n.i : null;
+  }
+  // Rezept einer Mahlzeit aus dem Tagesplan (Panel oder – schmaler – Fenster): Kopfzeile mit Uhrzeit und Platz für
+  // „Mahlzeit tauschen“. Nur wenn gerade das Rezept dieser Mahlzeit gezeigt wird (nicht z. B. „auch ohne KetoCal“).
+  function planPanelCtx(rec) {
+    if (state.settings.view !== "heute") return null;
+    const panel = panelMode(), i = panel ? planPanelIndex() : planPick; if (i == null) return null;
+    const sl = state.dayPlan[i]; if (!sl || !rec || sl.key !== recipeKey(rec)) return null;
+    const t = fmtHM(zeitTimes(derived()).meals[i]), n = panel ? planNext() : null;
+    const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
+    return { i, label, panel };
+  }
+  function markPlanSel(i) {
+    document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("sel", i != null && num(r.dataset.open) === i));
+  }
+  // Panel im Tagesplan abgleichen (aufgerufen aus syncDetailPanel, #detail-overlay steht schon in #hp-panel)
+  // Läuft die Uhr weiter, rückt das Panel ohne eigene Auswahl zur nächsten Mahlzeit (einmal pro Minute prüfen;
+  // der Takt startet erst, wenn das Panel zum ersten Mal gebraucht wird)
+  let planTimer = null, planTick = null;
+  function startPlanTimer() {
+    if (planTimer) return;
+    planTimer = setInterval(() => {
+      if (state.settings.view !== "heute" || planPick != null || !panelMode()) { planTick = null; return; }
+      const ctx = planPanelCtx(detailRec), t = planPanelIndex() + "|" + (ctx ? ctx.label : "");
+      if (planTick != null && t !== planTick) syncDetailPanel();
+      planTick = t;
+    }, 60000);
+  }
+  function syncPlanPanel(ov, slot, opened) {
+    startPlanTimer();
+    const i = planPanelIndex();
+    markPlanSel(i);
+    if (i == null) { ov.hidden = true; planShown = null; return; }
+    const key = state.dayPlan[i].key, id = i + "|" + key;
+    if (opened) { planShown = id; ov.hidden = false; return; }
+    if (planShown !== id || !detailRec) {
+      planShown = id;
+      detailRec = recipeByKey(key); detailPicked = planPick != null; detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+      detailMctOpen = Math.min(1, Math.max(0, num(state.settings.mctShare)));
+    }
+    ov.hidden = false;
+    if (!slot.contains(document.activeElement)) renderDetail();
+  }
   // Heute (Küchenzettel): eine Zeitleiste für den ganzen Tag. Jede Mahlzeit mit Uhrzeit, Rezeptname, Menge und
   // Dauer, darunter die Zutaten einer Portion als kleine Grammtabelle; ganze Zeile tippbar → Rezept, „tauschen“ →
   // Auswahl (dort auch „Leeren“). Offene Mahlzeiten kursiv mit „wählen“. Dazwischen Wassergaben (blau, gepunktet)
@@ -123,32 +182,36 @@
     });
     const notes = zeitplanNotes(d, times, dm, wp) + hints.join("");
     const slots = '<div class="zp-list day-slots">' + rows.map(r => r.html).join("") + '</div>';
+    const side = document.getElementById("side-heute");
     if (isDesktop()) {
-      // Desktop: links Kopf (Überlinie „Heute“, Titel, Zeitraum, Textlinks), Uhrzeiten und Zeitleiste; rechts mitlaufend die
-      // Tagesbilanz – Werte in Mono mit dünnem Balken, darunter Verhältnis und Hinweise. Bei wenig Platz rutscht sie darunter.
-      const bar = (label, v, goal, part, warn, title) => '<div class="bil-row' + (warn ? " warn" : "") + '" title="' + title + '">' +
-        '<div class="bil-line"><span class="bil-l">' + label + '</span><b class="v">' + v + '</b><span class="bil-goal">' + goal + '</span></div>' +
-        '<div class="bil-bar"><i style="width:' + Math.round(Math.max(0, Math.min(1, part)) * 100) + '%"></i></div></div>';
-      const bars = '<div class="day-sum" id="day-sums">' +
-        bar("Kalorien", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", d.kcal > 0 ? tot.kcal / d.kcal : 0, kcalLow, kcalTitle) +
-        bar("Eiweiß", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", d.eiweiss > 0 ? tot.eiweiss / d.eiweiss : 0, pst !== "ok", protTitle) +
-        (d.fluidDay > 0 ? bar("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", "/ " + fmt(d.fluidDay, 0) + " ml", wp.total / d.fluidDay, fluidLow, fluidTitle) : "") + '</div>';
+      // Desktop: Kopf (Überlinie „Heute“, Titel, Zeitraum, Textlinks), Uhrzeiten und Zeitleiste. Die Tagesbilanz steht
+      // links in der Spalte unter der Verordnung – im selben Zeilenraster (Verhältnis, Kalorien, Eiweiß, Flüssigkeit),
+      // ohne die Ziele zu wiederholen; darunter die Hinweise. Ab 1100 px steht rechts das Rezept einer Mahlzeit.
       box.innerHTML = '<div class="zeitplan dk">' +
         '<section class="dk-day"><header class="dk-head"><div class="dk-title"><span class="overline">Heute</span><h1>Tagesplan</h1></div>' + tools + '</header>' +
-          zeitplanSettings(times) + slots + '</section>' +
-        '<aside class="dk-bilanz"><div class="bil-box"><div class="bil-head"><span class="bil-title">Tagesbilanz</span><span class="bil-planned">' +
-          tot.filled + ' von ' + d.mahl + ' Mahlzeiten geplant</span></div>' + bars +
-          '<div class="bil-line bil-ratio' + (ratioBad ? " warn" : "") + '"><span class="bil-l">Verhältnis</span><b class="v">' + (tot.filled ? fmtRxA(ratioDay, 2) : "—") + '</b>' +
-          '<span class="bil-goal">Ziel ' + fmtRx(d.ratio) + '</span></div></div>' +
-          (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</aside></div>';
-    } else box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) + slots +
-      (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
+          zeitplanSettings(times) + slots + '</section></div>';
+      if (side) {
+        const row = (label, v, warn, title) => '<div class="side-row' + (warn ? " warn" : "") + '" title="' + title + '"><span>' + label + '</span><b>' + v + '</b></div>';
+        side.innerHTML = '<div class="side-rx-head"><span class="overline">Heute</span><span class="side-plan">' + tot.filled + ' von ' + d.mahl + ' geplant</span></div>' +
+          '<div class="day-sum" id="side-sums">' +
+          row("Verhältnis", tot.filled ? fmtRxA(ratioDay, 2) : "—", ratioBad, "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) +
+          row("Kalorien", fmt(tot.kcal, 0) + " kcal", kcalLow, kcalTitle) +
+          row("Eiweiß", fmt(tot.eiweiss) + " g", pst !== "ok", protTitle) +
+          (d.fluidDay > 0 ? row("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", fluidLow, fluidTitle) : "") + '</div>' +
+          (notes ? '<div class="zp-hints">' + notes + '</div>' : "");
+        side.hidden = state.settings.view !== "heute";
+      }
+    } else {
+      box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) + slots +
+        (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
+      if (side) side.hidden = true;
+    }
     bindZeitplan(box);
     bindSlotSwipe(box);
     bindSlotDrag(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
     box.querySelectorAll("[data-open]").forEach(b => {
-      const open = () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); };
+      const open = () => { const i = num(b.dataset.open), r = recipeByKey(state.dayPlan[i].key); if (r) { planPick = i; openRecipeDetail(r); } };
       b.addEventListener("click", open);
       b.addEventListener("keydown", e => { if (e.target !== b) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
     });
@@ -162,6 +225,8 @@
       showToast("Tagesplan geleert", [["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }]]);
     });
     fitHeute();
+    // Direkte Aufrufe (Verschieben, Leeren, Auswahl): Panel und Markierung nachziehen
+    if (state.settings.view === "heute" && typeof syncDetailPanel === "function") syncDetailPanel();
   }
   /* Mahlzeit per Wisch nach links leeren, wie in iOS-Listen: die Zeile folgt dem Finger, rechts erscheint rot „Leeren“.
      Loslassen nach etwa einer Knopfbreite lässt den Knopf stehen (Tipp darauf leert), ein langer Wisch über gut die halbe
@@ -242,6 +307,9 @@
     const prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
     const arr = prev.map(sl => ({ key: sl.key })), item = arr.splice(from, 1)[0];
     arr.splice(to, 0, item);
+    // Die im Panel gewählte Mahlzeit wandert mit
+    if (planPick === from) planPick = to;
+    else if (planPick != null && (planPick - from) * (planPick - to) <= 0) planPick += from < to ? -1 : 1;
     state.dayPlan = arr; save(); renderHeute();
     const t = zeitTimes(derived()).meals[to];
     showToast("Mahlzeit verschoben – jetzt um " + fmtHM(t), [["Rückgängig", () => { state.dayPlan = prev; save(); renderHeute(); }]]);
@@ -345,6 +413,7 @@
   // Eine Mahlzeit leeren – mit „Rückgängig“ (aus der Auswahl heraus, „Leeren“, oder per Wisch).
   function clearSlot(i) {
     const prev = state.dayPlan[i] ? state.dayPlan[i].key : null;
+    if (planPick === i) planPick = null;
     state.dayPlan[i] = { key: null }; save(); renderHeute();
     showToast("Mahlzeit " + (i + 1) + " geleert", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
   }

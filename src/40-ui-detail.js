@@ -28,35 +28,46 @@
     if (panelMode()) { syncDetailPanel(true); revealPanel(); }
     else if (!detailModal) { modalOpen("detail"); detailModal = true; }
   }
-  /* Desktop, Bereich Rezepte: das Rezept steht als festes Panel rechts neben der Liste (kein Overlay, kein Einfrieren).
-     Dafür wandert #detail-overlay in #rz-panel und beim Verlassen zurück an seinen Platz. Ein Klick auf eine Zeile
-     wechselt das Panel; ohne Auswahl zeigt es das erste Rezept der Liste. Aus dem Tagesplan und bei Fenstern unter
-     1100 px öffnet ein Rezept als zentriertes Fenster. Wird das Fenster schmaler, während ein selbst gewähltes Rezept
-     im Panel steht, bleibt es als Fenster offen (die automatische Vorauswahl nicht); wird es breiter, wandert ein offenes
-     Fenster ins Panel. */
+  /* Desktop ab 1100 px, Bereiche Rezepte und Tagesplan: das Rezept steht als festes Panel rechts (kein Overlay, kein
+     Einfrieren). Dafür wandert #detail-overlay in #rz-panel bzw. #hp-panel und beim Verlassen zurück an seinen Platz.
+     Rezepte: ein Klick auf eine Zeile wechselt das Panel, ohne Auswahl zeigt es das erste Rezept der Liste. Tagesplan:
+     die nächste Mahlzeit bzw. die angetippte (src/50-ui-heute.js). Unter 1100 px öffnet ein Rezept als zentriertes
+     Fenster. Wird das Fenster schmaler, während ein selbst gewähltes Rezept im Panel steht, bleibt es als Fenster offen
+     (die automatische Vorauswahl nicht); wird es breiter, wandert ein offenes Fenster ins Panel. */
   let detailModal = false, detailHome = null, detailPicked = false;
-  function panelMode() { return isDesktop() && isPanelWidth() && state.settings.view === "rezepte"; }
+  let rzKept = null; // Rezept im Panel unter Rezepte – kommt nach einem Abstecher in den Tagesplan wieder
+  function panelMode() { const v = state.settings.view; return isDesktop() && isPanelWidth() && (v === "rezepte" || v === "heute"); }
+  function panelSlot() { return document.getElementById(state.settings.view === "heute" ? "hp-panel" : "rz-panel"); }
   function syncDetailPanel(opened) {
-    const ov = document.getElementById("detail-overlay"), slot = document.getElementById("rz-panel");
+    const ov = document.getElementById("detail-overlay"), slot = panelSlot();
     if (!ov || !slot) return;
     if (!detailHome) detailHome = { parent: ov.parentElement, next: ov.nextSibling };
     const list = document.getElementById("recipe-list");
+    const from = ov.parentElement && ov.parentElement.classList.contains("rz-panel") ? ov.parentElement.id : null;
+    if (from === "rz-panel" && slot.id !== "rz-panel") rzKept = { rec: detailRec, picked: detailPicked };
     if (!panelMode()) {
-      if (ov.parentElement === slot) {
+      if (from) {
         closeTodaySheet(); detailHome.parent.insertBefore(ov, detailHome.next);
-        // nur die Breite hat sich geändert (Bereich Rezepte bleibt): das gewählte Rezept als Fenster weiterzeigen
-        if (detailPicked && detailRec && !ov.hidden && state.settings.view === "rezepte") {
+        // nur die Breite hat sich geändert (Bereich bleibt): das gewählte Rezept als Fenster weiterzeigen
+        if (detailPicked && detailRec && !ov.hidden && ((from === "rz-panel" && state.settings.view === "rezepte") || (from === "hp-panel" && state.settings.view === "heute"))) {
           renderDetail();
           if (!detailModal) { modalOpen("detail"); detailModal = true; }
         } else ov.hidden = true;
       }
       document.body.classList.remove("detail-panel");
       if (list) list.querySelectorAll(".tile.sel").forEach(t => t.classList.remove("sel"));
+      if (typeof markPlanSel === "function") markPlanSel(null);
       return;
     }
     if (detailModal) { modalClose("detail"); detailModal = false; }
     if (ov.parentElement !== slot) slot.appendChild(ov);
     document.body.classList.add("detail-panel");
+    if (slot.id === "hp-panel") { if (from !== "hp-panel" && !opened) planShown = null; syncPlanPanel(ov, slot, opened); return; }
+    // Zurück aus dem Tagesplan: das Rezept von vorher wieder zeigen
+    if (from === "hp-panel" && !opened) {
+      detailRec = rzKept ? rzKept.rec : null; detailPicked = rzKept ? rzKept.picked : false;
+      detailScale = "tag"; detailMeat = null; state.settings.detailTab = "mahlzeit";
+    }
     // Auswahl: das offene Rezept, sonst das erste der Liste (ist es nicht mehr in der Liste, ebenfalls das erste)
     const tiles = list ? [...list.querySelectorAll(".tile")] : [];
     const key = detailRec ? recipeKey(detailRec) : null;
@@ -74,7 +85,7 @@
   }
   // Liegt das Panel außer Sicht (z. B. weit gescrollt), nach der Auswahl dorthin rollen
   function revealPanel() {
-    const slot = document.getElementById("rz-panel"); if (!slot) return;
+    const slot = panelSlot(); if (!slot) return;
     const r = slot.getBoundingClientRect();
     if (r.top > window.innerHeight - 80 || r.bottom < 0) { try { slot.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
   }
@@ -349,6 +360,8 @@
     const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
     // Kopf: Verhältnis-Pille, grau Diätologie · eigenes Rezept. Die Fettbasis steht nicht als Schild da – sie zeigt sich
     // am Namenszusatz „· mit KetoCal“ und in der Zutatenliste.
+    // Im Tagesplan-Panel: über dem Titel, welche Mahlzeit das ist („Nächste Mahlzeit · 10:30“)
+    const pctx = typeof planPanelCtx === "function" ? planPanelCtx(rec) : null;
     const headTags = [rec.quelle ? "Diätologie" : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
     if (sibs.length) {
@@ -537,7 +550,7 @@
     c.classList.toggle("show-nutr", nutrOn);
     c.innerHTML =
       '<div class="sheet-grip" aria-hidden="true"></div>' +
-      '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
+      '<div class="detail-head">' + (pctx ? '<div class="overline dh-when">' + escapeHtml(pctx.label) + '</div>' : "") + '<div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
         headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") +
         // Gibt es das Gericht auch mit bzw. ohne KetoCal: gleich im Kopf sichtbar (öffnet das andere Rezept)
         sibs.map(v => '<button type="button" class="tlink dh-sib" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' +
@@ -670,8 +683,10 @@
     // Eigene Rezepte löschen: Textlink auf dem Blatt Anpassen.
     const actions = c.querySelector("#detail-actions");
     const vh = (t) => '<span class="vh">' + t + '</span>';
-    const todayBtn = el("button", { type: "button", class: "btn primary", id: "today-btn", "aria-haspopup": "true" }, "Für heute einplanen");
-    todayBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleTodaySheet(rec); });
+    // Im Tagesplan-Panel ist die Mahlzeit schon eingeplant: dort tauscht der Knopf sie (Auswahl wie „tauschen“)
+    const todayBtn = pctx ? el("button", { type: "button", class: "btn primary", id: "slot-swap-btn", "aria-haspopup": "dialog" }, "Mahlzeit tauschen")
+      : el("button", { type: "button", class: "btn primary", id: "today-btn", "aria-haspopup": "true" }, "Für heute einplanen");
+    todayBtn.addEventListener("click", (e) => { e.stopPropagation(); if (pctx) { if (!pctx.panel) closeDetail(); openPicker(pctx.i); } else toggleTodaySheet(rec); });
     actions.appendChild(todayBtn);
     const editBtn = el("button", { type: "button", class: "btn round-btn", id: "edit-btn", title: rec.custom ? "Bearbeiten" : "Im Editor öffnen" }, ICON.edit + vh(rec.custom ? "Bearbeiten" : "Editor"));
     editBtn.addEventListener("click", () => { const r = applyMeatChoice(rec, detailMeat); (rec.custom ? seedComposeFromSaved(r) : seedComposeFromRecipe(r)); closeDetail(); openCompose(); });

@@ -10,7 +10,7 @@
   // Escape schließt nur die oberste Ebene: Druckvorschau vor Auswahl „Für heute“ vor Rezept-Auswahl vor Editor vor Rezept
   const LAYERS = ["action-overlay", "print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
   function topLayer() {
-    for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest("#rz-panel"))) return id; }
+    for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest(".rz-panel"))) return id; }
     return null;
   }
   // Fehlertext für Meldungen: Netzwerkfehler („Failed to fetch“, „Load failed“) verständlich auf Deutsch
