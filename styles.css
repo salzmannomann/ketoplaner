@@ -221,6 +221,14 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .zp-list.tight .zp-ing .it:not(:last-child)::after { content: " · "; white-space: normal; color: var(--grey); }
 /* Offene Mahlzeit / Rezept passt nicht: kursiv grau, rechts „wählen“ */
 .zp-row.empty-slot { grid-template-columns: 46px minmax(0, 1fr) auto; align-items: baseline; min-height: 56px; }
+/* Wisch nach links: Inhalt folgt dem Finger (--sx), rechts wächst der rote Knopf „Leeren“ mit */
+.zp-row.slot { position: relative; touch-action: pan-y; }
+.zp-row.slot.sw { overflow: hidden; }
+.zp-row.slot.sw > :not(.zp-del) { transform: translateX(var(--sx, 0px)); }
+.zp-row.slot.sw-anim > :not(.zp-del) { transition: transform .2s ease; }
+.zp-row.slot.sw-anim .zp-del { transition: width .2s ease; }
+.zp-del { position: absolute; top: 0; bottom: 0; right: 0; width: calc(var(--sx, 0px) * -1); overflow: hidden; display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0; border: 0; border-radius: 0; background: var(--red); color: var(--paper); font: 600 15px var(--f-sans); white-space: nowrap; cursor: pointer; }
 .zp-row.empty-slot .zp-time { color: var(--grey); padding-top: 0; }
 .zp-row.empty-slot .zp-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .zp-row.empty-slot .zp-name { font-weight: 500; font-style: italic; color: var(--grey); }

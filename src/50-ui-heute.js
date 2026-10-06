@@ -144,6 +144,7 @@
     } else box.innerHTML = '<div class="zeitplan">' + sums + tools + zeitplanSettings(times) + slots +
       (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
     bindZeitplan(box);
+    bindSlotSwipe(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
     box.querySelectorAll("[data-open]").forEach(b => {
       const open = () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); };
@@ -161,7 +162,72 @@
     });
     fitHeute();
   }
-  // Eine Mahlzeit leeren – mit „Rückgängig“ (aus der Auswahl heraus, „Leeren“).
+  /* Mahlzeit per Wisch nach links leeren, wie in iOS-Listen: die Zeile folgt dem Finger, rechts erscheint rot „Leeren“.
+     Loslassen nach etwa einer Knopfbreite lässt den Knopf stehen (Tipp darauf leert), ein langer Wisch über gut die halbe
+     Breite leert sofort. Senkrecht scrollt die Seite wie gewohnt; ein Tipp neben den Knopf schließt ihn wieder; nach einem
+     Zug löst das Loslassen keinen Klick aus. Nur mit dem Finger – mit der Maus gibt es „tauschen“ → „Leeren“. */
+  const SWIPE_BTN = 88;
+  let swipeOpen = null;
+  function slotIndexOf(row) { return num(row.dataset.open != null ? row.dataset.open : row.dataset.pick); }
+  function setSwipe(row, x, anim) {
+    let del = row.querySelector(".zp-del");
+    if (!del && x < 0) {
+      del = document.createElement("button"); del.type = "button"; del.className = "zp-del"; del.textContent = "Leeren"; del.tabIndex = -1;
+      del.addEventListener("click", (e) => { e.stopPropagation(); swipeOpen = null; clearSlot(slotIndexOf(row)); });
+      row.appendChild(del);
+    }
+    row.classList.toggle("sw-anim", !!anim);
+    row.classList.add("sw");
+    row.style.setProperty("--sx", x + "px");
+    clearTimeout(row._swT);
+    if (x === 0) row._swT = setTimeout(() => { row.classList.remove("sw", "sw-anim"); const d = row.querySelector(".zp-del"); if (d) d.remove(); }, anim ? 230 : 0);
+  }
+  function closeSwipe(row) { row = row || swipeOpen; if (!row) return; setSwipe(row, 0, true); if (swipeOpen === row) swipeOpen = null; }
+  function bindSlotSwipe(box) {
+    if (box.dataset.swipe) return; // Delegation am bleibenden Behälter – nur einmal binden
+    box.dataset.swipe = "1";
+    let st = null, swallow = false;
+    box.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse") return;
+      swallow = false; // neue Berührung (nach einem Zug feuert kein Klick, der die Sperre aufheben würde)
+      const row = e.target.closest(".zp-row.slot");
+      if (e.target.closest(".zp-del")) return;
+      if (swipeOpen && swipeOpen !== row) { closeSwipe(); swallow = true; }
+      const i = row ? slotIndexOf(row) : -1;
+      if (!row || !(state.dayPlan[i] && state.dayPlan[i].key)) { st = null; return; }
+      st = { row, id: e.pointerId, x0: e.clientX, y0: e.clientY, base: row === swipeOpen ? -SWIPE_BTN : 0, mode: null };
+    });
+    box.addEventListener("pointermove", (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
+      if (!st.mode) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        st.mode = Math.abs(dx) > Math.abs(dy) * 1.2 ? "h" : "v";
+      }
+      if (st.mode !== "h") return;
+      swallow = true;
+      setSwipe(st.row, Math.min(0, st.base + dx), false);
+    });
+    const end = (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      const s = st; st = null;
+      if (s.mode !== "h") {
+        // Tipp auf die geöffnete Zeile schließt sie (statt das Rezept zu öffnen)
+        if (!s.mode && s.base) { closeSwipe(s.row); swallow = true; }
+        return;
+      }
+      const x = e.type === "pointercancel" ? 0 : Math.min(0, s.base + e.clientX - s.x0), W = s.row.offsetWidth;
+      if (x < -W * 0.55) {
+        setSwipe(s.row, -W, true); swipeOpen = null;
+        const i = slotIndexOf(s.row); setTimeout(() => clearSlot(i), 180);
+      } else if (x < -SWIPE_BTN * 0.6) { setSwipe(s.row, -SWIPE_BTN, true); swipeOpen = s.row; }
+      else closeSwipe(s.row);
+    };
+    box.addEventListener("pointerup", end);
+    box.addEventListener("pointercancel", end);
+    box.addEventListener("click", (e) => { if (swallow) { swallow = false; if (!e.target.closest(".zp-del")) { e.stopPropagation(); e.preventDefault(); } } }, true);
+  }
+  // Eine Mahlzeit leeren – mit „Rückgängig“ (aus der Auswahl heraus, „Leeren“, oder per Wisch).
   function clearSlot(i) {
     const prev = state.dayPlan[i] ? state.dayPlan[i].key : null;
     state.dayPlan[i] = { key: null }; save(); renderHeute();
