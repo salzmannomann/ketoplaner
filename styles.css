@@ -222,7 +222,12 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 /* Offene Mahlzeit / Rezept passt nicht: kursiv grau, rechts „wählen“ */
 .zp-row.empty-slot { grid-template-columns: 46px minmax(0, 1fr) auto; align-items: baseline; min-height: 56px; }
 /* Wisch nach links: Inhalt folgt dem Finger (--sx), rechts wächst der rote Knopf „Leeren“ mit */
-.zp-row.slot { position: relative; touch-action: pan-y; }
+.zp-row.slot { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Anordnen: gezogene Zeile hebt sich ab (Papier, Tintenrahmen), die Linie zeigt den Zielplatz */
+.zp-row.slot.dragging { z-index: 5; background: var(--paper-2); outline: 2px solid var(--ink); outline-offset: -1px; border-radius: 6px; cursor: grabbing; }
+body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
+.zp-drop { position: fixed; z-index: 4; height: 3px; margin-top: -1px; border-radius: 2px; background: var(--ink); pointer-events: none; }
+.zp-drop[hidden] { display: none; }
 .zp-row.slot.sw { overflow: hidden; }
 .zp-row.slot.sw > :not(.zp-del) { transform: translateX(var(--sx, 0px)); }
 .zp-row.slot.sw-anim > :not(.zp-del) { transition: transform .2s ease; }

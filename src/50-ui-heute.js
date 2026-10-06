@@ -145,6 +145,7 @@
       (notes ? '<div class="zp-hints">' + notes + '</div>' : "") + '</div>';
     bindZeitplan(box);
     bindSlotSwipe(box);
+    bindSlotDrag(box);
     box.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(num(b.dataset.pick)); }));
     box.querySelectorAll("[data-open]").forEach(b => {
       const open = () => { const r = recipeByKey(state.dayPlan[num(b.dataset.open)].key); if (r) openRecipeDetail(r); };
@@ -199,6 +200,7 @@
     });
     box.addEventListener("pointermove", (e) => {
       if (!st || e.pointerId !== st.id) return;
+      if (slotDrag) { st = null; return; } // langes Drücken hat das Verschieben gestartet
       const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
       if (!st.mode) {
         if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
@@ -226,6 +228,119 @@
     box.addEventListener("pointerup", end);
     box.addEventListener("pointercancel", end);
     box.addEventListener("click", (e) => { if (swallow) { swallow = false; if (!e.target.closest(".zp-del")) { e.stopPropagation(); e.preventDefault(); } } }, true);
+  }
+  /* Mahlzeiten anordnen: lange drücken (0,4 s, mit dem Finger) bzw. mit der Maus ziehen, dann nach oben oder unten
+     schieben. Die Zeile hebt sich ab und folgt, eine Tintenlinie zeigt, wo sie landet; am Bildschirmrand rollt die Seite mit.
+     Beim Loslassen rücken die anderen Mahlzeiten nach – die Uhrzeiten bleiben, sie gehören zu den Plätzen. Danach
+     „Rückgängig“. Tastatur: Alt+↑/↓ auf einer Mahlzeit. Nur geplante Mahlzeiten lassen sich ziehen, Ziel kann jeder Platz sein. */
+  const DRAG_HOLD = 400;
+  let slotDrag = null;
+  function moveSlot(from, to, focus) {
+    ensureDayPlan(derived());
+    const n = state.dayPlan.length;
+    if (from === to || from < 0 || to < 0 || from >= n || to >= n) return;
+    const prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
+    const arr = prev.map(sl => ({ key: sl.key })), item = arr.splice(from, 1)[0];
+    arr.splice(to, 0, item);
+    state.dayPlan = arr; save(); renderHeute();
+    const t = zeitTimes(derived()).meals[to];
+    showToast("Mahlzeit verschoben – jetzt um " + fmtHM(t), [["Rückgängig", () => { state.dayPlan = prev; save(); renderHeute(); }]]);
+    // Tastatur: der Fokus wandert mit der Mahlzeit
+    const row = focus && document.querySelector('#heute-content .zp-row.slot[data-open="' + to + '"], #heute-content .zp-row.slot[data-pick="' + to + '"]');
+    if (row) row.focus();
+  }
+  function bindSlotDrag(box) {
+    if (box.dataset.drag) return;
+    box.dataset.drag = "1";
+    let pend = null, swallow = false, line = null, raf = 0;
+    const filled = (row) => { const i = slotIndexOf(row); return !!(state.dayPlan[i] && state.dayPlan[i].key); };
+    const rowsOf = () => [...box.querySelectorAll(".zp-row.slot")];
+    const bottomLimit = () => { const tb = document.querySelector(".tabbar"); const r = tb && tb.offsetParent ? tb.getBoundingClientRect() : null; return r ? r.top : window.innerHeight; };
+    // Ziel: wie viele andere Plätze liegen mit ihrer Mitte über der Mitte der gezogenen Zeile
+    const target = () => {
+      const g = slotDrag, others = rowsOf().filter(r => r !== g.row);
+      const r = g.row.getBoundingClientRect(), mid = r.top + r.height / 2;
+      let t = 0; others.forEach(o => { const q = o.getBoundingClientRect(); if (q.top + q.height / 2 < mid) t++; });
+      const ref = others[Math.min(t, others.length - 1)], q = ref ? ref.getBoundingClientRect() : r;
+      const y = t < others.length ? q.top - 2 : q.bottom + 1, list = box.querySelector(".zp-list") || box, lr = list.getBoundingClientRect();
+      return { t, y, left: lr.left, width: lr.width };
+    };
+    const paint = () => {
+      const g = slotDrag; if (!g) return;
+      const dy = g.y - g.y0 + (window.scrollY - g.s0);
+      g.row.style.transform = "translateY(" + dy + "px)";
+      const tg = target(); g.to = tg.t;
+      if (!line) { line = document.createElement("div"); line.className = "zp-drop"; document.body.appendChild(line); }
+      line.style.top = tg.y + "px"; line.style.left = tg.left + "px"; line.style.width = tg.width + "px";
+      line.hidden = tg.t === g.from;
+      // die Karte zeigt die Uhrzeit des Platzes, an dem sie landen würde
+      if (g.timeEl) g.timeEl.textContent = fmtHM(g.times[tg.t] != null ? g.times[tg.t] : g.times[g.from]);
+    };
+    const tick = () => {
+      raf = 0; const g = slotDrag; if (!g) return;
+      // am oberen bzw. unteren Rand (über der Leiste) mitrollen
+      const top = 70, bot = bottomLimit() - 70;
+      const v = g.y < top ? -Math.ceil((top - g.y) / 6) : g.y > bot ? Math.ceil((g.y - bot) / 6) : 0;
+      if (v) window.scrollBy(0, v);
+      paint();
+      if (v) raf = requestAnimationFrame(tick);
+    };
+    const begin = (p) => {
+      pend = null; if (!p.row.isConnected) return;
+      if (typeof closeSwipe === "function") closeSwipe();
+      const timeEl = p.row.querySelector(".zp-time");
+      slotDrag = { row: p.row, from: slotIndexOf(p.row), to: slotIndexOf(p.row), y0: p.y, y: p.y, s0: window.scrollY, id: p.id,
+        timeEl, timeTxt: timeEl ? timeEl.textContent : "", times: zeitTimes(derived()).meals };
+      p.row.classList.add("dragging"); document.body.classList.add("slot-dragging");
+      try { p.row.setPointerCapture(p.id); } catch (e) {} // Loslassen kommt auch außerhalb der Liste an
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+      swallow = true; paint();
+    };
+    const finish = (cancel) => {
+      const g = slotDrag; slotDrag = null;
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      if (line) { line.remove(); line = null; }
+      document.body.classList.remove("slot-dragging");
+      if (!g) return;
+      g.row.classList.remove("dragging"); g.row.style.transform = "";
+      if (g.timeEl) g.timeEl.textContent = g.timeTxt;
+      if (!cancel && g.row.isConnected && g.to !== g.from) moveSlot(g.from, g.to);
+    };
+    box.addEventListener("pointerdown", (e) => {
+      swallow = false;
+      if (slotDrag || (e.pointerType === "mouse" && e.button !== 0)) return;
+      const row = e.target.closest(".zp-row.slot");
+      if (!row || !filled(row) || row === swipeOpen || e.target.closest("button, a, input, select, textarea, .tlink, .zp-del")) return;
+      pend = { row, id: e.pointerId, x: e.clientX, y: e.clientY, mouse: e.pointerType === "mouse" };
+      if (!pend.mouse) { const p = pend; pend.timer = setTimeout(() => { if (pend === p) begin(p); }, DRAG_HOLD); }
+    });
+    box.addEventListener("pointermove", (e) => {
+      if (pend && e.pointerId === pend.id) {
+        const dx = e.clientX - pend.x, dy = e.clientY - pend.y;
+        if (pend.mouse) { if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) begin(pend); else if (Math.abs(dx) > 6) pend = null; }
+        else if (Math.abs(dx) > 8 || Math.abs(dy) > 8) { clearTimeout(pend.timer); pend = null; } // Scrollen oder Wisch statt Halten
+      }
+      if (slotDrag && e.pointerId === slotDrag.id) { slotDrag.y = e.clientY; paint(); if (!raf) raf = requestAnimationFrame(tick); }
+    });
+    const up = (e) => {
+      if (pend && e.pointerId === pend.id) { clearTimeout(pend.timer); pend = null; }
+      if (slotDrag && e.pointerId === slotDrag.id) finish(e.type === "pointercancel");
+    };
+    box.addEventListener("pointerup", up);
+    box.addEventListener("pointercancel", up);
+    box.addEventListener("lostpointercapture", (e) => { if (slotDrag && e.pointerId === slotDrag.id) finish(false); });
+    // Während des Ziehens nicht scrollen (Finger) und kein Kontextmenü; danach keinen Klick auslösen
+    box.addEventListener("touchmove", (e) => { if (slotDrag) e.preventDefault(); }, { passive: false });
+    box.addEventListener("contextmenu", (e) => { if (slotDrag || pend) e.preventDefault(); });
+    box.addEventListener("click", (e) => { if (swallow) { swallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && slotDrag) finish(true); });
+    box.addEventListener("keydown", (e) => {
+      if (!e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+      const row = e.target.closest && e.target.closest(".zp-row.slot"); if (!row || !filled(row)) return;
+      e.preventDefault();
+      const i = slotIndexOf(row), to = i + (e.key === "ArrowUp" ? -1 : 1);
+      if (to >= 0 && to < state.dayPlan.length) moveSlot(i, to, true);
+    });
   }
   // Eine Mahlzeit leeren – mit „Rückgängig“ (aus der Auswahl heraus, „Leeren“, oder per Wisch).
   function clearSlot(i) {

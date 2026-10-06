@@ -1547,3 +1547,23 @@ test("Vorgaben: Liste mit Unterseiten; Verordnung gesperrt bis „Bearbeiten“,
   fire(w, $(w, "rx-chip"));
   assert.equal(d.querySelector('[data-vgpage="verordnung"]').hidden, false);
 });
+
+test("Tagesplan: Mahlzeiten anordnen (Alt+↑/↓ wie Ziehen) – andere rücken nach, Uhrzeiten bleiben, Rückgängig", () => {
+  const plan = [{ key: "std:Hendl & Zucchini" }, { key: "std:Ei & Spinat" }, { key: null }, { key: "std:Lachs & Brokkoli" }];
+  const w = boot({ settings: { kcal: 750, ratio: 1.5, mahlzeiten: 4, weight: 8.5, view: "heute" }, dayPlan: plan });
+  const keys = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5")).dayPlan.map(s => s.key);
+  const row = (i) => w.document.querySelector('#heute-content .zp-row.slot[data-open="' + i + '"]');
+  const times = () => [...w.document.querySelectorAll("#heute-content .zp-row.slot .zp-time")].map(e => e.textContent);
+  const t0 = times();
+  const key = (el, k) => el.dispatchEvent(new w.KeyboardEvent("keydown", { key: k, altKey: true, bubbles: true }));
+  key(row(0), "ArrowDown");
+  assert.deepEqual(keys(), ["std:Ei & Spinat", "std:Hendl & Zucchini", null, "std:Lachs & Brokkoli"], "Mahlzeit 1 eine nach unten");
+  assert.deepEqual(times(), t0, "Uhrzeiten gehören zu den Plätzen");
+  assert.match(w.document.querySelector(".toast").textContent, /Mahlzeit verschoben – jetzt um /);
+  [...w.document.querySelectorAll(".toast button")].find(b => /Rückgängig/.test(b.textContent)).click();
+  assert.deepEqual(keys(), plan.map(s => s.key), "Rückgängig stellt die Reihenfolge wieder her");
+  key(row(3), "ArrowUp");
+  assert.deepEqual(keys(), ["std:Hendl & Zucchini", "std:Ei & Spinat", "std:Lachs & Brokkoli", null], "auch auf einen leeren Platz");
+  key(row(0), "ArrowUp");
+  assert.equal(keys()[0], "std:Hendl & Zucchini", "über den ersten Platz hinaus passiert nichts");
+});
