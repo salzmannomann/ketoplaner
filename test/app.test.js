@@ -1677,7 +1677,7 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   const seg = () => [...c.querySelectorAll('.pane[data-pane=anpassen] .meat-swap:not(.oil) button[data-meat]')].map(b => b.textContent);
   assert.deepEqual(seg(), ["Huhn", "Pute", "Rind", "Schwein", "Kalb", "Hirschfilet"]);
   const txt = c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent;
-  assert.match(txt, /Huhn 20 g · Pute 18 g · Rind 30 g laut Diätologie/);
+  assert.match(txt, /so viel entspricht 20 g Huhn\): Pute 18 g · Rind 30 g laut Diätologie/);
   assert.match(txt, /Hirschfilet 25 g eigene Werte/);
   assert.match(txt, /Schwein 21 g · Kalb 22 g nach Eiweiß berechnet\./);
   // Kalb wählen: Kalbfleisch in Tabelle und Zubereitung, Verhältnis bleibt
@@ -1691,6 +1691,8 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   c = openRecipe(w, "Seelachs & Karotte");
   assert.equal(c.querySelector(".pane[data-pane=anpassen] .meat-swap .overline").textContent, "Fisch");
   assert.deepEqual(seg(), ["Seelachs", "Kabeljau", "Forelle", "Lachs", "Scholle"]);
+  // Fisch wird gegen Fisch getauscht: Bezugsgröße 20 g Seelachs, nicht Huhn
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent, /so viel entspricht 20 g Seelachs\): Kabeljau \d+ g/);
   fire(w, c.querySelector('.meat-swap button[data-meat="lachs"]')); c = $(w, "detail-content");
   assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].some(r => /Lachsfilet/.test(r.textContent)));
   assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Lachs und Karotten klein schneiden/);
@@ -1699,7 +1701,9 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   w.document.querySelector('.tabbar [data-view="vorgaben"]').click();
   w.document.querySelector('[data-vg="lebensmittel"]').click();
   const row = (k) => $(w, "swap-table").querySelector('[data-swap="' + k + '"]');
-  assert.equal(row("rind").placeholder, "30"); assert.equal(row("schwein").placeholder, "21"); assert.equal(row("seelachs").placeholder, "26");
+  assert.equal(row("rind").placeholder, "30"); assert.equal(row("schwein").placeholder, "21"); assert.equal(row("seelachs"), null, "Seelachs ist Bezugsgröße");
+  const heads = [...$(w, "swap-table").querySelectorAll(".swap-head")].map(h => h.textContent);
+  assert.deepEqual(heads, ["Fleisch≙ 20 g Huhn", "Fisch≙ 20 g Seelachs"]);
   assert.match(row("schwein").closest(".swap-row").textContent, /nach Eiweiß berechnet/);
   row("schwein").value = "24"; fire(w, row("schwein"), "change");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams.schwein, 24);
@@ -1712,7 +1716,7 @@ test("Werte prüfen: Lebensmittelwerte in der Tabelle ändern, Rezepte rechnen d
   const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5, view: "vorgaben" } });
   const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   w.document.querySelector('[data-vg="lebensmittel"]').click();
-  const det = $(w, "werte-list").closest("details"); det.open = true; det.dispatchEvent(new w.Event("toggle"));
+  assert.equal($(w, "werte-list").closest("details"), null, "Liste dauerhaft sichtbar");
   const box = $(w, "werte-list");
   const row = (n) => [...box.querySelectorAll("tr")].find(r => r.firstElementChild && r.firstElementChild.textContent.trim().startsWith(n));
   // Rezept vorher: Butter-Menge in „Hendl & Zucchini · mit KetoCal“
@@ -1753,7 +1757,6 @@ test("Werte prüfen: Lebensmittelwerte in der Tabelle ändern, Rezepte rechnen d
   // Backup-Prüfung verwirft Unsinn
   const w2 = boot({ foodOverrides: { "Butter": { fett: "x", eiweiss: 1 }, "Gibt es nicht": { fett: 5 }, "Rapsöl": "kaputt" } });
   w2.document.querySelector('[data-vg="lebensmittel"]').click();
-  const d2 = $(w2, "werte-list").closest("details"); d2.open = true; d2.dispatchEvent(new w2.Event("toggle"));
   const b2 = [...$(w2, "werte-list").querySelectorAll("tr")].find(r => r.firstElementChild && /^Butter/.test(r.firstElementChild.textContent));
   assert.match(b2.textContent, /geändert/); assert.equal(b2.children[1].textContent, "1,0", "gültiger Wert übernommen");
   assert.equal(b2.children[2].textContent, "82,0", "ungültiger Wert verworfen → Standard");

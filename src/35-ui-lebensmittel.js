@@ -31,8 +31,7 @@
       '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + (f.swap ? " · Tausch" : "") + '</span></button>').join("")
       : '<p class="cf-empty">Noch keine eigenen Lebensmittel.</p>';
     renderSwapTable();
-    const wd = document.getElementById("werte-list");
-    if (wd && wd.closest("details") && wd.closest("details").open) renderWerte();
+    renderWerte();
     const hl = document.getElementById("hidden-list");
     if (hl) {
       const recs = (state.hiddenRecipes || []).map(k => ({ k, r: recipeByKey(k) })).filter(x => x.r);
@@ -72,13 +71,16 @@
     const g = (id) => num((document.getElementById(id) || {}).value);
     const k = document.getElementById("cf-kcal"); if (k) k.placeholder = fmt(4 * g("cf-eiweiss") + 9 * g("cf-fett") + 4 * g("cf-kh"), 0);
   }
-  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Platzhalter = Menge mit gleich viel Eiweiß wie 20 g Huhn
+  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Bezug je Gruppe (20 g Huhn bzw. 20 g Seelachs),
+  // Platzhalter = Menge mit gleich viel Eiweiß wie die Bezugsgröße
   function cfSwapHint() {
     const sw = document.getElementById("cf-swap"), row = document.getElementById("cf-swapg-row"), inp = document.getElementById("cf-swapg");
     if (!sw || !row || !inp) return;
     row.hidden = !sw.value;
-    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = lookup(SWAP_REF.food);
-    inp.placeholder = e > 0 && ref ? fmt(Math.round(SWAP_REF.grams * ref.eiweiss / e), 0) : "";
+    const r = swapRef(sw.value), lbl = document.getElementById("cf-swapg-lbl");
+    if (r && lbl) lbl.textContent = "Entspricht " + r.grams + " g " + r.label;
+    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = r && lookup(r.food);
+    inp.placeholder = e > 0 && ref ? fmt(Math.round(r.grams * ref.eiweiss / e), 0) : "";
   }
   function cfSave() {
     const val = (id) => ((document.getElementById(id) || {}).value || "").trim();
@@ -96,7 +98,8 @@
     if (val("cf-kcal") !== "" && num(val("cf-kcal")) > 0) f.kcal100 = num(val("cf-kcal"));
     if (val("cf-wasser") !== "") f.wasser = Math.min(100, num(val("cf-wasser")));
     if (val("cf-swap") === "fleisch" || val("cf-swap") === "fisch") {
-      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die 20 g Huhn entspricht.", true); return; }
+      const r = swapRef(val("cf-swap"));
+      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die " + r.grams + " g " + r.label + " entspricht.", true); return; }
       f.swap = val("cf-swap"); if (num(val("cf-swapg")) > 0) f.swapGrams = num(val("cf-swapg"));
     }
     const old = cfEdit;
@@ -128,24 +131,25 @@
   const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "nach Eiweiß berechnet", eigen: "eigener Wert" };
   function swapDefault(key) {
     const it = swapItem(key); if (!it) return null;
+    if (key === SWAP_GROUPS[it.group].ref) return { grams: SWAP_GROUPS[it.group].refGrams, src: "ref" };
     if (!it.custom && it.grams) return { grams: it.grams, src: "diaet" };
-    const g = swapProteinGrams(it.food); return g ? { grams: g, src: "eiweiss" } : null;
+    const g = swapProteinGrams(it.food, it.group); return g ? { grams: g, src: "eiweiss" } : null;
   }
   function renderSwapTable() {
     const box = document.getElementById("swap-table"); if (!box) return;
     if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
     box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
-      const its = swapItems(g);
-      // Kopf wie eine Tabelle: Gruppe links, über den Feldern „≙ 20 g Huhn“
-      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + SWAP_REF.grams + " g Huhn</span></div>" + Object.keys(its).map(k => {
+      const its = swapItems(g), r = swapRef(g);
+      // Kopf wie eine Tabelle: Gruppe links, über den Feldern die Bezugsgröße („≙ 20 g Huhn“ bzw. „≙ 20 g Seelachs“)
+      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + r.grams + " g " + escapeHtml(r.label) + "</span></div>" + Object.keys(its).map(k => {
         const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
-        // Huhn ist die Bezugsgröße: feste Zeile ohne Eingabefeld
-        if (its[k].food === SWAP_REF.food) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
-          '<b class="sw-ref">' + SWAP_REF.grams + '</b><span class="unit">g</span></div>';
+        // Bezugsgröße: feste Zeile ohne Eingabefeld
+        if (k === r.key) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
+          '<b class="sw-ref">' + r.grams + '</b><span class="unit">g</span></div>';
         return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
           '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
           (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +
-          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht 20 g Huhn" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
+          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht ' + r.grams + ' g ' + escapeHtml(r.label) + '" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
           '<span class="unit">g</span></div>';
       }).join("");
     }).join("");

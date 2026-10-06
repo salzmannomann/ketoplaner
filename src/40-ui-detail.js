@@ -376,7 +376,7 @@
     if (meatSlot) {
       // Sorten der Gruppe (Fleisch bzw. Fisch) als Segment; darunter, woher die Austauschmengen stammen
       const cur = detailMeat || meatSlot.baseKey, its = swapItems(meatSlot.group), keys = Object.keys(its).filter(k => swapEquiv(k));
-      const grp = SWAP_GROUPS[meatSlot.group].label;
+      const grp = SWAP_GROUPS[meatSlot.group].label, ref = swapRef(meatSlot.group);
       const bySrc = (src) => keys.filter(k => swapEquiv(k).src === src).map(k => its[k].label + " " + fmt(swapEquiv(k).grams, 0) + " g");
       const diaet = bySrc("diaet"), eigen = bySrc("eigen"), eiw = bySrc("eiweiss");
       const srcTxt = [diaet.length ? diaet.join(" · ") + " laut Diätologie" : "", eigen.length ? eigen.join(" · ") + " eigene Werte" : "",
@@ -385,7 +385,7 @@
         keys.map(k => { const ok = meatSwapPossible(rec, d, k);
           return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
             (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + escapeHtml(its[k].label) + ' lässt sich das Verhältnis nicht einstellen"') + ">" + escapeHtml(its[k].label) + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht 20 g Huhn): ' + escapeHtml(srcTxt) +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht ' + ref.grams + ' g ' + escapeHtml(ref.label) + '): ' + escapeHtml(srcTxt) +
         '. Danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt. Mengen ändern unter Vorgaben › Lebensmittel und Rezepte.</div></div>';
     }
 

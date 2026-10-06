@@ -1174,7 +1174,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
               <label class="vo-row"><span class="vo-lbl"><span>Wasser</span><span class="src">leer = geschätzt</span></span><span class="vo-in"><input id="cf-wasser" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
               <label class="vo-row"><span class="vo-lbl"><span>Im Tausch anbieten</span><span class="src">auf dem Blatt „Anpassen“ eines Rezepts</span></span>
                 <select id="cf-swap" class="line-select"><option value="">nein</option><option value="fleisch">bei Fleisch</option><option value="fisch">bei Fisch</option></select></label>
-              <label class="vo-row" id="cf-swapg-row" hidden><span class="vo-lbl"><span>Entspricht 20 g Huhn</span><span class="src">leer = nach Eiweiß berechnet</span></span><span class="vo-in"><input id="cf-swapg" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
+              <label class="vo-row" id="cf-swapg-row" hidden><span class="vo-lbl"><span id="cf-swapg-lbl">Entspricht 20 g Huhn</span><span class="src">leer = nach Eiweiß berechnet</span></span><span class="vo-in"><input id="cf-swapg" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
             </div>
             <label class="checkrow cf-fat"><input type="checkbox" id="cf-fat" /> Als Fett zum Ausgleich anbieten (im Editor)</label>
             <div id="cf-msg" class="note info" hidden></div>
@@ -1186,17 +1186,14 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
           </div>
         </div>
         <div class="vg-sec" id="swap-card">
-          <h3 class="vg-sec-title">Austauschmengen <span class="hint">so viele Gramm einer Sorte ersetzen 20 g Huhn</span></h3>
+          <h3 class="vg-sec-title">Austauschmengen <span class="hint">so viele Gramm ersetzen 20 g Huhn bzw. 20 g Seelachs</span></h3>
           <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
           <div id="swap-table"></div>
         </div>
         <div class="vg-sec" id="werte-card">
           <h3 class="vg-sec-title">Werte prüfen <span class="hint">je 100 g</span></h3>
-          <details class="more">
-            <summary class="tlink">Alle Lebensmittel in den Rezepten anzeigen</summary>
-            <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett, geänderte und eigene Lebensmittel sind markiert. Wer ein anderes Produkt verwendet, kann die Werte vom Etikett übernehmen; die Rezepte rechnen dann damit.</p>
-            <div id="werte-list" class="tbl-wrap"></div>
-          </details>
+          <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett, geänderte und eigene Lebensmittel sind markiert. Wer ein anderes Produkt verwendet, kann die Werte vom Etikett übernehmen; die Rezepte rechnen dann damit.</p>
+          <div id="werte-list" class="tbl-wrap"></div>
         </div>
         <div class="vg-sec" id="hidden-card">
           <h3 class="vg-sec-title">Ausgeblendete Rezepte</h3>
@@ -3023,21 +3020,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
 
   /* ---------- Fleisch- und Fisch-Tausch ----------
-     Jede Sorte hat eine Austauschmenge: so viel Gramm entsprechen 20 g Huhn. Quelle (in dieser Reihenfolge):
-     ein eigener Wert (Vorgaben › Lebensmittel und Rezepte, gilt als abgestimmt), die Menge der Diätologin
-     (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel
-     Eiweiß wie 20 g Huhn). Eigene Lebensmittel können mit eigener Menge dazukommen. Getauscht wird innerhalb der
-     Gruppe (Fleisch bzw. Fisch); danach wird das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
-  const SWAP_REF = { food: "Hühnerbrust ohne Haut", grams: 20 };
+     Jede Gruppe hat eine Bezugsgröße (Fleisch: 20 g Huhn, Fisch: 20 g Seelachs); jede Sorte hat eine Austauschmenge:
+     so viel Gramm entsprechen der Bezugsgröße. Quelle (in dieser Reihenfolge): ein eigener Wert (Vorgaben › Lebensmittel
+     und Rezepte, gilt als abgestimmt), die Menge der Diätologin (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle
+     übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel Eiweiß wie die Bezugsgröße). Eigene Lebensmittel können mit
+     eigener Menge dazukommen. Getauscht wird innerhalb der Gruppe (Fleisch für Fleisch, Fisch für Fisch); danach wird
+     das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
   const SWAP_GROUPS = {
-    fleisch: { label: "Fleisch", items: {
+    fleisch: { label: "Fleisch", ref: "huhn", refGrams: 20, items: {
       huhn: { food: "Hühnerbrust ohne Haut", label: "Huhn", word: "Hendl", grams: 20 },
       pute: { food: "Putenbrust ohne Haut", label: "Pute", word: "Putenfleisch", grams: 18 },
       rind: { food: "Rinderfaschiertes", label: "Rind", word: "Rinderfaschiertes", grams: 30 },
       schwein: { food: "Schweinefilet", label: "Schwein", word: "Schweinefilet" },
       kalb: { food: "Kalbsschnitzelfleisch", label: "Kalb", word: "Kalbfleisch" },
     }, words: /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Schweinefilet|Schweinefleisch|Kalbsschnitzelfleisch|Kalbfleisch|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g },
-    fisch: { label: "Fisch", items: {
+    fisch: { label: "Fisch", ref: "seelachs", refGrams: 20, items: {
       seelachs: { food: "Seelachsfilet (Alaska-Seelachs, TK)", label: "Seelachs", word: "Seelachs" },
       kabeljau: { food: "Kabeljaufilet (TK oder frisch)", label: "Kabeljau", word: "Kabeljau" },
       forelle: { food: "Forelle TK oder Frisch", label: "Forelle", word: "Forelle" },
@@ -3058,13 +3055,20 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     for (const g in SWAP_GROUPS) { const it = swapItems(g)[key]; if (it) return Object.assign({ group: g }, it); }
     return null;
   }
-  // Menge, die 20 g Huhn entspricht, und woher sie stammt: "eigen" | "diaet" | "eiweiss"
-  function swapProteinGrams(food) {
-    const f = lookup(food), ref = lookup(SWAP_REF.food);
-    return f && ref && f.eiweiss > 0 ? Math.round(SWAP_REF.grams * ref.eiweiss / f.eiweiss) : null;
+  // Bezugsgröße einer Gruppe: { key, food, label, grams }
+  function swapRef(group) {
+    const g = SWAP_GROUPS[group]; if (!g) return null;
+    const it = g.items[g.ref]; return { key: g.ref, food: it.food, label: it.label, grams: g.refGrams };
   }
+  // Menge mit gleich viel Eiweiß wie die Bezugsgröße der Gruppe
+  function swapProteinGrams(food, group) {
+    const r = swapRef(group), f = lookup(food), ref = r && lookup(r.food);
+    return f && ref && f.eiweiss > 0 ? Math.round(r.grams * ref.eiweiss / f.eiweiss) : null;
+  }
+  // Menge, die der Bezugsgröße entspricht, und woher sie stammt: "ref" | "eigen" | "diaet" | "eiweiss"
   function swapEquiv(key) {
     const it = swapItem(key); if (!it) return null;
+    if (key === SWAP_GROUPS[it.group].ref) return { grams: SWAP_GROUPS[it.group].refGrams, src: "ref" };
     if (it.custom) {
       const cf = (state.customFoods || []).find(f => "cf:" + f.name === key);
       if (cf && num(cf.swapGrams) > 0) return { grams: num(cf.swapGrams), src: "eigen" };
@@ -3073,7 +3077,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (ov > 0) return { grams: ov, src: "eigen" };
       if (it.grams) return { grams: it.grams, src: "diaet" };
     }
-    const g = swapProteinGrams(it.food);
+    const g = swapProteinGrams(it.food, it.group);
     return g ? { grams: g, src: "eiweiss" } : null;
   }
   function meatKeyOfFood(name) {
@@ -3913,8 +3917,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     const impT = document.getElementById("import-text-btn");
     if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
-    const wd = document.querySelector("#werte-list");
-    if (wd) wd.closest("details").addEventListener("toggle", function () { if (this.open) renderWerte(); });
   }
 
   /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */
@@ -4088,8 +4090,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + (f.swap ? " · Tausch" : "") + '</span></button>').join("")
       : '<p class="cf-empty">Noch keine eigenen Lebensmittel.</p>';
     renderSwapTable();
-    const wd = document.getElementById("werte-list");
-    if (wd && wd.closest("details") && wd.closest("details").open) renderWerte();
+    renderWerte();
     const hl = document.getElementById("hidden-list");
     if (hl) {
       const recs = (state.hiddenRecipes || []).map(k => ({ k, r: recipeByKey(k) })).filter(x => x.r);
@@ -4129,13 +4130,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const g = (id) => num((document.getElementById(id) || {}).value);
     const k = document.getElementById("cf-kcal"); if (k) k.placeholder = fmt(4 * g("cf-eiweiss") + 9 * g("cf-fett") + 4 * g("cf-kh"), 0);
   }
-  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Platzhalter = Menge mit gleich viel Eiweiß wie 20 g Huhn
+  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Bezug je Gruppe (20 g Huhn bzw. 20 g Seelachs),
+  // Platzhalter = Menge mit gleich viel Eiweiß wie die Bezugsgröße
   function cfSwapHint() {
     const sw = document.getElementById("cf-swap"), row = document.getElementById("cf-swapg-row"), inp = document.getElementById("cf-swapg");
     if (!sw || !row || !inp) return;
     row.hidden = !sw.value;
-    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = lookup(SWAP_REF.food);
-    inp.placeholder = e > 0 && ref ? fmt(Math.round(SWAP_REF.grams * ref.eiweiss / e), 0) : "";
+    const r = swapRef(sw.value), lbl = document.getElementById("cf-swapg-lbl");
+    if (r && lbl) lbl.textContent = "Entspricht " + r.grams + " g " + r.label;
+    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = r && lookup(r.food);
+    inp.placeholder = e > 0 && ref ? fmt(Math.round(r.grams * ref.eiweiss / e), 0) : "";
   }
   function cfSave() {
     const val = (id) => ((document.getElementById(id) || {}).value || "").trim();
@@ -4153,7 +4157,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (val("cf-kcal") !== "" && num(val("cf-kcal")) > 0) f.kcal100 = num(val("cf-kcal"));
     if (val("cf-wasser") !== "") f.wasser = Math.min(100, num(val("cf-wasser")));
     if (val("cf-swap") === "fleisch" || val("cf-swap") === "fisch") {
-      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die 20 g Huhn entspricht.", true); return; }
+      const r = swapRef(val("cf-swap"));
+      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die " + r.grams + " g " + r.label + " entspricht.", true); return; }
       f.swap = val("cf-swap"); if (num(val("cf-swapg")) > 0) f.swapGrams = num(val("cf-swapg"));
     }
     const old = cfEdit;
@@ -4185,24 +4190,25 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "nach Eiweiß berechnet", eigen: "eigener Wert" };
   function swapDefault(key) {
     const it = swapItem(key); if (!it) return null;
+    if (key === SWAP_GROUPS[it.group].ref) return { grams: SWAP_GROUPS[it.group].refGrams, src: "ref" };
     if (!it.custom && it.grams) return { grams: it.grams, src: "diaet" };
-    const g = swapProteinGrams(it.food); return g ? { grams: g, src: "eiweiss" } : null;
+    const g = swapProteinGrams(it.food, it.group); return g ? { grams: g, src: "eiweiss" } : null;
   }
   function renderSwapTable() {
     const box = document.getElementById("swap-table"); if (!box) return;
     if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
     box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
-      const its = swapItems(g);
-      // Kopf wie eine Tabelle: Gruppe links, über den Feldern „≙ 20 g Huhn“
-      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + SWAP_REF.grams + " g Huhn</span></div>" + Object.keys(its).map(k => {
+      const its = swapItems(g), r = swapRef(g);
+      // Kopf wie eine Tabelle: Gruppe links, über den Feldern die Bezugsgröße („≙ 20 g Huhn“ bzw. „≙ 20 g Seelachs“)
+      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + r.grams + " g " + escapeHtml(r.label) + "</span></div>" + Object.keys(its).map(k => {
         const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
-        // Huhn ist die Bezugsgröße: feste Zeile ohne Eingabefeld
-        if (its[k].food === SWAP_REF.food) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
-          '<b class="sw-ref">' + SWAP_REF.grams + '</b><span class="unit">g</span></div>';
+        // Bezugsgröße: feste Zeile ohne Eingabefeld
+        if (k === r.key) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
+          '<b class="sw-ref">' + r.grams + '</b><span class="unit">g</span></div>';
         return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
           '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
           (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +
-          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht 20 g Huhn" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
+          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht ' + r.grams + ' g ' + escapeHtml(r.label) + '" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
           '<span class="unit">g</span></div>';
       }).join("");
     }).join("");
@@ -4838,7 +4844,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (meatSlot) {
       // Sorten der Gruppe (Fleisch bzw. Fisch) als Segment; darunter, woher die Austauschmengen stammen
       const cur = detailMeat || meatSlot.baseKey, its = swapItems(meatSlot.group), keys = Object.keys(its).filter(k => swapEquiv(k));
-      const grp = SWAP_GROUPS[meatSlot.group].label;
+      const grp = SWAP_GROUPS[meatSlot.group].label, ref = swapRef(meatSlot.group);
       const bySrc = (src) => keys.filter(k => swapEquiv(k).src === src).map(k => its[k].label + " " + fmt(swapEquiv(k).grams, 0) + " g");
       const diaet = bySrc("diaet"), eigen = bySrc("eigen"), eiw = bySrc("eiweiss");
       const srcTxt = [diaet.length ? diaet.join(" · ") + " laut Diätologie" : "", eigen.length ? eigen.join(" · ") + " eigene Werte" : "",
@@ -4847,7 +4853,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         keys.map(k => { const ok = meatSwapPossible(rec, d, k);
           return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
             (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + escapeHtml(its[k].label) + ' lässt sich das Verhältnis nicht einstellen"') + ">" + escapeHtml(its[k].label) + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht 20 g Huhn): ' + escapeHtml(srcTxt) +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht ' + ref.grams + ' g ' + escapeHtml(ref.label) + '): ' + escapeHtml(srcTxt) +
         '. Danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt. Mengen ändern unter Vorgaben › Lebensmittel und Rezepte.</div></div>';
     }
 

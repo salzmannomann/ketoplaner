@@ -255,7 +255,7 @@
               <label class="vo-row"><span class="vo-lbl"><span>Wasser</span><span class="src">leer = geschätzt</span></span><span class="vo-in"><input id="cf-wasser" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
               <label class="vo-row"><span class="vo-lbl"><span>Im Tausch anbieten</span><span class="src">auf dem Blatt „Anpassen“ eines Rezepts</span></span>
                 <select id="cf-swap" class="line-select"><option value="">nein</option><option value="fleisch">bei Fleisch</option><option value="fisch">bei Fisch</option></select></label>
-              <label class="vo-row" id="cf-swapg-row" hidden><span class="vo-lbl"><span>Entspricht 20 g Huhn</span><span class="src">leer = nach Eiweiß berechnet</span></span><span class="vo-in"><input id="cf-swapg" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
+              <label class="vo-row" id="cf-swapg-row" hidden><span class="vo-lbl"><span id="cf-swapg-lbl">Entspricht 20 g Huhn</span><span class="src">leer = nach Eiweiß berechnet</span></span><span class="vo-in"><input id="cf-swapg" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
             </div>
             <label class="checkrow cf-fat"><input type="checkbox" id="cf-fat" /> Als Fett zum Ausgleich anbieten (im Editor)</label>
             <div id="cf-msg" class="note info" hidden></div>
@@ -267,17 +267,14 @@
           </div>
         </div>
         <div class="vg-sec" id="swap-card">
-          <h3 class="vg-sec-title">Austauschmengen <span class="hint">so viele Gramm einer Sorte ersetzen 20 g Huhn</span></h3>
+          <h3 class="vg-sec-title">Austauschmengen <span class="hint">so viele Gramm ersetzen 20 g Huhn bzw. 20 g Seelachs</span></h3>
           <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
           <div id="swap-table"></div>
         </div>
         <div class="vg-sec" id="werte-card">
           <h3 class="vg-sec-title">Werte prüfen <span class="hint">je 100 g</span></h3>
-          <details class="more">
-            <summary class="tlink">Alle Lebensmittel in den Rezepten anzeigen</summary>
-            <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett, geänderte und eigene Lebensmittel sind markiert. Wer ein anderes Produkt verwendet, kann die Werte vom Etikett übernehmen; die Rezepte rechnen dann damit.</p>
-            <div id="werte-list" class="tbl-wrap"></div>
-          </details>
+          <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett, geänderte und eigene Lebensmittel sind markiert. Wer ein anderes Produkt verwendet, kann die Werte vom Etikett übernehmen; die Rezepte rechnen dann damit.</p>
+          <div id="werte-list" class="tbl-wrap"></div>
         </div>
         <div class="vg-sec" id="hidden-card">
           <h3 class="vg-sec-title">Ausgeblendete Rezepte</h3>
@@ -423,7 +420,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=20f71cd2"></script>
+  <script src="app.js?v=93db675a"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

@@ -327,6 +327,4 @@
     });
     const impT = document.getElementById("import-text-btn");
     if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
-    const wd = document.querySelector("#werte-list");
-    if (wd) wd.closest("details").addEventListener("toggle", function () { if (this.open) renderWerte(); });
   }

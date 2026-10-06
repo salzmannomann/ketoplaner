@@ -1,19 +1,19 @@
   /* ---------- Fleisch- und Fisch-Tausch ----------
-     Jede Sorte hat eine Austauschmenge: so viel Gramm entsprechen 20 g Huhn. Quelle (in dieser Reihenfolge):
-     ein eigener Wert (Vorgaben › Lebensmittel und Rezepte, gilt als abgestimmt), die Menge der Diätologin
-     (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel
-     Eiweiß wie 20 g Huhn). Eigene Lebensmittel können mit eigener Menge dazukommen. Getauscht wird innerhalb der
-     Gruppe (Fleisch bzw. Fisch); danach wird das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
-  const SWAP_REF = { food: "Hühnerbrust ohne Haut", grams: 20 };
+     Jede Gruppe hat eine Bezugsgröße (Fleisch: 20 g Huhn, Fisch: 20 g Seelachs); jede Sorte hat eine Austauschmenge:
+     so viel Gramm entsprechen der Bezugsgröße. Quelle (in dieser Reihenfolge): ein eigener Wert (Vorgaben › Lebensmittel
+     und Rezepte, gilt als abgestimmt), die Menge der Diätologin (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle
+     übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel Eiweiß wie die Bezugsgröße). Eigene Lebensmittel können mit
+     eigener Menge dazukommen. Getauscht wird innerhalb der Gruppe (Fleisch für Fleisch, Fisch für Fisch); danach wird
+     das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
   const SWAP_GROUPS = {
-    fleisch: { label: "Fleisch", items: {
+    fleisch: { label: "Fleisch", ref: "huhn", refGrams: 20, items: {
       huhn: { food: "Hühnerbrust ohne Haut", label: "Huhn", word: "Hendl", grams: 20 },
       pute: { food: "Putenbrust ohne Haut", label: "Pute", word: "Putenfleisch", grams: 18 },
       rind: { food: "Rinderfaschiertes", label: "Rind", word: "Rinderfaschiertes", grams: 30 },
       schwein: { food: "Schweinefilet", label: "Schwein", word: "Schweinefilet" },
       kalb: { food: "Kalbsschnitzelfleisch", label: "Kalb", word: "Kalbfleisch" },
     }, words: /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Schweinefilet|Schweinefleisch|Kalbsschnitzelfleisch|Kalbfleisch|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g },
-    fisch: { label: "Fisch", items: {
+    fisch: { label: "Fisch", ref: "seelachs", refGrams: 20, items: {
       seelachs: { food: "Seelachsfilet (Alaska-Seelachs, TK)", label: "Seelachs", word: "Seelachs" },
       kabeljau: { food: "Kabeljaufilet (TK oder frisch)", label: "Kabeljau", word: "Kabeljau" },
       forelle: { food: "Forelle TK oder Frisch", label: "Forelle", word: "Forelle" },
@@ -34,13 +34,20 @@
     for (const g in SWAP_GROUPS) { const it = swapItems(g)[key]; if (it) return Object.assign({ group: g }, it); }
     return null;
   }
-  // Menge, die 20 g Huhn entspricht, und woher sie stammt: "eigen" | "diaet" | "eiweiss"
-  function swapProteinGrams(food) {
-    const f = lookup(food), ref = lookup(SWAP_REF.food);
-    return f && ref && f.eiweiss > 0 ? Math.round(SWAP_REF.grams * ref.eiweiss / f.eiweiss) : null;
+  // Bezugsgröße einer Gruppe: { key, food, label, grams }
+  function swapRef(group) {
+    const g = SWAP_GROUPS[group]; if (!g) return null;
+    const it = g.items[g.ref]; return { key: g.ref, food: it.food, label: it.label, grams: g.refGrams };
   }
+  // Menge mit gleich viel Eiweiß wie die Bezugsgröße der Gruppe
+  function swapProteinGrams(food, group) {
+    const r = swapRef(group), f = lookup(food), ref = r && lookup(r.food);
+    return f && ref && f.eiweiss > 0 ? Math.round(r.grams * ref.eiweiss / f.eiweiss) : null;
+  }
+  // Menge, die der Bezugsgröße entspricht, und woher sie stammt: "ref" | "eigen" | "diaet" | "eiweiss"
   function swapEquiv(key) {
     const it = swapItem(key); if (!it) return null;
+    if (key === SWAP_GROUPS[it.group].ref) return { grams: SWAP_GROUPS[it.group].refGrams, src: "ref" };
     if (it.custom) {
       const cf = (state.customFoods || []).find(f => "cf:" + f.name === key);
       if (cf && num(cf.swapGrams) > 0) return { grams: num(cf.swapGrams), src: "eigen" };
@@ -49,7 +56,7 @@
       if (ov > 0) return { grams: ov, src: "eigen" };
       if (it.grams) return { grams: it.grams, src: "diaet" };
     }
-    const g = swapProteinGrams(it.food);
+    const g = swapProteinGrams(it.food, it.group);
     return g ? { grams: g, src: "eiweiss" } : null;
   }
   function meatKeyOfFood(name) {
