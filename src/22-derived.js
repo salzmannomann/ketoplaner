@@ -2,6 +2,7 @@
   // Voreinstellung der App für den Eiweißbedarf (g je kg Körpergewicht und Tag); die Verordnung geht immer vor.
   const PROTEIN_STANDARD = 1.5;
   // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
+  const DAMPF_STANDARD = 150; // ml Verdunstung beim Dämpfen (Vorschlag, wenn das Feld leer ist)
   function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
   // Mahlzeiten pro Tag: wählbar sind 3, 4 oder 5 (ältere gespeicherte Werte werden in diesen Bereich geholt).
   function mahlCount(s) { const n = Math.round(num(s.mahlzeiten)) || 5; return Math.min(5, Math.max(3, n)); }
@@ -22,7 +23,8 @@
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
-    const dampfVerdunstung = num(s.dampfVerdunstung);
+    // leer = Standard (150 ml); 0 ist ein eigener Wert (keine Verdunstung)
+    const dampfVerdunstung = s.dampfVerdunstung === "" || s.dampfVerdunstung == null ? DAMPF_STANDARD : num(s.dampfVerdunstung);
     // Rundung beim Abwiegen: alle Zutaten außer Fettträgern fest auf 0,5 g, Wasser auf 1 ml, Fettträger immer 0,1 g.
     const rundung = 0.5;
     // Kalorien-Korridor nach Gewicht: 70–90 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate). Mit Krick-Schätzung für Kinder,

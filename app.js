@@ -429,6 +429,7 @@
   // Voreinstellung der App für den Eiweißbedarf (g je kg Körpergewicht und Tag); die Verordnung geht immer vor.
   const PROTEIN_STANDARD = 1.5;
   // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
+  const DAMPF_STANDARD = 150; // ml Verdunstung beim Dämpfen (Vorschlag, wenn das Feld leer ist)
   function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
   // Mahlzeiten pro Tag: wählbar sind 3, 4 oder 5 (ältere gespeicherte Werte werden in diesen Bereich geholt).
   function mahlCount(s) { const n = Math.round(num(s.mahlzeiten)) || 5; return Math.min(5, Math.max(3, n)); }
@@ -449,7 +450,8 @@
     const eiweiss = autoProtein ? Math.round(weight * perKg) : num(s.eiweiss);
     const mctShare = Math.min(1, Math.max(0, num(s.mctShare)));
     const mctMode = s.mctMode === "kalorien" ? "kalorien" : "verhaeltnis";
-    const dampfVerdunstung = num(s.dampfVerdunstung);
+    // leer = Standard (150 ml); 0 ist ein eigener Wert (keine Verdunstung)
+    const dampfVerdunstung = s.dampfVerdunstung === "" || s.dampfVerdunstung == null ? DAMPF_STANDARD : num(s.dampfVerdunstung);
     // Rundung beim Abwiegen: alle Zutaten außer Fettträgern fest auf 0,5 g, Wasser auf 1 ml, Fettträger immer 0,1 g.
     const rundung = 0.5;
     // Kalorien-Korridor nach Gewicht: 70–90 kcal/kg (FAO/WHO/UNU 2004, 6–24 Monate). Mit Krick-Schätzung für Kinder,
@@ -1039,34 +1041,37 @@
     const $ = id => document.getElementById(id);
     // Felder nie überschreiben, während darin getippt wird – sonst verschwindet z. B. das Komma bei „8,5".
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
+    // Felder, die leer bleiben dürfen: leer heißt „Vorschlag verwenden“, der gerade geltende Vorschlag steht grau als
+    // Platzhalter darin (zieht mit, z. B. nach einer Gewichtsänderung); ein eigener Wert steht in Tinte.
+    const hint = (id, v) => { const el = $(id); if (el) el.placeholder = v; };
+    const isDef = (v, def) => v === "" || v == null || num(v) === def;
     document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b => b.classList.toggle("active", num(b.dataset.mahl) === mahlCount(s)));
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
-    put("set-mct-fett", s.mctFett100 || "");
-    put("set-mct-kcal", s.mctKcal100 || "");
-    put("set-verdunstung", (s.dampfVerdunstung === 0 || s.dampfVerdunstung) ? s.dampfVerdunstung : "");
+    put("set-mct-fett", isDef(s.mctFett100, 100) || !(num(s.mctFett100) > 0) ? "" : s.mctFett100); hint("set-mct-fett", "100");
+    put("set-mct-kcal", isDef(s.mctKcal100, 830) || !(num(s.mctKcal100) > 0) ? "" : s.mctKcal100); hint("set-mct-kcal", "830");
+    put("set-verdunstung", isDef(s.dampfVerdunstung, DAMPF_STANDARD) ? "" : s.dampfVerdunstung); hint("set-verdunstung", String(DAMPF_STANDARD));
     $("set-proteinmode").value = String(s.proteinPerKg || 0);
 
     const d = derived();
-    // Vorschläge stehen als echte Werte im Feld (nicht als grauer Platzhalter). Die Zeile darunter sagt, woher der
-    // Wert kommt: „Vorschlag …“ (grün) oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
+    // Vorschläge stehen grau als Platzhalter im leeren Feld. Die Zeile darunter sagt, woher der Wert kommt:
+    // „Vorschlag …“ oder „eigener Wert“ mit dem Link zurück zum Vorschlag.
     const src = (id, manual, autoText, resetLabel) => {
       const sp = $("src-" + id), bt = $("reset-" + id);
       if (sp) { sp.textContent = manual ? "eigener Wert" : autoText; sp.classList.toggle("auto", !manual); }
       if (bt) { bt.hidden = !manual; if (resetLabel) bt.textContent = resetLabel; }
     };
-    put("set-kcal", d.kcalManual ? s.kcal : d.kcalAuto);
+    put("set-kcal", d.kcalManual ? s.kcal : ""); hint("set-kcal", String(Math.round(d.kcalAuto)));
     src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "Vorschlag " + fmt(d.kcalAuto, 0));
-    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : d.kcalMinAuto);
+    put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); hint("set-kcalmin", String(Math.round(d.kcalMinAuto)));
     src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "Vorschlag " + fmt(d.kcalMinAuto, 0));
-    put("set-fluid", d.fluidManual ? s.fluidMl : (d.fluidAuto > 0 ? d.fluidAuto : ""));
-    $("set-fluid").placeholder = d.fluidAuto > 0 ? "" : "ml/Tag (Gewicht eintragen)";
+    put("set-fluid", d.fluidManual ? s.fluidMl : ""); hint("set-fluid", d.fluidAuto > 0 ? String(Math.round(d.fluidAuto)) : "Gewicht eintragen");
     src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "Vorschlag " + fmt(d.fluidAuto, 0));
     // Energiedichte (nur Modus „zwischen“; im anderen Modus ausgegraut, das Feld bleibt an seinem Platz)
     {
       const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
-      put("set-dichte", on ? fmtNum(d.maxDichte) : "");
-      if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "– (alles in den Mahlzeiten)"; }
+      put("set-dichte", on && manual ? fmtNum(d.maxDichte) : "");
+      if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "–"; }
       src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "auf 1,5");
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
@@ -1401,7 +1406,7 @@
         let v = num(e.target.value);
         // Vorschlags-Felder: nur ein leeres Feld heißt wieder „automatisch“. Ein eingetippter Wert bleibt fest,
         // auch wenn er zufällig dem Vorschlag entspricht (sonst würde er sich beim Ändern des Gewichts still mitändern).
-        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid";
+        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid" || id === "set-mct-fett" || id === "set-mct-kcal" || id === "set-verdunstung";
         if (isAutoField && e.target.value.trim() === "") v = "";
         state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden

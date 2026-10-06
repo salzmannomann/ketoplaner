@@ -96,7 +96,8 @@ input:disabled, select:disabled { opacity: .5; }
 .date-wrap.empty:not(:focus-within) .line-date { color: transparent; }
 .date-wrap.empty:not(:focus-within) .line-date::-webkit-calendar-picker-indicator { opacity: 0; }
 .num-input:focus, .line-select:focus, .line-date:focus, .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
-.num-input::placeholder { color: var(--grey); font-weight: 500; }
+/* Vorschlag im leeren Feld: grau, sonst wie der Wert (Mono 600, rechtsbündig) */
+.num-input::placeholder { color: var(--grey); opacity: 1; font: inherit; }
 textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: transparent; font: 12px/1.4 var(--f-mono); }
 /* Knöpfe: Primär = Tinte-Fläche, „outline“ = 1,5-px-Rahmen */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; padding: 0 16px; border: 0; border-radius: 8px;

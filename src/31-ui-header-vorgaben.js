@@ -251,7 +251,7 @@
         let v = num(e.target.value);
         // Vorschlags-Felder: nur ein leeres Feld heißt wieder „automatisch“. Ein eingetippter Wert bleibt fest,
         // auch wenn er zufällig dem Vorschlag entspricht (sonst würde er sich beim Ändern des Gewichts still mitändern).
-        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid";
+        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid" || id === "set-mct-fett" || id === "set-mct-kcal" || id === "set-verdunstung";
         if (isAutoField && e.target.value.trim() === "") v = "";
         state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
