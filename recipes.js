@@ -316,7 +316,7 @@ const RECIPES_SONDE = [
     ketocal: true,
     zubereitung: "Zucchini weich garen, mit dem gegarten Kabeljau und Wasser fein pürieren. KetoCal 3:1 und Butter unterrühren.",
     thermomix: "Zucchini 5 Sek./Stufe 5 zerkleinern. Wasser und Kabeljau zugeben, 12 Min./100 °C/Stufe 1 garen. KetoCal 3:1 und Butter zugeben und 1 Min./Stufe 10 fein pürieren, bis die Masse glatt und suppig ist (bei Bedarf etwas Wasser nachgeben und nochmals pürieren). Anschließend die Masse durch ein feines Sieb streichen, damit keine groben Fasern die Spritze verstopfen.",
-    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Zucchini klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter, KetoCal und den gegarten Kabeljau 30–40 Sek./Stufe 7–8 cremig pürieren.",
+    varoma: "Ca. 500 ml Wasser in den Mixtopf geben (nur zum Dämpfen, wird nicht weiterverwendet). Kabeljau und Zucchini klein schneiden, in den Varoma geben und ca. 12–15 Min./Varoma/Stufe 1 dämpfen, bis alles weich und durchgegart ist (Garzeit prüfen). Dämpfwasser abgießen. Die gedämpften Zutaten mit dem abgemessenen Wasser, Butter, KetoCal und den gegarten Kabeljau 30–40 Sek./Stufe 7–8 cremig pürieren.",
     items: [ { food: "Kabeljaufilet (TK oder frisch)", grams: 25 }, { food: "Zucchini gegart", grams: 60 }, { food: "Ketocal 3:1", grams: 10 }, { food: "Butter", grams: 6 }, { food: "Wasser", grams: 50 } ],
   },
   {
