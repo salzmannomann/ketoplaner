@@ -41,7 +41,7 @@
       else {
         // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
-        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
+        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
         if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
       }
     }
@@ -178,7 +178,7 @@
             '<p class="vg-more">Kein Wasser zwischen den Mahlzeiten nötig.</p>';
         } else {
           const wg = waterGiftsText(d);
-          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
             '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
         }

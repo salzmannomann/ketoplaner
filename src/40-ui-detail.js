@@ -216,7 +216,7 @@
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
     if (wp.per === 0) return '<div class="note tip">' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
       (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
@@ -485,7 +485,7 @@
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const volPer = volumeMl(items), bigVol = d.maxMahlMl > 0 && volPer > d.maxMahlMl + 0.5;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint fluid-line">Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
+      ? '<div class="hint fluid-line">Flüssigkeit ca. <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
@@ -508,9 +508,9 @@
     const qTiles = '<div class="detail-tiles facts">' +
         fact((days && dayLow) ? "warn" : "", fmt(sum.kcal, 0), "kcal" + qTag + " · Ziel " + fmt(d.kcalMahl * mult, 0)) +
         fact(pStateQ === "ok" ? "" : pStateQ === "low" ? "attn" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
-        fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "≈ " + fmt(totalG, 0) + " g") +
+        fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "ca. " + fmt(totalG, 0) + " g") +
         (d.fluidDay > 0 ? fact(qZiel && qFluid < qFluidZiel - 3 * mult ? "warn" : "", fmt(qFluid, 0) + " ml", "Flüssigkeit" + qTag + (qZiel ? " · Ziel " + fmt(qFluidZiel, 0) + " ml" : " in Mahlzeiten"))
-          : fact("", "≈ " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
+          : fact("", "ca. " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
       "</div>";
     // Tages-Check nur als Warnung: Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow
@@ -573,8 +573,8 @@
       '<div class="detail-tiles facts">' +
         fact(mv.hasPortion ? "attn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
         fact(pStateMeal === "ok" ? "" : pStateMeal === "low" ? "attn" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
-        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
-        (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "≈ " + fmt(totalG / mult, 0) + " g", "Menge")) +
+        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "ca. " + fmt(totalG / mult, 0) + " g") +
+        (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "ca. " + fmt(totalG / mult, 0) + " g", "Menge")) +
       "</div>" +
       (pStateMeal === "low" ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       (pStateMeal === "high" ? '<div class="note warn">▲ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel. Viel Eiweiß kann die Ketose schwächen, bitte mit dem Team abklären.</div>' : "") +
@@ -610,10 +610,10 @@
       '<div class="detail-tiles facts three fill-tiles">' +
         fact("", '<span class="fill-big">' + fmt(perGnoOil, 0) + ' g</span>', "je Portion" + (hasOil ? " ohne Öl" : "")) +
         fact("", fmt(volPer, 0) + " ml", "Volumen" + (hasOil ? " mit Öl" : "")) +
-        fact("", spritzen + " × 60 ml", "Spritzen", "≈ " + fmt(volPer / 60, 1) + " Spritzen à 60 ml") +
+        fact("", spritzen + " × 60 ml", "Spritzen", "ca. " + fmt(volPer / 60, 1) + " Spritzen à 60 ml") +
       "</div>" +
       '<div class="portion-line">Abfüllen je Portion' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
-        (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
+        (mult !== 1 ? ' · gesamt ca. ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
           (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => escapeHtml(String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
       // Hinweise: Sieb (Varoma), MCT-Menge, Garzeiten bei mehreren Portionen
       [rec.varoma ? 'Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",

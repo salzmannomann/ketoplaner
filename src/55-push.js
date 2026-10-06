@@ -20,7 +20,7 @@
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
       items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
-        body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
+        body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ca. " : "Rezept noch offen · ca. ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
       items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });

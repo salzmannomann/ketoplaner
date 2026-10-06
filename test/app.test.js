@@ -159,7 +159,7 @@ test("Abfüllen: Menge je Portion ohne Öl × Portionen = ölfreie Gesamtmenge",
   assert.equal(c.querySelector(".pane[data-pane=abfuellen]"), null, "Abfüllen ist Teil des Blatts Kochen");
   const per = parseFloat(c.querySelector(".pane[data-pane=zubereitung] .fill-big").textContent.replace(/[^\d]/g, ""));
   const note = c.querySelector(".pane[data-pane=zubereitung] .portion-line").textContent;
-  const total = parseFloat((note.match(/gesamt ≈\s*([\d.]+)\s*g/) || [])[1].replace(".", ""));
+  const total = parseFloat((note.match(/gesamt ca\.\s*([\d.]+)\s*g/) || [])[1].replace(".", ""));
   assert.ok(Math.abs(total - per * 10) <= 10, "gesamt " + total + " vs 10×" + per);
 });
 
@@ -552,7 +552,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ": 1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "src-protein").textContent, /Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
-  assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
   assert.ok(!$(w, "mct-more").hidden, "MCT-Karte bei 10 % offen");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
   {
@@ -610,7 +610,7 @@ test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen st
   fire(w, hc.querySelector("[data-pick=\"0\"]"));
   assert.equal($(w, "picker-overlay").hidden, false);
   // Auswahl zeigt je Rezept kcal, Volumen der Mahlzeit und Eiweiß
-  assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · (≈|▲) [\d.]+ ml · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
+  assert.ok([...w.document.querySelectorAll("#picker-list .pick-meta")].every(m => /kcal · (ca\.|▲) [\d.]+ ml · Eiweiß/.test(m.textContent)), "Volumen in der Auswahl");
   assert.ok(![...w.document.querySelectorAll("#picker-list .pick-meta")].some(m => /Rapsöl|Butter|KetoCal/.test(m.textContent)), "keine Fettbasis in der grauen Zeile der Auswahl");
   fire(w, [...w.document.querySelectorAll("#picker-list .pick-row")].find(b => /^Hendl & Brokkoli/.test(b.querySelector(".pick-name").textContent)));
   hc = $(w, "heute-content");
@@ -667,13 +667,13 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   assert.equal($(w, "set-zwischen"), null, "kein festes Feld je Zwischenzeit mehr – die Menge rechnet der Zeitplan");
   assert.equal($(w, "set-maxmahl"), null, "kein Feld für die Höchstmenge");
   assert.ok(!$(w, "set-dichte").disabled); assert.equal(shown(w, "set-dichte"), "1,5");
-  assert.match(fact(w, "fluid-summary", "gabe"), /^Wassergaben≈ 4 × \d+ mlzwischen den Mahlzeiten · 850 ml\/Tag \(Vorschlag, Holliday-Segar\)/);
+  assert.match(fact(w, "fluid-summary", "gabe"), /^Wassergabenca\. 4 × \d+ mlzwischen den Mahlzeiten · 850 ml\/Tag \(Vorschlag, Holliday-Segar\)/);
   assert.match($(w, "fluid-summary").textContent, /nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren/);
   // „zwischen“: die Mahlzeit behält ihr Rezept-Wasser, der Tag nennt die Wassergaben
   let c = openRecipe(w, "Hendl & Brokkoli");
   const waterZ = kitchenRows(c)["Wasser"];
   assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser nur zum Pürieren bzw. Anrühren, der Rest kommt als Wassergaben/);
-  assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ≈ \d+ ml am Tag/);
+  assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ca\. \d+ ml am Tag/);
   assert.doesNotMatch(c.querySelector(".ing-list.kitchen").textContent, /Flüssigkeitsziel/);
   assert.match(rechnenText(c), /Flüssigkeit\/Tag in Mahlzeiten|Flüssigkeit\/Tag/);
   fire(w, $(w, "detail-close"));
@@ -685,7 +685,7 @@ test("Flüssigkeit: Vorschlag nach Gewicht; zwei Stellungen – zwischen den Mah
   c = openRecipe(w, "Hendl & Brokkoli");
   assert.ok(kitchenRows(c)["Wasser"] > waterZ, "Wasser erhöht");
   assert.match(c.querySelector(".ing-list.kitchen").textContent, /Flüssigkeitsziel/);
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit ≈ 21[234] ml/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit]").textContent, /Flüssigkeit ca\. 21[234] ml/);
   const tile = [...c.querySelectorAll(".pane .dstat")].find(t => /Flüssigkeit\/Tag/.test(t.textContent));
   assert.ok(Math.abs(numDe(tile.querySelector(".v").textContent) - 850) <= 4, tile.textContent);
   assert.match(rechnenText(c), /in den Mahlzeiten dabei/);
@@ -791,7 +791,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   fire(w2, $(w2, "tab-heute"));
   const hz = $(w2, "heute-content");
   assert.match(hz.querySelector(".zp-row.meal").textContent, /^7:00Mahlzeit 1 · offenwählen$/);
-  assert.match(hz.querySelector(".zp-row.meal").title, /Menge geschätzt: ≈ \d+ ml/, "geschätzte Menge im Tooltip");
+  assert.match(hz.querySelector(".zp-row.meal").title, /Menge geschätzt: ca\. \d+ ml/, "geschätzte Menge im Tooltip");
   assert.match(fluidStat(w2).querySelector(".v").textContent, /^ca\. /, "offene Mahlzeiten geschätzt");
   fire(w2, hz.querySelector('.empty-slot[data-pick="1"]'));
   assert.equal($(w2, "picker-overlay").hidden, false);
@@ -1297,7 +1297,7 @@ test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan mar
   fire(w, $(w, "heute-content").querySelector('.zp-row.slot [data-pick="1"]')); fire(w, $(w, "picker-clear"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 1);
   assert.notEqual($(w, "rx-chip").getAttribute("aria-label"), pill0, "Pille zeigt die neue Wassermenge");
-  assert.match($(w, "rx-chip").getAttribute("aria-label"), /Wasser zwischen den Mahlzeiten: ≈ \d × \d+ ml/, "≈, solange eine Mahlzeit geschätzt ist");
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/, "ca., solange eine Mahlzeit geschätzt ist");
   assert.match($(w, "toast").textContent, /Mahlzeit 2 geleert/);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 0, "Rückgängig");

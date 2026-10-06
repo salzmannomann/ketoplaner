@@ -114,7 +114,7 @@
       }
       if (!rec) {
         facts.push(null);
-        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Rezept wählen (Menge geschätzt: ≈ ' + fmt(m.vol, 0) + ' ml)">' + time +
+        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Rezept wählen (Menge geschätzt: ca. ' + fmt(m.vol, 0) + ' ml)">' + time +
           '<span class="zp-txt"><span class="zp-name">Mahlzeit ' + (i + 1) + ' · offen</span></span><span class="tlink">wählen</span></div>' });
         return;
       }
@@ -540,7 +540,7 @@
       const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5, ps = proteinState(s.eiweiss, d.eiweissMahl);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
         '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
+        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : 'ca. ') + fmt(vol, 0) + ' ml</span>' +
           ' · <b class="pick-prot ' + (ps === "ok" ? "ok" : ps === "low" ? "attn" : "warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {

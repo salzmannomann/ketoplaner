@@ -1206,7 +1206,7 @@
       else {
         // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
         const wg = waterGiftsText(d);
-        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keines nötig");
+        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
         if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
       }
     }
@@ -1343,7 +1343,7 @@
             '<p class="vg-more">Kein Wasser zwischen den Mahlzeiten nötig.</p>';
         } else {
           const wg = waterGiftsText(d);
-          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "≈ " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
             '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
         }
@@ -1600,8 +1600,8 @@
         "</ul>" +
         '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
-        : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
+        ? '<span class="ok">ausreichend</span> <small>(Richtwert ca. ' + fmt(r.protRef, 1) + ")</small>"
+        : '<span class="warn-t">▲ unter dem Richtwert (ca. ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
       (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
       (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "") +
       // Bewusst übernehmen: die Schätzung ändert die Verordnung nur auf Knopfdruck (mit Rückgängig)
@@ -2261,7 +2261,7 @@
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
     if (wp.per === 0) return '<div class="note tip">' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ≈ ' + fmt(wp.total, 0) + ' ml am Tag' +
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
       (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
@@ -2530,7 +2530,7 @@
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const volPer = volumeMl(items), bigVol = d.maxMahlMl > 0 && volPer > d.maxMahlMl + 0.5;
     const fluidLine = d.fluidDay > 0
-      ? '<div class="hint fluid-line">Flüssigkeit ≈ <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
+      ? '<div class="hint fluid-line">Flüssigkeit ca. <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
@@ -2553,9 +2553,9 @@
     const qTiles = '<div class="detail-tiles facts">' +
         fact((days && dayLow) ? "warn" : "", fmt(sum.kcal, 0), "kcal" + qTag + " · Ziel " + fmt(d.kcalMahl * mult, 0)) +
         fact(pStateQ === "ok" ? "" : pStateQ === "low" ? "attn" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
-        fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "≈ " + fmt(totalG, 0) + " g") +
+        fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "ca. " + fmt(totalG, 0) + " g") +
         (d.fluidDay > 0 ? fact(qZiel && qFluid < qFluidZiel - 3 * mult ? "warn" : "", fmt(qFluid, 0) + " ml", "Flüssigkeit" + qTag + (qZiel ? " · Ziel " + fmt(qFluidZiel, 0) + " ml" : " in Mahlzeiten"))
-          : fact("", "≈ " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
+          : fact("", "ca. " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
       "</div>";
     // Tages-Check nur als Warnung: Minimum unterschritten oder über dem Korridor.
     const dayCheck = dayLow
@@ -2618,8 +2618,8 @@
       '<div class="detail-tiles facts">' +
         fact(mv.hasPortion ? "attn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
         fact(pStateMeal === "ok" ? "" : pStateMeal === "low" ? "attn" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
-        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
-        (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "≈ " + fmt(totalG / mult, 0) + " g", "Menge")) +
+        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "ca. " + fmt(totalG / mult, 0) + " g") +
+        (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "ca. " + fmt(totalG / mult, 0) + " g", "Menge")) +
       "</div>" +
       (pStateMeal === "low" ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       (pStateMeal === "high" ? '<div class="note warn">▲ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel. Viel Eiweiß kann die Ketose schwächen, bitte mit dem Team abklären.</div>' : "") +
@@ -2655,10 +2655,10 @@
       '<div class="detail-tiles facts three fill-tiles">' +
         fact("", '<span class="fill-big">' + fmt(perGnoOil, 0) + ' g</span>', "je Portion" + (hasOil ? " ohne Öl" : "")) +
         fact("", fmt(volPer, 0) + " ml", "Volumen" + (hasOil ? " mit Öl" : "")) +
-        fact("", spritzen + " × 60 ml", "Spritzen", "≈ " + fmt(volPer / 60, 1) + " Spritzen à 60 ml") +
+        fact("", spritzen + " × 60 ml", "Spritzen", "ca. " + fmt(volPer / 60, 1) + " Spritzen à 60 ml") +
       "</div>" +
       '<div class="portion-line">Abfüllen je Portion' + (hasOil ? ' – danach das Öl in die Portion einrühren' : '') +
-        (mult !== 1 ? ' · gesamt ≈ ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
+        (mult !== 1 ? ' · gesamt ca. ' + fmt((hasOil ? perGnoOil : totalG / mult) * mult, 0) + ' g = <strong>' + portionsTxt + ' × ' + fmt(perGnoOil, 0) + ' g</strong>' +
           (hasOil ? ' · Öl gesamt ' + oilRowsPer.map(it => escapeHtml(String(it.food).replace(/^MCT.*$/, "MCT").replace(/öl$/i, "")) + ' ' + fmt(num(it.grams) * mult, 0) + ' g').join(" + ") : '') : '') + '</div>' +
       // Hinweise: Sieb (Varoma), MCT-Menge, Garzeiten bei mehreren Portionen
       [rec.varoma ? 'Vor dem Abfüllen durch ein feines Sieb streichen (sonst verstopft die Spritze).' : "",
@@ -3026,7 +3026,7 @@
       }
       if (!rec) {
         facts.push(null);
-        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Rezept wählen (Menge geschätzt: ≈ ' + fmt(m.vol, 0) + ' ml)">' + time +
+        rows.push({ t, html: '<div class="zp-row meal slot empty-slot" role="button" tabindex="0" data-pick="' + i + '" title="Rezept wählen (Menge geschätzt: ca. ' + fmt(m.vol, 0) + ' ml)">' + time +
           '<span class="zp-txt"><span class="zp-name">Mahlzeit ' + (i + 1) + ' · offen</span></span><span class="tlink">wählen</span></div>' });
         return;
       }
@@ -3452,7 +3452,7 @@
       const big = d.maxMahlMl > 0 && vol > d.maxMahlMl + 0.5, ps = proteinState(s.eiweiss, d.eiweissMahl);
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
         '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
-        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
+        '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : 'ca. ') + fmt(vol, 0) + ' ml</span>' +
           ' · <b class="pick-prot ' + (ps === "ok" ? "ok" : ps === "low" ? "attn" : "warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
@@ -3663,7 +3663,7 @@
     if (o.meals) times.meals.forEach((t, i) => {
       const m = dm.meals[i];
       items.push({ at: fmtHM(t - o.lead), tag: "m" + (i + 1), title: "Mahlzeit " + (i + 1) + " · " + fmtHM(t),
-        body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ≈ " : "Rezept noch offen · ≈ ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
+        body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ca. " : "Rezept noch offen · ca. ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
       items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
@@ -4222,10 +4222,10 @@
       "<tr class='sum'><td>Summe je Portion</td><td class='num'>" + fmt(totalG, 0) + " g</td>" + (showMult ? "<td class='num'>" + fmt(totalG * mult, 0) + " g</td>" : "") +
       "<td class='num'>" + fmt(sumPer.eiweiss) + "</td><td class='num'>" + fmt(sumPer.fett) + "</td><td class='num'>" + fmt(sumPer.kh) + "</td><td class='num'>" + fmt(sumPer.kcal, 0) + "</td></tr></tbody></table>";
     const fill = rec.angeruehrt
-      ? "<div class='box'><b>Je Portion:</b> alles zusammen anrühren, ≈ " + fmt(volPer, 0) + " ml" + (oilsP.length ? ", das Öl gründlich einrühren." : ".") + "</div>"
-      : "<div class='box'><b>Je Portion:</b> ≈ " + fmt(gNoOil, 0) + " g abfüllen" +
-        (oilsP.length ? " und " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " einrühren – zusammen ≈ " + fmt(volPer, 0) + " ml" : " (≈ " + fmt(volumeMl(noOilP), 0) + " ml)") +
-        (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ≈ " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
+      ? "<div class='box'><b>Je Portion:</b> alles zusammen anrühren, ca. " + fmt(volPer, 0) + " ml" + (oilsP.length ? ", das Öl gründlich einrühren." : ".") + "</div>"
+      : "<div class='box'><b>Je Portion:</b> ca. " + fmt(gNoOil, 0) + " g abfüllen" +
+        (oilsP.length ? " und " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " einrühren – zusammen ca. " + fmt(volPer, 0) + " ml" : " (ca. " + fmt(volumeMl(noOilP), 0) + " ml)") +
+        (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ca. " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepSrc);
     const oilStepP = oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(oilStepP);
@@ -4236,7 +4236,7 @@
     const pState = proteinState(sumPer.eiweiss, d.eiweissMahl);
     // Kennzeile: beginnt mit dem Verhältnis; die Fettbasis zeigen Name und Zutatenliste, die Herkunft steht am Ende
     const rx = "<p class='rx'>Verhältnis " + fmtRatio(r, 2) +
-      " · " + fmt(sumPer.kcal, 0) + " kcal je Portion · Eiweiß " + fmt(sumPer.eiweiss) + " g (Ziel " + fmt(d.eiweissMahl) + " g) · Flüssigkeit ≈ " + fmt(fluidPer, 0) + " ml · Volumen ≈ " + fmt(volPer, 0) + " ml" +
+      " · " + fmt(sumPer.kcal, 0) + " kcal je Portion · Eiweiß " + fmt(sumPer.eiweiss) + " g (Ziel " + fmt(d.eiweissMahl) + " g) · Flüssigkeit ca. " + fmt(fluidPer, 0) + " ml · Volumen ca. " + fmt(volPer, 0) + " ml" +
       (rec.quelle ? " · Rezept der Diätologie" : "") + "</p>";
     const warn = pState === "high" ? "<div class='box warn'>Eiweiß " + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + "-mal so hoch wie das Ziel – mit dem Team abklären.</div>" : "";
     const title = displayText(rec);
@@ -4665,7 +4665,7 @@
       '<div class="weigh-head"><h4 class="ph">Fett zum Ausgleich</h4><span class="wh-hint">stellt das Verhältnis ein</span></div>' +
       '<div class="compose-rows" id="compose-fats"></div>' +
       '<button type="button" class="tlink add-link" id="compose-addfat">+ weiteres Fett</button>' +
-      '<label class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '> Mengen automatisch auf eine Mahlzeit (≈ ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label>' +
+      '<label class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '> Mengen automatisch auf eine Mahlzeit (ca. ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label>' +
       paneClose +
 
       /* ---------- 2 Mahlzeit (Ergebnis, Layout wie in der Detailansicht) ---------- */
@@ -4755,8 +4755,8 @@
         '<div class="detail-tiles facts">' +
           fact("", fmt(sum.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
           fact(pStateC === "high" ? "warn" : !proteinOk ? "attn" : "", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
-          fact("", "≈ " + fmt(totalG, 0) + " g", "Menge") +
-          fact("", "≈ " + fmt(ml, 0) + " ml", "Volumen") +
+          fact("", "ca. " + fmt(totalG, 0) + " g", "Menge") +
+          fact("", "ca. " + fmt(ml, 0) + " ml", "Volumen") +
         "</div>" +
         (!proteinOk ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         (pStateC === "high" ? '<div class="note warn">▲ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +

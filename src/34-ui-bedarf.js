@@ -71,8 +71,8 @@
         "</ul>" +
         '<div class="bd-s bd-m">Keine feste Empfehlung – solche Formeln liegen oft 20–40 % daneben. Wie viel euer Kind braucht, legt das Team nach dem Wachstum fest.</div></div>' +
       '<p class="bd-one">Eiweiß ' + fmt(prot, 1) + " g/kg " + (prot >= r.protRef - 0.005
-        ? '<span class="ok">ausreichend</span> <small>(Richtwert ≈ ' + fmt(r.protRef, 1) + ")</small>"
-        : '<span class="warn-t">▲ unter dem Richtwert (≈ ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
+        ? '<span class="ok">ausreichend</span> <small>(Richtwert ca. ' + fmt(r.protRef, 1) + ")</small>"
+        : '<span class="warn-t">▲ unter dem Richtwert (ca. ' + fmt(r.protRef, 1) + ") – mit dem Team besprechen</span>") + "</p>" +
       (d.kcal < r.ref * 0.7 ? '<p class="bd-one">▲ Verordnung unter 70 % von Gleichaltrigen – Vitamine/Mineralstoffe mit dem Team abklären.</p>' : "") +
       (r.jump ? '<p class="bd-one">Am 3. Geburtstag wechselt die Formel – die Schätzung springt um etwa ' + r.jump + " %.</p>" : "") +
       // Bewusst übernehmen: die Schätzung ändert die Verordnung nur auf Knopfdruck (mit Rückgängig)

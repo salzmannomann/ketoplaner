@@ -95,7 +95,7 @@
       '<div class="weigh-head"><h4 class="ph">Fett zum Ausgleich</h4><span class="wh-hint">stellt das Verhältnis ein</span></div>' +
       '<div class="compose-rows" id="compose-fats"></div>' +
       '<button type="button" class="tlink add-link" id="compose-addfat">+ weiteres Fett</button>' +
-      '<label class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '> Mengen automatisch auf eine Mahlzeit (≈ ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label>' +
+      '<label class="checkrow"><input type="checkbox" id="compose-scale"' + (compose.scale ? " checked" : "") + '> Mengen automatisch auf eine Mahlzeit (ca. ' + fmt(d.kcalMahl, 0) + ' kcal) skalieren</label>' +
       paneClose +
 
       /* ---------- 2 Mahlzeit (Ergebnis, Layout wie in der Detailansicht) ---------- */
@@ -185,8 +185,8 @@
         '<div class="detail-tiles facts">' +
           fact("", fmt(sum.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
           fact(pStateC === "high" ? "warn" : !proteinOk ? "attn" : "", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
-          fact("", "≈ " + fmt(totalG, 0) + " g", "Menge") +
-          fact("", "≈ " + fmt(ml, 0) + " ml", "Volumen") +
+          fact("", "ca. " + fmt(totalG, 0) + " g", "Menge") +
+          fact("", "ca. " + fmt(ml, 0) + " ml", "Volumen") +
         "</div>" +
         (!proteinOk ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         (pStateC === "high" ? '<div class="note warn">▲ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
