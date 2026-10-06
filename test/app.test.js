@@ -1864,3 +1864,15 @@ test("Eine Mahlzeit im Tagesplan für sich ändern: Gramm und Fleisch nur für d
   fire(w, [...w.document.querySelectorAll("#picker-list [data-key]")].find(b => b.dataset.key !== "std:Hendl & Zucchini"));
   assert.equal(st().dayPlan[2].meat, undefined, "anderes Rezept: eigene Änderungen fallen weg");
 });
+
+test("Tagesplan-Plätze mit eigenen Änderungen überstehen Laden und Backup; kaputte Werte werden verworfen", () => {
+  const w = boot({ settings: { view: "heute", weight: 8, ratio: 1.8, mahlzeiten: 3, kcal: 700, mctShare: 0 },
+    dayPlan: [{ key: "std:Hendl & Zucchini", meat: "pute", portion: 1.2, water: 40 }, { key: "std:Ei & Spinat", portion: -3, water: "viel", meat: 7 }, { key: null, meat: "pute" }] });
+  w.document.querySelector('.tabbar [data-view="rezepte"]').click(); // speichert
+  const dp = JSON.parse(w.localStorage.getItem("ketoplaner.v5")).dayPlan;
+  assert.deepEqual(dp[0], { key: "std:Hendl & Zucchini", meat: "pute", portion: 1.2, water: 40 });
+  assert.deepEqual(dp[1], { key: "std:Ei & Spinat" }, "ungültige Werte fallen weg");
+  assert.deepEqual(dp[2], { key: null }, "leerer Platz ohne Änderungen");
+  w.document.querySelector('.tabbar [data-view="heute"]').click();
+  assert.match(w.document.querySelector('#heute-content .zp-row.slot[data-open="0"] .zp-name').textContent, /· mit Pute · eigene Menge/);
+});
