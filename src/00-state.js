@@ -14,6 +14,7 @@
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
       customFoods: [], // eigene Lebensmittel (Werte je 100 g vom Etikett), auf Wunsch auch als Fett zum Ausgleich
       hiddenRecipes: [], // ausgeblendete Standard-Rezepte (Rezept-Schlüssel)
+      foodOverrides: {}, // geänderte Werte von Lebensmitteln der Diätologen-Liste (Name → nur die geänderten Felder)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -72,6 +73,18 @@
       return o;
     }).filter(f => { const k = f.name.toLowerCase(); if (seen[k]) return false; seen[k] = true; return true; });
   }
+  // Geänderte Lebensmittelwerte: nur bekannte Felder, Zahlen ≥ 0; leere Einträge entfallen
+  const OVERRIDE_KEYS = ["eiweiss", "fett", "kh", "kcal100", "wasser"];
+  function cleanFoodOverrides(m) {
+    const o = {};
+    if (isObj(m)) Object.keys(m).forEach(name => {
+      const v = m[name]; if (!isObj(v)) return;
+      const e = {};
+      OVERRIDE_KEYS.forEach(k => { const n = Number(v[k]); if (v[k] !== "" && v[k] != null && isFinite(n) && n >= 0) e[k] = n; });
+      if (Object.keys(e).length) o[name] = e;
+    });
+    return o;
+  }
   function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
@@ -113,6 +126,7 @@
         basis: isObj(p.basis) ? p.basis : {},
         customFoods: cleanCustomFoods(p.customFoods),
         hiddenRecipes: cleanFavorites(p.hiddenRecipes),
+        foodOverrides: cleanFoodOverrides(p.foodOverrides),
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.

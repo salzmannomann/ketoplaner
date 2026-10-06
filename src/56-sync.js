@@ -7,7 +7,7 @@
      Zusammenführen: Jede Einheit (eine Einstellung, der Tagesplan, die Favoriten …) trägt den Zeitpunkt ihrer letzten
      Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
   const SYNC_KEY = "ketoplaner.sync";
-  const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis", "customFoods", "hiddenRecipes"];
+  const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis", "customFoods", "hiddenRecipes", "foodOverrides"];
   const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "onlyKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
@@ -36,7 +36,7 @@
       // Stand eines anderen Geräts prüfen wie ein Backup: falsche Formen verwerfen statt übernehmen
       const v = unit.v, clean = { favorites: cleanFavorites, savedRecipes: cleanSavedRecipes, dayPlan: cleanDayPlan,
         scales: cleanNumMap, water: cleanNumMap, portion: cleanNumMap, basis: (b) => isObj(b) ? b : {},
-        customFoods: cleanCustomFoods, hiddenRecipes: cleanFavorites }[name];
+        customFoods: cleanCustomFoods, hiddenRecipes: cleanFavorites, foodOverrides: cleanFoodOverrides }[name];
       state[name] = clean ? clean(v) : v;
     }
   }

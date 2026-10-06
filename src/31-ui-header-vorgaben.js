@@ -210,19 +210,6 @@
       m.setAttribute("content", t === "dark" ? "#1c1a16" : "#f5f0e5");
     });
   }
-  // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
-  function renderWerte() {
-    const box = document.getElementById("werte-list"); if (!box) return;
-    const used = {};
-    allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
-    (state.customFoods || []).forEach(f => { used[f.name] = true; }); // eigene immer zeigen – zur Freigabe durch die Diätologie
-    const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
-      const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
-      const ovr = f.kcal100 != null || name === "MCT-Öl C8+C10";
-      return "<tr><td>" + escapeHtml(name) + (f.custom ? " <span class='ovr'>eigen</span>" : ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
-    }).join("");
-    box.innerHTML = "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
-  }
   // Backup: alles, was nur auf diesem Gerät liegt.
   function exportData() {
     const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };

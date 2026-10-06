@@ -22,6 +22,7 @@
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
       customFoods: [], // eigene Lebensmittel (Werte je 100 g vom Etikett), auf Wunsch auch als Fett zum Ausgleich
       hiddenRecipes: [], // ausgeblendete Standard-Rezepte (Rezept-Schlüssel)
+      foodOverrides: {}, // geänderte Werte von Lebensmitteln der Diätologen-Liste (Name → nur die geänderten Felder)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -80,6 +81,18 @@
       return o;
     }).filter(f => { const k = f.name.toLowerCase(); if (seen[k]) return false; seen[k] = true; return true; });
   }
+  // Geänderte Lebensmittelwerte: nur bekannte Felder, Zahlen ≥ 0; leere Einträge entfallen
+  const OVERRIDE_KEYS = ["eiweiss", "fett", "kh", "kcal100", "wasser"];
+  function cleanFoodOverrides(m) {
+    const o = {};
+    if (isObj(m)) Object.keys(m).forEach(name => {
+      const v = m[name]; if (!isObj(v)) return;
+      const e = {};
+      OVERRIDE_KEYS.forEach(k => { const n = Number(v[k]); if (v[k] !== "" && v[k] != null && isFinite(n) && n >= 0) e[k] = n; });
+      if (Object.keys(e).length) o[name] = e;
+    });
+    return o;
+  }
   function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
@@ -121,6 +134,7 @@
         basis: isObj(p.basis) ? p.basis : {},
         customFoods: cleanCustomFoods(p.customFoods),
         hiddenRecipes: cleanFavorites(p.hiddenRecipes),
+        foodOverrides: cleanFoodOverrides(p.foodOverrides),
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.
@@ -295,6 +309,15 @@
   function rebuildFoodIndex() {
     foodIndex = {};
     FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
+    // Geänderte Werte (Vorgaben › Lebensmittel und Rezepte › Werte prüfen): nur die geänderten Felder ersetzen, der
+    // Standard bleibt unter .std. Ändern sich Eiweiß, Fett oder KH ohne eigene kcal, rechnet die App die kcal neu (4/9/4).
+    const ovs = (typeof state !== "undefined" && state && state.foodOverrides) || {};
+    Object.keys(ovs).forEach(n => {
+      const f = foodIndex[n], o = ovs[n]; if (!f || n === "MCT-Öl C8+C10" || !o) return;
+      const nf = Object.assign({}, f, o, { changed: true, std: f });
+      if (o.kcal100 == null && ["eiweiss", "fett", "kh"].some(k => o[k] != null && o[k] !== f[k])) delete nf.kcal100;
+      foodIndex[n] = nf;
+    });
     // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
@@ -1318,19 +1341,6 @@
       m.setAttribute("content", t === "dark" ? "#1c1a16" : "#f5f0e5");
     });
   }
-  // Werte prüfen: alle in Rezepten verwendeten Lebensmittel mit Nährwerten je 100 g.
-  function renderWerte() {
-    const box = document.getElementById("werte-list"); if (!box) return;
-    const used = {};
-    allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
-    (state.customFoods || []).forEach(f => { used[f.name] = true; }); // eigene immer zeigen – zur Freigabe durch die Diätologie
-    const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
-      const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
-      const ovr = f.kcal100 != null || name === "MCT-Öl C8+C10";
-      return "<tr><td>" + escapeHtml(name) + (f.custom ? " <span class='ovr'>eigen</span>" : ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
-    }).join("");
-    box.innerHTML = "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
-  }
   // Backup: alles, was nur auf diesem Gerät liegt.
   function exportData() {
     const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
@@ -1615,13 +1625,16 @@
   function renderLebensmittel() {
     const cnt = (state.customFoods || []).length, hid = (state.hiddenRecipes || []).length;
     const sum = document.getElementById("vgs-lebensmittel");
-    if (sum) sum.textContent = (cnt ? cnt + " eigene" + (cnt === 1 ? "s Lebensmittel" : " Lebensmittel") : "keine eigenen Lebensmittel") + (hid ? " · " + hid + " Rezept" + (hid === 1 ? "" : "e") + " ausgeblendet" : "");
+    const chg = changedFoods().length;
+    if (sum) sum.textContent = (cnt ? cnt + " eigene" + (cnt === 1 ? "s Lebensmittel" : " Lebensmittel") : "keine eigenen Lebensmittel") + (chg ? " · " + chg + (chg === 1 ? " Wert" : " Werte") + " geändert" : "") + (hid ? " · " + hid + " Rezept" + (hid === 1 ? "" : "e") + " ausgeblendet" : "");
     const list = document.getElementById("cf-list"); if (!list) return;
     list.innerHTML = cnt ? state.customFoods.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(f =>
       '<button type="button" class="cf-row" data-cf="' + escapeHtml(f.name) + '"><span class="cf-txt"><span class="cf-n">' + escapeHtml(f.name) + '</span>' +
       '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + (f.swap ? " · Tausch" : "") + '</span></button>').join("")
       : '<p class="cf-empty">Noch keine eigenen Lebensmittel.</p>';
     renderSwapTable();
+    const wd = document.getElementById("werte-list");
+    if (wd && wd.closest("details") && wd.closest("details").open) renderWerte();
     const hl = document.getElementById("hidden-list");
     if (hl) {
       const recs = (state.hiddenRecipes || []).map(k => ({ k, r: recipeByKey(k) })).filter(x => x.r);
@@ -1861,7 +1874,131 @@
       if (r) showToast("„" + escapeHtml(displayText(r)) + "“ wieder sichtbar");
     });
     bindRecipeLongPress();
+    bindWerte();
     renderLebensmittel();
+  }
+
+  /* ---------- Werte prüfen: Nährwerte je 100 g, direkt in der Tabelle änderbar ----------
+     Tipp auf eine Zeile macht Eiweiß, Fett, KH und kcal zu Eingabefeldern in ihren Spalten; darunter die Standardwerte
+     („leer = Standard“), Speichern · Abbrechen · ↺ Standard, die Zahl der betroffenen Rezepte und das Wasser. Weicht ein
+     Wert um mehr als ein Drittel vom Standard ab, erscheint ein Hinweis. Geänderte Lebensmittel sind markiert und lassen
+     sich einzeln oder alle zurücksetzen – jeweils mit Rückgängig. Eigene Lebensmittel öffnen ihr Formular, das MCT-Öl
+     führt zu „Öl und MCT“ (Etikettwerte dort). */
+  let werteEdit = null;
+  const WERTE_KEYS = [["eiweiss", "Eiweiß"], ["fett", "Fett"], ["kh", "KH"], ["kcal100", "kcal"]];
+  function changedFoods() { return Object.keys(state.foodOverrides || {}).filter(n => { const f = lookup(n); return f && f.changed; }); }
+  function recipesWith(name) { return allRecipes().filter(r => r.items.some(it => it.food === name)).length; }
+  function werteVal(f, k) { return k === "kcal100" ? fmt(kcal100Of(f), 0) : fmt(f[k]); }
+  function renderWerte() {
+    const box = document.getElementById("werte-list"); if (!box) return;
+    if (werteEdit && box.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return; // nicht beim Tippen neu aufbauen
+    const used = {};
+    allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
+    (state.customFoods || []).forEach(f => { used[f.name] = true; }); // eigene immer zeigen – zur Freigabe durch die Diätologie
+    if (werteEdit && !lookup(werteEdit)) werteEdit = null;
+    const kat = (f) => '<td class="wt-kat">' + escapeHtml(f.kategorie || "") + "</td>";
+    const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
+      const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
+      const mct = name === "MCT-Öl C8+C10", label = !f.custom && !f.changed && (f.kcal100 != null || mct);
+      const tags = (f.custom ? " <span class='ovr'>eigen</span>" : f.changed ? " <span class='ovr chg'>geändert</span>" : label ? " <span class='ovr'>Etikett</span>" : "");
+      const nm = "<td>" + escapeHtml(name) + tags + "</td>";
+      if (werteEdit === name) {
+        const o = (state.foodOverrides || {})[name] || {}, std = f.std || f;
+        return '<tr class="editing" data-food="' + escapeHtml(name) + '">' + nm + WERTE_KEYS.map(([k, l]) =>
+            '<td><input type="text" inputmode="decimal" data-k="' + k + '" aria-label="' + l + ' je 100 g" value="' + (o[k] != null ? fmtNum(o[k]) : "") + '" placeholder="' + werteVal(std, k) + '"></td>').join("") + kat(f) + "</tr>" +
+          '<tr class="edit-std"><td>Standard<span class="wt-long"> · leer = Standard</span></td>' + WERTE_KEYS.map(([k]) => "<td>" + werteVal(std, k) + "</td>").join("") + '<td class="wt-kat"></td></tr>' +
+          '<tr class="edit-row"><td colspan="6"><div class="edit-act"><button type="button" class="btn primary" data-wact="save">Speichern</button>' +
+          '<button type="button" class="tlink" data-wact="cancel">Abbrechen</button>' + (f.changed ? '<button type="button" class="tlink" data-wact="std">↺ Standard</button>' : "") +
+          '<span class="hint">Gilt für ' + recipesWith(name) + (recipesWith(name) === 1 ? " Rezept" : " Rezepte") + ' · Wasser je 100 g: <input type="text" inputmode="decimal" data-k="wasser" aria-label="Wasser je 100 g" value="' + (o.wasser != null ? fmtNum(o.wasser) : "") + '" placeholder="' + fmt(waterOf(std)) + '"> g (leer = Standard)</span>' +
+          '<div class="note warn" id="wt-msg" hidden></div></div></td></tr>';
+      }
+      const attr = f.custom ? ' data-cf-open="' + escapeHtml(name) + '"' : mct ? ' data-mct="1" title="Etikettwerte unter Öl und MCT"' : ' data-food="' + escapeHtml(name) + '"';
+      const std = f.changed ? f.std : null;
+      return '<tr class="wt-row' + (std ? " has-std" : "") + '" tabindex="0" role="button"' + attr + ">" + nm +
+        WERTE_KEYS.map(([k]) => "<td" + (std && werteVal(std, k) !== werteVal(f, k) ? ' class="chg"' : "") + ">" + werteVal(f, k) + "</td>").join("") + kat(f) + "</tr>" +
+        (std ? '<tr class="std"><td>Standard · <button type="button" class="tlink" data-wreset="' + escapeHtml(name) + '" title="Auf Standard zurücksetzen">↺<span class="wt-long"> zurücksetzen</span></button></td>' +
+          WERTE_KEYS.map(([k]) => "<td>" + werteVal(std, k) + "</td>").join("") + '<td class="wt-kat"></td></tr>' : "");
+    }).join("");
+    const n = changedFoods().length;
+    box.innerHTML = '<div class="wt-bar"><span>' + (n ? n + (n === 1 ? " Wert" : " Werte") + " geändert · " : "") + "Zeile antippen zum Ändern</span>" +
+      (n ? '<button type="button" class="tlink" data-wall="1">Alle auf Standard</button>' : "") + "</div>" +
+      "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th class='wt-kat'>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
+    if (werteEdit) werteCheck();
+  }
+  // Während der Eingabe: kcal-Vorschlag aus den Feldern und Hinweis bei großer Abweichung vom Standard
+  function werteInputs() {
+    const box = document.getElementById("werte-list"), o = {};
+    if (box) box.querySelectorAll(".editing input[data-k], .edit-row input[data-k]").forEach(i => { o[i.dataset.k] = i.value.trim(); });
+    return o;
+  }
+  function werteCheck() {
+    const f = lookup(werteEdit); if (!f) return;
+    const std = f.std || f, v = werteInputs(), cur = (k) => v[k] !== "" && v[k] != null ? num(v[k]) : std[k];
+    const kc = document.querySelector('#werte-list .editing input[data-k="kcal100"]');
+    if (kc) kc.placeholder = ["eiweiss", "fett", "kh"].some(k => v[k] !== "" && v[k] != null && num(v[k]) !== std[k])
+      ? fmt(4 * cur("eiweiss") + 9 * cur("fett") + 4 * cur("kh"), 0) : fmt(kcal100Of(std), 0);
+    const far = WERTE_KEYS.filter(([k]) => { if (v[k] === "" || v[k] == null) return false; const d = k === "kcal100" ? kcal100Of(std) : std[k]; return d >= 1 && Math.abs(num(v[k]) - d) / d > 1 / 3; }).map(([, l]) => l);
+    werteMsg(far.length ? "▲ " + far.join(" und ") + (far.length === 1 ? " weicht" : " weichen") + " um mehr als ein Drittel vom Standard ab – bitte das Etikett prüfen." : "");
+  }
+  function werteMsg(t) { const m = document.getElementById("wt-msg"); if (m) { m.hidden = !t; m.textContent = t || ""; } }
+  function werteSetOverride(name, ov, toastTxt) {
+    const prev = (state.foodOverrides || {})[name];
+    if (!state.foodOverrides) state.foodOverrides = {};
+    if (ov && Object.keys(ov).length) state.foodOverrides[name] = ov; else delete state.foodOverrides[name];
+    werteEdit = null; save(); rebuildFoodIndex(); renderRezepte(); renderWerte();
+    showToast(toastTxt, [["Rückgängig", () => { if (prev) state.foodOverrides[name] = prev; else delete state.foodOverrides[name]; save(); rebuildFoodIndex(); renderRezepte(); renderWerte(); }]]);
+  }
+  function werteSave() {
+    const name = werteEdit, f = lookup(name); if (!f) return;
+    const std = f.std || f, v = werteInputs(), ov = {};
+    for (const k of ["eiweiss", "fett", "kh", "kcal100", "wasser"]) {
+      if (v[k] === "" || v[k] == null) continue;
+      if (!/^\d+([.,]\d+)?$/.test(v[k])) { werteMsg("Bitte nur Zahlen eintragen (z. B. 2,5)."); return; }
+      const n = num(v[k]), d = k === "kcal100" ? kcal100Of(std) : k === "wasser" ? waterOf(std) : std[k];
+      if (Math.abs(n - d) > 1e-9) ov[k] = n; // gleicher Wert wie der Standard = nichts geändert
+    }
+    const cur = (k) => ov[k] != null ? ov[k] : std[k];
+    if (cur("eiweiss") + cur("fett") + cur("kh") > 100.05) { werteMsg("Eiweiß, Fett und Kohlenhydrate zusammen können nicht mehr als 100 g je 100 g sein."); return; }
+    if (ov.wasser != null && ov.wasser > 100) { werteMsg("Wasser kann nicht mehr als 100 g je 100 g sein."); return; }
+    const nR = recipesWith(name);
+    werteSetOverride(name, ov, Object.keys(ov).length ? "„" + escapeHtml(name) + "“ geändert – gilt für " + nR + (nR === 1 ? " Rezept" : " Rezepte") : "„" + escapeHtml(name) + "“ wieder mit Standardwerten");
+  }
+  function bindWerte() {
+    const box = document.getElementById("werte-list"); if (!box || box.dataset.wb) return;
+    box.dataset.wb = "1";
+    const open = (tr) => {
+      if (tr.dataset.cfOpen) { cfOpen(tr.dataset.cfOpen); return; }
+      if (tr.dataset.mct) { showVgPage("oel"); return; }
+      werteEdit = tr.dataset.food; renderWerte();
+      const row = box.querySelector("tr.editing");
+      if (row) try { row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
+    };
+    box.addEventListener("click", (e) => {
+      const r = e.target.closest("[data-wreset]");
+      if (r) { const n = r.dataset.wreset; werteSetOverride(n, null, "„" + escapeHtml(n) + "“ wieder mit Standardwerten"); return; }
+      if (e.target.closest("[data-wall]")) {
+        const snap = JSON.stringify(state.foodOverrides || {}), n = changedFoods().length;
+        state.foodOverrides = {}; werteEdit = null; save(); rebuildFoodIndex(); renderRezepte(); renderWerte();
+        showToast(n + (n === 1 ? " Lebensmittel" : " Lebensmittel") + " wieder mit Standardwerten", [["Rückgängig", () => { state.foodOverrides = JSON.parse(snap); save(); rebuildFoodIndex(); renderRezepte(); renderWerte(); }]]);
+        return;
+      }
+      const a = e.target.closest("[data-wact]");
+      if (a) {
+        if (a.dataset.wact === "save") werteSave();
+        else if (a.dataset.wact === "cancel") { werteEdit = null; renderWerte(); }
+        else if (a.dataset.wact === "std") { const n = werteEdit; werteSetOverride(n, null, "„" + escapeHtml(n) + "“ wieder mit Standardwerten"); }
+        return;
+      }
+      const tr = e.target.closest("tr.wt-row"); if (tr) open(tr);
+    });
+    box.addEventListener("keydown", (e) => {
+      if (e.target.matches && e.target.matches("tr.wt-row") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(e.target); return; }
+      if (e.target.tagName === "INPUT" && werteEdit) {
+        if (e.key === "Enter") { e.preventDefault(); werteSave(); }
+        else if (e.key === "Escape") { e.stopPropagation(); werteEdit = null; renderWerte(); }
+      }
+    });
+    box.addEventListener("input", (e) => { if (e.target.dataset && e.target.dataset.k) werteCheck(); });
   }
 
   /* ---------- Detailansicht (Overlay) ---------- */
@@ -3492,7 +3629,7 @@
      Zusammenführen: Jede Einheit (eine Einstellung, der Tagesplan, die Favoriten …) trägt den Zeitpunkt ihrer letzten
      Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
   const SYNC_KEY = "ketoplaner.sync";
-  const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis", "customFoods", "hiddenRecipes"];
+  const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "portion", "dayPlan", "basis", "customFoods", "hiddenRecipes", "foodOverrides"];
   const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "onlyKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
@@ -3521,7 +3658,7 @@
       // Stand eines anderen Geräts prüfen wie ein Backup: falsche Formen verwerfen statt übernehmen
       const v = unit.v, clean = { favorites: cleanFavorites, savedRecipes: cleanSavedRecipes, dayPlan: cleanDayPlan,
         scales: cleanNumMap, water: cleanNumMap, portion: cleanNumMap, basis: (b) => isObj(b) ? b : {},
-        customFoods: cleanCustomFoods, hiddenRecipes: cleanFavorites }[name];
+        customFoods: cleanCustomFoods, hiddenRecipes: cleanFavorites, foodOverrides: cleanFoodOverrides }[name];
       state[name] = clean ? clean(v) : v;
     }
   }

@@ -3,6 +3,15 @@
   function rebuildFoodIndex() {
     foodIndex = {};
     FOODS_DEFAULT.forEach(f => { foodIndex[f.name] = f; });
+    // Geänderte Werte (Vorgaben › Lebensmittel und Rezepte › Werte prüfen): nur die geänderten Felder ersetzen, der
+    // Standard bleibt unter .std. Ändern sich Eiweiß, Fett oder KH ohne eigene kcal, rechnet die App die kcal neu (4/9/4).
+    const ovs = (typeof state !== "undefined" && state && state.foodOverrides) || {};
+    Object.keys(ovs).forEach(n => {
+      const f = foodIndex[n], o = ovs[n]; if (!f || n === "MCT-Öl C8+C10" || !o) return;
+      const nf = Object.assign({}, f, o, { changed: true, std: f });
+      if (o.kcal100 == null && ["eiweiss", "fett", "kh"].some(k => o[k] != null && o[k] !== f[k])) delete nf.kcal100;
+      foodIndex[n] = nf;
+    });
     // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –

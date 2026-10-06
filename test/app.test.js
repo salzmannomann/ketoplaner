@@ -1707,3 +1707,55 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   fire(w, $(w, "swap-table").querySelector('[data-swreset="schwein"]'));
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams, undefined);
 });
+
+test("Werte prüfen: Lebensmittelwerte in der Tabelle ändern, Rezepte rechnen damit, Standard / Alle auf Standard mit Rückgängig", () => {
+  const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5, view: "vorgaben" } });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  w.document.querySelector('[data-vg="lebensmittel"]').click();
+  const det = $(w, "werte-list").closest("details"); det.open = true; det.dispatchEvent(new w.Event("toggle"));
+  const box = $(w, "werte-list");
+  const row = (n) => [...box.querySelectorAll("tr")].find(r => r.firstElementChild && r.firstElementChild.textContent.trim().startsWith(n));
+  // Rezept vorher: Butter-Menge in „Hendl & Zucchini · mit KetoCal“
+  const butterG = () => { w.document.querySelector('.tabbar [data-view="rezepte"]').click(); const c = openRecipe(w, "Hendl & Zucchini · mit KetoCal"); const g = kitchenRows(c)["Butter"]; fire(w, $(w, "detail-close")); w.document.querySelector('.tabbar [data-view="vorgaben"]').click(); return g; };
+  const g0 = butterG();
+  // Zeile antippen → Felder in der Tabelle, Standard als Platzhalter
+  fire(w, row("Butter"));
+  const ed = box.querySelector("tr.editing");
+  assert.ok(ed && /Butter/.test(ed.textContent));
+  const inp = (k) => box.querySelector('input[data-k="' + k + '"]');
+  assert.equal(inp("fett").placeholder, "82,0"); assert.equal(inp("kcal100").placeholder, "743");
+  assert.match(box.querySelector("tr.edit-row").textContent, /Gilt für \d+ Rezepte/);
+  // Fett ändern: kcal-Vorschlag folgt, große Abweichung → Hinweis
+  inp("fett").value = "50"; fire(w, inp("fett"), "input");
+  assert.equal(inp("kcal100").placeholder, "455");
+  assert.match($(w, "wt-msg").textContent, /Fett weicht um mehr als ein Drittel vom Standard ab/);
+  inp("fett").value = "83"; fire(w, inp("fett"), "input");
+  assert.ok($(w, "wt-msg").hidden, "kleine Abweichung ohne Hinweis");
+  fire(w, box.querySelector('[data-wact="save"]'));
+  assert.deepEqual(st().foodOverrides, { "Butter": { fett: 83 } });
+  assert.match($(w, "toast").textContent, /„Butter“ geändert – gilt für \d+ Rezepte/);
+  assert.match(row("Butter").textContent, /geändert/); assert.ok(row("Butter").querySelector("td.chg"));
+  assert.match($(w, "vgs-lebensmittel").textContent, /1 Wert geändert/);
+  assert.ok(butterG() < g0, "mehr Fett je 100 g → weniger Butter im Rezept");
+  // Standardwert eintippen = nichts geändert; ungültige Eingabe abgelehnt
+  fire(w, row("Rapsöl")); inp("eiweiss").value = "abc"; fire(w, box.querySelector('[data-wact="save"]'));
+  assert.match($(w, "wt-msg").textContent, /nur Zahlen/);
+  inp("eiweiss").value = "0"; fire(w, box.querySelector('[data-wact="save"]'));
+  assert.deepEqual(Object.keys(st().foodOverrides), ["Butter"]);
+  // einzeln zurücksetzen, Rückgängig, alle zurücksetzen
+  fire(w, box.querySelector('[data-wreset="Butter"]'));
+  assert.deepEqual(st().foodOverrides, {});
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.deepEqual(st().foodOverrides, { "Butter": { fett: 83 } });
+  fire(w, box.querySelector("[data-wall]"));
+  assert.deepEqual(st().foodOverrides, {});
+  assert.equal(butterG(), g0, "wieder wie vorher");
+  // Backup-Prüfung verwirft Unsinn
+  const w2 = boot({ foodOverrides: { "Butter": { fett: "x", eiweiss: 1 }, "Gibt es nicht": { fett: 5 }, "Rapsöl": "kaputt" } });
+  w2.document.querySelector('[data-vg="lebensmittel"]').click();
+  const d2 = $(w2, "werte-list").closest("details"); d2.open = true; d2.dispatchEvent(new w2.Event("toggle"));
+  const b2 = [...$(w2, "werte-list").querySelectorAll("tr")].find(r => r.firstElementChild && /^Butter/.test(r.firstElementChild.textContent));
+  assert.match(b2.textContent, /geändert/); assert.equal(b2.children[1].textContent, "1,0", "gültiger Wert übernommen");
+  assert.equal(b2.children[2].textContent, "82,0", "ungültiger Wert verworfen → Standard");
+  assert.match($(w2, "vgs-lebensmittel").textContent, /1 Wert geändert/, "unbekannte Namen und kaputte Einträge zählen nicht");
+});
