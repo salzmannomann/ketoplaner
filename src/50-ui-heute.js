@@ -123,9 +123,9 @@
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
       tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
       const ps = proteinState(f.sum.eiweiss, d.eiweissMahl);
-      const warns = [];
+      const warns = [], attns = []; // Rot: Problem · Gelb: Achtung, kein Fehler
       if (ps === "high") warns.push("Eiweiß " + fmt(f.sum.eiweiss / d.eiweissMahl, 1) + " × Ziel");
-      if (ps === "low") warns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
+      if (ps === "low") attns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
       if (ratioClass(f.ratio, d.ratio) !== "ok") warns.push("Verhältnis " + fmtRxA(f.ratio, 2));
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
@@ -133,7 +133,7 @@
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + (note ? '<span class="name-suffix slot-note"> · ' + escapeHtml(note) + '</span>' : '') + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
-          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
+          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + attns.map(w => '<span class="zp-warn attn">' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
         '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
     });
@@ -162,7 +162,7 @@
     const ratioBad = tot.filled && ratioClass(ratioDay, d.ratio) !== "ok";
     const sums = '<div class="day-sum" id="day-sums">' +
       stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", kcalTitle) +
-      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
+      stat(pst === "ok" ? "" : pst === "low" ? "attn" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
       (d.fluidDay > 0 ? stat(fluidLow ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml", fluidTitle) : "") +
       (ratioBad ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
       "</div>";
@@ -200,12 +200,12 @@
         '<section class="dk-day"><header class="dk-head"><div class="dk-title"><span class="overline">Heute</span><h1>Tagesplan</h1></div>' + tools + '</header>' +
           zeitplanSettings(times) + slots + '</section></div>';
       if (side) {
-        const row = (label, v, warn, title) => '<div class="side-row' + (warn ? " warn" : "") + '" title="' + title + '"><span>' + label + '</span><b>' + v + '</b></div>';
+        const row = (label, v, warn, title) => '<div class="side-row' + (warn ? " " + (warn === true ? "warn" : warn) : "") + '" title="' + title + '"><span>' + label + '</span><b>' + v + '</b></div>';
         side.innerHTML = '<div class="side-rx-head"><span class="overline">Heute</span><span class="side-plan">' + tot.filled + ' von ' + d.mahl + ' geplant</span></div>' +
           '<div class="day-sum" id="side-sums">' +
           row("Verhältnis", tot.filled ? fmtRxA(ratioDay, 2) : "—", ratioBad, "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) +
           row("Kalorien", fmt(tot.kcal, 0) + " kcal", kcalLow, kcalTitle) +
-          row("Eiweiß", fmt(tot.eiweiss) + " g", pst !== "ok", protTitle) +
+          row("Eiweiß", fmt(tot.eiweiss) + " g", pst === "ok" ? "" : pst === "low" ? "attn" : "warn", protTitle) +
           (d.fluidDay > 0 ? row("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", fluidLow, fluidTitle) : "") + '</div>' +
           (notes ? '<div class="zp-hints">' + notes + '</div>' : "");
         side.hidden = state.settings.view !== "heute";
@@ -541,7 +541,7 @@
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
         '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
         '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
-          ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
+          ' · <b class="pick-prot ' + (ps === "ok" ? "ok" : ps === "low" ? "attn" : "warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
       // Anderes Rezept: die eigenen Änderungen der Mahlzeit fallen weg (dasselbe Rezept behält sie)

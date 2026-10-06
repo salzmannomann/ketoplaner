@@ -2519,7 +2519,7 @@
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
-        (bigVol ? ' · <strong class="warn-txt">▲ ' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
+        (bigVol ? ' · <strong class="attn-txt">' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayNote = d.fluidDay > 0
@@ -2537,7 +2537,7 @@
     const qFluid = fluidPer * mult, qFluidZiel = days ? dayFluidZiel * days : d.fluidMahl * mult, qZiel = d.wasserModus === "mahlzeit";
     const qTiles = '<div class="detail-tiles facts">' +
         fact((days && dayLow) ? "warn" : "", fmt(sum.kcal, 0), "kcal" + qTag + " · Ziel " + fmt(d.kcalMahl * mult, 0)) +
-        fact(pStateQ === "ok" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
+        fact(pStateQ === "ok" ? "" : pStateQ === "low" ? "attn" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
         fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "≈ " + fmt(totalG, 0) + " g") +
         (d.fluidDay > 0 ? fact(qZiel && qFluid < qFluidZiel - 3 * mult ? "warn" : "", fmt(qFluid, 0) + " ml", "Flüssigkeit" + qTag + (qZiel ? " · Ziel " + fmt(qFluidZiel, 0) + " ml" : " in Mahlzeiten"))
           : fact("", "≈ " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
@@ -2601,12 +2601,12 @@
       /* ---------- 1 Mahlzeit (eine Portion) ---------- */
       paneOpen("mahlzeit") +
       '<div class="detail-tiles facts">' +
-        fact(mv.hasPortion ? "warn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
-        fact(pStateMeal === "ok" ? "" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
-        fact(bigVol ? "warn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
+        fact(mv.hasPortion ? "attn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
+        fact(pStateMeal === "ok" ? "" : pStateMeal === "low" ? "attn" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
+        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
         (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "≈ " + fmt(totalG / mult, 0) + " g", "Menge")) +
       "</div>" +
-      (pStateMeal === "low" ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (pStateMeal === "low" ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       (pStateMeal === "high" ? '<div class="note warn">▲ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel. Viel Eiweiß kann die Ketose schwächen, bitte mit dem Team abklären.</div>' : "") +
       '<div class="portion-line' + (changed ? " changed" : "") + '">' + mealStatus + '</div>' +
       weighHead("Zum Abwiegen · eine Portion") +
@@ -3020,9 +3020,9 @@
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
       tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
       const ps = proteinState(f.sum.eiweiss, d.eiweissMahl);
-      const warns = [];
+      const warns = [], attns = []; // Rot: Problem · Gelb: Achtung, kein Fehler
       if (ps === "high") warns.push("Eiweiß " + fmt(f.sum.eiweiss / d.eiweissMahl, 1) + " × Ziel");
-      if (ps === "low") warns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
+      if (ps === "low") attns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
       if (ratioClass(f.ratio, d.ratio) !== "ok") warns.push("Verhältnis " + fmtRxA(f.ratio, 2));
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
@@ -3030,7 +3030,7 @@
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + (note ? '<span class="name-suffix slot-note"> · ' + escapeHtml(note) + '</span>' : '') + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
-          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
+          warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + attns.map(w => '<span class="zp-warn attn">' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
         '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
     });
@@ -3059,7 +3059,7 @@
     const ratioBad = tot.filled && ratioClass(ratioDay, d.ratio) !== "ok";
     const sums = '<div class="day-sum" id="day-sums">' +
       stat(kcalLow ? "warn" : "", fmt(tot.kcal, 0), "/ " + fmt(d.kcal, 0) + " kcal", kcalTitle) +
-      stat(pst === "ok" ? "" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
+      stat(pst === "ok" ? "" : pst === "low" ? "attn" : "warn", fmt(tot.eiweiss) + " g", "/ " + fmt(d.eiweiss, 0) + " g", protTitle) +
       (d.fluidDay > 0 ? stat(fluidLow ? "warn" : "", (est ? "ca. " : "") + fmt(wp.total, 0), "/ " + fmt(d.fluidDay, 0) + " ml", fluidTitle) : "") +
       (ratioBad ? stat("warn", fmtRxA(ratioDay, 2), "", "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) : "") +
       "</div>";
@@ -3097,12 +3097,12 @@
         '<section class="dk-day"><header class="dk-head"><div class="dk-title"><span class="overline">Heute</span><h1>Tagesplan</h1></div>' + tools + '</header>' +
           zeitplanSettings(times) + slots + '</section></div>';
       if (side) {
-        const row = (label, v, warn, title) => '<div class="side-row' + (warn ? " warn" : "") + '" title="' + title + '"><span>' + label + '</span><b>' + v + '</b></div>';
+        const row = (label, v, warn, title) => '<div class="side-row' + (warn ? " " + (warn === true ? "warn" : warn) : "") + '" title="' + title + '"><span>' + label + '</span><b>' + v + '</b></div>';
         side.innerHTML = '<div class="side-rx-head"><span class="overline">Heute</span><span class="side-plan">' + tot.filled + ' von ' + d.mahl + ' geplant</span></div>' +
           '<div class="day-sum" id="side-sums">' +
           row("Verhältnis", tot.filled ? fmtRxA(ratioDay, 2) : "—", ratioBad, "Verhältnis des Tages · Ziel " + fmtRx(d.ratio)) +
           row("Kalorien", fmt(tot.kcal, 0) + " kcal", kcalLow, kcalTitle) +
-          row("Eiweiß", fmt(tot.eiweiss) + " g", pst !== "ok", protTitle) +
+          row("Eiweiß", fmt(tot.eiweiss) + " g", pst === "ok" ? "" : pst === "low" ? "attn" : "warn", protTitle) +
           (d.fluidDay > 0 ? row("Flüssigkeit", (est ? "ca. " : "") + fmt(wp.total, 0) + " ml", fluidLow, fluidTitle) : "") + '</div>' +
           (notes ? '<div class="zp-hints">' + notes + '</div>' : "");
         side.hidden = state.settings.view !== "heute";
@@ -3438,7 +3438,7 @@
       return '<button type="button" class="pick-row" data-key="' + escapeHtml(recipeKey(x.rec)) + '">' +
         '<span class="pick-name">' + displayHtml(x.rec) + (isFav(x.rec) ? " ★" : "") + '</span>' +
         '<span class="pick-meta">' + escapeHtml(groupLabel(x.rec)) + " · " + fmt(s.kcal, 0) + ' kcal · <span class="pick-vol' + (big ? ' big' : '') + '">' + (big ? '▲ ' : '≈ ') + fmt(vol, 0) + ' ml</span>' +
-          ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
+          ' · <b class="pick-prot ' + (ps === "ok" ? "ok" : ps === "low" ? "attn" : "warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
       // Anderes Rezept: die eigenen Änderungen der Mahlzeit fallen weg (dasselbe Rezept behält sie)
@@ -4739,11 +4739,11 @@
       box.innerHTML =
         '<div class="detail-tiles facts">' +
           fact("", fmt(sum.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
-          fact(proteinOk && pStateC !== "high" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
+          fact(pStateC === "high" ? "warn" : !proteinOk ? "attn" : "", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
           fact("", "≈ " + fmt(totalG, 0) + " g", "Menge") +
           fact("", "≈ " + fmt(ml, 0) + " ml", "Volumen") +
         "</div>" +
-        (!proteinOk ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+        (!proteinOk ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         (pStateC === "high" ? '<div class="note warn">▲ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
         '<div class="portion-line">' + (compose.scale ? 'Wie berechnet · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit' : 'Feste Zutatenmengen · ' + fmt(sum.kcal, 0) + ' kcal') + ' · Fett für ' + fmtTarget(d.ratio) + ' berechnet</div>' +
         '<div class="weigh-head"><h4 class="ph">Zum Abwiegen · eine Portion</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (state.settings.detailNutr ? " checked" : "") + '> Nährwerte</label></div>' +

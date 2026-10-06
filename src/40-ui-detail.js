@@ -489,7 +489,7 @@
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
           : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
-        (bigVol ? ' · <strong class="warn-txt">▲ ' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
+        (bigVol ? ' · <strong class="attn-txt">' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "";
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayNote = d.fluidDay > 0
@@ -507,7 +507,7 @@
     const qFluid = fluidPer * mult, qFluidZiel = days ? dayFluidZiel * days : d.fluidMahl * mult, qZiel = d.wasserModus === "mahlzeit";
     const qTiles = '<div class="detail-tiles facts">' +
         fact((days && dayLow) ? "warn" : "", fmt(sum.kcal, 0), "kcal" + qTag + " · Ziel " + fmt(d.kcalMahl * mult, 0)) +
-        fact(pStateQ === "ok" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
+        fact(pStateQ === "ok" ? "" : pStateQ === "low" ? "attn" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß" + qTag + " · Ziel " + fmt(proteinTarget, 0) + " g", pStateQ === "high" ? "mehr als das Doppelte des Eiweiß-Ziels" : "") +
         fact("", fmt(ml, 0) + " ml", "Volumen" + qTag, "≈ " + fmt(totalG, 0) + " g") +
         (d.fluidDay > 0 ? fact(qZiel && qFluid < qFluidZiel - 3 * mult ? "warn" : "", fmt(qFluid, 0) + " ml", "Flüssigkeit" + qTag + (qZiel ? " · Ziel " + fmt(qFluidZiel, 0) + " ml" : " in Mahlzeiten"))
           : fact("", "≈ " + fmt(totalG, 0) + " g", "Menge" + qTag)) +
@@ -571,12 +571,12 @@
       /* ---------- 1 Mahlzeit (eine Portion) ---------- */
       paneOpen("mahlzeit") +
       '<div class="detail-tiles facts">' +
-        fact(mv.hasPortion ? "warn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
-        fact(pStateMeal === "ok" ? "" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
-        fact(bigVol ? "warn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
+        fact(mv.hasPortion ? "attn" : "", fmt(sumPer.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
+        fact(pStateMeal === "ok" ? "" : pStateMeal === "low" ? "attn" : "warn", fmt(sumPer.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl)) +
+        fact(bigVol ? "attn" : "", fmt(volPer, 0) + " ml", "Volumen", "≈ " + fmt(totalG / mult, 0) + " g") +
         (d.fluidDay > 0 ? fact("", fmt(fluidPer, 0) + " ml", "Flüssigkeit") : fact("", "≈ " + fmt(totalG / mult, 0) + " g", "Menge")) +
       "</div>" +
-      (pStateMeal === "low" ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+      (pStateMeal === "low" ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
       (pStateMeal === "high" ? '<div class="note warn">▲ Eiweiß ' + fmt(sumPer.eiweiss / d.eiweissMahl, 1) + '-mal so hoch wie das Ziel. Viel Eiweiß kann die Ketose schwächen, bitte mit dem Team abklären.</div>' : "") +
       '<div class="portion-line' + (changed ? " changed" : "") + '">' + mealStatus + '</div>' +
       weighHead("Zum Abwiegen · eine Portion") +

@@ -184,11 +184,11 @@
       box.innerHTML =
         '<div class="detail-tiles facts">' +
           fact("", fmt(sum.kcal, 0), "kcal · Ziel " + fmt(d.kcalMahl, 0)) +
-          fact(proteinOk && pStateC !== "high" ? "" : "warn", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
+          fact(pStateC === "high" ? "warn" : !proteinOk ? "attn" : "", fmt(sum.eiweiss) + " g", "Eiweiß · Ziel " + fmt(d.eiweissMahl) + " g") +
           fact("", "≈ " + fmt(totalG, 0) + " g", "Menge") +
           fact("", "≈ " + fmt(ml, 0) + " ml", "Volumen") +
         "</div>" +
-        (!proteinOk ? '<div class="note warn">▲ Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
+        (!proteinOk ? '<div class="note attn">Eiweiß liegt unter dem Ziel. Ggf. mit dem Behandlungsteam abstimmen.</div>' : "") +
         (pStateC === "high" ? '<div class="note warn">▲ Eiweiß mehr als doppelt so hoch wie das Ziel – viel Eiweiß kann die Ketose schwächen.</div>' : "") +
         '<div class="portion-line">' + (compose.scale ? 'Wie berechnet · ' + fmt(d.kcalMahl, 0) + ' kcal je Mahlzeit' : 'Feste Zutatenmengen · ' + fmt(sum.kcal, 0) + ' kcal') + ' · Fett für ' + fmtTarget(d.ratio) + ' berechnet</div>' +
         '<div class="weigh-head"><h4 class="ph">Zum Abwiegen · eine Portion</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (state.settings.detailNutr ? " checked" : "") + '> Nährwerte</label></div>' +
