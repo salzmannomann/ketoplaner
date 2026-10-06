@@ -50,7 +50,10 @@
   --accent: var(--blue);
   --green-bg: var(--paper-2);
   --shadow: none;
-  --radius: 8px;
+  /* Eckenradien in drei Stufen (Ausnahmen: 0, Griff-Strich der Blätter, Drag-Linie, App-Icon, Druckblatt) */
+  --r-s: 6px;      /* Felder, Knöpfe, Kästen, Toast, Vorgaben-Zeilen */
+  --r-l: 12px;     /* Leiste unten, Fenster, Blätter (oben 12 12 0 0) */
+  --r-pill: 999px; /* Pillen, Chips, Rundknöpfe */
 }
 
 * { box-sizing: border-box; }
@@ -98,9 +101,9 @@ input:disabled, select:disabled { opacity: .5; }
 .num-input:focus, .line-select:focus, .line-date:focus, .line-input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
 /* Vorschlag im leeren Feld: grau, sonst wie der Wert (Mono 600, rechtsbündig) */
 .num-input::placeholder { color: var(--grey); opacity: 1; font: inherit; }
-textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: transparent; font: 12px/1.4 var(--f-mono); }
+textarea { width: 100%; min-height: 96px; padding: 8px; border: 1.5px solid var(--ink); border-radius: var(--r-s); background: transparent; font: 12px/1.4 var(--f-mono); }
 /* Knöpfe: Primär = Tinte-Fläche, „outline“ = 1,5-px-Rahmen */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; padding: 0 16px; border: 0; border-radius: 8px;
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; padding: 0 16px; border: 0; border-radius: var(--r-s);
   background: var(--ink); color: var(--paper); font: 600 15px var(--f-sans); cursor: pointer; white-space: nowrap; }
 .btn.outline, .btn.secondary { border: 1.5px solid var(--ink); background: transparent; color: var(--ink); }
 .btn.outline:hover, .btn.secondary:hover { background: var(--paper-2); }
@@ -152,7 +155,7 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
   .werte-table tr.editing input { width: 100%; }
   .werte-table .ovr { margin-left: 0; }
 }
-.werte-table .ovr { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--dot); border-radius: 999px; font: 500 10.5px/1.6 var(--f-sans); color: var(--grey); vertical-align: 1px; white-space: nowrap; }
+.werte-table .ovr { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--dot); border-radius: var(--r-pill); font: 500 10.5px/1.6 var(--f-sans); color: var(--grey); vertical-align: 1px; white-space: nowrap; }
 .werte-table td.ovr { border: 0; border-bottom: 1px dotted var(--dot); border-radius: 0; text-align: left; font-size: 12px; }
 .empty { color: var(--grey); font-style: italic; padding: 8px 0; }
 @media (max-width: 560px) { html, body { overflow-x: hidden; } }
@@ -272,7 +275,7 @@ td:first-child { font-family: var(--f-sans); font-size: 13px; }
 /* Wisch nach links: Inhalt folgt dem Finger (--sx), rechts wächst der rote Knopf „Leeren“ mit */
 .zp-row.slot { position: relative; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 /* Anordnen: gezogene Zeile hebt sich ab (Papier, Tintenrahmen), die Linie zeigt den Zielplatz */
-.zp-row.slot.dragging { z-index: 5; background: var(--paper-2); outline: 2px solid var(--ink); outline-offset: -1px; border-radius: 6px; cursor: grabbing; }
+.zp-row.slot.dragging { z-index: 5; background: var(--paper-2); outline: 2px solid var(--ink); outline-offset: -1px; border-radius: var(--r-s); cursor: grabbing; }
 body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .zp-drop { position: fixed; z-index: 4; height: 3px; margin-top: -1px; border-radius: 2px; background: var(--ink); pointer-events: none; }
 .zp-drop[hidden] { display: none; }
@@ -313,7 +316,7 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .sheet-grip { flex: none; width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--rule); }
 .sheet-head { display: flex; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
 .round-btn { position: static; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
-  border: 1.5px solid var(--ink); border-radius: 50%; background: transparent; color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
+  border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: transparent; color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
 .round-btn:hover { background: var(--paper-2); }
 .line-input, :root input.line-input { width: 100%; min-height: 44px; padding: 0 2px; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0;
   background: transparent; color: var(--ink); font: 400 16px var(--f-sans); -webkit-appearance: none; appearance: none; }
@@ -347,12 +350,12 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .page-title { margin: 0; font: 600 36px/1 var(--f-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rx-chip { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin: 0; padding: 4px 0;
   border: 0; background: transparent; color: var(--ink); font: 400 12px/1.3 var(--f-mono); cursor: pointer; }
-.rx-chip .rx-pill { padding: 2px 8px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 600; white-space: nowrap; }
+.rx-chip .rx-pill { padding: 2px 8px; border: 1.5px solid var(--ink); border-radius: var(--r-pill); font-weight: 600; white-space: nowrap; }
 .rx-chip .rx-sub { white-space: nowrap; }
 .rx-chip:hover .rx-pill, .rx-chip.back .rx-pill { background: var(--ink); color: var(--paper); }
 /* Navigation: schwebend über dem Home-Balken, 2-px-Rahmen, drei gleiche Felder, aktiv invertiert */
 .tabbar { position: fixed; z-index: 50; left: 20px; right: 20px; bottom: max(16px, env(safe-area-inset-bottom));
-  display: flex; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--paper); }
+  display: flex; border: 2px solid var(--ink); border-radius: var(--r-l); overflow: hidden; background: var(--paper); }
 .tabbar button { flex: 1 1 0; min-height: 48px; margin: 0; padding: 0 6px; border: 0; border-left: 1.5px solid var(--ink); border-radius: 0;
   background: transparent; color: var(--ink); font: 600 15px var(--f-sans); cursor: pointer; }
 .tabbar button[hidden] { display: none; }
@@ -406,7 +409,7 @@ body.heute-tight .page-title { font-size: 28px; }
 .listbar { margin: 0 -20px; }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 20px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 999px;
+.chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: var(--r-pill);
   background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap; cursor: pointer; }
 .chip.active, .chip.toggle.on { background: var(--ink); color: var(--paper); }
 /* Schalter „nur Diätologie“ usw.: Chips wie die Gruppen, am Ende der Reihe mit 12 px Abstand; aktiv invertiert mit „✓“ */
@@ -433,7 +436,7 @@ body.heute-tight .page-title { font-size: 28px; }
 .tile-stats .prot-low { color: var(--yellow); font-weight: 500; } /* Achtung, kein Fehler: gelb, normale Stärke wie die anderen Metawerte */
 .tile-badge { font-size: 12px; color: var(--grey); }
 .tile-badge[hidden] { display: none; }
-.favbtn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; }
+.favbtn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--ink); cursor: pointer; }
 .favbtn svg polygon { fill: transparent; }
 .favbtn.on svg polygon { fill: currentColor; }
 .favbtn:hover { background: var(--paper-2); }
@@ -453,29 +456,29 @@ body.heute-tight .page-title { font-size: 28px; }
 .overlay[hidden] { display: none; }
 .overlay-card { position: relative; width: 100%; max-width: 720px; background: var(--paper); color: var(--ink); }
 .overlay-close { position: absolute; z-index: 6; top: 14px; right: 20px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
-  border: 1.5px solid var(--ink); border-radius: 50%; background: var(--paper); color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
+  border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: var(--paper); color: var(--ink); font: 400 16px var(--f-sans); cursor: pointer; }
 .overlay-close:hover { background: var(--paper-2); }
 :root .sheet-head .overlay-close { position: static; flex: none; }
 body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 100%; }
 #picker-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: max(56px, 17vh); width: auto; max-width: none; min-height: 0; margin: 0 auto;
   display: flex; flex-direction: column; gap: 10px; padding: 8px 20px calc(14px + env(safe-area-inset-bottom));
-  border-radius: 20px 20px 0 0; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+  border-radius: var(--r-l) var(--r-l) 0 0; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
 /* Rezept/Editor: Sheet von oben bis unten, Kopf + Reiter + Blätter + feste Fußleiste */
 #detail-overlay .overlay-card, #compose-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; top: calc(env(safe-area-inset-top) + var(--top-gap) + 10px);
-  max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px 20px 0 0;
+  max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--r-l) var(--r-l) 0 0;
   box-shadow: 0 -8px 30px rgba(42,38,33,.25); will-change: transform; }
-@media (min-width: 821px) { #detail-overlay .overlay-card, #compose-overlay .overlay-card { top: 4vh; bottom: 4vh; border-radius: 20px; } }
+@media (min-width: 821px) { #detail-overlay .overlay-card, #compose-overlay .overlay-card { top: 4vh; bottom: 4vh; border-radius: var(--r-l); } }
 #detail-content, #compose-content { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 #detail-content > .sheet-grip, #compose-content > .sheet-grip { margin: 8px auto 6px; }
 .detail-head { flex: none; display: flex; flex-direction: column; gap: 4px; margin: 0 20px; padding: 4px 56px 10px 0; border-bottom: 2px solid var(--ink); touch-action: pan-x; }
 .dh-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: var(--grey); }
 .dh-tags .dh-sib { min-width: 0; min-height: 28px; padding: 0; font-size: 12px; }
-.ratio-pill { display: inline-block; padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: 999px; font: 600 12px/1.4 var(--f-mono); color: var(--ink); white-space: nowrap; }
+.ratio-pill { display: inline-block; padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: var(--r-pill); font: 600 12px/1.4 var(--f-mono); color: var(--ink); white-space: nowrap; }
 .ratio-pill.warn, .ratio-pill.bad { border-color: var(--red); color: var(--red); }
 .detail-head .title { margin: 0; font: 600 28px/1.1 var(--f-serif); }
 /* Reiter- und Segmentleiste: 1,5-px-Tintenrahmen, aktiv invertiert. Segmente gehen über die volle Breite, die Optionen
    teilen sich den Platz gleich; ein zu langer Text bricht auf zwei Zeilen um (ausgewogen, zentriert), nichts wird abgeschnitten. */
-.seg-ink { display: flex; width: 100%; max-width: 100%; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.seg-ink { display: flex; width: 100%; max-width: 100%; border: 1.5px solid var(--ink); border-radius: var(--r-s); overflow: hidden; }
 .seg-ink button { flex: 1 1 0; min-width: 0; min-height: 38px; margin: 0; padding: 4px 8px; border: 0; border-radius: 0; background: transparent; color: var(--ink);
   font: 600 14px/1.2 var(--f-sans); white-space: normal; text-wrap: balance; text-align: center; hyphens: auto; cursor: pointer; }
 /* ab vier Optionen eine Stufe kleiner, damit die Wörter ganz bleiben */
@@ -506,7 +509,7 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 .dstat.attn .v { color: var(--yellow); }
 /* Hinweise: Info grau, Warnung im hellroten Kasten */
 .note { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; font-size: 13px; line-height: 1.45; color: var(--grey); text-wrap: pretty; }
-.note.warn { padding: 10px 12px; border-radius: 6px; background: var(--red-bg); color: var(--red); }
+.note.warn { padding: 10px 12px; border-radius: var(--r-s); background: var(--red-bg); color: var(--red); }
 .note strong { color: inherit; }
 .portion-line { font-size: 12px; line-height: 1.45; color: var(--grey); }
 .portion-line strong { color: var(--ink); font-weight: 600; }
@@ -535,7 +538,7 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 /* Blatt Tag: 1 · 2 · 3 Tage + Portionen-Stepper */
 .seg-portion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .seg-portion .seg-ink { flex: 1 1 200px; width: auto; } /* neben dem Portionen-Zähler: füllt den Rest der Zeile */
-.portion-step { display: inline-flex; align-items: stretch; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.portion-step { display: inline-flex; align-items: stretch; border: 1.5px solid var(--ink); border-radius: var(--r-s); overflow: hidden; }
 .stepbtn { width: 34px; min-height: 38px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font: 600 18px var(--f-sans); cursor: pointer; }
 .stepbtn:hover { background: var(--paper-2); }
 :root .portion-step input { width: 46px; min-height: 38px; height: auto; padding: 0; border: 0; border-left: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); border-radius: 0;
@@ -559,22 +562,22 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 .steps-ph + .steps { margin-top: -12px; }
 /* Feste Fußleiste: „Für heute einplanen“ + runde Knöpfe */
 .detail-actions { flex: none; position: relative; display: flex; align-items: center; gap: 10px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); border-top: 2px solid var(--ink); background: var(--paper); }
-.btn.primary, :root .btn.primary { flex: 1; min-height: 48px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--ink); color: var(--paper); font: 600 15px var(--f-sans); cursor: pointer; }
+.btn.primary, :root .btn.primary { flex: 1; min-height: 48px; padding: 0 14px; border: 0; border-radius: var(--r-s); background: var(--ink); color: var(--paper); font: 600 15px var(--f-sans); cursor: pointer; }
 .btn.primary:hover { background: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-:root .btn.round-btn { width: 48px; height: 48px; padding: 0; border: 1.5px solid var(--ink); border-radius: 50%; background: transparent; color: var(--ink); }
+:root .btn.round-btn { width: 48px; height: 48px; padding: 0; border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: transparent; color: var(--ink); }
 :root .btn.round-btn:hover { background: var(--paper-2); }
 .favbtn.on .star, .favbtn.on svg polygon { fill: currentColor; }
 .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* „Für heute einplanen“: Auswahl über der Fußleiste */
 .today-sheet { position: absolute; z-index: 20; left: 20px; right: 20px; bottom: calc(78px + env(safe-area-inset-bottom)); max-height: 62%; overflow-y: auto;
-  padding: 4px 14px 10px; border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+  padding: 4px 14px 10px; border: 2px solid var(--ink); border-radius: var(--r-l); background: var(--paper); box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
 .today-title { padding: 8px 0; border-bottom: 2px solid var(--ink); font: 600 19px/1.2 var(--f-serif); }
 .today-sep { padding: 10px 0 2px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey); }
 .today-opt { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 48px; margin: 0; padding: 8px 0; border: 0; border-bottom: 1px dotted var(--dot);
   background: transparent; color: var(--ink); font: 600 15px var(--f-sans); text-align: left; cursor: pointer; }
 .today-opt small { font: 400 12px var(--f-sans); color: var(--grey); }
 .today-opt:hover span { text-decoration: underline; text-underline-offset: 3px; }
-.today-opt.main { margin: 10px 0 4px; padding: 10px 12px; border: 0; border-radius: 8px; background: var(--ink); color: var(--paper); }
+.today-opt.main { margin: 10px 0 4px; padding: 10px 12px; border: 0; border-radius: var(--r-s); background: var(--ink); color: var(--paper); }
 .today-opt.main small { color: var(--paper); opacity: .8; }
 .today-opt.same span { text-decoration: underline; text-underline-offset: 3px; }
 /* Heute: Tagessumme nutzt .dstat als reine Textstücke */
@@ -584,8 +587,8 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 .day-sum .dstat.attn .v { color: var(--yellow); }
 .tile-stats .ratio-pill { padding: 0; border: 0; font-size: inherit; color: var(--red); }
 .note.tip, .note.info, :root .note.tip, :root .note.info { padding: 0; border: 0; border-radius: 0; background: none; color: var(--grey); }
-:root .note.warn { padding: 10px 12px; border: 0; border-radius: 6px; background: var(--red-bg); color: var(--red); }
-:root .note.attn { padding: 10px 12px; border: 0; border-radius: 6px; background: var(--yellow-bg); color: var(--yellow); }
+:root .note.warn { padding: 10px 12px; border: 0; border-radius: var(--r-s); background: var(--red-bg); color: var(--red); }
+:root .note.attn { padding: 10px 12px; border: 0; border-radius: var(--r-s); background: var(--yellow-bg); color: var(--yellow); }
 .attn-txt { color: var(--yellow); }
 .btn.primary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adj-block .hint { font-size: 13px; color: var(--grey); }
@@ -607,7 +610,7 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 :root .compose-row input.compose-grams { width: 72px; font: 600 18px var(--f-mono); text-align: right; }
 :root .compose-row select:focus, :root .compose-row input:focus { outline: none; box-shadow: none; border-bottom-color: var(--blue); }
 .compose-row .unit { font: 500 13px var(--f-mono); color: var(--grey); }
-.row-del { width: 36px; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--grey); font: 400 22px/1 var(--f-sans); cursor: pointer; }
+.row-del { width: 36px; height: 36px; margin: 0; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--grey); font: 400 22px/1 var(--f-sans); cursor: pointer; }
 .row-del:hover { color: var(--red); background: var(--paper-2); }
 .add-link { align-self: flex-start; margin: -6px 0 0 -6px; }
 .wh-hint { font-size: 12px; color: var(--grey); }
@@ -620,10 +623,10 @@ details.more p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gre
 
 /* Meldung (Toast): Tinte-Fläche über der Navigation, „Rückgängig“ unterstrichen, „Ansehen“ als helle Pille */
 .toast { position: fixed; z-index: 1000; left: 20px; right: 20px; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px); max-width: 560px; margin: 0 auto;
-  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 10px; background: var(--ink); color: var(--paper); font-size: 14px; line-height: 1.35; }
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: var(--r-s); background: var(--ink); color: var(--paper); font-size: 14px; line-height: 1.35; }
 .toast[hidden] { display: none; }
 .toast-msg { flex: 1; min-width: 0; padding: 6px 0; }
-.toast-btn { flex: none; min-height: 40px; margin: 0; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--paper);
+.toast-btn { flex: none; min-height: 40px; margin: 0; padding: 0 10px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--paper);
   font: 600 14px var(--f-sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .toast-btn.pill { padding: 0 12px; background: var(--paper); color: var(--ink); text-decoration: none; }
 body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
@@ -732,14 +735,14 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .cf-actions { align-items: center; }
 /* Kurzmenü (langes Drücken auf ein Rezept): unten als Blatt, am Desktop mittig */
 #action-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; padding: 8px 20px calc(16px + env(safe-area-inset-bottom));
-  border-radius: 20px 20px 0 0; box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+  border-radius: var(--r-l) var(--r-l) 0 0; box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
 #action-overlay .act-title { margin: 8px 0 2px; font: 600 21px/1.2 var(--f-serif); }
 #action-overlay .act-sub { margin: 0 0 8px; font-size: 13px; color: var(--grey); }
 #action-overlay .act-btn { display: block; width: 100%; min-height: 54px; margin: 0; padding: 0; border: 0; border-top: 1px dotted var(--dot); border-radius: 0;
   background: transparent; color: var(--ink); font: 600 17px var(--f-sans); text-align: left; cursor: pointer; }
 #action-overlay .act-btn.danger { color: var(--red); }
 #action-overlay .act-cancel { width: 100%; margin-top: 10px; }
-@media (min-width: 821px) { #action-overlay .overlay-card { top: 30vh; bottom: auto; border: 2px solid var(--ink); border-radius: 12px; box-shadow: none; padding-bottom: 18px; } }
+@media (min-width: 821px) { #action-overlay .overlay-card { top: 30vh; bottom: auto; border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: none; padding-bottom: 18px; } }
 .tile { -webkit-touch-callout: none; }
 /* Geräte abgleichen */
 .sync-code-box .sync-code { font: 600 22px var(--f-mono); letter-spacing: .08em; color: var(--ink); }
@@ -761,7 +764,7 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .bd-main { display: flex; flex-direction: column; gap: 10px; }
 .bd-scale { position: relative; height: 62px; margin: 22px 0 6px; }
 .bd-scale .axis { position: absolute; left: 0; right: 0; top: 50%; height: 0; border-top: 1px dotted var(--dot); }
-.bd-scale .band { position: absolute; top: calc(50% - 7px); height: 14px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper-2); }
+.bd-scale .band { position: absolute; top: calc(50% - 7px); height: 14px; border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: var(--paper-2); }
 .bd-scale .mk { position: absolute; top: calc(50% - 12px); width: 0; height: 24px; border-left: 1.5px solid var(--grey); }
 .bd-scale .mk.krick { border-left: 3px solid var(--ink); margin-left: -1px; }
 .bd-scale .lab { position: absolute; display: flex; flex-direction: column; align-items: inherit; font-size: 11px; line-height: 1.25; color: var(--grey); white-space: nowrap; text-align: center; }
@@ -773,7 +776,7 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .bd-legend b { color: var(--ink); font-weight: 600; }
 .bd-legend .sw { display: inline-block; width: 14px; margin-top: 4px; }
 .bd-legend .sw.krick { height: 12px; border-left: 3px solid var(--ink); width: 0; margin-left: 5px; }
-.bd-legend .sw.band { height: 10px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--paper-2); }
+.bd-legend .sw.band { height: 10px; border: 1.5px solid var(--ink); border-radius: var(--r-pill); background: var(--paper-2); }
 .bd-legend .sw.ref { height: 12px; border-left: 1.5px solid var(--grey); width: 0; margin-left: 6px; }
 .bd-s { font-size: 12px; line-height: 1.45; color: var(--grey); }
 .bd-one { margin: 0; font-size: 13px; color: var(--grey); }
@@ -817,7 +820,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .side-brand-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .side-name { font: 600 20px/1 var(--f-serif); white-space: nowrap; }
   .side-nav { display: flex; flex-direction: column; gap: 4px; }
-  .side-nav button { display: flex; align-items: center; min-height: 44px; margin: 0; padding: 0 14px; border: 0; border-radius: 6px;
+  .side-nav button { display: flex; align-items: center; min-height: 44px; margin: 0; padding: 0 14px; border: 0; border-radius: var(--r-s);
     background: transparent; color: var(--ink); font: 600 15px var(--f-sans); text-align: left; cursor: pointer; }
   .side-nav button:hover { background: var(--paper-2); }
   .side-nav button.active { background: var(--ink); color: var(--paper); }
@@ -904,7 +907,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #view-vorgaben .vg-page { grid-column: 2; grid-row: 2; max-width: 640px; min-width: 0; }
   #view-vorgaben .vg-page[hidden] { display: none; }
   .vg-group { padding: 16px 0 6px; }
-  .vg-row { min-height: 56px; padding: 8px 10px; border-radius: 4px; }
+  .vg-row { min-height: 56px; padding: 8px 10px; border-radius: var(--r-s); }
   .vg-row:hover { background: var(--paper-2); }
   .vg-row.active { background: var(--paper-2); }
   .vg-row .vg-name { font-size: 17px; }
@@ -912,8 +915,8 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   body.vg-sub .main { padding-top: 34px; }
   /* Auswahlfenster als zentrierter Dialog, Rezept/Editor aus dem Tagesplan als Fenster; Meldung unten mittig */
   #picker-overlay .overlay-card { left: 50%; right: auto; top: 9vh; bottom: auto; height: 78vh; width: min(580px, 92vw); transform: translateX(-50%);
-    padding: 8px 22px 22px; border: 2px solid var(--ink); border-radius: 12px; }
-  #detail-overlay .overlay-card, #compose-overlay .overlay-card { border: 2px solid var(--ink); border-radius: 12px; }
+    padding: 8px 22px 22px; border: 2px solid var(--ink); border-radius: var(--r-l); }
+  #detail-overlay .overlay-card, #compose-overlay .overlay-card { border: 2px solid var(--ink); border-radius: var(--r-l); }
   .toast, body.modal-open .toast { bottom: 28px; min-width: 380px; width: max-content; max-width: min(560px, calc(100% - 40px)); }
 }
 /* Rezepte ab 1100 px: Liste (wächst doppelt so schnell, ab etwa 1240 px zwei Spalten) und daneben das Rezept als
@@ -935,7 +938,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .rz-panel #detail-overlay { position: static; display: block; padding: 0; background: none; overflow: visible; z-index: auto; }
   .rz-panel #detail-overlay[hidden] { display: none; }
   .rz-panel #detail-overlay .overlay-card { position: relative; inset: auto; margin: 0; max-width: none; max-height: calc(100vh - 68px);
-    border: 2px solid var(--ink); border-radius: 10px; box-shadow: none; transform: none; will-change: auto; }
+    border: 2px solid var(--ink); border-radius: var(--r-l); box-shadow: none; transform: none; will-change: auto; }
   .rz-panel #detail-close, .rz-panel #detail-content > .sheet-grip { display: none; }
   .rz-panel .detail-head { margin: 0 22px; padding: 20px 0 10px; }
   .rz-panel .detail-tabs-wrap { padding: 12px 22px 10px; }
