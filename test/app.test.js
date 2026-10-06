@@ -1895,3 +1895,23 @@ test("Leere Vorschlagsfelder: Vorschlag grau als Platzhalter, nichts Neues gespe
   vd.value = ""; fire(w, vd, "input"); assert.equal(st().dampfVerdunstung, "");
   assert.match($(w, "vgs-kueche").textContent, /Verdunstung 150 ml/, "leer = Standard 150 ml");
 });
+
+test("PALETTE (Druck, PDF, Browserleiste) und die Farbvariablen in styles.css sind gleich – hell und dunkel", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+  const src = fs.readFileSync(path.join(__dirname, "..", "src", "05-palette.js"), "utf8");
+  const obj = (name) => new Function("return " + src.match(new RegExp("const " + name + " = (\\{[\\s\\S]*?\\});"))[1])();
+  const cssName = (k) => "--" + k.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/([a-z])(\d)/g, "$1-$2").toLowerCase(); // redBg → --red-bg, paper2 → --paper-2
+  const vars = (block) => { const o = {}; for (const m of block.matchAll(/(--[a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) o[m[1]] = m[2].toLowerCase(); return o; };
+  const light = vars(css.match(/:root \{[\s\S]*?\n\}/g).find(b => /--paper:/.test(b)));
+  const dark = vars(css.match(/:root\[data-theme="dark"\] \{[\s\S]*?\n\}/)[0]);
+  for (const [name, v] of [["PALETTE", light], ["PALETTE_DARK", dark]]) {
+    const p = obj(name);
+    assert.ok(Object.keys(p).length >= 11, name + " vollständig");
+    for (const k of Object.keys(p)) assert.equal(p[k].toLowerCase(), v[cssName(k)], name + "." + k + " ≙ " + cssName(k));
+  }
+  // in src/ keine Hex-Farben außerhalb der Palette
+  for (const f of fs.readdirSync(path.join(__dirname, "..", "src")).filter(f => f.endsWith(".js") && f !== "05-palette.js")) {
+    const t = fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8");
+    assert.ok(!/#[0-9a-fA-F]{6}\b/.test(t), "Hex-Farbe in src/" + f);
+  }
+});

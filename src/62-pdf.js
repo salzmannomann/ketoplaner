@@ -18,9 +18,9 @@
     if (at) return at(doc, opts);
     throw new Error("AutoTable fehlt");
   }
-  // Farben des Küchenzettel-Stils (RGB) – dieselben Werte wie in der Druckvorschau
-  const PDF_INK = [42, 38, 33], PDF_GREY = [100, 93, 83], PDF_DOT = [169, 159, 143], PDF_BLUE = [44, 92, 154],
-    PDF_RED = [173, 51, 38], PDF_RED_BG = [245, 224, 216], PDF_FOLD = [201, 192, 176];
+  // Farben des Küchenzettel-Stils (RGB) – aus PALETTE (src/05-palette.js), wie in der Druckvorschau
+  const PDF_INK = rgb(PALETTE.ink), PDF_GREY = rgb(PALETTE.grey), PDF_DOT = rgb(PALETTE.dot), PDF_BLUE = rgb(PALETTE.blue),
+    PDF_RED = rgb(PALETTE.red), PDF_RED_BG = rgb(PALETTE.redBg), PDF_FOLD = rgb(PALETTE.rule);
   // Gepunktete Linie (Trennlinien wie in der Vorschau)
   function pdfDotted(doc, x1, y1, x2, y2, w) {
     doc.setDrawColor.apply(doc, PDF_DOT); doc.setLineWidth(w || 0.2); doc.setLineDashPattern([0.3, 0.9], 0);
@@ -35,7 +35,7 @@
   function kitchenCardPdf(doc, kz) {
     const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25;
     const L = PX, R = CW - PX;
-    const INK = PDF_INK, GREY = PDF_GREY, BLUE = PDF_BLUE, ZUT = [61, 56, 50];
+    const INK = PDF_INK, GREY = PDF_GREY, BLUE = PDF_BLUE, ZUT = PDF_INK;
     const PT = 0.3528, lineH = (size) => size * PT * 1.2;
     // fam: "sans" (Helvetica), "serif" (Times, Titel und Rezeptnamen), "mono" (Courier, alle Zahlen)
     const FAM = { sans: "helvetica", serif: "times", mono: "courier" };

@@ -209,7 +209,7 @@
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
       if (t === "auto") { if (m.dataset.orig) m.setAttribute("content", m.dataset.orig); return; }
       if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content");
-      m.setAttribute("content", t === "dark" ? "#1c1a16" : "#f5f0e5");
+      m.setAttribute("content", t === "dark" ? PALETTE_DARK.paper : PALETTE.paper);
     });
   }
   // Backup: alles, was nur auf diesem Gerät liegt.
