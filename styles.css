@@ -808,17 +808,25 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #view-rezepte { display: block; }
   .rz-layout { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; max-width: 1240px; }
   .rz-main { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 16px; align-content: start; }
-  /* Kopf mit festem Raster, damit er beim Wechsel der Filter nicht springt: oben Anzahl + Titel und die Suche,
-     darunter die Häkchen und „+ Eigenes Rezept“; eine lange Anzahl wird gekürzt statt umzubrechen */
-  .dk-head.rz-head { grid-column: 1 / -1; display: grid; grid-template-columns: auto auto minmax(0, 1fr) minmax(220px, 300px); align-items: end; gap: 6px 16px; }
-  .rz-head .dk-title { grid-column: 1 / 4; grid-row: 1; margin: 0; }
+  /* Kopf mit festem Raster, damit er beim Wechsel der Filter nicht springt. Breit: Anzahl + Titel links, Suche rechts,
+     darunter die Häkchen und rechts „+ Eigenes Rezept“. Ist die Liste schmal (neben dem Panel, kleines Fenster), steht die
+     Suche über die volle Breite unter dem Titel. Eine lange Anzahl wird gekürzt statt umzubrechen. */
+  .rz-main { container-type: inline-size; }
+  .dk-head.rz-head { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); align-items: end; gap: 6px 16px; }
+  .rz-head .dk-title { grid-column: 1; grid-row: 1; min-width: 0; margin: 0; }
   .rz-head .dk-title .overline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rz-search-slot { grid-column: 4; grid-row: 1; min-width: 0; display: flex; }
+  .rz-search-slot { grid-column: 2; grid-row: 1; min-width: 0; display: flex; }
   .rz-search-slot .line-input { width: 100%; min-height: 40px; font-size: 15px; }
-  .rz-toggles { grid-column: 1; grid-row: 2; align-self: center; display: flex; gap: 12px; align-items: center; }
+  .rz-toggles { grid-column: 1; grid-row: 2; align-self: center; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+  #compose-link { grid-column: 2; grid-row: 2; justify-self: end; align-self: center; min-width: 0; min-height: 40px; margin-left: 0; font-size: 13px; }
+  @container (max-width: 700px) {
+    .dk-head.rz-head { grid-template-columns: minmax(0, 1fr) auto; }
+    .rz-search-slot { grid-column: 1 / -1; grid-row: 2; }
+    .rz-toggles { grid-row: 3; }
+    #compose-link { grid-row: 3; }
+  }
   .dk-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; cursor: pointer; }
   .dk-check input { margin: 0; accent-color: var(--ink); }
-  #compose-link { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; min-width: 0; min-height: 40px; margin-left: 12px; font-size: 13px; }
   .search-row { display: none; }
   .listbar { grid-column: 1; grid-row: 2; min-width: 0; margin: -4px 0 0; }
   .list-meta { grid-column: 2; grid-row: 2; margin: -4px 0 0; }

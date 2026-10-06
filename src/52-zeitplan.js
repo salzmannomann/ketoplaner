@@ -59,6 +59,7 @@
     let sum = 0, vol = 0, n = 0;
     allRecipes().forEach(rec => {
       if (state.settings.hideKeto && rec.ketocal) return;
+      if (state.settings.onlyKeto && !state.settings.hideKeto && !rec.ketocal) return;
       const mv = computeMealView(rec, d, null); if (!mv.res.ok) return;
       sum += mv.fluid; vol += volumeMl(mv.res.items); n++;
     });

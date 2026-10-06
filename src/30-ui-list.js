@@ -134,13 +134,13 @@
   // Was die Liste außer der Gruppe noch bestimmt: Vorgaben, Suchtext, Schalter, Sortierung
   function listContext() {
     const s = state.settings, sq = document.getElementById("recipe-search");
-    return { d: derived(), q: ((sq || {}).value || "").trim().toLowerCase(), onlyQuelle: !!s.onlyQuelle, hideKeto: !!s.hideKeto, sort: s.sort || "kategorie" };
+    return { d: derived(), q: ((sq || {}).value || "").trim().toLowerCase(), onlyQuelle: !!s.onlyQuelle, hideKeto: !!s.hideKeto, onlyKeto: !!s.onlyKeto && !s.hideKeto, sort: s.sort || "kategorie" };
   }
   // Baut die Kacheln einer Gruppe in einen Behälter (echte Liste oder Nachbarfläche beim Wischen).
   // Jedes Rezept ist ein Eintrag – mit oder ohne KetoCal. Gerichte in beiden Fettbasen erscheinen zweimal
   // (gleicher Name, Schild zeigt die Fettbasis). Rezepte, die das Verhältnis nicht erreichen, entfallen.
   function fillRecipeList(list, filter, ctx) {
-    const { d, q, onlyQuelle, hideKeto, sort } = ctx;
+    const { d, q, onlyQuelle, hideKeto, onlyKeto, sort } = ctx;
     const hitItems = (r) => r.items.some(it => (it.food || "").toLowerCase().indexOf(q) !== -1);
     // Favoriten stehen immer oben – auch wenn eine Gruppe (Geflügel, Fisch …) gewählt ist. Suche und die Schalter
     // „nur Diätologie“ / „ohne KetoCal“ gelten für sie wie für alle anderen Rezepte.
@@ -149,6 +149,7 @@
       const name = familyOf(rec);
       if (onlyQuelle && !rec.quelle) return;
       if (hideKeto && rec.ketocal) return;
+      if (onlyKeto && !rec.ketocal) return; // „nur KetoCal“ (schließt „ohne KetoCal“ aus)
       if (isHidden(rec)) return; // ausgeblendete Standard-Rezepte (Vorgaben › Lebensmittel und Rezepte)
       const fav = isFav(rec);
       if (!fav && !matchesFilter(rec, filter)) return;
@@ -172,9 +173,9 @@
         const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
         b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
         box.appendChild(b);
-      } else if (onlyQuelle || hideKeto || q) {
+      } else if (onlyQuelle || hideKeto || onlyKeto || q) {
         const b = el("button", { type: "button", class: "tlink" }, "Filter zurücksetzen");
-        b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
+        b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; state.settings.onlyKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
       }
       return box;
@@ -267,10 +268,11 @@
     renderVorgaben(d);
     if (state.settings.view === "heute") renderHeute();
 
-    // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“ und „ohne KetoCal“.
+    // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“, „nur KetoCal“ und „ohne KetoCal“
+    // (die beiden KetoCal-Schalter schließen sich gegenseitig aus).
     const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
-    const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto;
+    const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto, onlyKeto = !!s.onlyKeto && !hideKeto;
     const fb = $("filter-bar");
     const prevScroll = fb.scrollLeft;
     fb.innerHTML = "";
@@ -284,12 +286,17 @@
     // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
     const dk = isDesktop(), tg = $("rz-toggles");
     if (tg) tg.innerHTML = "";
-    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
+    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["only-keto", "onlyKeto", "nur KetoCal"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
       const lab = dk && tg
         ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
         : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
       const cb = lab.querySelector("input");
-      cb.addEventListener("change", () => { state.settings[key] = cb.checked; save(); renderRezepte(); });
+      cb.addEventListener("change", () => {
+        state.settings[key] = cb.checked;
+        if (cb.checked && key === "onlyKeto") state.settings.hideKeto = false;
+        if (cb.checked && key === "hideKeto") state.settings.onlyKeto = false;
+        save(); renderRezepte();
+      });
       (dk && tg ? tg : fb).appendChild(lab);
     });
     if (activeChip && fb.clientWidth > 0 && fb.scrollWidth > fb.clientWidth) {
@@ -303,10 +310,10 @@
 
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
-    fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, sort });
+    fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, onlyKeto, sort });
     // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
     const lc = $("list-count"), n = num($("recipe-list").dataset.count);
-    const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
+    const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto && !onlyKeto ? " zur Verordnung" : " zur Auswahl");
     if (lc) lc.textContent = countTxt;
     const rc = $("rz-count"); if (rc) rc.textContent = countTxt;
     // Unter der Liste: ausgeblendete Standard-Rezepte und der Weg zurück

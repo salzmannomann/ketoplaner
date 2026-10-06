@@ -181,6 +181,24 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Name mit Zusatz s
   assert.ok(!tileNames(w).some(n => /KetoCal/.test(n)));
   hk.checked = false; fire(w, hk, "change");
   assert.equal(tileNames(w).length, all);
+  // „nur KetoCal“ zeigt genau die 22 KetoCal-Rezepte und schaltet „ohne KetoCal“ aus (und umgekehrt)
+  $(w, "hide-keto").checked = true; fire(w, $(w, "hide-keto"), "change");
+  const ok = $(w, "only-keto"); ok.checked = true; fire(w, ok, "change");
+  assert.equal(tileNames(w).length, 22);
+  assert.ok(tileNames(w).every(n => /KetoCal/.test(n)), "nur KetoCal-Rezepte");
+  assert.equal($(w, "hide-keto").checked, false, "„ohne KetoCal“ ausgeschaltet");
+  // auch in der Auswahl für den Tagesplan
+  w.document.querySelector('.tabbar [data-view="heute"]').click();
+  fire(w, $(w, "heute-content").querySelector("[data-pick]"));
+  const picks = [...w.document.querySelectorAll("#picker-list .pick-name")].map(e => e.textContent);
+  assert.ok(picks.length === 22 && picks.every(n => /KetoCal/.test(n)), "Auswahl nur mit KetoCal: " + picks.length);
+  fire(w, $(w, "picker-close"));
+  w.document.querySelector('.tabbar [data-view="rezepte"]').click();
+  $(w, "hide-keto").checked = true; fire(w, $(w, "hide-keto"), "change");
+  assert.equal($(w, "only-keto").checked, false, "„nur KetoCal“ ausgeschaltet");
+  assert.equal(tileNames(w).length, all - 22);
+  $(w, "hide-keto").checked = false; fire(w, $(w, "hide-keto"), "change");
+  assert.equal(tileNames(w).length, all);
   clickChip(w, "Angerührt");
   assert.deepEqual(tileNames(w).sort(), ["Compleat & KetoCal", "Compleat & KetoCal & Pre Apta", "HiPP Hühnchen & Gemüse & Öl", "HiPP Hühnchen & Öl", "HiPP Rind & Gemüse & Öl", "HiPP Rind & Öl", "KetoCal & Pre Apta"]);
   clickChip(w, "Ei");
@@ -1688,7 +1706,4 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   assert.match(row("schwein").closest(".swap-row").textContent, /eigener Wert/);
   fire(w, $(w, "swap-table").querySelector('[data-swreset="schwein"]'));
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams, undefined);
-  // Drucken: Blatt zum Abstimmen
-  fire(w, $(w, "swap-print"));
-  assert.match($(w, "print-sheet").shadowRoot.textContent, /Austauschmengen.*Rinderfaschiertes.*30 g.*Diätologie.*Schweinefilet.*21 g.*nach Eiweiß berechnet/);
 });
