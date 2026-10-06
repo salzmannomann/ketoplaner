@@ -230,12 +230,14 @@ test("Varianten: „Auch als“-Link öffnet das Geschwister-Rezept, Menge gilt 
   assert.ok(kitchenRows(c)["Rapsöl"] > 0 && kitchenRows(c)["Ketocal 3:1"] === undefined);
   const pin = c.querySelector("#portion-input"); pin.value = "4"; fire(w, pin, "change");
   c = $(w, "detail-content");
-  const link = c.querySelector("button[data-open-rec]");
+  const link = c.querySelector(".pane button[data-open-rec]");
   assert.ok(link && link.textContent === "Auch mit KetoCal", "Link zur KetoCal-Variante: " + (link && link.textContent));
+  assert.equal(c.querySelector(".detail-head .dh-sib").textContent, "auch mit KetoCal ›", "Hinweis auch im Kopf");
   assert.ok(![...c.querySelectorAll(".dh-tags .dh-tag")].some(t => /Rapsöl|Butter|KetoCal/.test(t.textContent)), "kein Fett-Schild im Detailkopf");
   fire(w, link);
   c = $(w, "detail-content");
-  assert.equal(c.querySelector("button[data-open-rec]").textContent, "Auch ohne KetoCal");
+  assert.equal(c.querySelector(".pane button[data-open-rec]").textContent, "Auch ohne KetoCal");
+  assert.equal(c.querySelector(".detail-head .dh-sib").textContent, "auch ohne KetoCal ›");
   assert.ok(![...c.querySelectorAll(".dh-tags .dh-tag")].some(t => /Rapsöl|Butter|KetoCal/.test(t.textContent)), "auch bei KetoCal kein Fett-Schild");
   const rows = kitchenRows(c);
   assert.ok(rows["Ketocal 3:1"] > 0 && rows["Rapsöl"] === undefined, "Geschwister-Rezept geöffnet");

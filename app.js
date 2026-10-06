@@ -2414,7 +2414,10 @@
     c.innerHTML =
       '<div class="sheet-grip" aria-hidden="true"></div>' +
       '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
-        headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") + "</div>" +
+        headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") +
+        // Gibt es das Gericht auch mit bzw. ohne KetoCal: gleich im Kopf sichtbar (öffnet das andere Rezept)
+        sibs.map(v => '<button type="button" class="tlink dh-sib" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' +
+          (!!v.ketocal !== !!rec.ketocal ? (v.ketocal ? "auch mit KetoCal" : "auch ohne KetoCal") : "auch als „" + escapeHtml(displayText(v)) + "“") + " ›</button>").join("") + "</div>" +
         '<h2 class="title">' + displayHtml(rec) + "</h2></div>" +
       pagerHead(DETAIL_PAGES, dtab, "detail-tabs") +
       '<div class="pages" id="detail-pages">' +

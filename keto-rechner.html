@@ -428,6 +428,7 @@ body.modal-open { overflow: hidden; position: fixed; left: 0; right: 0; width: 1
 #detail-content > .sheet-grip, #compose-content > .sheet-grip { margin: 8px auto 6px; }
 .detail-head { flex: none; display: flex; flex-direction: column; gap: 4px; margin: 0 20px; padding: 4px 56px 10px 0; border-bottom: 2px solid var(--ink); touch-action: pan-x; }
 .dh-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: var(--grey); }
+.dh-tags .dh-sib { min-width: 0; min-height: 28px; padding: 0; font-size: 12px; }
 .ratio-pill { display: inline-block; padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: 999px; font: 600 12px/1.4 var(--f-mono); color: var(--ink); white-space: nowrap; }
 .ratio-pill.warn, .ratio-pill.bad { border-color: var(--red); color: var(--red); }
 .detail-head .title { margin: 0; font: 600 28px/1.1 var(--f-serif); }
@@ -4814,7 +4815,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     c.innerHTML =
       '<div class="sheet-grip" aria-hidden="true"></div>' +
       '<div class="detail-head"><div class="dh-tags"><span class="ratio-pill ' + ratioClass(r, d.ratio) + '">' + fmtRxA(r, 2) + "</span>" +
-        headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") + "</div>" +
+        headTags.map(t => '<span class="dh-tag">' + t + "</span>").join("") +
+        // Gibt es das Gericht auch mit bzw. ohne KetoCal: gleich im Kopf sichtbar (öffnet das andere Rezept)
+        sibs.map(v => '<button type="button" class="tlink dh-sib" data-open-rec="' + escapeHtml(recipeKey(v)) + '">' +
+          (!!v.ketocal !== !!rec.ketocal ? (v.ketocal ? "auch mit KetoCal" : "auch ohne KetoCal") : "auch als „" + escapeHtml(displayText(v)) + "“") + " ›</button>").join("") + "</div>" +
         '<h2 class="title">' + displayHtml(rec) + "</h2></div>" +
       pagerHead(DETAIL_PAGES, dtab, "detail-tabs") +
       '<div class="pages" id="detail-pages">' +
