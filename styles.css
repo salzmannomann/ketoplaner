@@ -653,6 +653,8 @@ body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
 body.vg-sub .topbar { display: none; }
 body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top-gap)); }
 .vg-page { display: flex; flex-direction: column; gap: 14px; }
+/* Erklärtext direkt unter einer Feldzeile: dicht darunter wie andere Hinweise, danach normaler Abschnittsabstand */
+.vg-page > p.hint { margin: -8px 0 0; }
 .vg-back { align-self: flex-start; margin: 0 0 0 -6px; font-size: var(--t-m); text-decoration: none; }
 .vg-back:hover { text-decoration: underline; }
 .vg-head { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); margin-top: -4px; }

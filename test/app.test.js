@@ -1542,7 +1542,7 @@ test("Vorgaben: Liste mit Unterseiten; Verordnung gesperrt bis „Bearbeiten“,
   // Verordnung: Ansicht gesperrt, Werte mit Herkunft
   fire(w, d.querySelector('[data-vg="verordnung"]'));
   assert.equal($(w, "vo-editbox").hidden, true, "Felder erst nach „Bearbeiten“");
-  assert.match($(w, "vo-view").textContent, /Verhältnis \(Fett : Eiweiß \+ KH\)Verordnung1,8 : 1/);
+  assert.match($(w, "vo-view").textContent, /Verhältnis \(Fett : Eiweiß \+ KH\)1,8 : 1/, "ohne Untertitel „Verordnung“");
   assert.match($(w, "vo-view").textContent, /Kalorien pro TagVorschlag · 80 kcal\/kg640 kcal/);
   // Bearbeiten → Feld ändern → Abbrechen stellt den alten Stand her
   fire(w, $(w, "vo-edit"));

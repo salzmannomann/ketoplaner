@@ -1276,7 +1276,7 @@
     // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
     const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
     const rows = [
-      ["Verhältnis (Fett : Eiweiß + KH)", "Verordnung", fmtRx(d.ratio)],
+      ["Verhältnis (Fett : Eiweiß + KH)", "", fmtRx(d.ratio)], // ohne Untertitel – die Seite heißt schon „Verordnung“
       ["Mahlzeiten pro Tag", "", String(d.mahl)],
       ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
       ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],

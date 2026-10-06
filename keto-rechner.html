@@ -664,6 +664,8 @@ body.modal-open .toast { bottom: calc(env(safe-area-inset-bottom) + 84px); }
 body.vg-sub .topbar { display: none; }
 body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top-gap)); }
 .vg-page { display: flex; flex-direction: column; gap: 14px; }
+/* Erklärtext direkt unter einer Feldzeile: dicht darunter wie andere Hinweise, danach normaler Abschnittsabstand */
+.vg-page > p.hint { margin: -8px 0 0; }
 .vg-back { align-self: flex-start; margin: 0 0 0 -6px; font-size: var(--t-m); text-decoration: none; }
 .vg-back:hover { text-decoration: underline; }
 .vg-head { display: flex; align-items: flex-end; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); margin-top: -4px; }
@@ -1052,7 +1054,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
         <div id="vo-view" class="vo-view"></div>
         <div id="vo-editbox" class="vo-editbox" hidden>
           <div class="vo-row">
-            <div class="vo-lbl"><label for="set-ratio">Verhältnis (Fett : Eiweiß + KH)</label><span class="src">Verordnung</span></div>
+            <div class="vo-lbl"><label for="set-ratio">Verhältnis (Fett : Eiweiß + KH)</label></div>
             <div class="vo-in"><input id="set-ratio" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,8" /><span class="unit ratio-suffix">: 1</span></div>
           </div>
           <div class="vo-row">
@@ -1236,7 +1238,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
         <div class="vg-head"><div class="vg-title"><h2>Küche</h2></div></div>
         <div class="vo-rows">
           <div class="vo-row">
-            <div class="vo-lbl"><label for="set-verdunstung">Verdunstung beim Dämpfen</label><span class="src">für die Varoma-Anleitung</span></div>
+            <div class="vo-lbl"><label for="set-verdunstung">Verdunstung beim Dämpfen</label></div>
             <div class="vo-in"><input id="set-verdunstung" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="150" /><span class="unit">ml</span></div>
           </div>
         </div>
@@ -3757,7 +3759,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
     const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
     const rows = [
-      ["Verhältnis (Fett : Eiweiß + KH)", "Verordnung", fmtRx(d.ratio)],
+      ["Verhältnis (Fett : Eiweiß + KH)", "", fmtRx(d.ratio)], // ohne Untertitel – die Seite heißt schon „Verordnung“
       ["Mahlzeiten pro Tag", "", String(d.mahl)],
       ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
       ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
