@@ -97,6 +97,7 @@
     if (keep && changed) showToast("Verordnung gespeichert", [["Rückgängig", () => voRestore(snap)]]);
   }
   function renderVgList(d) {
+    if (typeof renderLebensmittel === "function") renderLebensmittel();
     const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
     put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
     put("vgs-fluessigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel");
@@ -214,10 +215,11 @@
     const box = document.getElementById("werte-list"); if (!box) return;
     const used = {};
     allRecipes().forEach(r => r.items.forEach(it => { used[it.food] = true; }));
+    (state.customFoods || []).forEach(f => { used[f.name] = true; }); // eigene immer zeigen – zur Freigabe durch die Diätologie
     const rows = Object.keys(used).sort((a, b) => a.localeCompare(b, "de")).map(name => {
       const f = lookup(name); if (!f) return "<tr><td>" + escapeHtml(name) + "</td><td colspan='5' class='ovr'>fehlt in der Liste</td></tr>";
       const ovr = f.kcal100 != null || name === "MCT-Öl C8+C10";
-      return "<tr><td>" + escapeHtml(name) + (ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
+      return "<tr><td>" + escapeHtml(name) + (f.custom ? " <span class='ovr'>eigen</span>" : ovr ? " <span class='ovr'>Etikett</span>" : "") + "</td><td>" + fmt(f.eiweiss) + "</td><td>" + fmt(f.fett) + "</td><td>" + fmt(f.kh) + "</td><td>" + fmt(kcal100Of(f), 0) + "</td><td>" + escapeHtml(f.kategorie || "") + "</td></tr>";
     }).join("");
     box.innerHTML = "<table class='werte-table'><thead><tr><th>Lebensmittel</th><th>Eiweiß</th><th>Fett</th><th>KH</th><th>kcal</th><th>Kategorie</th></tr></thead><tbody>" + rows + "</tbody></table>";
   }

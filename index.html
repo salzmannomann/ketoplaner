@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=4ca66a8b" />
+  <link rel="stylesheet" href="styles.css?v=d5f7b7c3" />
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -91,6 +91,7 @@
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="fluessigkeit"><span class="vg-txt"><span class="vg-name">Flüssigkeit</span><span class="vg-sum" id="vgs-fluessigkeit"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="oel"><span class="vg-txt"><span class="vg-name">Öl und MCT</span><span class="vg-sum" id="vgs-oel"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="lebensmittel"><span class="vg-txt"><span class="vg-name">Lebensmittel und Rezepte</span><span class="vg-sum" id="vgs-lebensmittel"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <div class="overline vg-group">App</div>
         <button type="button" class="vg-row" data-vg="kueche"><span class="vg-txt"><span class="vg-name">Küche</span><span class="vg-sum" id="vgs-kueche"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="app"><span class="vg-txt"><span class="vg-name">Erinnerungen und Daten</span><span class="vg-sum" id="vgs-app"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -231,6 +232,40 @@
           <details class="more"><summary class="tlink">Mehr dazu</summary>
             <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
           </details>
+        </div>
+      </div>
+
+      <!-- Unterseite Lebensmittel und Rezepte: eigene Lebensmittel (anlegen, bearbeiten, löschen) und ausgeblendete Rezepte -->
+      <div class="vg-page" data-vgpage="lebensmittel" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><h2>Lebensmittel und Rezepte</h2></div></div>
+        <div class="vg-sec" id="cf-card">
+          <h3 class="vg-sec-title">Eigene Lebensmittel <span class="hint">Werte je 100 g</span></h3>
+          <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unter „Werte prüfen“.</p>
+          <div id="cf-list" class="cf-list"></div>
+          <button type="button" class="tlink cf-add" id="cf-add">+ Lebensmittel anlegen</button>
+          <div class="cf-form" id="cf-form" hidden>
+            <div class="vo-rows">
+              <label class="vo-row"><span class="vo-lbl"><span>Name</span></span><span class="vo-in cf-name-in"><input id="cf-name" class="line-input" type="text" maxlength="60" autocomplete="off" placeholder="z. B. Mandelmus" /></span></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Gruppe</span><span class="src">für die Einordnung der Rezepte</span></span><select id="cf-kat" class="line-select"></select></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Eiweiß</span></span><span class="vo-in"><input id="cf-eiweiss" class="num-input" type="text" inputmode="decimal" placeholder="0" /><span class="unit">g</span></span></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Fett</span></span><span class="vo-in"><input id="cf-fett" class="num-input" type="text" inputmode="decimal" placeholder="0" /><span class="unit">g</span></span></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Kohlenhydrate</span></span><span class="vo-in"><input id="cf-kh" class="num-input" type="text" inputmode="decimal" placeholder="0" /><span class="unit">g</span></span></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Energie</span><span class="src">leer = aus Eiweiß, Fett, KH</span></span><span class="vo-in"><input id="cf-kcal" class="num-input" type="text" inputmode="decimal" /><span class="unit">kcal</span></span></label>
+              <label class="vo-row"><span class="vo-lbl"><span>Wasser</span><span class="src">leer = geschätzt</span></span><span class="vo-in"><input id="cf-wasser" class="num-input" type="text" inputmode="decimal" /><span class="unit">g</span></span></label>
+            </div>
+            <label class="checkrow cf-fat"><input type="checkbox" id="cf-fat" /> Als Fett zum Ausgleich anbieten (im Editor)</label>
+            <div id="cf-msg" class="note info" hidden></div>
+            <div class="btn-row cf-actions">
+              <button type="button" class="btn primary" id="cf-save">Speichern</button>
+              <button type="button" class="tlink" id="cf-cancel">Abbrechen</button>
+              <button type="button" class="tlink danger" id="cf-del" hidden>Löschen</button>
+            </div>
+          </div>
+        </div>
+        <div class="vg-sec" id="hidden-card">
+          <h3 class="vg-sec-title">Ausgeblendete Rezepte</h3>
+          <div id="hidden-list" class="cf-list"></div>
         </div>
       </div>
 
@@ -377,7 +412,7 @@
   <script src="recipes.js?v=dab57413"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=830980cb"></script>
+  <script src="app.js?v=19e17dd5"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

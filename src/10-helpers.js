@@ -8,7 +8,7 @@
   function isPanelWidth() { try { return !!(window.matchMedia && window.matchMedia(PANEL_MQ).matches); } catch (e) { return false; } }
   function isDesktop() { try { return !!(window.matchMedia && window.matchMedia(DESKTOP_MQ).matches); } catch (e) { return false; } }
   // Escape schließt nur die oberste Ebene: Druckvorschau vor Auswahl „Für heute“ vor Rezept-Auswahl vor Editor vor Rezept
-  const LAYERS = ["print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
+  const LAYERS = ["action-overlay", "print-overlay", "today-sheet", "picker-overlay", "compose-overlay", "detail-overlay"];
   function topLayer() {
     for (const id of LAYERS) { const el = document.getElementById(id); if (el && !el.hidden && (id !== "detail-overlay" || !el.closest("#rz-panel"))) return id; }
     return null;

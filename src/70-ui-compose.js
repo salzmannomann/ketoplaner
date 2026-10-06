@@ -1,12 +1,24 @@
   /* ---------- Eigenes Rezept (frei zusammenstellen) ---------- */
   const FAT_OPTIONS = ["Butter", "Streichgenuss (Schärdinger)", "Schlagobers NÖM", "Creme Fraîche NÖM", "Mascarpone Kärntnermilch", "Rapsöl", "Olivenöl", "MCT Nutricia (100%)", "Liquigen"];
   // Der Editor sieht aus wie die Detailansicht: fester Kopf, zwei Blätter (Zutaten · Mahlzeit), feste Aktionsleiste.
+  // Fette zum Ausgleich: die festen und eigene Lebensmittel, die als Fett markiert sind
+  function fatOptions() {
+    const own = (state.customFoods || []).filter(f => f.fat && lookup(f.name) && lookup(f.name).custom).map(f => f.name);
+    return FAT_OPTIONS.concat(own.filter(n => FAT_OPTIONS.indexOf(n) === -1));
+  }
   const COMPOSE_PAGES = [["zutaten", "Zutaten"], ["mahlzeit", "Mahlzeit"]];
   let composeTab = "zutaten";
 
   function buildFoodSelect(value, onChange) {
     const sel = el("select", { class: "food-select", "aria-label": "Lebensmittel" });
     sel.appendChild(el("option", { value: "" }, "Lebensmittel wählen"));
+    // Eigene Lebensmittel zuerst (eigene Gruppe), dann die Diätologen-Liste nach Kategorien
+    const own = (state.customFoods || []).filter(f => lookup(f.name) && lookup(f.name).custom);
+    if (own.length) {
+      const og = el("optgroup", { label: "Eigene Lebensmittel" });
+      own.forEach(f => { const o = el("option", { value: f.name }, f.name); if (f.name === value) o.selected = true; og.appendChild(o); });
+      sel.appendChild(og);
+    }
     const byCat = {};
     FOODS_DEFAULT.forEach(f => { (byCat[f.kategorie] = byCat[f.kategorie] || []).push(f); });
     Object.keys(byCat).sort().forEach(cat => {
@@ -107,7 +119,7 @@
       compose.fats.forEach((ft, i) => {
         const row = el("div", { class: "compose-row" });
         const sel = el("select", { class: "food-select", "aria-label": "Fett zum Ausgleich" });
-        FAT_OPTIONS.forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
+        fatOptions().forEach(n => { const o = el("option", { value: n }, n); if (n === ft.food) o.selected = true; sel.appendChild(o); });
         sel.value = ft.food;
         sel.addEventListener("change", () => { ft.food = sel.value; recompute(); });
         row.appendChild(sel);

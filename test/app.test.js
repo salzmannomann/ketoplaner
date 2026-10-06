@@ -780,7 +780,7 @@ test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MC
   let c = openRecipe(w, "Hendl & Brokkoli");
   const st = () => c.querySelector(".pane[data-pane=anpassen] .portion-line").textContent;
   assert.match(st(), /^Wie im Rezept · Fleisch gilt nur in dieser Ansicht · der MCT-Anteil ist die Vorgabe für alle Rezepte$/);
-  assert.deepEqual([...c.querySelectorAll(".pane[data-pane=anpassen] .overline")].map(o => o.textContent), ["Fleisch", "MCT-Anteil am Öl"]);
+  assert.deepEqual([...c.querySelectorAll(".pane[data-pane=anpassen] .overline")].map(o => o.textContent), ["Fleisch", "MCT-Anteil am Öl", "Standard-Rezept"]);
   assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent, /^Gilt nur für diese Ansicht/);
   assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap.oil .adj-text").textContent, /^Gilt für alle Rezepte mit Öl, wie unter Vorgaben/);
   // Fleisch tauschen → Statuszeile + ↺ wie im Rezept
@@ -1508,7 +1508,7 @@ test("Vorgaben: Liste mit Unterseiten; Verordnung gesperrt bis „Bearbeiten“,
   const w = boot({ settings: { view: "vorgaben", weight: 8, ratio: 1.8, mahlzeiten: 5, mctShare: 0.1, kcal: "", kcalMin: "" } });
   const d = w.document;
   assert.equal($(w, "vg-list").hidden, false);
-  assert.deepEqual([...d.querySelectorAll("#vg-list .vg-name")].map(e => e.textContent), ["Verordnung", "Flüssigkeit", "Öl und MCT", "Küche", "Erinnerungen und Daten"]);
+  assert.deepEqual([...d.querySelectorAll("#vg-list .vg-name")].map(e => e.textContent), ["Verordnung", "Flüssigkeit", "Öl und MCT", "Lebensmittel und Rezepte", "Küche", "Erinnerungen und Daten"]);
   assert.equal($(w, "vgs-verordnung").textContent, "1,8 : 1 · 640 kcal");
   assert.equal($(w, "vgs-oel").textContent, "MCT 10 %");
   // Unterseite öffnen und zurück
@@ -1566,4 +1566,86 @@ test("Tagesplan: Mahlzeiten anordnen (Alt+↑/↓ wie Ziehen) – andere rücken
   assert.deepEqual(keys(), ["std:Hendl & Zucchini", "std:Ei & Spinat", "std:Lachs & Brokkoli", null], "auch auf einen leeren Platz");
   key(row(0), "ArrowUp");
   assert.equal(keys()[0], "std:Hendl & Zucchini", "über den ersten Platz hinaus passiert nichts");
+});
+
+test("Eigene Lebensmittel: anlegen, im Editor und als Fett wählbar, umbenennen zieht Rezepte mit, Löschen gesperrt solange verwendet", () => {
+  const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5, view: "vorgaben" } });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  const put = (id, v) => { const e = $(w, id); e.value = v; fire(w, e, "input"); };
+  assert.match($(w, "vgs-lebensmittel").textContent, /keine eigenen Lebensmittel/);
+  // anlegen: Mandelmus als Fett
+  fire(w, $(w, "cf-add")); assert.ok(!$(w, "cf-form").hidden);
+  put("cf-name", "Mandelmus"); put("cf-eiweiss", "21"); put("cf-fett", "55,5"); put("cf-kh", "7");
+  assert.equal($(w, "cf-kcal").placeholder, "612", "kcal-Vorschlag aus 4/9/4");
+  $(w, "cf-fat").checked = true;
+  fire(w, $(w, "cf-save"));
+  assert.deepEqual(st().customFoods, [{ name: "Mandelmus", kategorie: "Eigene", eiweiss: 21, fett: 55.5, kh: 7, fat: true }]);
+  assert.match($(w, "cf-list").textContent, /Mandelmus.*E 21,0 · F 55,5 · KH 7,0 g · 612 kcal/);
+  // doppelter Name und unsinnige Werte werden abgelehnt
+  fire(w, $(w, "cf-add")); put("cf-name", "butter"); put("cf-fett", "80"); fire(w, $(w, "cf-save"));
+  assert.match($(w, "cf-msg").textContent, /gibt es schon/); assert.ok($(w, "cf-msg").classList.contains("warn"));
+  put("cf-name", "Nussmischung"); put("cf-eiweiss", "50"); put("cf-fett", "60"); fire(w, $(w, "cf-save"));
+  assert.match($(w, "cf-msg").textContent, /nicht mehr als 100 g/);
+  fire(w, $(w, "cf-cancel")); assert.ok($(w, "cf-form").hidden);
+  // im Editor: als Zutat (eigene Gruppe) und als Fett zum Ausgleich
+  fire(w, $(w, "compose-btn"));
+  const c = $(w, "compose-content");
+  const sel = c.querySelector("#compose-rows .food-select");
+  assert.equal(sel.querySelector("optgroup").label, "Eigene Lebensmittel");
+  assert.ok([...c.querySelectorAll("#compose-fats .food-select option")].some(o => o.value === "Mandelmus"), "als Fett wählbar");
+  sel.value = "Hühnerbrust ohne Haut"; fire(w, sel, "change");
+  const fs = c.querySelector("#compose-fats .food-select"); fs.value = "Mandelmus"; fire(w, fs, "change");
+  assert.match(c.querySelector(".ing-row.fatrow").textContent, /Mandelmus.*stellt das Verhältnis ein/);
+  const nm = c.querySelector("#compose-name"); nm.value = "Hendl mit Mandel"; fire(w, nm, "input");
+  fire(w, c.querySelector("#compose-save")); fire(w, $(w, "compose-close"));
+  assert.ok(st().savedRecipes[0].items.some(it => it.food === "Mandelmus"));
+  // umbenennen: das eigene Rezept rechnet mit dem neuen Namen weiter
+  fire(w, $(w, "cf-list").querySelector('[data-cf="Mandelmus"]'));
+  put("cf-name", "Mandelmus weiß"); fire(w, $(w, "cf-save"));
+  assert.ok(st().savedRecipes[0].items.some(it => it.food === "Mandelmus weiß") && !st().savedRecipes[0].items.some(it => it.food === "Mandelmus"));
+  // löschen gesperrt, solange das Rezept (bzw. der Entwurf) es verwendet
+  fire(w, $(w, "cf-list").querySelector("[data-cf]")); fire(w, $(w, "cf-del"));
+  assert.match($(w, "cf-msg").textContent, /Wird in „Hendl mit Mandel“.*verwendet/);
+  assert.equal(st().customFoods.length, 1, "nicht gelöscht");
+});
+
+test("Rezepte ausblenden (Standard) und löschen (eigene): ohne Rückfrage, mit Rückgängig, Liste zum Einblenden", () => {
+  const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5, view: "rezepte" }, favorites: ["std:Hendl & Brokkoli"],
+    savedRecipes: [{ key: "cus:1", name: "Mein Brei", items: [{ food: "Hühnerbrust ohne Haut", grams: 20 }, { food: "Karfiol gekocht", grams: 40 }, { food: "Butter", grams: 8 }] }],
+    dayPlan: [{ key: "cus:1" }, { key: "std:Hendl & Brokkoli" }, { key: null }, { key: null }, { key: null }] });
+  w.confirm = () => { throw new Error("keine Rückfrage"); };
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  const names = () => tiles(w).map(t => t.querySelector(".tile-name").textContent);
+  // Standard-Rezept ausblenden (Blatt Anpassen)
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  fire(w, c.querySelector("#hide-btn"));
+  assert.ok(!names().includes("Hendl & Brokkoli"), "nicht mehr in der Liste");
+  assert.deepEqual(st().hiddenRecipes, ["std:Hendl & Brokkoli"]);
+  assert.match($(w, "recipe-list").textContent, /1 Rezept ist ausgeblendet/);
+  assert.match($(w, "hidden-list").textContent, /Hendl & Brokkoli/);
+  assert.equal(st().dayPlan[1].key, "std:Hendl & Brokkoli", "Tagesplan bleibt");
+  fire(w, $(w, "hidden-list").querySelector("[data-unhide]"));
+  assert.ok(names().includes("Hendl & Brokkoli") && st().hiddenRecipes.length === 0, "wieder eingeblendet");
+  // eigenes Rezept löschen und zurückholen
+  c = openRecipe(w, "Mein Brei");
+  fire(w, c.querySelector("#del-btn"));
+  assert.ok(!names().includes("Mein Brei")); assert.equal(st().savedRecipes.length, 0); assert.equal(st().dayPlan[0].key, null);
+  assert.match($(w, "toast").textContent, /„Mein Brei“ gelöscht/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.ok(names().includes("Mein Brei")); assert.equal(st().dayPlan[0].key, "cus:1", "Rückgängig stellt auch den Tagesplan her");
+  // Kurzmenü per Rechtsklick (Finger: langes Drücken)
+  const t = tiles(w).find(x => x.querySelector(".tile-name").textContent === "Hendl & Erbsen");
+  t.dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  assert.ok(!$(w, "action-overlay").hidden); assert.match($(w, "action-overlay").textContent, /Hendl & Erbsen.*Ausblenden/);
+  fire(w, $(w, "action-overlay").querySelector("[data-act]"));
+  assert.ok($(w, "action-overlay").hidden && !names().includes("Hendl & Erbsen"));
+});
+
+test("Backup und Abgleich: eigene Lebensmittel und ausgeblendete Rezepte werden geprüft übernommen", () => {
+  const w = boot({ customFoods: [{ name: " Leinöl ", fett: 99.9, eiweiss: -1, fat: 1 }, { name: "" }, "kaputt", { name: "leinöl", fett: 5 }], hiddenRecipes: ["std:Hendl & Erbsen", 7] });
+  const st = JSON.parse(w.localStorage.getItem("ketoplaner.v5") || "{}");
+  assert.ok(!tiles(w).some(t => t.querySelector(".tile-name").textContent === "Hendl & Erbsen"), "ausgeblendet");
+  w.document.querySelector('[data-vg="lebensmittel"]').click();
+  assert.match($(w, "cf-list").textContent, /Leinöl.*E 0,0 · F 99,9/);
+  assert.equal($(w, "cf-list").querySelectorAll("[data-cf]").length, 1, "doppelte und kaputte Einträge verworfen");
 });

@@ -568,7 +568,9 @@
       ((basisSeg || meatSeg || oilSeg) ? '<div class="portion-line">' + anpassenStatus + '</div>' : "") +
       meatSeg + oilSeg + basisSeg +
       (!(basisSeg || meatSeg || oilSeg) ? '<div class="note info">Für dieses Gericht gibt es nichts umzuschalten.</div>' : "") +
-      (rec.custom ? '<div class="adj-block"><div class="overline">Eigenes Rezept</div><button type="button" class="tlink danger" id="del-btn">Rezept löschen</button></div>' : "") +
+      (rec.custom ? '<div class="adj-block"><div class="overline">Eigenes Rezept</div><button type="button" class="tlink danger" id="del-btn">Rezept löschen</button></div>'
+        : '<div class="adj-block"><div class="overline">Standard-Rezept</div><button type="button" class="tlink" id="hide-btn">Ausblenden</button>' +
+          '<span class="hint">Zurückholen unter Vorgaben › Lebensmittel und Rezepte.</span></div>') +
       paneClose +
 
       /* ---------- 4 Kochen: Kennzahlen zum Abfüllen, darunter die Schritte ---------- */
@@ -675,19 +677,11 @@
       renderRezepte();
     });
     actions.appendChild(favBtn);
+    // Eigenes Rezept löschen bzw. Standard-Rezept ausblenden – ohne Rückfrage, mit „Rückgängig“
     const del = c.querySelector("#del-btn");
-    if (del) del.addEventListener("click", () => {
-      if (confirm("Eigenes Rezept „" + displayText(rec) + "“ wirklich löschen?")) {
-        state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
-        const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
-        // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
-        const fk = familyKey(rec);
-        [state.portion, state.water, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
-        state.dayPlan.forEach(sl => { if (sl && sl.key === rec.key) sl.key = null; });
-        if (state.compose && state.compose.editKey === rec.key) state.compose.editKey = null;
-        save(); closeDetail(); renderRezepte();
-      }
-    });
+    if (del) del.addEventListener("click", () => { closeDetail(); deleteCustomRecipe(rec); });
+    const hide = c.querySelector("#hide-btn");
+    if (hide) hide.addEventListener("click", () => { closeDetail(); hideRecipe(rec); });
     // Nährwerte je Zutat ein-/ausblenden (gemerkt, gilt für beide Blätter)
     c.querySelectorAll(".nw-cb").forEach(cb => cb.addEventListener("change", () => {
       state.settings.detailNutr = cb.checked; save();

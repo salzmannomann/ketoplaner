@@ -149,6 +149,7 @@
       const name = familyOf(rec);
       if (onlyQuelle && !rec.quelle) return;
       if (hideKeto && rec.ketocal) return;
+      if (isHidden(rec)) return; // ausgeblendete Standard-Rezepte (Vorgaben › Lebensmittel und Rezepte)
       const fav = isFav(rec);
       if (!fav && !matchesFilter(rec, filter)) return;
       // Suche findet Anzeige- und vollen Datennamen (also auch „ketocal“, „obstbrei“) und Zutaten
@@ -308,6 +309,13 @@
     const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto ? " zur Verordnung" : " zur Auswahl");
     if (lc) lc.textContent = countTxt;
     const rc = $("rz-count"); if (rc) rc.textContent = countTxt;
+    // Unter der Liste: ausgeblendete Standard-Rezepte und der Weg zurück
+    const hid = (state.hiddenRecipes || []).filter(k => recipeByKey(k)).length;
+    if (hid) {
+      const p = el("p", { class: "cf-empty hidden-note" }, hid + (hid === 1 ? " Rezept ist" : " Rezepte sind") + ' ausgeblendet · <button type="button" class="tlink">anzeigen</button>');
+      p.querySelector("button").addEventListener("click", () => { showView("vorgaben"); showVgPage("lebensmittel"); });
+      $("recipe-list").appendChild(p);
+    }
     if (typeof syncDetailPanel === "function") syncDetailPanel();
   }
   // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)

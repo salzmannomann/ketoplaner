@@ -449,6 +449,7 @@
     const recs = allRecipes()
       .map(rec => ({ fam: { name: familyOf(rec) }, rec }))
       .filter(x => !state.settings.hideKeto || !x.rec.ketocal)
+      .filter(x => !isHidden(x.rec))
       .filter(x => !q || (x.rec.name + " " + x.fam.name).toLowerCase().indexOf(q) !== -1 || hitItems(x.rec))
       .map(x => Object.assign(x, { res: computeAdjustedRecipe(x.rec, d.kcalMahl, d.ratio) })).filter(x => x.res.ok)
       .map(x => Object.assign(x, { res: computeMealView(x.rec, d, null).res }))

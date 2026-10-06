@@ -12,6 +12,8 @@
       portion: {}, // Portion angepasst (Blatt Mahlzeit/Tag): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
+      customFoods: [], // eigene Lebensmittel (Werte je 100 g vom Etikett), auf Wunsch auch als Fett zum Ausgleich
+      hiddenRecipes: [], // ausgeblendete Standard-Rezepte (Rezept-Schlüssel)
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -58,6 +60,17 @@
       .map(r => Object.assign({}, r, { items: cleanItems(r.items, "grams").filter(it => it.food) })).filter(r => r.items.length);
   }
   function cleanFavorites(list) { return (Array.isArray(list) ? list : []).filter(k => typeof k === "string"); }
+  // Eigene Lebensmittel: Name Pflicht, Nährwerte je 100 g nicht negativ; kcal und Wasser nur, wenn angegeben
+  function cleanCustomFoods(list) {
+    const seen = {};
+    return (Array.isArray(list) ? list : []).filter(f => isObj(f) && typeof f.name === "string" && f.name.trim()).map(f => {
+      const n = (v) => Math.max(0, isFinite(Number(v)) ? Number(v) : 0);
+      const o = { name: f.name.trim(), kategorie: typeof f.kategorie === "string" && f.kategorie ? f.kategorie : "Eigene", eiweiss: n(f.eiweiss), fett: n(f.fett), kh: n(f.kh), fat: !!f.fat };
+      if (f.kcal100 != null && f.kcal100 !== "" && Number(f.kcal100) > 0) o.kcal100 = Number(f.kcal100);
+      if (f.wasser != null && f.wasser !== "" && isFinite(Number(f.wasser))) o.wasser = n(f.wasser);
+      return o;
+    }).filter(f => { const k = f.name.toLowerCase(); if (seen[k]) return false; seen[k] = true; return true; });
+  }
   function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
@@ -97,6 +110,8 @@
         portion: remapKeys(cleanNumMap(p.portion)),
         dayPlan: cleanDayPlan(p.dayPlan).map(sl => ({ key: renameKey(sl.key) || null })),
         basis: isObj(p.basis) ? p.basis : {},
+        customFoods: cleanCustomFoods(p.customFoods),
+        hiddenRecipes: cleanFavorites(p.hiddenRecipes),
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.

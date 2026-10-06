@@ -15,8 +15,14 @@
         kcal100: num(s.mctKcal100) > 0 ? num(s.mctKcal100) : 830,
       });
     }
+    addCustomFoods();
   }
   function lookup(name) { return foodIndex[name] || null; }
+  // Eigene Lebensmittel (Vorgaben › Lebensmittel und Rezepte) kommen dazu – Namen der Diätologen-Liste haben Vorrang.
+  function addCustomFoods() {
+    const list = (typeof state !== "undefined" && state && Array.isArray(state.customFoods)) ? state.customFoods : [];
+    list.forEach(f => { if (!foodIndex[f.name]) foodIndex[f.name] = Object.assign({ pro: 100 }, f, { custom: true }); });
+  }
   // kcal je 100 g: explizite Etikett-Angabe (kcal100) geht vor der 4/9/4-Formel.
   function kcal100Of(f) { return f.kcal100 != null ? f.kcal100 : 4 * f.eiweiss + 9 * f.fett + 4 * f.kh; }
 

@@ -7,6 +7,7 @@
     bindPush();
     bindSync();
     bindBedarf();
+    bindLebensmittel();
     bindDetail();
     bindCompose();
     bindHeute();

@@ -635,6 +635,37 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .push-lead { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--grey); }
 .push-url-lbl { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--grey); }
 .push-act .btn-row .btn.primary, .vg-sec .btn-row .btn.primary { flex: none; }
+/* Lebensmittel und Rezepte: Liste eigener Lebensmittel (Zeile tippbar → bearbeiten), Formular, ausgeblendete Rezepte */
+.cf-list { display: flex; flex-direction: column; }
+.cf-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; margin: 0; padding: 8px 0; border: 0; border-bottom: 1px dotted var(--dot);
+  border-radius: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.cf-row .cf-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cf-row .cf-n { font: 600 17px/1.2 var(--f-serif); }
+.cf-row .cf-v { font: 500 12px var(--f-mono); color: var(--grey); }
+.cf-row .cf-g { font-size: 12px; color: var(--grey); }
+.cf-row .cf-tag { font-size: 12px; color: var(--grey); white-space: nowrap; }
+button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3px; }
+.cf-row .tlink { flex: none; }
+.cf-empty { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--grey); }
+.cf-add { align-self: flex-start; padding: 0; min-width: 0; }
+.cf-form { display: flex; flex-direction: column; gap: 10px; }
+.cf-form[hidden], .cf-add[hidden] { display: none; }
+.cf-form .vo-rows { margin-top: 0; }
+.cf-name-in { flex: 1 1 60%; max-width: 60%; }
+.cf-name-in .line-input { min-height: 40px; font: 600 16px var(--f-sans); }
+.cf-fat { font-size: 14px; color: var(--ink); }
+.cf-actions { align-items: center; }
+/* Kurzmenü (langes Drücken auf ein Rezept): unten als Blatt, am Desktop mittig */
+#action-overlay .overlay-card { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; padding: 8px 20px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0; box-shadow: 0 -8px 30px rgba(42,38,33,.25); }
+#action-overlay .act-title { margin: 8px 0 2px; font: 600 21px/1.2 var(--f-serif); }
+#action-overlay .act-sub { margin: 0 0 8px; font-size: 13px; color: var(--grey); }
+#action-overlay .act-btn { display: block; width: 100%; min-height: 54px; margin: 0; padding: 0; border: 0; border-top: 1px dotted var(--dot); border-radius: 0;
+  background: transparent; color: var(--ink); font: 600 17px var(--f-sans); text-align: left; cursor: pointer; }
+#action-overlay .act-btn.danger { color: var(--red); }
+#action-overlay .act-cancel { width: 100%; margin-top: 10px; }
+@media (min-width: 821px) { #action-overlay .overlay-card { top: 30vh; bottom: auto; border: 2px solid var(--ink); border-radius: 12px; box-shadow: none; padding-bottom: 18px; } }
+.tile { -webkit-touch-callout: none; }
 /* Geräte abgleichen */
 .sync-code-box .sync-code { font: 600 22px var(--f-mono); letter-spacing: .08em; color: var(--ink); }
 .sync-join { padding-top: 10px; border-top: 1px dotted var(--dot); }
