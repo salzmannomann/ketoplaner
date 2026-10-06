@@ -1815,3 +1815,52 @@ test("Rezept aus dem Tagesplan als Fenster (Handy / schmal): Uhrzeit im Kopf, �
   openRecipe(w, "Hendl & Zucchini · mit KetoCal");
   assert.ok($(w, "today-btn") && !ov.querySelector(".dh-when"));
 });
+
+test("Eine Mahlzeit im Tagesplan für sich ändern: Gramm und Fleisch nur für diese Uhrzeit, ↺ zurück zum Rezept, wandert beim Verschieben mit", () => {
+  const w = boot({ settings: { view: "heute", weight: 8, ratio: 1.8, mahlzeiten: 4, kcal: 700, mctShare: 0 },
+    dayPlan: [{ key: "std:Compleat & KetoCal" }, { key: "std:Hendl & Zucchini" }, { key: "std:Compleat & KetoCal" }, { key: null }] });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  const row = (i) => w.document.querySelector('#heute-content .zp-row.slot[data-open="' + i + '"]');
+  const ing = (i, re) => { const r = [...row(i).querySelectorAll(".zp-ing *")].find(e => e.children.length === 0 && re.test(e.textContent)); return r && r.parentElement.textContent; };
+  const g0 = ing(0, /Compleat/);
+  // Compleat um 14:00 (Platz 3) öffnen und eine Menge ändern
+  fire(w, row(2));
+  let c = $(w, "detail-content");
+  assert.match(c.querySelector(".dh-when").textContent, /^Mahlzeit um /);
+  assert.match(c.querySelector(".foot-hint").textContent, /Änderungen gelten nur für die Mahlzeit um/);
+  const inp = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].find(r => /Compleat/.test(r.textContent)).querySelector("input.g-edit");
+  inp.value = String(Math.round(parseFloat(inp.value.replace(",", ".")) * 1.2)); fire(w, inp, "change");
+  assert.ok(st().dayPlan[2].portion > 1.1, "Faktor bei dieser Mahlzeit"); assert.deepEqual(st().portion, {}, "nichts beim Rezept");
+  assert.equal(ing(0, /Compleat/), g0, "7:00 unverändert");
+  assert.notEqual(ing(2, /Compleat/), g0, "14:00 geändert");
+  assert.match(row(2).querySelector(".zp-name").textContent, /· eigene Menge/);
+  c = $(w, "detail-content");
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .portion-line").textContent, /gilt nur für .*↺ zurück zum Rezept/);
+  // ↺ zurück zum Rezept, mit Rückgängig
+  fire(w, c.querySelector(".slot-reset"));
+  assert.equal(st().dayPlan[2].portion, undefined); assert.equal(ing(2, /Compleat/), g0);
+  [...w.document.querySelectorAll(".toast button")].find(b => /Rückgängig/.test(b.textContent)).click();
+  assert.ok(st().dayPlan[2].portion > 1.1, "Rückgängig holt die Änderung zurück");
+  fire(w, $(w, "detail-close"));
+  // Fleisch nur für diese Mahlzeit tauschen: bleibt im Plan, Name „· mit Pute“, Zutat Putenbrust
+  fire(w, row(1)); c = $(w, "detail-content");
+  fire(w, c.querySelector('.meat-swap button[data-meat="pute"]'));
+  assert.equal(st().dayPlan[1].meat, "pute");
+  assert.match(row(1).querySelector(".zp-name").textContent, /Hendl & Zucchini · mit Pute/);
+  assert.match(row(1).querySelector(".zp-ing").textContent, /Putenbrust/);
+  c = $(w, "detail-content");
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .adj-text").textContent, /^Gilt nur für die Mahlzeit um/);
+  fire(w, $(w, "detail-close"));
+  // Aus Rezepte geöffnet: das Rezept wie gewohnt (Huhn, Standardmenge)
+  w.document.querySelector('.tabbar [data-view="rezepte"]').click();
+  c = openRecipe(w, "Hendl & Zucchini");
+  assert.ok(!c.querySelector(".dh-when")); assert.ok(c.querySelector('.meat-swap button[data-meat="huhn"]').classList.contains("active"));
+  fire(w, $(w, "detail-close"));
+  // Verschieben: die Änderungen wandern mit; anderes Rezept wählen lässt sie fallen
+  w.document.querySelector('.tabbar [data-view="heute"]').click();
+  row(1).dispatchEvent(new w.KeyboardEvent("keydown", { key: "ArrowDown", altKey: true, bubbles: true }));
+  assert.equal(st().dayPlan[2].meat, "pute"); assert.equal(st().dayPlan[1].portion > 1.1, true);
+  fire(w, row(2).querySelector("[data-pick]"));
+  fire(w, [...w.document.querySelectorAll("#picker-list [data-key]")].find(b => b.dataset.key !== "std:Hendl & Zucchini"));
+  assert.equal(st().dayPlan[2].meat, undefined, "anderes Rezept: eigene Änderungen fallen weg");
+});

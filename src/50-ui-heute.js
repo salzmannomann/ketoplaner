@@ -1,18 +1,18 @@
   /* ---------- Heute: Tagesplan ---------- */
   // Weniger Mahlzeiten: die hinteren Plätze werden für diese Sitzung gemerkt und kommen zurück, wenn die Zahl wieder
   // steigt (z. B. nach „Abbrechen“ oder „Rückgängig“ in der Verordnung).
-  let dayPlanCut = {}; // Platz-Nummer → Rezept-Schlüssel der weggefallenen Plätze
+  let dayPlanCut = {}; // Platz-Nummer → weggefallener Platz (Rezept und eigene Änderungen)
   function ensureDayPlan(d) {
     if (!Array.isArray(state.dayPlan)) state.dayPlan = [];
     let restored = false;
     while (state.dayPlan.length < d.mahl) {
       const i = state.dayPlan.length;
       if (dayPlanCut[i]) restored = true;
-      state.dayPlan.push({ key: dayPlanCut[i] || null }); delete dayPlanCut[i];
+      state.dayPlan.push(dayPlanCut[i] || { key: null }); delete dayPlanCut[i];
     }
     if (restored) save(); // sonst ginge der zurückgeholte Plan beim Neuladen wieder verloren
     if (state.dayPlan.length > d.mahl) {
-      state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = sl.key; });
+      state.dayPlan.slice(d.mahl).forEach((sl, j) => { if (sl && sl.key) dayPlanCut[d.mahl + j] = slotCopy(sl); });
       state.dayPlan.length = d.mahl;
     }
   }
@@ -48,7 +48,7 @@
     const sl = state.dayPlan[i]; if (!sl || !rec || sl.key !== recipeKey(rec)) return null;
     const t = fmtHM(zeitTimes(derived()).meals[i]), n = panel ? planNext() : null;
     const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
-    return { i, label, panel };
+    return { i, label, panel, t };
   }
   function markPlanSel(i) {
     document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("sel", i != null && num(r.dataset.open) === i));
@@ -81,6 +81,14 @@
     ov.hidden = false;
     if (!slot.contains(document.activeElement)) renderDetail();
   }
+  // Zusatz zum Namen einer Mahlzeit mit eigenen Änderungen: „mit Pute“ (Fleisch/Fisch getauscht) und/oder „eigene Menge“
+  function slotNote(sl, f) {
+    if (!sl || !f) return "";
+    const out = [], ms = sl.meat ? recipeMeatSlot(f.rec) : null, it = ms && sl.meat !== ms.baseKey ? swapItem(sl.meat) : null;
+    if (it && f.res.items.some(x => x.food === it.food)) out.push("mit " + it.label);
+    if (sl.portion != null || sl.water != null) out.push("eigene Menge");
+    return out.join(" · ");
+  }
   // Heute (Küchenzettel): eine Zeitleiste für den ganzen Tag. Jede Mahlzeit mit Uhrzeit, Rezeptname, Menge und
   // Dauer, darunter die Zutaten einer Portion als kleine Grammtabelle; ganze Zeile tippbar → Rezept, „tauschen“ →
   // Auswahl (dort auch „Leeren“). Offene Mahlzeiten kursiv mit „wählen“. Dazwischen Wassergaben (blau, gepunktet)
@@ -111,6 +119,7 @@
         return;
       }
       const f = m.f; facts.push(f);
+      const note = slotNote(slot, f);
       tot.kcal += f.sum.kcal; tot.eiweiss += f.sum.eiweiss; tot.fett += f.sum.fett; tot.kh += f.sum.kh;
       tot.mct += f.gMct; tot.raps += f.gRaps; tot.fluid += f.fluid || 0; tot.filled++;
       const ps = proteinState(f.sum.eiweiss, d.eiweissMahl);
@@ -121,7 +130,7 @@
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
-        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + '</span>' +
+        '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + (note ? '<span class="name-suffix slot-note"> · ' + escapeHtml(note) + '</span>' : '') + '</span>' +
           '<span class="zp-vol' + (big ? ' big' : '') + '" title="' + (big ? 'mehr als ' + fmt(d.maxMahlMl, 0) + ' ml auf einmal (25 ml/kg) – mehr Mahlzeiten oder mit dem Team abklären · ' : '') + 'langsam sondieren, etwa ' + SONDIER_ML_MIN + ' ml pro Minute">' +
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
           warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + '</span>' +
@@ -220,7 +229,7 @@
     const cd = box.querySelector("#clear-day");
     if (cd) cd.addEventListener("click", () => {
       if (!state.dayPlan.some(sl => sl && sl.key)) return;
-      const prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
+      const prev = state.dayPlan.map(slotCopy);
       state.dayPlan = state.dayPlan.map(() => ({ key: null })); save(); renderRezepte();
       showToast("Tagesplan geleert", [["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }]]);
     });
@@ -304,8 +313,9 @@
     ensureDayPlan(derived());
     const n = state.dayPlan.length;
     if (from === to || from < 0 || to < 0 || from >= n || to >= n) return;
-    const prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
-    const arr = prev.map(sl => ({ key: sl.key })), item = arr.splice(from, 1)[0];
+    // eigene Änderungen der Mahlzeit wandern mit
+    const prev = state.dayPlan.map(slotCopy);
+    const arr = prev.map(slotCopy), item = arr.splice(from, 1)[0];
     arr.splice(to, 0, item);
     // Die im Panel gewählte Mahlzeit wandert mit
     if (planPick === from) planPick = to;
@@ -412,10 +422,10 @@
   }
   // Eine Mahlzeit leeren – mit „Rückgängig“ (aus der Auswahl heraus, „Leeren“, oder per Wisch).
   function clearSlot(i) {
-    const prev = state.dayPlan[i] ? state.dayPlan[i].key : null;
+    const prev = slotCopy(state.dayPlan[i]);
     if (planPick === i) planPick = null;
     state.dayPlan[i] = { key: null }; save(); renderHeute();
-    showToast("Mahlzeit " + (i + 1) + " geleert", [["Rückgängig", () => { state.dayPlan[i] = { key: prev }; save(); renderHeute(); }]]);
+    showToast("Mahlzeit " + (i + 1) + " geleert", [["Rückgängig", () => { state.dayPlan[i] = prev; save(); renderHeute(); }]]);
   }
   // Hinweiszeile unter der Zeitleiste: „▲ …“, Warnung rot, Info grau.
   function hintLine(kind, html, title) { return '<div class="hint ' + kind + '"' + (title ? ' title="' + escapeHtml(title) + '"' : '') + '>▲ ' + html + '</div>'; }
@@ -534,7 +544,8 @@
           ' · <b class="pick-prot' + (ps === "ok" ? "" : " warn") + '">Eiweiß ' + fmt(s.eiweiss) + " g" + (ps === "high" ? " · hoch" : ps === "low" ? " · niedrig" : "") + "</b></span></button>";
     }).join("") || '<div class="empty">Kein Gericht gefunden.</div>';
     list.querySelectorAll(".pick-row").forEach(b => b.addEventListener("click", () => {
-      if (pickerSlot >= 0) { ensureDayPlan(derived()); state.dayPlan[pickerSlot] = { key: b.dataset.key }; save(); }
+      // Anderes Rezept: die eigenen Änderungen der Mahlzeit fallen weg (dasselbe Rezept behält sie)
+      if (pickerSlot >= 0) { ensureDayPlan(derived()); const old = state.dayPlan[pickerSlot]; state.dayPlan[pickerSlot] = old && old.key === b.dataset.key ? old : { key: b.dataset.key }; save(); }
       closePicker(); renderHeute();
     }));
   }
@@ -562,8 +573,8 @@
     const times = zeitTimes(d), dm = dayMeals(d), wp = waterPlan(d, dm.sum, times);
     const rows = [], groups = [];
     times.meals.forEach((t, i) => {
-      const m = dm.meals[i], f = facts[i];
-      const w = m.rec ? "<span class='n'>" + escapeHtml(displayText(m.rec)) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
+      const m = dm.meals[i], f = facts[i], note = slotNote(state.dayPlan[i], f);
+      const w = m.rec ? "<span class='n'>" + escapeHtml(displayText(m.rec) + (note ? " · " + note : "")) + "</span> <i class='d'>" + sondierMin(m.vol) + " min</i>"
         : "<span class='n'>" + (m.bad ? escapeHtml(displayText(m.bad)) : "Rezept offen") + "</span> <i class='d'>" + (m.bad ? "passt nicht – anderes Rezept wählen" : "noch kein Rezept gewählt") + "</i>";
       rows.push({ t, h: "<div class='r me'><span class='t'>" + fmtHM(t) + "</span><span class='w'>" + w + "</span><span class='m'>" + (m.est ? "ca. " : "") + fmt(m.vol, 0) + " ml</span></div>" });
       if (!f) return;
@@ -571,7 +582,9 @@
       const items = f.res.items.filter(it => num(it.grams) > 0).sort((a, b) => isOilName(a.food) - isOilName(b.food));
       const sig = f.rec.name + "|" + items.map(it => it.food + ":" + fmt(num(it.grams), 1)).join(",");
       const g = groups.find(x => x.sig === sig);
-      if (g) g.times.push(t); else groups.push({ sig, dn: displayName(f.rec), items, times: [t] });
+      const dn = displayName(f.rec);
+      if (note) dn.suffix = (dn.suffix ? dn.suffix + " · " : "") + note;
+      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t] });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });

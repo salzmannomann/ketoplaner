@@ -186,7 +186,7 @@
     // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
     const fk = familyKey(rec);
     [state.portion, state.water, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
-    state.dayPlan.forEach(sl => { if (sl && sl.key === rec.key) sl.key = null; });
+    state.dayPlan.forEach((sl, i) => { if (sl && sl.key === rec.key) state.dayPlan[i] = { key: null }; });
     if (state.compose && state.compose.editKey === rec.key) state.compose.editKey = null;
     save(); renderRezepte();
     showToast("„" + escapeHtml(displayText(rec)) + "“ gelöscht", [["Rückgängig", () => {

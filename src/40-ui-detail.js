@@ -92,7 +92,9 @@
   // Eine Mahlzeit vollständig berechnen – dieselbe Pipeline für Detailansicht und Tagesplan:
   // Basis (Verhältnis + kcal/Mahlzeit) → optionaler Fleisch-Tausch → Öl-Mix (MCT-Anteil)
   // → gemerktes Wasser. Ergebnis ist eine Portion (= eine Mahlzeit).
-  function computeMealView(rec, d, meatChoice) {
+  // slot: Platz im Tagesplan mit eigenen Änderungen dieser Mahlzeit (Faktor, Wasser) – sie gehen dem beim Rezept
+  // Gemerkten vor; ohne slot (Rezepte, Liste) gilt nur das beim Rezept Gemerkte.
+  function computeMealView(rec, d, meatChoice, slot) {
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
     let adjIndex = base.fatIndex, adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
@@ -112,7 +114,8 @@
     // Portion angepasst (Blatt Mahlzeit): ein Wert wurde händisch geändert, alle Zutaten skalieren proportional mit
     // (je Rezept gemerkt). Das Verhältnis bleibt, kcal je Mahlzeit ändern sich – Tagesplan und Blatt Tag rechnen damit.
     const portionKey = familyKey(rec);
-    const portionF = num(state.portion && state.portion[portionKey]);
+    const slotPortion = !!(slot && slot.portion != null);
+    const portionF = slotPortion ? num(slot.portion) : num(state.portion && state.portion[portionKey]);
     const hasPortion = portionF > 0 && Math.abs(portionF - 1) > 1e-6;
     const kcalBerechnet = sumMacros(res.items).kcal;
     if (hasPortion) {
@@ -123,9 +126,10 @@
     // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
     // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
     const waterKey = familyKey(rec);
-    const hasWaterOverride = Object.prototype.hasOwnProperty.call(state.water, waterKey);
+    const slotWater = !!(slot && slot.water != null);
+    const hasWaterOverride = slotWater || Object.prototype.hasOwnProperty.call(state.water, waterKey);
     if (hasWaterOverride) {
-      const target = Math.max(0, num(state.water[waterKey]));
+      const target = Math.max(0, num(slotWater ? slot.water : state.water[waterKey]));
       const isW = (it) => /wasser/i.test(it.food);
       const sumW = res.items.filter(isW).reduce((a, it) => a + num(it.grams), 0);
       let first = true;
@@ -180,7 +184,7 @@
     }
     const fluid = fluidOf(res.items);
     return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
-      portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet };
+      portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet, slotPortion, slotWater };
   }
   // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern in die abgefüllte Portion eingerührt – als letzter Schritt
   // mit den Mengen einer Portion (Raps/MCT nach Öl-Mix). Angerührte Rezepte nennen das schon im eigenen Text.
@@ -192,8 +196,8 @@
       oils.map(o => String(o.food).replace(/\s*C8\+C10/, "") + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " gründlich einrühren.";
   }
   // Kennzahlen einer Mahlzeit fürs Füttern/Tagesplan (eine Portion).
-  function mealFacts(rec, d) {
-    const mv = computeMealView(rec, d, null);
+  function mealFacts(rec, d, slot) {
+    const mv = computeMealView(rec, d, slot ? slot.meat : null, slot);
     const items = mv.res.items;
     const isOilN = isOilName;
     const noOil = items.filter(it => !isOilN(it.food));
@@ -303,9 +307,13 @@
   function renderDetail() {
     const rec = detailRec;
     const d = derived();
+    // Aus dem Tagesplan geöffnet (pctx): Änderungen gelten nur für diese Mahlzeit und stehen im Platz (pslot)
+    const pctx = typeof planPanelCtx === "function" ? planPanelCtx(rec) : null;
+    const pslot = pctx ? state.dayPlan[pctx.i] : null;
+    if (pslot) detailMeat = pslot.meat || null;
     // Nicht mögliche Fleischwahl (z. B. nach geänderter Verordnung) zurücksetzen, statt still beim Original zu bleiben
     if (detailMeat && !meatSwapPossible(rec, d, detailMeat)) detailMeat = null;
-    const mv = computeMealView(rec, d, detailMeat);
+    const mv = computeMealView(rec, d, detailMeat, pslot);
     // Lässt sich das Rezept nicht auf die Verordnung einstellen, sind seine Gramm unbrauchbar: keine Mengen, kein
     // Einplanen und kein Drucken – nur der Hinweis (z. B. nach geänderter Verordnung oder über einen alten Link).
     if (!mv.res.ok) {
@@ -360,8 +368,6 @@
     const sibs = siblingVariants(rec).filter(v => computeAdjustedRecipe(v, d.kcalMahl, d.ratio).ok);
     // Kopf: Verhältnis-Pille, grau Diätologie · eigenes Rezept. Die Fettbasis steht nicht als Schild da – sie zeigt sich
     // am Namenszusatz „· mit KetoCal“ und in der Zutatenliste.
-    // Im Tagesplan-Panel: über dem Titel, welche Mahlzeit das ist („Nächste Mahlzeit · 10:30“)
-    const pctx = typeof planPanelCtx === "function" ? planPanelCtx(rec) : null;
     const headTags = [rec.quelle ? "Diätologie" : "", rec.custom ? "eigenes Rezept" : ""].filter(Boolean);
     let basisSeg = "";
     if (sibs.length) {
@@ -398,7 +404,7 @@
         keys.map(k => { const ok = meatSwapPossible(rec, d, k);
           return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
             (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + escapeHtml(its[k].label) + ' lässt sich das Verhältnis nicht einstellen"') + ">" + escapeHtml(its[k].label) + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht ' + ref.grams + ' g ' + escapeHtml(ref.label) + '): ' + escapeHtml(srcTxt) +
+        '</div><div class="adj-text">' + (pctx ? 'Gilt nur für die Mahlzeit um ' + pctx.t + ' im Tagesplan.' : 'Gilt nur für diese Ansicht.') + ' Getauscht wird nach Austauschmengen (so viel entspricht ' + ref.grams + ' g ' + escapeHtml(ref.label) + '): ' + escapeHtml(srcTxt) +
         '. Danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt. Mengen ändern unter Vorgaben › Lebensmittel und Rezepte.</div></div>';
     }
 
@@ -522,25 +528,28 @@
     // Statuszeile: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
     let waterRef = null;
     if (hasWaterOverride) {
-      const keep = state.water[waterKey]; delete state.water[waterKey];
-      try { waterRef = computeMealView(rec, d, detailMeat).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
-      finally { state.water[waterKey] = keep; }
+      const keep = state.water[waterKey], had = Object.prototype.hasOwnProperty.call(state.water, waterKey); delete state.water[waterKey];
+      try { waterRef = computeMealView(rec, d, detailMeat, pslot ? Object.assign({}, pslot, { water: null }) : null).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
+      finally { if (had) state.water[waterKey] = keep; }
     }
     const statusLine = (m, bezug) => {
       const parts = [];
       if (mv.hasPortion) parts.push('<strong>Portion angepasst: ' + fmt(mv.portionF * 100, 0) + ' %</strong> (' + fmt(sumPer.kcal * m, 0) + ' statt ' + fmt(mv.kcalBerechnet * m, 0) + ' kcal) <button type="button" class="tlink portion-reset">wie berechnet</button>');
       if (hasWaterOverride) parts.push('<strong>Wasser angepasst</strong> (' + fmt(waterPer * m, 0) + ' statt ' + fmt(waterRef * m, 0) + ' ml) <button type="button" class="tlink water-reset">wie berechnet</button>');
+      // Eigene Änderungen dieser Mahlzeit: der Weg zurück zu dem, was beim Rezept gilt
+      if (slotHasOwn(pslot)) parts.push('gilt nur für ' + pctx.t + ' · <button type="button" class="tlink slot-reset">↺ zurück zum Rezept</button>');
       return parts.length ? parts.join(" · ") : 'Wie berechnet · ' + fmt(d.kcalMahl * m, 0) + ' kcal ' + bezug;
     };
-    const changed = mv.hasPortion || hasWaterOverride;
+    const changed = mv.hasPortion || hasWaterOverride || slotHasOwn(pslot);
     const mealStatus = statusLine(1, "je Mahlzeit");
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
     const mctOpen = detailMctOpen == null ? d.mctShare : detailMctOpen;
     const anpParts = [];
-    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>' + SWAP_GROUPS[meatSlot.group].label + ' getauscht: ' + escapeHtml(swapItem(detailMeat).label) + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
+    const meatWhere = pctx ? "nur für " + pctx.t : "nur in dieser Ansicht";
+    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>' + SWAP_GROUPS[meatSlot.group].label + ' getauscht: ' + escapeHtml(swapItem(detailMeat).label) + '</strong> (' + meatWhere + ') · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
     if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="tlink mct-reset" data-mct="' + mctOpen + '">zurück auf ' + fmt(mctOpen * 100, 0) + ' %</button>');
     const anpassenStatus = anpParts.length ? anpParts.join(" · ")
-      : 'Wie im Rezept' + (meatSlot ? ' · ' + SWAP_GROUPS[meatSlot.group].label + ' gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
+      : 'Wie im Rezept' + (meatSlot ? ' · ' + SWAP_GROUPS[meatSlot.group].label + (pctx ? ' gilt nur für die Mahlzeit um ' + pctx.t : ' gilt nur in dieser Ansicht') : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
     const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
     const nutrOn = !!state.settings.detailNutr;
     const weighHead = (title) => '<div class="weigh-head"><h4 class="ph">' + title + '</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (nutrOn ? " checked" : "") + '> Nährwerte</label></div>';
@@ -572,7 +581,7 @@
       '<div class="portion-line' + (changed ? " changed" : "") + '">' + mealStatus + '</div>' +
       weighHead("Zum Abwiegen · eine Portion") +
       '<div class="ing-list">' + nRows + sumRow("Summe je Portion", totalG / mult, sumPer) + "</div>" +
-      '<div class="hint foot-hint">Gramm ändern skaliert alle anderen Zutaten mit. Das Verhältnis bleibt.</div>' +
+      '<div class="hint foot-hint">Gramm ändern skaliert alle anderen Zutaten mit. Das Verhältnis bleibt.' + (pctx ? ' Änderungen gelten nur für die Mahlzeit um ' + pctx.t + '.' : '') + '</div>' +
       fluidLine +
       paneClose +
 
@@ -629,37 +638,46 @@
     if (pin) pin.addEventListener("change", () => {
       const v = parseFloat(String(pin.value).replace(",", ".")); if (v > 0) { detailScale = scaleFromPortions(v, d.mahl); persistScale(); renderDetail(); }
     });
+    // Gemerkt wird beim Rezept – aus dem Tagesplan nur bei dieser Mahlzeit (gleich dem beim Rezept Gemerkten = nichts Eigenes)
+    const recPortion = () => num(state.portion[waterKey]) || 1;
+    const setPortion = (f) => {
+      if (pslot) { if (Math.abs(f - recPortion()) < 1e-6) delete pslot.portion; else pslot.portion = f; }
+      else if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
+      save(); detailChanged();
+    };
+    const setWater = (v) => { if (pslot) pslot.water = Math.round(v * 10) / 10; else state.water[waterKey] = v; save(); detailChanged(); };
     // Blatt Mahlzeit: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
-        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv; save(); detailChanged(); } return; }
-        if (oldG > 0 && nv > 0) {
-          const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
-          if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); detailChanged();
-        }
+        if (inp.dataset.water === "1") { if (isFinite(nv) && nv >= 0) setWater(nv); return; }
+        if (oldG > 0 && nv > 0) setPortion(Math.round(mv.portionF * (nv / oldG) * 1000) / 1000);
       }));
     c.querySelectorAll(".portion-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.portion[waterKey]; save(); detailChanged(); }));
+      b.addEventListener("click", () => setPortion(1)));
     c.querySelectorAll(".amt-edit:not(.g-edit)").forEach(inp =>
       inp.addEventListener("change", () => {
         const oldG = parseFloat(inp.dataset.g); const nv = parseFloat(String(inp.value).replace(",", "."));
         if (inp.dataset.water === "1") {
           // Nur das Wasser ändern – Rest bleibt; gemerkt wird der Wert je Portion.
-          if (isFinite(nv) && nv >= 0) { state.water[waterKey] = nv / mult; save(); detailChanged(); }
+          if (isFinite(nv) && nv >= 0) setWater(nv / mult);
           return;
         }
-        if (oldG > 0 && nv > 0) {
-          const f = Math.round(mv.portionF * (nv / oldG) * 1000) / 1000;
-          if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
-          save(); detailChanged();
-        }
+        if (oldG > 0 && nv > 0) setPortion(Math.round(mv.portionF * (nv / oldG) * 1000) / 1000);
       }));
-    c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => { detailMeat = null; renderDetail(); }));
+    const setMeat = (k) => {
+      if (pslot) { if (k) pslot.meat = k; else delete pslot.meat; save(); detailChanged(); }
+      else { detailMeat = k; renderDetail(); }
+    };
+    c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => setMeat(null)));
+    c.querySelectorAll(".slot-reset").forEach(b => b.addEventListener("click", () => {
+      const i = pctx.i, prev = slotCopy(pslot);
+      delete pslot.meat; delete pslot.portion; delete pslot.water; save(); detailChanged();
+      showToast("Mahlzeit um " + pctx.t + " wieder wie im Rezept", [["Rückgängig", () => { if (state.dayPlan[i] && state.dayPlan[i].key === prev.key) state.dayPlan[i] = prev; save(); detailChanged(); }]]);
+    }));
     c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); detailChanged(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
-      b.addEventListener("click", () => { delete state.water[waterKey]; save(); detailChanged(); }));
+      b.addEventListener("click", () => { if (pslot) delete pslot.water; else delete state.water[waterKey]; save(); detailChanged(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
@@ -669,8 +687,7 @@
       }));
     c.querySelectorAll(".meat-swap button[data-meat]").forEach(b =>
       b.addEventListener("click", () => {
-        detailMeat = (meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat;
-        renderDetail();
+        setMeat((meatSlot && b.dataset.meat === meatSlot.baseKey) ? null : b.dataset.meat);
       }));
     c.querySelectorAll(".meat-swap button[data-mcts]").forEach(b =>
       b.addEventListener("click", () => {
@@ -739,7 +756,7 @@
     actions.parentNode.insertBefore(sh, actions);
     sh.addEventListener("click", (e) => e.stopPropagation());
     sh.querySelectorAll("[data-today]").forEach(b => b.addEventListener("click", () => {
-      const v = b.dataset.today, prev = state.dayPlan.map(sl => ({ key: sl ? sl.key : null }));
+      const v = b.dataset.today, prev = state.dayPlan.map(slotCopy);
       const idx = v === "all" ? state.dayPlan.map((_, i) => i) : v === "free" ? free : [num(v)];
       idx.forEach(i => { state.dayPlan[i] = { key }; });
       save(); closeTodaySheet(); renderRezepte();

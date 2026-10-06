@@ -85,7 +85,19 @@
     });
     return o;
   }
-  function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(sl => ({ key: isObj(sl) && typeof sl.key === "string" ? sl.key : null })); }
+  // Platz im Tagesplan: { key, meat?, portion?, water? } – eigene Änderungen nur dieser Mahlzeit (Fleisch-/Fischsorte,
+  // Faktor für alle Zutaten, Wasser je Portion in ml); ohne sie gilt, was beim Rezept gemerkt ist.
+  function cleanSlot(sl) {
+    const out = { key: isObj(sl) && typeof sl.key === "string" ? sl.key : null };
+    if (!out.key) return out;
+    if (typeof sl.meat === "string" && sl.meat.length <= 120) out.meat = sl.meat;
+    if (typeof sl.portion === "number" && isFinite(sl.portion) && sl.portion > 0 && sl.portion <= 20) out.portion = sl.portion;
+    if (typeof sl.water === "number" && isFinite(sl.water) && sl.water >= 0 && sl.water <= 2000) out.water = sl.water;
+    return out;
+  }
+  function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(cleanSlot); }
+  function slotCopy(sl) { return cleanSlot(sl); }
+  function slotHasOwn(sl) { return !!(sl && sl.key && (sl.meat != null || sl.portion != null || sl.water != null)); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
   function load(rawOverride) {
@@ -122,7 +134,7 @@
         scales: remapKeys(cleanNumMap(p.scales)),
         water: remapKeys(cleanNumMap(p.water)),
         portion: remapKeys(cleanNumMap(p.portion)),
-        dayPlan: cleanDayPlan(p.dayPlan).map(sl => ({ key: renameKey(sl.key) || null })),
+        dayPlan: cleanDayPlan(p.dayPlan).map(sl => sl.key && renameKey(sl.key) ? Object.assign(sl, { key: renameKey(sl.key) }) : { key: null }),
         basis: isObj(p.basis) ? p.basis : {},
         customFoods: cleanCustomFoods(p.customFoods),
         hiddenRecipes: cleanFavorites(p.hiddenRecipes),

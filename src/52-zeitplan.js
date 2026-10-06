@@ -74,7 +74,7 @@
     const bad = [];
     const list = state.dayPlan.map((sl, i) => {
       const rec = recipeByKey(sl && sl.key); if (!rec) return null;
-      const f = mealFacts(rec, d); if (!f.res.ok) { bad[i] = rec; return null; }
+      const f = mealFacts(rec, d, sl); if (!f.res.ok) { bad[i] = rec; return null; }
       return { rec, f, fluid: f.fluid, vol: volumeMl(f.res.items) };
     });
     const known = list.filter(Boolean);
