@@ -87,7 +87,7 @@
     let adjIndex = base.fatIndex, adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
-      // Fleisch nach den Mengen der Diätologin tauschen (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) und das Rezept danach wie
+      // Fleisch bzw. Fisch nach den Austauschmengen tauschen (src/24-meat.js) und das Rezept danach wie
       // jedes andere auf Verhältnis UND kcal je Mahlzeit einstellen – Öl und Menge passen sich an.
       const sw = computeAdjustedRecipe(applyMeatChoice(rec, meatChoice), d.kcalMahl, d.ratio);
       if (sw.ok) { res = sw; adjIndex = sw.fatIndex; }
@@ -374,12 +374,19 @@
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
-      const cur = detailMeat || meatSlot.baseKey;
-      meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
-        ["huhn", "rind", "pute"].map(k => { const ok = meatSwapPossible(rec, d, k);
-          return '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
-            (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + MEATS[k].label + ' lässt sich das Verhältnis nicht einstellen"') + ">" + MEATS[k].label + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach den Mengen der Diätologie (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute); danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt.</div></div>';
+      // Sorten der Gruppe (Fleisch bzw. Fisch) als Segment; darunter, woher die Austauschmengen stammen
+      const cur = detailMeat || meatSlot.baseKey, its = swapItems(meatSlot.group), keys = Object.keys(its).filter(k => swapEquiv(k));
+      const grp = SWAP_GROUPS[meatSlot.group].label;
+      const bySrc = (src) => keys.filter(k => swapEquiv(k).src === src).map(k => its[k].label + " " + fmt(swapEquiv(k).grams, 0) + " g");
+      const diaet = bySrc("diaet"), eigen = bySrc("eigen"), eiw = bySrc("eiweiss");
+      const srcTxt = [diaet.length ? diaet.join(" · ") + " laut Diätologie" : "", eigen.length ? eigen.join(" · ") + " eigene Werte" : "",
+        eiw.length ? eiw.join(" · ") + " nach Eiweiß berechnet – mit der Diätologie abstimmen" : ""].filter(Boolean).join("; ");
+      meatSeg = '<div class="adj-block meat-swap"><div class="overline">' + grp + '</div><div class="seg-ink">' +
+        keys.map(k => { const ok = meatSwapPossible(rec, d, k);
+          return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
+            (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + escapeHtml(its[k].label) + ' lässt sich das Verhältnis nicht einstellen"') + ">" + escapeHtml(its[k].label) + "</button>"; }).join("") +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht 20 g Huhn): ' + escapeHtml(srcTxt) +
+        '. Danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt. Mengen ändern unter Vorgaben › Lebensmittel und Rezepte.</div></div>';
     }
 
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
@@ -517,10 +524,10 @@
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
     const mctOpen = detailMctOpen == null ? d.mctShare : detailMctOpen;
     const anpParts = [];
-    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>Fleisch getauscht: ' + MEATS[detailMeat].label + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
+    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>' + SWAP_GROUPS[meatSlot.group].label + ' getauscht: ' + escapeHtml(swapItem(detailMeat).label) + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
     if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="tlink mct-reset" data-mct="' + mctOpen + '">zurück auf ' + fmt(mctOpen * 100, 0) + ' %</button>');
     const anpassenStatus = anpParts.length ? anpParts.join(" · ")
-      : 'Wie im Rezept' + (meatSlot ? ' · Fleisch gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
+      : 'Wie im Rezept' + (meatSlot ? ' · ' + SWAP_GROUPS[meatSlot.group].label + ' gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
     const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
     const nutrOn = !!state.settings.detailNutr;
     const weighHead = (title) => '<div class="weigh-head"><h4 class="ph">' + title + '</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (nutrOn ? " checked" : "") + '> Nährwerte</label></div>';

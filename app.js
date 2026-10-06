@@ -76,6 +76,7 @@
       const o = { name: f.name.trim(), kategorie: typeof f.kategorie === "string" && f.kategorie ? f.kategorie : "Eigene", eiweiss: n(f.eiweiss), fett: n(f.fett), kh: n(f.kh), fat: !!f.fat };
       if (f.kcal100 != null && f.kcal100 !== "" && Number(f.kcal100) > 0) o.kcal100 = Number(f.kcal100);
       if (f.wasser != null && f.wasser !== "" && isFinite(Number(f.wasser))) o.wasser = n(f.wasser);
+      if (f.swap === "fleisch" || f.swap === "fisch") { o.swap = f.swap; if (Number(f.swapGrams) > 0) o.swapGrams = Number(f.swapGrams); }
       return o;
     }).filter(f => { const k = f.name.toLowerCase(); if (seen[k]) return false; seen[k] = true; return true; });
   }
@@ -543,42 +544,91 @@
       : { food: it.food, grams: round1(num(it.grams)) });
   }
 
-  /* ---------- Fleisch-Tausch ----------
-     Diätologin: 20 g Huhn ≙ 30 g Rind(erhack/Faschiertes) ≙ 18 g Pute.
-     Faktoren relativ zu Huhn. Die Fleischmenge eines Rezepts wird in
-     „Huhn-Äquivalent" umgerechnet und auf das gewählte Fleisch angepasst.
-     Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
-  const MEATS = {
-    huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗", word: "Hendl" },
-    rind: { food: "Rinderfaschiertes", factor: 1.5, label: "Rind", icon: "🥩", word: "Rinderfaschiertes" },
-    pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃", word: "Putenfleisch" },
+  /* ---------- Fleisch- und Fisch-Tausch ----------
+     Jede Sorte hat eine Austauschmenge: so viel Gramm entsprechen 20 g Huhn. Quelle (in dieser Reihenfolge):
+     ein eigener Wert (Vorgaben › Lebensmittel und Rezepte, gilt als abgestimmt), die Menge der Diätologin
+     (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel
+     Eiweiß wie 20 g Huhn). Eigene Lebensmittel können mit eigener Menge dazukommen. Getauscht wird innerhalb der
+     Gruppe (Fleisch bzw. Fisch); danach wird das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
+  const SWAP_REF = { food: "Hühnerbrust ohne Haut", grams: 20 };
+  const SWAP_GROUPS = {
+    fleisch: { label: "Fleisch", items: {
+      huhn: { food: "Hühnerbrust ohne Haut", label: "Huhn", word: "Hendl", grams: 20 },
+      pute: { food: "Putenbrust ohne Haut", label: "Pute", word: "Putenfleisch", grams: 18 },
+      rind: { food: "Rinderfaschiertes", label: "Rind", word: "Rinderfaschiertes", grams: 30 },
+      schwein: { food: "Schweinefilet", label: "Schwein", word: "Schweinefilet" },
+      kalb: { food: "Kalbsschnitzelfleisch", label: "Kalb", word: "Kalbfleisch" },
+    }, words: /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Schweinefilet|Schweinefleisch|Kalbsschnitzelfleisch|Kalbfleisch|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g },
+    fisch: { label: "Fisch", items: {
+      seelachs: { food: "Seelachsfilet (Alaska-Seelachs, TK)", label: "Seelachs", word: "Seelachs" },
+      kabeljau: { food: "Kabeljaufilet (TK oder frisch)", label: "Kabeljau", word: "Kabeljau" },
+      forelle: { food: "Forelle TK oder Frisch", label: "Forelle", word: "Forelle" },
+      lachs: { food: "Lachsfilet (TK oder frisch)", label: "Lachs", word: "Lachs" },
+      scholle: { food: "Scholle TK oder Frisch", label: "Scholle", word: "Scholle" },
+    }, words: /Seelachsfilet|Seelachs|Kabeljaufilet|Kabeljau|Forellenfilet|Forelle|Lachsfilet|Lachs|Schollenfilet|Scholle/g },
   };
-  // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.
-  const MEAT_WORDS_RE = /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g;
-  function meatKeyOfFood(name) { for (const k in MEATS) if (MEATS[k].food === name) return k; return null; }
+  // Alle Sorten einer Gruppe – die festen und eigene Lebensmittel, die für diesen Tausch freigegeben sind („cf:Name“)
+  function swapItems(group) {
+    const g = SWAP_GROUPS[group]; if (!g) return {};
+    const out = Object.assign({}, g.items);
+    ((typeof state !== "undefined" && state && state.customFoods) || []).forEach(f => {
+      if (f.swap === group && lookup(f.name)) out["cf:" + f.name] = { food: f.name, label: f.name, word: f.name, custom: true };
+    });
+    return out;
+  }
+  function swapItem(key) {
+    for (const g in SWAP_GROUPS) { const it = swapItems(g)[key]; if (it) return Object.assign({ group: g }, it); }
+    return null;
+  }
+  // Menge, die 20 g Huhn entspricht, und woher sie stammt: "eigen" | "diaet" | "eiweiss"
+  function swapProteinGrams(food) {
+    const f = lookup(food), ref = lookup(SWAP_REF.food);
+    return f && ref && f.eiweiss > 0 ? Math.round(SWAP_REF.grams * ref.eiweiss / f.eiweiss) : null;
+  }
+  function swapEquiv(key) {
+    const it = swapItem(key); if (!it) return null;
+    if (it.custom) {
+      const cf = (state.customFoods || []).find(f => "cf:" + f.name === key);
+      if (cf && num(cf.swapGrams) > 0) return { grams: num(cf.swapGrams), src: "eigen" };
+    } else {
+      const ov = state.settings.swapGrams && num(state.settings.swapGrams[key]);
+      if (ov > 0) return { grams: ov, src: "eigen" };
+      if (it.grams) return { grams: it.grams, src: "diaet" };
+    }
+    const g = swapProteinGrams(it.food);
+    return g ? { grams: g, src: "eiweiss" } : null;
+  }
+  function meatKeyOfFood(name) {
+    for (const g in SWAP_GROUPS) { const its = swapItems(g); for (const k in its) if (its[k].food === name) return k; }
+    return null;
+  }
+  // Tauschbare Zutat eines Rezepts (die erste Fleisch- bzw. Fischsorte)
   function recipeMeatSlot(rec) {
     for (let i = 0; i < rec.items.length; i++) {
       const k = meatKeyOfFood(rec.items[i].food);
-      if (k) return { index: i, baseKey: k, baseGrams: num(rec.items[i].grams) };
+      if (k && swapEquiv(k)) return { index: i, baseKey: k, group: swapItem(k).group, baseGrams: num(rec.items[i].grams) };
     }
     return null;
   }
   function meatGramsFor(slot, key) {
-    const chickenEquiv = slot.baseGrams / MEATS[slot.baseKey].factor;
-    return round1(chickenEquiv * MEATS[key].factor);
+    const a = swapEquiv(slot.baseKey), b = swapEquiv(key);
+    return a && b ? round1(slot.baseGrams / a.grams * b.grams) : slot.baseGrams;
   }
   // Tausch ist nur temporär (gilt für das gerade geöffnete Rezept, nichts wird gespeichert).
   function applyMeatChoice(rec, choice) {
     const slot = recipeMeatSlot(rec); if (!slot) return rec;
     if (!choice || choice === slot.baseKey) return rec;
+    const it = swapItem(choice); if (!it || it.group !== slot.group) return rec;
     const grams = meatGramsFor(slot, choice);
-    const items = rec.items.map((it, i) => i === slot.index ? { food: MEATS[choice].food, grams: grams } : it);
+    const items = rec.items.map((x, i) => i === slot.index ? { food: it.food, grams: grams } : x);
     return Object.assign({}, rec, { items: items });
   }
+  // Zubereitungstext: Sortenwörter der Gruppe durch die gewählte Sorte ersetzen
   function adaptPrep(text, rec, choice) {
     if (!text) return text;
     const slot = recipeMeatSlot(rec); if (!slot) return text;
-    return text.replace(MEAT_WORDS_RE, MEATS[choice || slot.baseKey].word);
+    let it = swapItem(choice || slot.baseKey); if (!it || it.group !== slot.group) it = swapItem(slot.baseKey);
+    return text.replace(SWAP_GROUPS[slot.group].words, it.word);
   }
 
   /* ---------- Öl-Rechnung (Rapsöl / MCT) ----------
@@ -1537,7 +1587,8 @@
      Eigene Lebensmittel: Name, Gruppe und Werte je 100 g vom Etikett (kcal und Wasser freiwillig), auf Wunsch auch als
      Fett zum Ausgleich im Editor. Löschen geht nur, solange kein eigenes Rezept (und nicht der Entwurf im Editor) das
      Lebensmittel verwendet – sonst rechnete ein Rezept plötzlich ohne die Zutat. Umbenennen zieht die Rezepte mit.
-     Dazu die Liste der ausgeblendeten Standard-Rezepte zum Zurückholen. */
+     Dazu die Austauschmengen für den Fleisch- und Fisch-Tausch (änderbar, druckbar zum Abstimmen) und die Liste der
+     ausgeblendeten Standard-Rezepte zum Zurückholen. */
   let cfEdit = null; // null = Formular zu, "" = neues Lebensmittel, sonst Name des bearbeiteten
   function foodCategories() {
     const cats = [];
@@ -1561,8 +1612,9 @@
     const list = document.getElementById("cf-list"); if (!list) return;
     list.innerHTML = cnt ? state.customFoods.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(f =>
       '<button type="button" class="cf-row" data-cf="' + escapeHtml(f.name) + '"><span class="cf-txt"><span class="cf-n">' + escapeHtml(f.name) + '</span>' +
-      '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + '</span></button>').join("")
+      '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + (f.swap ? " · Tausch" : "") + '</span></button>').join("")
       : '<p class="cf-empty">Noch keine eigenen Lebensmittel.</p>';
+    renderSwapTable();
     const hl = document.getElementById("hidden-list");
     if (hl) {
       const recs = (state.hiddenRecipes || []).map(k => ({ k, r: recipeByKey(k) })).filter(x => x.r);
@@ -1585,9 +1637,10 @@
     set("cf-eiweiss", f ? fmtNum(f.eiweiss) : ""); set("cf-fett", f ? fmtNum(f.fett) : ""); set("cf-kh", f ? fmtNum(f.kh) : "");
     set("cf-kcal", f && f.kcal100 != null ? fmtNum(f.kcal100) : ""); set("cf-wasser", f && f.wasser != null ? fmtNum(f.wasser) : "");
     const fat = document.getElementById("cf-fat"); if (fat) fat.checked = !!(f && f.fat);
+    set("cf-swap", f && f.swap ? f.swap : ""); set("cf-swapg", f && f.swapGrams ? fmtNum(f.swapGrams) : "");
     document.getElementById("cf-form").hidden = false; document.getElementById("cf-add").hidden = true;
     document.getElementById("cf-del").hidden = !f;
-    cfMsg(""); cfKcalHint();
+    cfMsg(""); cfKcalHint(); cfSwapHint();
     const n = document.getElementById("cf-name"); if (n && !f) try { n.focus({ preventScroll: true }); } catch (e) {}
     try { document.getElementById("cf-form").scrollIntoView({ block: "nearest" }); } catch (e) {}
   }
@@ -1601,6 +1654,14 @@
     const g = (id) => num((document.getElementById(id) || {}).value);
     const k = document.getElementById("cf-kcal"); if (k) k.placeholder = fmt(4 * g("cf-eiweiss") + 9 * g("cf-fett") + 4 * g("cf-kh"), 0);
   }
+  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Platzhalter = Menge mit gleich viel Eiweiß wie 20 g Huhn
+  function cfSwapHint() {
+    const sw = document.getElementById("cf-swap"), row = document.getElementById("cf-swapg-row"), inp = document.getElementById("cf-swapg");
+    if (!sw || !row || !inp) return;
+    row.hidden = !sw.value;
+    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = lookup(SWAP_REF.food);
+    inp.placeholder = e > 0 && ref ? fmt(Math.round(SWAP_REF.grams * ref.eiweiss / e), 0) : "";
+  }
   function cfSave() {
     const val = (id) => ((document.getElementById(id) || {}).value || "").trim();
     const name = val("cf-name").replace(/\s+/g, " ");
@@ -1610,12 +1671,16 @@
       state.customFoods.some(f => f.name.toLowerCase() === name.toLowerCase() && f.name !== cfEdit);
     if (clash) { cfMsg("„" + name + "“ gibt es schon – bitte einen anderen Namen wählen.", true); return; }
     const bad = ["eiweiss", "fett", "kh"].filter(k => nums[k] !== "" && !/^\d+([.,]\d+)?$/.test(nums[k]));
-    if (bad.length || [val("cf-kcal"), val("cf-wasser")].some(v => v !== "" && !/^\d+([.,]\d+)?$/.test(v))) { cfMsg("Bitte nur Zahlen eintragen (z. B. 2,5).", true); return; }
+    if (bad.length || [val("cf-kcal"), val("cf-wasser"), val("cf-swapg")].some(v => v !== "" && !/^\d+([.,]\d+)?$/.test(v))) { cfMsg("Bitte nur Zahlen eintragen (z. B. 2,5).", true); return; }
     const f = { name, kategorie: val("cf-kat") || "Eigene", eiweiss: num(nums.eiweiss), fett: num(nums.fett), kh: num(nums.kh), fat: !!(document.getElementById("cf-fat") || {}).checked };
     if (f.eiweiss + f.fett + f.kh > 100.05) { cfMsg("Eiweiß, Fett und Kohlenhydrate zusammen können nicht mehr als 100 g je 100 g sein.", true); return; }
     if (f.eiweiss + f.fett + f.kh === 0 && !val("cf-kcal")) { cfMsg("Bitte mindestens einen Nährwert eintragen.", true); return; }
     if (val("cf-kcal") !== "" && num(val("cf-kcal")) > 0) f.kcal100 = num(val("cf-kcal"));
     if (val("cf-wasser") !== "") f.wasser = Math.min(100, num(val("cf-wasser")));
+    if (val("cf-swap") === "fleisch" || val("cf-swap") === "fisch") {
+      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die 20 g Huhn entspricht.", true); return; }
+      f.swap = val("cf-swap"); if (num(val("cf-swapg")) > 0) f.swapGrams = num(val("cf-swapg"));
+    }
     const old = cfEdit;
     if (old) {
       const i = state.customFoods.findIndex(x => x.name === old);
@@ -1639,6 +1704,59 @@
     const f = state.customFoods.splice(i, 1)[0];
     cfClose(); save(); rebuildFoodIndex(); renderRezepte();
     showToast("„" + escapeHtml(name) + "“ gelöscht", [["Rückgängig", () => { state.customFoods.splice(Math.min(i, state.customFoods.length), 0, f); save(); rebuildFoodIndex(); renderRezepte(); }]]);
+  }
+
+  /* ---------- Austauschmengen (Fleisch- und Fisch-Tausch) ---------- */
+  const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "Vorschlag nach Eiweiß – mit der Diätologie abstimmen", eigen: "eigener Wert" };
+  function swapDefault(key) {
+    const it = swapItem(key); if (!it) return null;
+    if (!it.custom && it.grams) return { grams: it.grams, src: "diaet" };
+    const g = swapProteinGrams(it.food); return g ? { grams: g, src: "eiweiss" } : null;
+  }
+  function renderSwapTable() {
+    const box = document.getElementById("swap-table"); if (!box) return;
+    if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
+    box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
+      const its = swapItems(g);
+      return '<div class="overline swap-grp">' + SWAP_GROUPS[g].label + "</div>" + Object.keys(its).map(k => {
+        const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
+        return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
+          '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
+          (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +
+          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht 20 g Huhn" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
+          '<span class="unit">g</span></div>';
+      }).join("");
+    }).join("");
+  }
+  // Eigener Wert: bei festen Sorten in den Einstellungen (gleicht mit ab), bei eigenen Lebensmitteln am Lebensmittel
+  function setSwapGrams(key, v) {
+    const it = swapItem(key); if (!it) return;
+    if (it.custom) {
+      const cf = state.customFoods.find(f => "cf:" + f.name === key); if (!cf) return;
+      if (v > 0) cf.swapGrams = v; else delete cf.swapGrams;
+    } else {
+      const m = Object.assign({}, state.settings.swapGrams || {});
+      if (v > 0) m[key] = v; else delete m[key];
+      if (Object.keys(m).length) state.settings.swapGrams = m; else delete state.settings.swapGrams;
+    }
+    save(); renderRezepte();
+    const box = document.getElementById("swap-table"); if (box && box.contains(document.activeElement)) document.activeElement.blur();
+    renderSwapTable();
+  }
+  function printSwapTable() {
+    const ref = lookup(SWAP_REF.food);
+    const rows = Object.keys(SWAP_GROUPS).map(g => {
+      const its = swapItems(g);
+      return "<tr class='sum'><td colspan='5'>" + SWAP_GROUPS[g].label + "</td></tr>" + Object.keys(its).map(k => {
+        const eq = swapEquiv(k), f = lookup(its[k].food); if (!eq || !f) return "";
+        return "<tr><td>" + escapeHtml(its[k].food) + "</td><td class='num'>" + fmt(f.eiweiss) + " g</td><td class='num'><b>" + fmt(eq.grams, 0) + " g</b></td><td>" +
+          { diaet: "Diätologie", eiweiss: "nach Eiweiß berechnet", eigen: "eigener Wert" }[eq.src] + "</td><td>________ g</td></tr>";
+      }).join("");
+    }).join("");
+    const body = "<p class='rx'>Je Sorte die Menge, die 20 g Hühnerbrust ohne Haut entspricht (" + fmt(SWAP_REF.grams * ref.eiweiss / 100) + " g Eiweiß). Die App tauscht damit auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch und rechnet danach Verhältnis und Kalorien neu. Bitte prüfen und bei Bedarf korrigieren.</p>" +
+      "<table><thead><tr><th>Lebensmittel</th><th class='num'>Eiweiß je 100 g</th><th class='num'>≙ 20 g Huhn</th><th>Quelle</th><th>Korrektur</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+      "<div class='box'>Freigegeben von: ______________________ &nbsp; am: ____________</div>";
+    openPrintView(printDoc("Austauschmengen", escapeHtml(printDateLong()), body), "Austauschmengen");
   }
 
   /* ---------- Rezepte ausblenden (Standard) und löschen (eigene), jeweils mit Rückgängig ---------- */
@@ -1733,7 +1851,18 @@
     document.getElementById("cf-save").addEventListener("click", cfSave);
     document.getElementById("cf-cancel").addEventListener("click", cfClose);
     document.getElementById("cf-del").addEventListener("click", cfDelete);
-    ["cf-eiweiss", "cf-fett", "cf-kh"].forEach(id => document.getElementById(id).addEventListener("input", cfKcalHint));
+    ["cf-eiweiss", "cf-fett", "cf-kh"].forEach(id => document.getElementById(id).addEventListener("input", () => { cfKcalHint(); cfSwapHint(); }));
+    document.getElementById("cf-swap").addEventListener("change", cfSwapHint);
+    const st = document.getElementById("swap-table");
+    st.addEventListener("change", (e) => {
+      const i = e.target.closest("[data-swap]"); if (!i) return;
+      const v = i.value.trim();
+      if (v !== "" && !/^\d+([.,]\d+)?$/.test(v)) { i.value = ""; showToast("Bitte eine Zahl in Gramm eintragen."); return; }
+      setSwapGrams(i.dataset.swap, v === "" ? 0 : num(v));
+    });
+    st.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.closest("[data-swap]")) e.target.blur(); });
+    st.addEventListener("click", (e) => { const b = e.target.closest("[data-swreset]"); if (b) setSwapGrams(b.dataset.swreset, 0); });
+    document.getElementById("swap-print").addEventListener("click", printSwapTable);
     document.getElementById("cf-form").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox") { e.preventDefault(); cfSave(); } });
     const hl = document.getElementById("hidden-list");
     if (hl) hl.addEventListener("click", (e) => {
@@ -1834,7 +1963,7 @@
     let adjIndex = base.fatIndex, adjLabel = '<small class="adj">stellt das Verhältnis ein</small>';
     const swapSlot = recipeMeatSlot(rec);
     if (swapSlot && meatChoice && meatChoice !== swapSlot.baseKey) {
-      // Fleisch nach den Mengen der Diätologin tauschen (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) und das Rezept danach wie
+      // Fleisch bzw. Fisch nach den Austauschmengen tauschen (src/24-meat.js) und das Rezept danach wie
       // jedes andere auf Verhältnis UND kcal je Mahlzeit einstellen – Öl und Menge passen sich an.
       const sw = computeAdjustedRecipe(applyMeatChoice(rec, meatChoice), d.kcalMahl, d.ratio);
       if (sw.ok) { res = sw; adjIndex = sw.fatIndex; }
@@ -2121,12 +2250,19 @@
     const meatSlot = recipeMeatSlot(rec);
     let meatSeg = "";
     if (meatSlot) {
-      const cur = detailMeat || meatSlot.baseKey;
-      meatSeg = '<div class="adj-block meat-swap"><div class="overline">Fleisch</div><div class="seg-ink">' +
-        ["huhn", "rind", "pute"].map(k => { const ok = meatSwapPossible(rec, d, k);
-          return '<button type="button" data-meat="' + k + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
-            (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + MEATS[k].label + ' lässt sich das Verhältnis nicht einstellen"') + ">" + MEATS[k].label + "</button>"; }).join("") +
-        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach den Mengen der Diätologie (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute); danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt.</div></div>';
+      // Sorten der Gruppe (Fleisch bzw. Fisch) als Segment; darunter, woher die Austauschmengen stammen
+      const cur = detailMeat || meatSlot.baseKey, its = swapItems(meatSlot.group), keys = Object.keys(its).filter(k => swapEquiv(k));
+      const grp = SWAP_GROUPS[meatSlot.group].label;
+      const bySrc = (src) => keys.filter(k => swapEquiv(k).src === src).map(k => its[k].label + " " + fmt(swapEquiv(k).grams, 0) + " g");
+      const diaet = bySrc("diaet"), eigen = bySrc("eigen"), eiw = bySrc("eiweiss");
+      const srcTxt = [diaet.length ? diaet.join(" · ") + " laut Diätologie" : "", eigen.length ? eigen.join(" · ") + " eigene Werte" : "",
+        eiw.length ? eiw.join(" · ") + " nach Eiweiß berechnet – mit der Diätologie abstimmen" : ""].filter(Boolean).join("; ");
+      meatSeg = '<div class="adj-block meat-swap"><div class="overline">' + grp + '</div><div class="seg-ink">' +
+        keys.map(k => { const ok = meatSwapPossible(rec, d, k);
+          return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +
+            (ok ? "" : ' disabled title="Bei dieser Verordnung nicht möglich – mit ' + escapeHtml(its[k].label) + ' lässt sich das Verhältnis nicht einstellen"') + ">" + escapeHtml(its[k].label) + "</button>"; }).join("") +
+        '</div><div class="adj-text">Gilt nur für diese Ansicht. Getauscht wird nach Austauschmengen (so viel entspricht 20 g Huhn): ' + escapeHtml(srcTxt) +
+        '. Danach werden Verhältnis und Kalorien wie bei jedem Rezept neu eingestellt. Mengen ändern unter Vorgaben › Lebensmittel und Rezepte.</div></div>';
     }
 
     const sign = (v) => v < -0.05 ? "−" : (v > 0.05 ? "+" : "±");
@@ -2264,10 +2400,10 @@
     // Anpassen: Fleisch (nur diese Ansicht) und MCT-Anteil (Vorgabe für alle Rezepte) samt Zurücksetzen.
     const mctOpen = detailMctOpen == null ? d.mctShare : detailMctOpen;
     const anpParts = [];
-    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>Fleisch getauscht: ' + MEATS[detailMeat].label + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
+    if (meatSlot && detailMeat && detailMeat !== meatSlot.baseKey) anpParts.push('<strong>' + SWAP_GROUPS[meatSlot.group].label + ' getauscht: ' + escapeHtml(swapItem(detailMeat).label) + '</strong> (nur in dieser Ansicht) · <button type="button" class="tlink meat-reset">wie im Rezept</button>');
     if (baseOilIndex >= 0 && Math.abs(d.mctShare - mctOpen) > 0.001) anpParts.push('<strong>MCT-Anteil ' + fmt(d.mctShare * 100, 0) + ' %</strong> statt ' + fmt(mctOpen * 100, 0) + ' % – gilt für alle Rezepte (Vorgaben) · <button type="button" class="tlink mct-reset" data-mct="' + mctOpen + '">zurück auf ' + fmt(mctOpen * 100, 0) + ' %</button>');
     const anpassenStatus = anpParts.length ? anpParts.join(" · ")
-      : 'Wie im Rezept' + (meatSlot ? ' · Fleisch gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
+      : 'Wie im Rezept' + (meatSlot ? ' · ' + SWAP_GROUPS[meatSlot.group].label + ' gilt nur in dieser Ansicht' : '') + (baseOilIndex >= 0 ? ' · der MCT-Anteil ist die Vorgabe für alle Rezepte' : '');
     const tagStatus = statusLine(mult, days === 1 ? "je Tag" : (days ? "für " + days + " Tage" : "für " + portionsTxt + " Portionen"));
     const nutrOn = !!state.settings.detailNutr;
     const weighHead = (title) => '<div class="weigh-head"><h4 class="ph">' + title + '</h4><label class="nw-toggle"><input type="checkbox" class="nw-cb"' + (nutrOn ? " checked" : "") + '> Nährwerte</label></div>';

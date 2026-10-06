@@ -1,37 +1,86 @@
-  /* ---------- Fleisch-Tausch ----------
-     Diätologin: 20 g Huhn ≙ 30 g Rind(erhack/Faschiertes) ≙ 18 g Pute.
-     Faktoren relativ zu Huhn. Die Fleischmenge eines Rezepts wird in
-     „Huhn-Äquivalent" umgerechnet und auf das gewählte Fleisch angepasst.
-     Der Rest des Rezepts (v. a. das Fett) wird wie immer automatisch nachgerechnet. */
-  const MEATS = {
-    huhn: { food: "Hühnerbrust ohne Haut", factor: 1.0, label: "Huhn", icon: "🍗", word: "Hendl" },
-    rind: { food: "Rinderfaschiertes", factor: 1.5, label: "Rind", icon: "🥩", word: "Rinderfaschiertes" },
-    pute: { food: "Putenbrust ohne Haut", factor: 0.9, label: "Pute", icon: "🦃", word: "Putenfleisch" },
+  /* ---------- Fleisch- und Fisch-Tausch ----------
+     Jede Sorte hat eine Austauschmenge: so viel Gramm entsprechen 20 g Huhn. Quelle (in dieser Reihenfolge):
+     ein eigener Wert (Vorgaben › Lebensmittel und Rezepte, gilt als abgestimmt), die Menge der Diätologin
+     (20 g Huhn ≙ 30 g Rind ≙ 18 g Pute) oder – für alle übrigen Sorten – ein Vorschlag nach Eiweiß (gleich viel
+     Eiweiß wie 20 g Huhn). Eigene Lebensmittel können mit eigener Menge dazukommen. Getauscht wird innerhalb der
+     Gruppe (Fleisch bzw. Fisch); danach wird das Rezept wie jedes andere auf Verhältnis und Kalorien eingestellt. */
+  const SWAP_REF = { food: "Hühnerbrust ohne Haut", grams: 20 };
+  const SWAP_GROUPS = {
+    fleisch: { label: "Fleisch", items: {
+      huhn: { food: "Hühnerbrust ohne Haut", label: "Huhn", word: "Hendl", grams: 20 },
+      pute: { food: "Putenbrust ohne Haut", label: "Pute", word: "Putenfleisch", grams: 18 },
+      rind: { food: "Rinderfaschiertes", label: "Rind", word: "Rinderfaschiertes", grams: 30 },
+      schwein: { food: "Schweinefilet", label: "Schwein", word: "Schweinefilet" },
+      kalb: { food: "Kalbsschnitzelfleisch", label: "Kalb", word: "Kalbfleisch" },
+    }, words: /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Schweinefilet|Schweinefleisch|Kalbsschnitzelfleisch|Kalbfleisch|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g },
+    fisch: { label: "Fisch", items: {
+      seelachs: { food: "Seelachsfilet (Alaska-Seelachs, TK)", label: "Seelachs", word: "Seelachs" },
+      kabeljau: { food: "Kabeljaufilet (TK oder frisch)", label: "Kabeljau", word: "Kabeljau" },
+      forelle: { food: "Forelle TK oder Frisch", label: "Forelle", word: "Forelle" },
+      lachs: { food: "Lachsfilet (TK oder frisch)", label: "Lachs", word: "Lachs" },
+      scholle: { food: "Scholle TK oder Frisch", label: "Scholle", word: "Scholle" },
+    }, words: /Seelachsfilet|Seelachs|Kabeljaufilet|Kabeljau|Forellenfilet|Forelle|Lachsfilet|Lachs|Schollenfilet|Scholle/g },
   };
-  // Fleisch-Wörter in den Zubereitungstexten, die beim Tausch angepasst werden.
-  const MEAT_WORDS_RE = /Rinderfaschiertes|Rinder-Faschiertes|Hühnerfleisch|Hühnerbrust|Putenfleisch|Putenbrust|Faschiertes|Rindfleisch|Hendl|Hühnchen|Pute|Huhn|Rind/g;
-  function meatKeyOfFood(name) { for (const k in MEATS) if (MEATS[k].food === name) return k; return null; }
+  // Alle Sorten einer Gruppe – die festen und eigene Lebensmittel, die für diesen Tausch freigegeben sind („cf:Name“)
+  function swapItems(group) {
+    const g = SWAP_GROUPS[group]; if (!g) return {};
+    const out = Object.assign({}, g.items);
+    ((typeof state !== "undefined" && state && state.customFoods) || []).forEach(f => {
+      if (f.swap === group && lookup(f.name)) out["cf:" + f.name] = { food: f.name, label: f.name, word: f.name, custom: true };
+    });
+    return out;
+  }
+  function swapItem(key) {
+    for (const g in SWAP_GROUPS) { const it = swapItems(g)[key]; if (it) return Object.assign({ group: g }, it); }
+    return null;
+  }
+  // Menge, die 20 g Huhn entspricht, und woher sie stammt: "eigen" | "diaet" | "eiweiss"
+  function swapProteinGrams(food) {
+    const f = lookup(food), ref = lookup(SWAP_REF.food);
+    return f && ref && f.eiweiss > 0 ? Math.round(SWAP_REF.grams * ref.eiweiss / f.eiweiss) : null;
+  }
+  function swapEquiv(key) {
+    const it = swapItem(key); if (!it) return null;
+    if (it.custom) {
+      const cf = (state.customFoods || []).find(f => "cf:" + f.name === key);
+      if (cf && num(cf.swapGrams) > 0) return { grams: num(cf.swapGrams), src: "eigen" };
+    } else {
+      const ov = state.settings.swapGrams && num(state.settings.swapGrams[key]);
+      if (ov > 0) return { grams: ov, src: "eigen" };
+      if (it.grams) return { grams: it.grams, src: "diaet" };
+    }
+    const g = swapProteinGrams(it.food);
+    return g ? { grams: g, src: "eiweiss" } : null;
+  }
+  function meatKeyOfFood(name) {
+    for (const g in SWAP_GROUPS) { const its = swapItems(g); for (const k in its) if (its[k].food === name) return k; }
+    return null;
+  }
+  // Tauschbare Zutat eines Rezepts (die erste Fleisch- bzw. Fischsorte)
   function recipeMeatSlot(rec) {
     for (let i = 0; i < rec.items.length; i++) {
       const k = meatKeyOfFood(rec.items[i].food);
-      if (k) return { index: i, baseKey: k, baseGrams: num(rec.items[i].grams) };
+      if (k && swapEquiv(k)) return { index: i, baseKey: k, group: swapItem(k).group, baseGrams: num(rec.items[i].grams) };
     }
     return null;
   }
   function meatGramsFor(slot, key) {
-    const chickenEquiv = slot.baseGrams / MEATS[slot.baseKey].factor;
-    return round1(chickenEquiv * MEATS[key].factor);
+    const a = swapEquiv(slot.baseKey), b = swapEquiv(key);
+    return a && b ? round1(slot.baseGrams / a.grams * b.grams) : slot.baseGrams;
   }
   // Tausch ist nur temporär (gilt für das gerade geöffnete Rezept, nichts wird gespeichert).
   function applyMeatChoice(rec, choice) {
     const slot = recipeMeatSlot(rec); if (!slot) return rec;
     if (!choice || choice === slot.baseKey) return rec;
+    const it = swapItem(choice); if (!it || it.group !== slot.group) return rec;
     const grams = meatGramsFor(slot, choice);
-    const items = rec.items.map((it, i) => i === slot.index ? { food: MEATS[choice].food, grams: grams } : it);
+    const items = rec.items.map((x, i) => i === slot.index ? { food: it.food, grams: grams } : x);
     return Object.assign({}, rec, { items: items });
   }
+  // Zubereitungstext: Sortenwörter der Gruppe durch die gewählte Sorte ersetzen
   function adaptPrep(text, rec, choice) {
     if (!text) return text;
     const slot = recipeMeatSlot(rec); if (!slot) return text;
-    return text.replace(MEAT_WORDS_RE, MEATS[choice || slot.baseKey].word);
+    let it = swapItem(choice || slot.baseKey); if (!it || it.group !== slot.group) it = swapItem(slot.baseKey);
+    return text.replace(SWAP_GROUPS[slot.group].words, it.word);
   }

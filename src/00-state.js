@@ -68,6 +68,7 @@
       const o = { name: f.name.trim(), kategorie: typeof f.kategorie === "string" && f.kategorie ? f.kategorie : "Eigene", eiweiss: n(f.eiweiss), fett: n(f.fett), kh: n(f.kh), fat: !!f.fat };
       if (f.kcal100 != null && f.kcal100 !== "" && Number(f.kcal100) > 0) o.kcal100 = Number(f.kcal100);
       if (f.wasser != null && f.wasser !== "" && isFinite(Number(f.wasser))) o.wasser = n(f.wasser);
+      if (f.swap === "fleisch" || f.swap === "fisch") { o.swap = f.swap; if (Number(f.swapGrams) > 0) o.swapGrams = Number(f.swapGrams); }
       return o;
     }).filter(f => { const k = f.name.toLowerCase(); if (seen[k]) return false; seen[k] = true; return true; });
   }

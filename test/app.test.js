@@ -1649,3 +1649,44 @@ test("Backup und Abgleich: eigene Lebensmittel und ausgeblendete Rezepte werden 
   assert.match($(w, "cf-list").textContent, /Leinöl.*E 0,0 · F 99,9/);
   assert.equal($(w, "cf-list").querySelectorAll("[data-cf]").length, 1, "doppelte und kaputte Einträge verworfen");
 });
+
+test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut Diätologie / nach Eiweiß / eigene, eigene Lebensmittel", () => {
+  const w = boot({ settings: { mctShare: 0, kcal: 700, mahlzeiten: 5, ratio: 1.8 },
+    customFoods: [{ name: "Hirschfilet", kategorie: "Fleisch", eiweiss: 22.8, fett: 2, kh: 0, swap: "fleisch", swapGrams: 25 }] });
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const seg = () => [...c.querySelectorAll('.pane[data-pane=anpassen] .meat-swap:not(.oil) button[data-meat]')].map(b => b.textContent);
+  assert.deepEqual(seg(), ["Huhn", "Pute", "Rind", "Schwein", "Kalb", "Hirschfilet"]);
+  const txt = c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent;
+  assert.match(txt, /Huhn 20 g · Pute 18 g · Rind 30 g laut Diätologie/);
+  assert.match(txt, /Hirschfilet 25 g eigene Werte/);
+  assert.match(txt, /Schwein 21 g · Kalb 22 g nach Eiweiß berechnet – mit der Diätologie abstimmen/);
+  // Kalb wählen: Kalbfleisch in Tabelle und Zubereitung, Verhältnis bleibt
+  fire(w, c.querySelector('.meat-swap button[data-meat="kalb"]')); c = $(w, "detail-content");
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .portion-line").textContent, /^Fleisch getauscht: Kalb/);
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].some(r => /Kalbsschnitzelfleisch/.test(r.textContent)));
+  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Kalbfleisch/);
+  assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
+  // Fisch-Rezept: eigene Gruppe Fisch, kein Fleisch
+  fire(w, $(w, "detail-close"));
+  c = openRecipe(w, "Seelachs & Karotte");
+  assert.equal(c.querySelector(".pane[data-pane=anpassen] .meat-swap .overline").textContent, "Fisch");
+  assert.deepEqual(seg(), ["Seelachs", "Kabeljau", "Forelle", "Lachs", "Scholle"]);
+  fire(w, c.querySelector('.meat-swap button[data-meat="lachs"]')); c = $(w, "detail-content");
+  assert.ok([...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].some(r => /Lachsfilet/.test(r.textContent)));
+  assert.match(c.querySelector(".pane[data-pane=zubereitung]").textContent, /Lachs und Karotten klein schneiden/);
+  fire(w, $(w, "detail-close"));
+  // Vorgaben: Tabelle mit Herkunft; eigener Wert gilt sofort, ↺ zurück
+  w.document.querySelector('.tabbar [data-view="vorgaben"]').click();
+  w.document.querySelector('[data-vg="lebensmittel"]').click();
+  const row = (k) => $(w, "swap-table").querySelector('[data-swap="' + k + '"]');
+  assert.equal(row("rind").placeholder, "30"); assert.equal(row("schwein").placeholder, "21"); assert.equal(row("seelachs").placeholder, "26");
+  assert.match(row("schwein").closest(".swap-row").textContent, /Vorschlag nach Eiweiß/);
+  row("schwein").value = "24"; fire(w, row("schwein"), "change");
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams.schwein, 24);
+  assert.match(row("schwein").closest(".swap-row").textContent, /eigener Wert/);
+  fire(w, $(w, "swap-table").querySelector('[data-swreset="schwein"]'));
+  assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams, undefined);
+  // Drucken: Blatt zum Abstimmen
+  fire(w, $(w, "swap-print"));
+  assert.match($(w, "print-sheet").shadowRoot.textContent, /Austauschmengen.*Rinderfaschiertes.*30 g.*Diätologie.*Schweinefilet.*21 g.*nach Eiweiß berechnet/);
+});

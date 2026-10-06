@@ -2,7 +2,8 @@
      Eigene Lebensmittel: Name, Gruppe und Werte je 100 g vom Etikett (kcal und Wasser freiwillig), auf Wunsch auch als
      Fett zum Ausgleich im Editor. Löschen geht nur, solange kein eigenes Rezept (und nicht der Entwurf im Editor) das
      Lebensmittel verwendet – sonst rechnete ein Rezept plötzlich ohne die Zutat. Umbenennen zieht die Rezepte mit.
-     Dazu die Liste der ausgeblendeten Standard-Rezepte zum Zurückholen. */
+     Dazu die Austauschmengen für den Fleisch- und Fisch-Tausch (änderbar, druckbar zum Abstimmen) und die Liste der
+     ausgeblendeten Standard-Rezepte zum Zurückholen. */
   let cfEdit = null; // null = Formular zu, "" = neues Lebensmittel, sonst Name des bearbeiteten
   function foodCategories() {
     const cats = [];
@@ -26,8 +27,9 @@
     const list = document.getElementById("cf-list"); if (!list) return;
     list.innerHTML = cnt ? state.customFoods.slice().sort((a, b) => a.name.localeCompare(b.name, "de")).map(f =>
       '<button type="button" class="cf-row" data-cf="' + escapeHtml(f.name) + '"><span class="cf-txt"><span class="cf-n">' + escapeHtml(f.name) + '</span>' +
-      '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + '</span></button>').join("")
+      '<span class="cf-v">' + cfSummary(f) + '</span></span><span class="cf-tag">' + escapeHtml(f.kategorie) + (f.fat ? " · Fett" : "") + (f.swap ? " · Tausch" : "") + '</span></button>').join("")
       : '<p class="cf-empty">Noch keine eigenen Lebensmittel.</p>';
+    renderSwapTable();
     const hl = document.getElementById("hidden-list");
     if (hl) {
       const recs = (state.hiddenRecipes || []).map(k => ({ k, r: recipeByKey(k) })).filter(x => x.r);
@@ -50,9 +52,10 @@
     set("cf-eiweiss", f ? fmtNum(f.eiweiss) : ""); set("cf-fett", f ? fmtNum(f.fett) : ""); set("cf-kh", f ? fmtNum(f.kh) : "");
     set("cf-kcal", f && f.kcal100 != null ? fmtNum(f.kcal100) : ""); set("cf-wasser", f && f.wasser != null ? fmtNum(f.wasser) : "");
     const fat = document.getElementById("cf-fat"); if (fat) fat.checked = !!(f && f.fat);
+    set("cf-swap", f && f.swap ? f.swap : ""); set("cf-swapg", f && f.swapGrams ? fmtNum(f.swapGrams) : "");
     document.getElementById("cf-form").hidden = false; document.getElementById("cf-add").hidden = true;
     document.getElementById("cf-del").hidden = !f;
-    cfMsg(""); cfKcalHint();
+    cfMsg(""); cfKcalHint(); cfSwapHint();
     const n = document.getElementById("cf-name"); if (n && !f) try { n.focus({ preventScroll: true }); } catch (e) {}
     try { document.getElementById("cf-form").scrollIntoView({ block: "nearest" }); } catch (e) {}
   }
@@ -66,6 +69,14 @@
     const g = (id) => num((document.getElementById(id) || {}).value);
     const k = document.getElementById("cf-kcal"); if (k) k.placeholder = fmt(4 * g("cf-eiweiss") + 9 * g("cf-fett") + 4 * g("cf-kh"), 0);
   }
+  // Tausch-Feld nur bei „bei Fleisch/Fisch“; Platzhalter = Menge mit gleich viel Eiweiß wie 20 g Huhn
+  function cfSwapHint() {
+    const sw = document.getElementById("cf-swap"), row = document.getElementById("cf-swapg-row"), inp = document.getElementById("cf-swapg");
+    if (!sw || !row || !inp) return;
+    row.hidden = !sw.value;
+    const e = num((document.getElementById("cf-eiweiss") || {}).value), ref = lookup(SWAP_REF.food);
+    inp.placeholder = e > 0 && ref ? fmt(Math.round(SWAP_REF.grams * ref.eiweiss / e), 0) : "";
+  }
   function cfSave() {
     const val = (id) => ((document.getElementById(id) || {}).value || "").trim();
     const name = val("cf-name").replace(/\s+/g, " ");
@@ -75,12 +86,16 @@
       state.customFoods.some(f => f.name.toLowerCase() === name.toLowerCase() && f.name !== cfEdit);
     if (clash) { cfMsg("„" + name + "“ gibt es schon – bitte einen anderen Namen wählen.", true); return; }
     const bad = ["eiweiss", "fett", "kh"].filter(k => nums[k] !== "" && !/^\d+([.,]\d+)?$/.test(nums[k]));
-    if (bad.length || [val("cf-kcal"), val("cf-wasser")].some(v => v !== "" && !/^\d+([.,]\d+)?$/.test(v))) { cfMsg("Bitte nur Zahlen eintragen (z. B. 2,5).", true); return; }
+    if (bad.length || [val("cf-kcal"), val("cf-wasser"), val("cf-swapg")].some(v => v !== "" && !/^\d+([.,]\d+)?$/.test(v))) { cfMsg("Bitte nur Zahlen eintragen (z. B. 2,5).", true); return; }
     const f = { name, kategorie: val("cf-kat") || "Eigene", eiweiss: num(nums.eiweiss), fett: num(nums.fett), kh: num(nums.kh), fat: !!(document.getElementById("cf-fat") || {}).checked };
     if (f.eiweiss + f.fett + f.kh > 100.05) { cfMsg("Eiweiß, Fett und Kohlenhydrate zusammen können nicht mehr als 100 g je 100 g sein.", true); return; }
     if (f.eiweiss + f.fett + f.kh === 0 && !val("cf-kcal")) { cfMsg("Bitte mindestens einen Nährwert eintragen.", true); return; }
     if (val("cf-kcal") !== "" && num(val("cf-kcal")) > 0) f.kcal100 = num(val("cf-kcal"));
     if (val("cf-wasser") !== "") f.wasser = Math.min(100, num(val("cf-wasser")));
+    if (val("cf-swap") === "fleisch" || val("cf-swap") === "fisch") {
+      if (!(f.eiweiss > 0) && !(num(val("cf-swapg")) > 0)) { cfMsg("Für den Tausch braucht es Eiweiß oder eine Menge, die 20 g Huhn entspricht.", true); return; }
+      f.swap = val("cf-swap"); if (num(val("cf-swapg")) > 0) f.swapGrams = num(val("cf-swapg"));
+    }
     const old = cfEdit;
     if (old) {
       const i = state.customFoods.findIndex(x => x.name === old);
@@ -104,6 +119,59 @@
     const f = state.customFoods.splice(i, 1)[0];
     cfClose(); save(); rebuildFoodIndex(); renderRezepte();
     showToast("„" + escapeHtml(name) + "“ gelöscht", [["Rückgängig", () => { state.customFoods.splice(Math.min(i, state.customFoods.length), 0, f); save(); rebuildFoodIndex(); renderRezepte(); }]]);
+  }
+
+  /* ---------- Austauschmengen (Fleisch- und Fisch-Tausch) ---------- */
+  const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "Vorschlag nach Eiweiß – mit der Diätologie abstimmen", eigen: "eigener Wert" };
+  function swapDefault(key) {
+    const it = swapItem(key); if (!it) return null;
+    if (!it.custom && it.grams) return { grams: it.grams, src: "diaet" };
+    const g = swapProteinGrams(it.food); return g ? { grams: g, src: "eiweiss" } : null;
+  }
+  function renderSwapTable() {
+    const box = document.getElementById("swap-table"); if (!box) return;
+    if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
+    box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
+      const its = swapItems(g);
+      return '<div class="overline swap-grp">' + SWAP_GROUPS[g].label + "</div>" + Object.keys(its).map(k => {
+        const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
+        return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
+          '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
+          (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +
+          '<input class="num-input" type="text" inputmode="decimal" data-swap="' + escapeHtml(k) + '" aria-label="' + escapeHtml(its[k].label) + ' in g, entspricht 20 g Huhn" placeholder="' + fmt(def.grams, 0) + '" value="' + (eq.src === "eigen" ? fmtNum(eq.grams) : "") + '" />' +
+          '<span class="unit">g</span></div>';
+      }).join("");
+    }).join("");
+  }
+  // Eigener Wert: bei festen Sorten in den Einstellungen (gleicht mit ab), bei eigenen Lebensmitteln am Lebensmittel
+  function setSwapGrams(key, v) {
+    const it = swapItem(key); if (!it) return;
+    if (it.custom) {
+      const cf = state.customFoods.find(f => "cf:" + f.name === key); if (!cf) return;
+      if (v > 0) cf.swapGrams = v; else delete cf.swapGrams;
+    } else {
+      const m = Object.assign({}, state.settings.swapGrams || {});
+      if (v > 0) m[key] = v; else delete m[key];
+      if (Object.keys(m).length) state.settings.swapGrams = m; else delete state.settings.swapGrams;
+    }
+    save(); renderRezepte();
+    const box = document.getElementById("swap-table"); if (box && box.contains(document.activeElement)) document.activeElement.blur();
+    renderSwapTable();
+  }
+  function printSwapTable() {
+    const ref = lookup(SWAP_REF.food);
+    const rows = Object.keys(SWAP_GROUPS).map(g => {
+      const its = swapItems(g);
+      return "<tr class='sum'><td colspan='5'>" + SWAP_GROUPS[g].label + "</td></tr>" + Object.keys(its).map(k => {
+        const eq = swapEquiv(k), f = lookup(its[k].food); if (!eq || !f) return "";
+        return "<tr><td>" + escapeHtml(its[k].food) + "</td><td class='num'>" + fmt(f.eiweiss) + " g</td><td class='num'><b>" + fmt(eq.grams, 0) + " g</b></td><td>" +
+          { diaet: "Diätologie", eiweiss: "nach Eiweiß berechnet", eigen: "eigener Wert" }[eq.src] + "</td><td>________ g</td></tr>";
+      }).join("");
+    }).join("");
+    const body = "<p class='rx'>Je Sorte die Menge, die 20 g Hühnerbrust ohne Haut entspricht (" + fmt(SWAP_REF.grams * ref.eiweiss / 100) + " g Eiweiß). Die App tauscht damit auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch und rechnet danach Verhältnis und Kalorien neu. Bitte prüfen und bei Bedarf korrigieren.</p>" +
+      "<table><thead><tr><th>Lebensmittel</th><th class='num'>Eiweiß je 100 g</th><th class='num'>≙ 20 g Huhn</th><th>Quelle</th><th>Korrektur</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+      "<div class='box'>Freigegeben von: ______________________ &nbsp; am: ____________</div>";
+    openPrintView(printDoc("Austauschmengen", escapeHtml(printDateLong()), body), "Austauschmengen");
   }
 
   /* ---------- Rezepte ausblenden (Standard) und löschen (eigene), jeweils mit Rückgängig ---------- */
@@ -198,7 +266,18 @@
     document.getElementById("cf-save").addEventListener("click", cfSave);
     document.getElementById("cf-cancel").addEventListener("click", cfClose);
     document.getElementById("cf-del").addEventListener("click", cfDelete);
-    ["cf-eiweiss", "cf-fett", "cf-kh"].forEach(id => document.getElementById(id).addEventListener("input", cfKcalHint));
+    ["cf-eiweiss", "cf-fett", "cf-kh"].forEach(id => document.getElementById(id).addEventListener("input", () => { cfKcalHint(); cfSwapHint(); }));
+    document.getElementById("cf-swap").addEventListener("change", cfSwapHint);
+    const st = document.getElementById("swap-table");
+    st.addEventListener("change", (e) => {
+      const i = e.target.closest("[data-swap]"); if (!i) return;
+      const v = i.value.trim();
+      if (v !== "" && !/^\d+([.,]\d+)?$/.test(v)) { i.value = ""; showToast("Bitte eine Zahl in Gramm eintragen."); return; }
+      setSwapGrams(i.dataset.swap, v === "" ? 0 : num(v));
+    });
+    st.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.closest("[data-swap]")) e.target.blur(); });
+    st.addEventListener("click", (e) => { const b = e.target.closest("[data-swreset]"); if (b) setSwapGrams(b.dataset.swreset, 0); });
+    document.getElementById("swap-print").addEventListener("click", printSwapTable);
     document.getElementById("cf-form").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox") { e.preventDefault(); cfSave(); } });
     const hl = document.getElementById("hidden-list");
     if (hl) hl.addEventListener("click", (e) => {
