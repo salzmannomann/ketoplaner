@@ -420,8 +420,9 @@ body.heute-tight .page-title { font-size: 28px; }
 .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 999px;
   background: transparent; color: var(--ink); font: 600 13px var(--f-sans); white-space: nowrap; cursor: pointer; }
 .chip.active, .chip.toggle.on { background: var(--ink); color: var(--paper); }
-.chip.toggle { position: relative; border-style: dashed; }
-.chip.toggle.on { border-style: solid; }
+/* Schalter „nur Diätologie“ usw.: Chips wie die Gruppen, am Ende der Reihe mit 12 px Abstand; aktiv invertiert mit „✓“ */
+.chip.toggle { position: relative; }
+.chip.toggle.first { margin-left: 6px; }
 .chip.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
 .chip.toggle:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
 /* Gruppen: Titel (Serif 21) + Anzahl (Mono), 2-px-Linie; Zeilen gepunktet */
@@ -3578,10 +3579,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
     const dk = isDesktop(), tg = $("rz-toggles");
     if (tg) tg.innerHTML = "";
-    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["only-keto", "onlyKeto", "nur KetoCal"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
+    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["only-keto", "onlyKeto", "nur KetoCal"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label], k) => {
       const lab = dk && tg
         ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
-        : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+        : el("label", { class: "chip toggle" + (k === 0 ? " first" : "") + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + ">" + (s[key] ? "✓ " : "") + label);
       const cb = lab.querySelector("input");
       cb.addEventListener("change", () => {
         state.settings[key] = cb.checked;

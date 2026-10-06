@@ -1105,10 +1105,10 @@
     // Am Desktop stehen die Schalter als Häkchen im Kopf („Nur Diätologie“, „Ohne KetoCal“), am Handy als Chips.
     const dk = isDesktop(), tg = $("rz-toggles");
     if (tg) tg.innerHTML = "";
-    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["only-keto", "onlyKeto", "nur KetoCal"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label]) => {
+    [["only-quelle", "onlyQuelle", "nur Diätologie"], ["only-keto", "onlyKeto", "nur KetoCal"], ["hide-keto", "hideKeto", "ohne KetoCal"]].forEach(([id, key, label], k) => {
       const lab = dk && tg
         ? el("label", { class: "dk-check" }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label.charAt(0).toUpperCase() + label.slice(1))
-        : el("label", { class: "chip toggle" + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + "> " + label);
+        : el("label", { class: "chip toggle" + (k === 0 ? " first" : "") + (s[key] ? " on" : "") }, '<input type="checkbox" id="' + id + '"' + (s[key] ? " checked" : "") + ">" + (s[key] ? "✓ " : "") + label);
       const cb = lab.querySelector("input");
       cb.addEventListener("change", () => {
         state.settings[key] = cb.checked;
