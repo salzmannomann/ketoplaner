@@ -380,7 +380,7 @@
       const bySrc = (src) => keys.filter(k => swapEquiv(k).src === src).map(k => its[k].label + " " + fmt(swapEquiv(k).grams, 0) + " g");
       const diaet = bySrc("diaet"), eigen = bySrc("eigen"), eiw = bySrc("eiweiss");
       const srcTxt = [diaet.length ? diaet.join(" · ") + " laut Diätologie" : "", eigen.length ? eigen.join(" · ") + " eigene Werte" : "",
-        eiw.length ? eiw.join(" · ") + " nach Eiweiß berechnet – mit der Diätologie abstimmen" : ""].filter(Boolean).join("; ");
+        eiw.length ? eiw.join(" · ") + " nach Eiweiß berechnet" : ""].filter(Boolean).join("; ");
       meatSeg = '<div class="adj-block meat-swap"><div class="overline">' + grp + '</div><div class="seg-ink">' +
         keys.map(k => { const ok = meatSwapPossible(rec, d, k);
           return '<button type="button" data-meat="' + escapeHtml(k) + '"' + (k === cur ? ' class="active"' : "") + ' aria-pressed="' + (k === cur) + '"' +

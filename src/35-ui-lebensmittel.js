@@ -122,7 +122,7 @@
   }
 
   /* ---------- Austauschmengen (Fleisch- und Fisch-Tausch) ---------- */
-  const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "Vorschlag nach Eiweiß – mit der Diätologie abstimmen", eigen: "eigener Wert" };
+  const SWAP_SRC_TXT = { diaet: "laut Diätologie", eiweiss: "nach Eiweiß berechnet", eigen: "eigener Wert" };
   function swapDefault(key) {
     const it = swapItem(key); if (!it) return null;
     if (!it.custom && it.grams) return { grams: it.grams, src: "diaet" };

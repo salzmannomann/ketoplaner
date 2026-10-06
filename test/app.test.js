@@ -1679,7 +1679,7 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   const txt = c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent;
   assert.match(txt, /Huhn 20 g · Pute 18 g · Rind 30 g laut Diätologie/);
   assert.match(txt, /Hirschfilet 25 g eigene Werte/);
-  assert.match(txt, /Schwein 21 g · Kalb 22 g nach Eiweiß berechnet – mit der Diätologie abstimmen/);
+  assert.match(txt, /Schwein 21 g · Kalb 22 g nach Eiweiß berechnet\./);
   // Kalb wählen: Kalbfleisch in Tabelle und Zubereitung, Verhältnis bleibt
   fire(w, c.querySelector('.meat-swap button[data-meat="kalb"]')); c = $(w, "detail-content");
   assert.match(c.querySelector(".pane[data-pane=anpassen] .portion-line").textContent, /^Fleisch getauscht: Kalb/);
@@ -1700,7 +1700,7 @@ test("Tausch: Fleisch (Huhn, Pute, Rind, Schwein, Kalb) und Fisch, Mengen laut D
   w.document.querySelector('[data-vg="lebensmittel"]').click();
   const row = (k) => $(w, "swap-table").querySelector('[data-swap="' + k + '"]');
   assert.equal(row("rind").placeholder, "30"); assert.equal(row("schwein").placeholder, "21"); assert.equal(row("seelachs").placeholder, "26");
-  assert.match(row("schwein").closest(".swap-row").textContent, /Vorschlag nach Eiweiß/);
+  assert.match(row("schwein").closest(".swap-row").textContent, /nach Eiweiß berechnet/);
   row("schwein").value = "24"; fire(w, row("schwein"), "change");
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.swapGrams.schwein, 24);
   assert.match(row("schwein").closest(".swap-row").textContent, /eigener Wert/);
