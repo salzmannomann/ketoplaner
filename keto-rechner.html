@@ -118,6 +118,10 @@ th { font-weight: 400; font-size: 11px; letter-spacing: .08em; text-transform: u
 td { font-family: var(--f-mono); font-size: 12px; }
 td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .tbl-wrap { overflow-x: auto; }
+/* Werte prüfen: Kategorie als Text (nicht wie eine Zahl), Vermerk „Etikett“/„eigen“ als kleines Schild */
+.werte-table td:last-child { font-family: var(--f-sans); font-size: 12px; color: var(--grey); }
+.werte-table .ovr { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--dot); border-radius: 999px; font: 500 10.5px/1.6 var(--f-sans); color: var(--grey); vertical-align: 1px; white-space: nowrap; }
+.werte-table td.ovr { border: 0; border-bottom: 1px dotted var(--dot); border-radius: 0; text-align: left; font-size: 12px; }
 .empty { color: var(--grey); font-style: italic; padding: 8px 0; }
 @media (max-width: 560px) { html, body { overflow-x: hidden; } }
 
@@ -1108,7 +1112,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
         <div class="vg-head"><div class="vg-title"><h2>Lebensmittel und Rezepte</h2></div></div>
         <div class="vg-sec" id="cf-card">
           <h3 class="vg-sec-title">Eigene Lebensmittel <span class="hint">Werte je 100 g</span></h3>
-          <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unter „Werte prüfen“.</p>
+          <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unten unter „Werte prüfen“.</p>
           <div id="cf-list" class="cf-list"></div>
           <button type="button" class="tlink cf-add" id="cf-add">+ Lebensmittel anlegen</button>
           <div class="cf-form" id="cf-form" hidden>
@@ -1138,6 +1142,14 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
           <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Huhn, Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
           <div id="swap-table"></div>
           <button type="button" class="tlink cf-add" id="swap-print">Austauschmengen drucken (zum Abstimmen)</button>
+        </div>
+        <div class="vg-sec" id="werte-card">
+          <h3 class="vg-sec-title">Werte prüfen <span class="hint">je 100 g</span></h3>
+          <details class="more">
+            <summary class="tlink">Alle Lebensmittel in den Rezepten anzeigen</summary>
+            <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett und eigene Lebensmittel sind markiert.</p>
+            <div id="werte-list" class="tbl-wrap"></div>
+          </details>
         </div>
         <div class="vg-sec" id="hidden-card">
           <h3 class="vg-sec-title">Ausgeblendete Rezepte</h3>
@@ -1221,7 +1233,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 
         <div class="vg-sec">
           <h3 class="vg-sec-title">Daten <span class="hint">nur auf diesem Gerät</span></h3>
-          <p class="hint">Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+          <p class="hint">Ein Backup sichert eigene Rezepte und Lebensmittel, Favoriten, gemerkte Mengen und Vorgaben.</p>
           <div class="btn-row">
             <button id="export-btn" class="btn primary" type="button">Backup exportieren</button>
             <label class="btn outline file-btn">Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
@@ -1230,11 +1242,6 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
             <textarea id="export-text" rows="5" spellcheck="false"></textarea>
             <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
-          </details>
-          <details class="more">
-            <summary class="tlink">Werte prüfen – verwendete Lebensmittel</summary>
-            <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
-            <div id="werte-list" class="tbl-wrap"></div>
           </details>
         </div>
 

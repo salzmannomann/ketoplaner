@@ -107,6 +107,10 @@ th { font-weight: 400; font-size: 11px; letter-spacing: .08em; text-transform: u
 td { font-family: var(--f-mono); font-size: 12px; }
 td:first-child { font-family: var(--f-sans); font-size: 13px; }
 .tbl-wrap { overflow-x: auto; }
+/* Werte prüfen: Kategorie als Text (nicht wie eine Zahl), Vermerk „Etikett“/„eigen“ als kleines Schild */
+.werte-table td:last-child { font-family: var(--f-sans); font-size: 12px; color: var(--grey); }
+.werte-table .ovr { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--dot); border-radius: 999px; font: 500 10.5px/1.6 var(--f-sans); color: var(--grey); vertical-align: 1px; white-space: nowrap; }
+.werte-table td.ovr { border: 0; border-bottom: 1px dotted var(--dot); border-radius: 0; text-align: left; font-size: 12px; }
 .empty { color: var(--grey); font-style: italic; padding: 8px 0; }
 @media (max-width: 560px) { html, body { overflow-x: hidden; } }
 

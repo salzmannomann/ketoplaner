@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=6949bfaa" />
+  <link rel="stylesheet" href="styles.css?v=b4c43c99" />
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -241,7 +241,7 @@
         <div class="vg-head"><div class="vg-title"><h2>Lebensmittel und Rezepte</h2></div></div>
         <div class="vg-sec" id="cf-card">
           <h3 class="vg-sec-title">Eigene Lebensmittel <span class="hint">Werte je 100 g</span></h3>
-          <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unter „Werte prüfen“.</p>
+          <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unten unter „Werte prüfen“.</p>
           <div id="cf-list" class="cf-list"></div>
           <button type="button" class="tlink cf-add" id="cf-add">+ Lebensmittel anlegen</button>
           <div class="cf-form" id="cf-form" hidden>
@@ -271,6 +271,14 @@
           <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Huhn, Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
           <div id="swap-table"></div>
           <button type="button" class="tlink cf-add" id="swap-print">Austauschmengen drucken (zum Abstimmen)</button>
+        </div>
+        <div class="vg-sec" id="werte-card">
+          <h3 class="vg-sec-title">Werte prüfen <span class="hint">je 100 g</span></h3>
+          <details class="more">
+            <summary class="tlink">Alle Lebensmittel in den Rezepten anzeigen</summary>
+            <p class="hint">Nährwerte aller Lebensmittel, die in den Rezepten vorkommen, dazu die eigenen – zur Freigabe durch die Diätologie. Werte vom Etikett und eigene Lebensmittel sind markiert.</p>
+            <div id="werte-list" class="tbl-wrap"></div>
+          </details>
         </div>
         <div class="vg-sec" id="hidden-card">
           <h3 class="vg-sec-title">Ausgeblendete Rezepte</h3>
@@ -354,7 +362,7 @@
 
         <div class="vg-sec">
           <h3 class="vg-sec-title">Daten <span class="hint">nur auf diesem Gerät</span></h3>
-          <p class="hint">Ein Backup sichert eigene Rezepte, Favoriten, gemerkte Mengen und Vorgaben.</p>
+          <p class="hint">Ein Backup sichert eigene Rezepte und Lebensmittel, Favoriten, gemerkte Mengen und Vorgaben.</p>
           <div class="btn-row">
             <button id="export-btn" class="btn primary" type="button">Backup exportieren</button>
             <label class="btn outline file-btn">Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
@@ -363,11 +371,6 @@
             <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
             <textarea id="export-text" rows="5" spellcheck="false"></textarea>
             <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
-          </details>
-          <details class="more">
-            <summary class="tlink">Werte prüfen – verwendete Lebensmittel</summary>
-            <p class="hint">Alle Nährwerte je 100 g, die in den Rezepten verwendet werden – zur Freigabe durch die Diätologie. Etikett-Übersteuerungen sind markiert.</p>
-            <div id="werte-list" class="tbl-wrap"></div>
           </details>
         </div>
 
