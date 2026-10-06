@@ -136,8 +136,12 @@
     if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
     box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
       const its = swapItems(g);
-      return '<div class="overline swap-grp">' + SWAP_GROUPS[g].label + "</div>" + Object.keys(its).map(k => {
+      // Kopf wie eine Tabelle: Gruppe links, über den Feldern „≙ 20 g Huhn“
+      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + SWAP_REF.grams + " g Huhn</span></div>" + Object.keys(its).map(k => {
         const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
+        // Huhn ist die Bezugsgröße: feste Zeile ohne Eingabefeld
+        if (its[k].food === SWAP_REF.food) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
+          '<b class="sw-ref">' + SWAP_REF.grams + '</b><span class="unit">g</span></div>';
         return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
           '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
           (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +

@@ -699,6 +699,13 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .cf-row .tlink { flex: none; }
 /* Austauschmengen: je Sorte eine Zeile mit Menge (Unterstrich-Feld) und Herkunft */
 .swap-grp { margin: 10px 0 0; }
+.swap-lead { margin: 0; font-size: 16px; line-height: 1.4; color: var(--ink); }
+.swap-lead b { font-weight: 600; }
+/* Kopf je Gruppe wie bei einer Tabelle: Gruppe links, „≙ 20 g Huhn“ über den Feldern, Tintenlinie */
+.swap-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 16px 0 0; padding-bottom: 6px; border-bottom: 2px solid var(--ink);
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--grey); }
+.swap-head span:last-child { padding-right: 2px; font-weight: 600; color: var(--ink); }
+.swap-row.ref .sw-ref { width: 72px; padding: 0 2px; font: 600 17px var(--f-mono); text-align: right; color: var(--ink); }
 /* Sorten-Segment im Rezept (Fleisch/Fisch): kompakter, damit fünf Sorten nebeneinander passen; eigene lassen sich wischen */
 .meat-swap:not(.oil) .seg-ink button { padding: 0 9px; font-size: 13.5px; }
 .swap-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 0; border-bottom: 1px dotted var(--dot); }
@@ -1181,8 +1188,9 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
           </div>
         </div>
         <div class="vg-sec" id="swap-card">
-          <h3 class="vg-sec-title">Austauschmengen <span class="hint">so viel entspricht 20 g Huhn</span></h3>
-          <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Huhn, Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
+          <h3 class="vg-sec-title">Austauschmengen</h3>
+          <p class="swap-lead">So viele Gramm einer Sorte ersetzen <b>20 g Huhn</b>.</p>
+          <p class="hint">Damit tauscht die App auf dem Blatt „Anpassen“ Fleisch gegen Fleisch und Fisch gegen Fisch; danach rechnet sie Verhältnis und Kalorien neu. Pute und Rind stammen von der Diätologie, die übrigen sind nach Eiweiß berechnet. Ein eingetragener Wert gilt als abgestimmt.</p>
           <div id="swap-table"></div>
         </div>
         <div class="vg-sec" id="werte-card">
@@ -4188,8 +4196,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (box.contains(document.activeElement)) return; // nicht unter dem Finger neu aufbauen
     box.innerHTML = Object.keys(SWAP_GROUPS).map(g => {
       const its = swapItems(g);
-      return '<div class="overline swap-grp">' + SWAP_GROUPS[g].label + "</div>" + Object.keys(its).map(k => {
+      // Kopf wie eine Tabelle: Gruppe links, über den Feldern „≙ 20 g Huhn“
+      return '<div class="swap-head"><span>' + SWAP_GROUPS[g].label + '</span><span>≙ ' + SWAP_REF.grams + " g Huhn</span></div>" + Object.keys(its).map(k => {
         const eq = swapEquiv(k), def = swapDefault(k); if (!eq || !def) return "";
+        // Huhn ist die Bezugsgröße: feste Zeile ohne Eingabefeld
+        if (its[k].food === SWAP_REF.food) return '<div class="swap-row ref"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + '</span><span class="sw-s">' + escapeHtml(its[k].food) + ' · Bezugsgröße</span></span>' +
+          '<b class="sw-ref">' + SWAP_REF.grams + '</b><span class="unit">g</span></div>';
         return '<div class="swap-row"><span class="sw-l"><span class="sw-n">' + escapeHtml(its[k].label) + (its[k].custom ? " · eigenes" : "") + '</span>' +
           '<span class="sw-s">' + (its[k].custom || its[k].label === its[k].food ? "" : escapeHtml(its[k].food) + " · ") + SWAP_SRC_TXT[eq.src] + "</span></span>" +
           (eq.src === "eigen" ? '<button type="button" class="tlink" data-swreset="' + escapeHtml(k) + '" title="zurück auf ' + fmt(def.grams, 0) + ' g">↺</button>' : "") +
