@@ -414,8 +414,9 @@ body.heute-tight .page-title { font-size: var(--t-2xl); }
 .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: var(--r-pill);
   background: transparent; color: var(--ink); font: 600 var(--t-s) var(--f-sans); white-space: nowrap; cursor: pointer; }
 .chip.active, .chip.toggle.on { background: var(--ink); color: var(--paper); }
-/* Schalter „nur Diätologie“ usw.: Chips wie die Gruppen, am Ende der Reihe mit 12 px Abstand; aktiv invertiert mit „✓“ */
-.chip.toggle { position: relative; }
+/* Schalter „nur Diätologie“ usw.: Zusatzfilter zur Gruppe – gestrichelter Rand, am Ende der Reihe mit 12 px Abstand; aktiv invertiert mit „✓“ */
+.chip.toggle { position: relative; border-style: dashed; } /* gestrichelt = Zusatzfilter (wirkt zusätzlich zur Gruppe) */
+.chip.toggle.on { border-style: solid; }
 .chip.toggle.first { margin-left: 6px; }
 .chip.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
 .chip.toggle:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
