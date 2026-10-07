@@ -4041,7 +4041,7 @@
         '<span class="print-title"></span>' +
         '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
         '<button type="button" class="btn" id="print-go">Drucken</button></div>' +
-        '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
+        '<div class="print-scroll"><div class="print-frame"><div class="print-sheet" id="print-sheet"></div></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
@@ -4056,19 +4056,19 @@
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
-    // Am Bildschirm darf der Küchenzettel über seine Kante laufen: die verkleinerte Vorschau rundet Schriften auf und wird
-    // dadurch etwas höher als der Druck – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
+    // Am Bildschirm darf der Küchenzettel über seine Kante laufen (Sicherheit, falls eine Schrift anders ausfällt als im
+    // Druck) – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
     root.innerHTML = "<style>:host{display:block}" + css + "@media screen{.kz{overflow:visible}}</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
-    // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
-    sheet.style.zoom = ""; fitKitchenCard(root);
+    // Küchenzettel in Originalgröße einpassen, danach auf die Bildschirmbreite verkleinern
+    fitKitchenCard(root);
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
     // Die Größe hängt an den Schriften: nach dem Laden (Newsreader, IBM Plex) noch einmal einpassen
     try {
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
         if (ov.hidden || !sheet.shadowRoot || sheet.shadowRoot !== root) return;
-        const z = sheet.style.zoom; sheet.style.zoom = ""; fitKitchenCard(root); sheet.style.zoom = z;
+        fitKitchenCard(root); fitPrintSheet();
       });
     } catch (e) {}
   }
@@ -4099,11 +4099,14 @@
     const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = land ? 1123 : 794; // 297 bzw. 210 mm bei 96 dpi
     return avail > 0 ? Math.min(1, avail / full) : 1;
   }
+  // Verkleinert wird mit transform: scale (nicht mit CSS-zoom): zoom rundet sehr kleine Schriften auf, die Zeilen würden
+  // höher als berechnet und liefen in die Punktlinien darunter. Der Rahmen nimmt die verkleinerte Größe ein.
   function fitPrintSheet() {
     const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
-    const sheet = ov.querySelector("#print-sheet");
-    const z = printFitZoom() * printZoom;
-    sheet.style.zoom = Math.abs(z - 1) > 0.001 ? String(Math.round(z * 1000) / 1000) : "";
+    const sheet = ov.querySelector("#print-sheet"), frame = ov.querySelector(".print-frame");
+    const z = Math.round(printFitZoom() * printZoom * 1000) / 1000;
+    sheet.style.transform = Math.abs(z - 1) > 0.001 ? "scale(" + z + ")" : "";
+    if (frame) { frame.style.width = Math.round(sheet.offsetWidth * z) + "px"; frame.style.height = Math.round(sheet.offsetHeight * z) + "px"; }
     ov.classList.toggle("zoomed", printZoom > 1.01);
   }
   // Zoom auf einen Punkt (Bildschirmkoordinaten) setzen: der Inhalt unter dem Punkt bleibt an seiner Stelle.

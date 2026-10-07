@@ -185,7 +185,9 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 /* Das Blatt ist immer weißes Papier: Tinte, Grau und Punktlinie hier fest hell definiert (gilt auch im Dunkelmodus und erbt
    ins Shadow-DOM der Vorschau) */
-.print-sheet { --ink: #2a2621; --grey: #645d53; --dot: #a99f8f; width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: var(--ink); padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+/* Rahmen um das Blatt: so groß wie das verkleinerte Blatt (die Verkleinerung macht transform, s. fitPrintSheet) */
+.print-frame { margin: 0 auto; }
+.print-sheet { --ink: #2a2621; --grey: #645d53; --dot: #a99f8f; width: 794px; min-height: 1123px; margin: 0; transform-origin: 0 0; background: #fff; color: var(--ink); padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
 /* Randlose Vorlage (Küchenzettel): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst; Querformat breiter */
 .print-sheet.bleed { padding: 0; overflow: hidden; }
 .print-sheet.landscape { width: 1123px; min-height: 794px; }
@@ -197,12 +199,13 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
   body.printing .print-overlay { position: static; display: block; background: #fff; }
   body.printing .print-bar { display: none; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
-  body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; zoom: 1 !important; }
+  body.printing .print-frame { width: auto !important; height: auto !important; }
+  body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; transform: none !important; }
 }
 
 /* Vorschau zoombar: mit einem Finger verschieben, das Zwei-Finger-Zoomen übernimmt die App (Seite selbst bleibt fix) */
 .print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
-.print-overlay.zoomed .print-sheet { margin: 0; }
+.print-overlay.zoomed .print-frame { margin: 0; }
 
 /* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
 .vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }

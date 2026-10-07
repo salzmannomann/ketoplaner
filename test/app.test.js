@@ -1201,7 +1201,7 @@ test("Druckvorschau zoomen: zwei Finger auseinander vergrößert, Doppeltippen w
   fire(w, $(w, "tab-heute")); fire(w, $(w, "print-day"));
   const ov = $(w, "print-overlay"), sc = ov.querySelector(".print-scroll"), sheet = $(w, "print-sheet");
   const touch = (type, pts, changed) => { const ev = new w.Event(type, { bubbles: true, cancelable: true }); ev.touches = pts; ev.changedTouches = changed || pts; sc.dispatchEvent(ev); return ev; };
-  const zoomOf = () => parseFloat(sheet.style.zoom || "1");
+  const zoomOf = () => parseFloat((sheet.style.transform.match(/scale\(([\d.]+)\)/) || [0, "1"])[1]); // Verkleinern/Vergrößern per transform
   const z0 = zoomOf();
   // Pinch: Abstand 100 → 200 px
   const ev = touch("touchstart", [{ clientX: 100, clientY: 200 }, { clientX: 200, clientY: 200 }]);

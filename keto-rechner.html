@@ -196,7 +196,9 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
 .print-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 /* Das Blatt ist immer weißes Papier: Tinte, Grau und Punktlinie hier fest hell definiert (gilt auch im Dunkelmodus und erbt
    ins Shadow-DOM der Vorschau) */
-.print-sheet { --ink: #2a2621; --grey: #645d53; --dot: #a99f8f; width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: var(--ink); padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
+/* Rahmen um das Blatt: so groß wie das verkleinerte Blatt (die Verkleinerung macht transform, s. fitPrintSheet) */
+.print-frame { margin: 0 auto; }
+.print-sheet { --ink: #2a2621; --grey: #645d53; --dot: #a99f8f; width: 794px; min-height: 1123px; margin: 0; transform-origin: 0 0; background: #fff; color: var(--ink); padding: 53px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border-radius: 2px; }
 /* Randlose Vorlage (Küchenzettel): ganze Seite ohne Innenrand, die Vorlage setzt ihre Ränder selbst; Querformat breiter */
 .print-sheet.bleed { padding: 0; overflow: hidden; }
 .print-sheet.landscape { width: 1123px; min-height: 794px; }
@@ -208,12 +210,13 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
   body.printing .print-overlay { position: static; display: block; background: #fff; }
   body.printing .print-bar { display: none; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
-  body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; zoom: 1 !important; }
+  body.printing .print-frame { width: auto !important; height: auto !important; }
+  body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; transform: none !important; }
 }
 
 /* Vorschau zoombar: mit einem Finger verschieben, das Zwei-Finger-Zoomen übernimmt die App (Seite selbst bleibt fix) */
 .print-scroll { touch-action: pan-x pan-y; overscroll-behavior: contain; }
-.print-overlay.zoomed .print-sheet { margin: 0; }
+.print-overlay.zoomed .print-frame { margin: 0; }
 
 /* Hinweise unter der Zeitleiste eng zusammen (die allgemeine Regel #heute-content .note gäbe je 10 px darunter) */
 .vp-probe { position: fixed; top: 0; left: 0; width: 1px; height: 100%; visibility: hidden; pointer-events: none; z-index: -1; }
@@ -6524,7 +6527,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         '<span class="print-title"></span>' +
         '<button type="button" class="btn outline" id="print-share">Teilen</button>' +
         '<button type="button" class="btn" id="print-go">Drucken</button></div>' +
-        '<div class="print-scroll"><div class="print-sheet" id="print-sheet"></div></div>';
+        '<div class="print-scroll"><div class="print-frame"><div class="print-sheet" id="print-sheet"></div></div></div>';
       document.body.appendChild(ov);
       ov.querySelector("#print-back").addEventListener("click", closePrintView);
       ov.querySelector("#print-go").addEventListener("click", () => {
@@ -6539,19 +6542,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
     const root = sheet.shadowRoot || (sheet.attachShadow ? sheet.attachShadow({ mode: "open" }) : sheet);
-    // Am Bildschirm darf der Küchenzettel über seine Kante laufen: die verkleinerte Vorschau rundet Schriften auf und wird
-    // dadurch etwas höher als der Druck – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
+    // Am Bildschirm darf der Küchenzettel über seine Kante laufen (Sicherheit, falls eine Schrift anders ausfällt als im
+    // Druck) – abgeschnitten wären sonst die letzten Zeilen. Druck und PDF bleiben exakt.
     root.innerHTML = "<style>:host{display:block}" + css + "@media screen{.kz{overflow:visible}}</style>" + body;
     ov.hidden = false; document.body.classList.add("printing"); modalOpen("print");
     const sc = ov.querySelector(".print-scroll"); if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
-    // Küchenzettel in Originalgröße einpassen (ohne Vorschau-Verkleinerung), danach auf die Bildschirmbreite zoomen
-    sheet.style.zoom = ""; fitKitchenCard(root);
+    // Küchenzettel in Originalgröße einpassen, danach auf die Bildschirmbreite verkleinern
+    fitKitchenCard(root);
     printZoom = 1; fitPrintSheet(); bindPrintZoom(sc);
     // Die Größe hängt an den Schriften: nach dem Laden (Newsreader, IBM Plex) noch einmal einpassen
     try {
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
         if (ov.hidden || !sheet.shadowRoot || sheet.shadowRoot !== root) return;
-        const z = sheet.style.zoom; sheet.style.zoom = ""; fitKitchenCard(root); sheet.style.zoom = z;
+        fitKitchenCard(root); fitPrintSheet();
       });
     } catch (e) {}
   }
@@ -6582,11 +6585,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const avail = ((sc && sc.clientWidth) || window.innerWidth) - 20, full = land ? 1123 : 794; // 297 bzw. 210 mm bei 96 dpi
     return avail > 0 ? Math.min(1, avail / full) : 1;
   }
+  // Verkleinert wird mit transform: scale (nicht mit CSS-zoom): zoom rundet sehr kleine Schriften auf, die Zeilen würden
+  // höher als berechnet und liefen in die Punktlinien darunter. Der Rahmen nimmt die verkleinerte Größe ein.
   function fitPrintSheet() {
     const ov = document.getElementById("print-overlay"); if (!ov || ov.hidden) return;
-    const sheet = ov.querySelector("#print-sheet");
-    const z = printFitZoom() * printZoom;
-    sheet.style.zoom = Math.abs(z - 1) > 0.001 ? String(Math.round(z * 1000) / 1000) : "";
+    const sheet = ov.querySelector("#print-sheet"), frame = ov.querySelector(".print-frame");
+    const z = Math.round(printFitZoom() * printZoom * 1000) / 1000;
+    sheet.style.transform = Math.abs(z - 1) > 0.001 ? "scale(" + z + ")" : "";
+    if (frame) { frame.style.width = Math.round(sheet.offsetWidth * z) + "px"; frame.style.height = Math.round(sheet.offsetHeight * z) + "px"; }
     ov.classList.toggle("zoomed", printZoom > 1.01);
   }
   // Zoom auf einen Punkt (Bildschirmkoordinaten) setzen: der Inhalt unter dem Punkt bleibt an seiner Stelle.
