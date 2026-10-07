@@ -1169,7 +1169,7 @@
     if (VIEWS.indexOf(name) === -1) name = "rezepte";
     state.settings.view = name; save();
     document.body.setAttribute("data-view", name);
-    if (name !== "heute") document.body.classList.remove("heute-tight"); // kleiner Kopf gilt nur für Heute
+    if (name !== "heute") document.body.classList.remove("heute-tight"); // enge Stufe gilt nur für Heute (Kopf bleibt überall gleich)
     if (typeof showVgPage === "function") showVgPage(null, true);
     VIEWS.forEach(v => {
       const sec = document.getElementById("view-" + v); if (sec) sec.hidden = v !== name;

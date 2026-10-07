@@ -385,12 +385,9 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .zp-list.tight .zp-row.water, .zp-list.tight .zp-row.sleep { padding: 2px 0; font-size: var(--t-xs); }
 .zp-list.tight .zp-row.water .zp-time, .zp-list.tight .zp-row.sleep .zp-time { font-size: var(--t-xs); }
 .zp-list.tight .zp-row.empty-slot { min-height: 36px; }
-body.heute-tight .topbar { padding-top: calc(8px + env(safe-area-inset-top) + var(--top-gap)); padding-bottom: 8px; margin-bottom: 10px; }
-body.heute-tight .page-title { font-size: var(--t-2xl); }
 .zp-list.tight .zp-row.water .zp-txt:has(.zp-sleep) .zp-sub { display: none; }
 .zeitplan.tight .zp-hints { padding-top: 5px; gap: 2px; }
 .zeitplan.tight .hint { font-size: var(--t-xs); line-height: 1.3; }
-body.heute-tight .page-title { font-size: var(--t-2xl); }
 
 /* ======================================================================
    Rezepte: Anzahl/Sortierung, Suche mit Unterstrich + „+“, Chips, Gruppen mit Zeilen
