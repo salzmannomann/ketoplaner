@@ -1308,14 +1308,23 @@ test("Audit: Öl-Erkennung, Schlafen vor der letzten Mahlzeit, Suche in einer Gr
   const w = boot({ settings: { kcal: 750, weight: 8.5, mctShare: 0, ratio: 1.5, mahlzeiten: 4, zpSchlaf: "17:00" } });
   fire(w, $(w, "tab-heute"));
   assert.match($(w, "heute-content").textContent, /Schlafen liegt vor der letzten Mahlzeit/);
-  // Suche ohne Treffer in einer Gruppe → Knopf „In allen Gruppen suchen“
+  // Suche läuft über alle Rezepte, auch wenn eine Gruppe gewählt ist; leeres Suchfeld → wieder die Gruppe
   fire(w, w.document.querySelector('.tabbar button[data-view="rezepte"]'));
   const chip = [...w.document.querySelectorAll("#filter-bar .chip")].find(b => /Rind/.test(b.textContent));
   if (chip) {
     fire(w, chip);
     const sb = $(w, "recipe-search"); sb.value = "hendl"; fire(w, sb, "input");
-    const btn = [...$(w, "recipe-list").querySelectorAll("button")].find(b => /In allen Gruppen suchen/.test(b.textContent));
-    assert.ok(btn, "Knopf vorhanden"); fire(w, btn); assert.ok($(w, "recipe-list").querySelectorAll(".tile").length > 0, "Treffer in allen Gruppen");
+    const names = () => [...$(w, "recipe-list").querySelectorAll(".tile-name")].map(t => t.textContent);
+    const active = () => w.document.querySelector("#filter-bar .chip.active").textContent;
+    assert.ok(names().length > 0 && names().every(n => /Hendl/i.test(n)), "Treffer aus Geflügel, obwohl Rind gewählt ist");
+    assert.equal(active(), "Alle", "während der Suche ist „Alle“ markiert");
+    sb.value = ""; fire(w, sb, "input");
+    assert.match(active(), /Rind/, "Suchfeld leer → wieder die gewählte Gruppe");
+    assert.ok(names().every(n => !/Hendl/.test(n)));
+    // Gruppe antippen während einer Suche beendet die Suche
+    sb.value = "zucchini"; fire(w, sb, "input");
+    fire(w, [...w.document.querySelectorAll("#filter-bar .chip")].find(b => /Fisch/.test(b.textContent)));
+    assert.equal(sb.value, ""); assert.match(active(), /Fisch/);
   }
   // Service Worker: alle versionierten Dateien in der Vorladeliste, Kopie vor dem asynchronen Cachen
   const sw = read("sw.js"), html = read("index.html");

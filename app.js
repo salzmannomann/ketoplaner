@@ -897,6 +897,7 @@
     };
     const start = (e) => {
       if (busy || (e.button != null && e.button !== 0)) return;
+      const sq = document.getElementById("recipe-search"); if (sq && sq.value.trim()) return; // Suche zeigt alle Gruppen – nichts zu blättern
       x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); active = true; horiz = null; dragged = false; dir = 0;
       trans(0);
     };
@@ -992,14 +993,10 @@
 
     list.innerHTML = "";
     list.dataset.count = entries.length;
-    // Keine Treffer (in der Gruppe): Hinweis mit Textlink „In allen Gruppen suchen“ bzw. „Filter zurücksetzen“
+    // Keine Treffer: Hinweis mit Textlink „Filter zurücksetzen“ (die Suche läuft ohnehin über alle Gruppen)
     const emptyLine = () => {
-      const box = el("div", { class: "empty-line" }, q && filter !== "alle" ? "Keine Treffer in dieser Gruppe." : filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
-      if (q && filter !== "alle") {
-        const b = el("button", { type: "button", class: "tlink" }, "In allen Gruppen suchen");
-        b.addEventListener("click", () => { state.settings.filter = "alle"; save(); renderRezepte(); });
-        box.appendChild(b);
-      } else if (onlyQuelle || hideKeto || onlyKeto || q) {
+      const box = el("div", { class: "empty-line" }, filter === "favoriten" && !q ? "Noch keine Favoriten – Stern bei einem Rezept setzen." : "Keine Treffer.");
+      if (onlyQuelle || hideKeto || onlyKeto || q) {
         const b = el("button", { type: "button", class: "tlink" }, "Filter zurücksetzen");
         b.addEventListener("click", () => { state.settings.onlyQuelle = false; state.settings.hideKeto = false; state.settings.onlyKeto = false; const sq = document.getElementById("recipe-search"); if (sq) sq.value = ""; save(); renderRezepte(); });
         box.appendChild(b);
@@ -1099,8 +1096,9 @@
 
     // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“, „nur KetoCal“ und „ohne KetoCal“
     // (die beiden KetoCal-Schalter schließen sich gegenseitig aus).
-    const filter = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle";
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
+    // Suche läuft immer über alle Rezepte („Alle“ ist markiert); die gewählte Gruppe gilt wieder, sobald das Suchfeld leer ist.
+    const groupSel = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle", filter = q ? "alle" : groupSel;
     const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto, onlyKeto = !!s.onlyKeto && !hideKeto;
     const fb = $("filter-bar");
     const prevScroll = fb.scrollLeft;
@@ -1108,7 +1106,8 @@
     let activeChip = null;
     FILTERS.forEach(f => {
       const chip = el("button", { type: "button", class: "chip" + (f.id === filter ? " active" : ""), "aria-pressed": f.id === filter ? "true" : "false" }, f.label);
-      chip.addEventListener("click", () => { state.settings.filter = f.id; save(); renderRezepte(); });
+      // Gruppe antippen während einer Suche: Suche beenden und die Gruppe zeigen
+      chip.addEventListener("click", () => { state.settings.filter = f.id; const sq = $("recipe-search"); if (sq && sq.value.trim()) sq.value = ""; save(); renderRezepte(); });
       fb.appendChild(chip);
       if (f.id === filter) activeChip = chip;
     });
