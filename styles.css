@@ -61,7 +61,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 /* Scrollbalken-Platz immer reservieren -> kein Springen beim Filterwechsel */
-html { scrollbar-gutter: stable; overflow-y: scroll; }
+html { scrollbar-gutter: stable; overflow-y: scroll; background: var(--paper); }
+/* Start: verdeckt, bis die App aufgebaut ist (Klasse setzt index.html, entfernt init) – Papierfarbe bleibt sichtbar */
+html.booting body { visibility: hidden; }
 body {
   font-family: var(--f-sans);
   background: var(--paper);

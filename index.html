@@ -13,7 +13,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=86b56846" />
+  <link rel="stylesheet" href="styles.css?v=bd766eef" />
+  <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/ibm-plex-mono-600.woff2" as="font" type="font/woff2" crossorigin />
+  <script>
+    /* Ruhiger Start: gespeicherte Darstellung (hell/dunkel) sofort setzen und die Seite verdecken, bis die App aufgebaut ist
+       (sonst blitzt kurz die leere Grundseite auf). Sicherheitsnetz: spätestens nach 4 s oder bei einem Fehler sichtbar. */
+    (function () {
+      var d = document.documentElement, show = function () { d.classList.remove("booting"); };
+      d.classList.add("booting");
+      try { var t = ((JSON.parse(localStorage.getItem("ketoplaner.v5") || "{}") || {}).settings || {}).theme; if (t === "light" || t === "dark") d.setAttribute("data-theme", t); } catch (e) {}
+      setTimeout(show, 4000); window.addEventListener("error", show);
+    })();
+  </script>
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -421,7 +435,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=68685a6a"></script>
+  <script src="app.js?v=b2eab4cd"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

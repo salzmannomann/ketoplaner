@@ -72,7 +72,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 /* Scrollbalken-Platz immer reservieren -> kein Springen beim Filterwechsel */
-html { scrollbar-gutter: stable; overflow-y: scroll; }
+html { scrollbar-gutter: stable; overflow-y: scroll; background: var(--paper); }
+/* Start: verdeckt, bis die App aufgebaut ist (Klasse setzt index.html, entfernt init) – Papierfarbe bleibt sichtbar */
+html.booting body { visibility: hidden; }
 body {
   font-family: var(--f-sans);
   background: var(--paper);
@@ -966,6 +968,16 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 }
 
 </style>
+  <script>
+    /* Ruhiger Start: gespeicherte Darstellung (hell/dunkel) sofort setzen und die Seite verdecken, bis die App aufgebaut ist
+       (sonst blitzt kurz die leere Grundseite auf). Sicherheitsnetz: spätestens nach 4 s oder bei einem Fehler sichtbar. */
+    (function () {
+      var d = document.documentElement, show = function () { d.classList.remove("booting"); };
+      d.classList.add("booting");
+      try { var t = ((JSON.parse(localStorage.getItem("ketoplaner.v5") || "{}") || {}).settings || {}).theme; if (t === "light" || t === "dark") d.setAttribute("data-theme", t); } catch (e) {}
+      setTimeout(show, 4000); window.addEventListener("error", show);
+    })();
+  </script>
 </head>
 <body>
   <!-- Desktop (> 820 px): linke Spalte mit Marke, Navigation, Verordnung als Wertetabelle und Haftungshinweis.
@@ -7342,6 +7354,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         if (mq && mq.addEventListener) mq.addEventListener("change", () => { if (typeof onLayoutChange === "function") onLayoutChange(); renderRezepte(); });
       });
     } catch (e) {}
+    revealApp();
+  }
+  // Erst zeigen, wenn alles steht: nach dem ersten Aufbau und den Schriften (sonst springt der Text beim Nachladen),
+  // höchstens 600 ms warten. Im nächsten Bild, damit Layout und Einpassen (Tagesplan) schon gelaufen sind.
+  function revealApp() {
+    const root = document.documentElement; if (!root.classList.contains("booting")) return;
+    let done = false;
+    const go = () => { if (done) return; done = true; (window.requestAnimationFrame || setTimeout)(() => root.classList.remove("booting")); };
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (typeof queueFitHeute === "function") queueFitHeute(); go(); }); } catch (e) {}
+    setTimeout(go, 600);
   }
 
   document.addEventListener("DOMContentLoaded", init);

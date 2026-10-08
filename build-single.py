@@ -149,6 +149,9 @@ def main():
             b64s = base64.b64encode(fh.read()).decode("ascii")
         html = html.replace('href="icon.svg"', 'href="data:image/svg+xml;base64,' + b64s + '"')
 
+    # Vorladen der Schriften entfällt in der Einzeldatei (sie stecken dort als data-URI im CSS)
+    html = re.sub(r'\n  <link rel="preload" href="fonts/[^"]+" as="font"[^>]*/>', "", html)
+
     # Skripte einbetten (Reihenfolge wie in index.html beibehalten)
     for src in ("foods.js", "recipes.js", "vendor/jspdf.umd.min.js", "vendor/jspdf.plugin.autotable.min.js", "app.js"):
         js = read(src)
