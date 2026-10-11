@@ -6868,20 +6868,35 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         const sxInline = !rc.sx || nW + 1 + sW <= W - tW;
         const line1W = nW + (rc.sx && sxInline ? 1 + sW : 0);
         const timesInline = !rc.times || line1W + tW <= W;
+        // Zu breit für eine Zeile: Uhrzeiten rechts neben dem Namen auf zwei (oder mehr) Zeilen verteilen, z. B.
+        // „7:00 · 10:30“ / „14:00 · 17:30“ – nur wenn der Zusatz in der Namenszeile steht und jede Zeile daneben passt.
+        let tLines = null;
+        if (!timesInline && sxInline && rc.times) {
+          font("mono", ti, false); const room = W - line1W - 2, parts = rc.times.split(" · "), out = [];
+          parts.forEach(t => { const cur = out.length ? out[out.length - 1] + " · " + t : null; if (cur && doc.getTextWidth(cur) <= room) out[out.length - 1] = cur; else out.push(t); });
+          // gleichmäßig verteilen (2 + 2 statt 3 + 1), sofern das ebenso passt
+          const per = Math.ceil(parts.length / out.length), even = [];
+          for (let i = 0; i < parts.length; i += per) even.push(parts.slice(i, i + per).join(" · "));
+          const best = even.length === out.length && even.every(l => doc.getTextWidth(l) <= room) ? even : out;
+          if (best.length > 1 && best.every(l => doc.getTextWidth(l) <= room)) tLines = best;
+        }
         // zweite Zeile: Zusatz (falls umgebrochen) links und/oder Uhrzeiten rechts – beide nur, wenn sie zusammen passen
-        const line2Sx = rc.sx && !sxInline, line2Times = !timesInline && (!line2Sx || sW + tW <= W);
-        const extra = (line2Sx || !timesInline ? lineH(Math.max(line2Sx ? sxs : 0, !timesInline ? ti : 0)) : 0) + (!timesInline && !line2Times ? lineH(ti) : 0);
+        const below = !timesInline && !tLines; // Uhrzeiten unter dem Namen (Notlösung, wenn auch zweizeilig nichts passt)
+        const line2Sx = rc.sx && !sxInline, line2Times = below && (!line2Sx || sW + tW <= W);
+        const extra = tLines ? Math.max(0, (tLines.length - 1) * lineH(ti) - 0.2 * (lineH(tn) - lineH(ti)))
+          : (line2Sx || below ? lineH(Math.max(line2Sx ? sxs : 0, below ? ti : 0)) : 0) + (below && !line2Times ? lineH(ti) : 0);
         const head = 0.45 * em + lineH(tn) + extra + 0.3 * em;
         const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + 0.5 * em;
         if (draw) {
           pdfRule(doc, L, y, R, y, 0.25);
           let yy = y + 0.45 * em + lineH(tn) * 0.8;
           font("serif", tn, true); doc.text(rc.n, L, yy);
-          const y2 = yy + lineH(Math.max(line2Sx ? sxs : 0, !timesInline ? ti : 0)); // zweite Zeile
+          const y2 = yy + lineH(Math.max(line2Sx ? sxs : 0, below ? ti : 0)); // zweite Zeile
           if (rc.sx) { font("sans", sxs, false, GREY); if (sxInline) doc.text(rc.sx, L + nW + 1, yy); else doc.text(rc.sx.replace(/^·\s*/, ""), L, y2); }
           if (rc.times) {
             font("mono", ti, false, GREY);
-            doc.text(rc.times, R, timesInline ? yy : line2Times ? y2 : y2 + lineH(ti), { align: "right" });
+            if (tLines) tLines.forEach((l, i) => doc.text(l, R, yy + i * lineH(ti), { align: "right" }));
+            else doc.text(rc.times, R, timesInline ? yy : line2Times ? y2 : y2 + lineH(ti), { align: "right" });
           }
           yy = y + head;
           pairs.forEach(q => {
