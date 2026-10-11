@@ -113,20 +113,30 @@
           const cells = rc.z.slice(i, i + 2).map(it => { font("mono", ZS, true); const gw = doc.getTextWidth(it.g); font("sans", ZS, false); return { it, lines: doc.splitTextToSize(it.n, cw - gw - 1.5) }; });
           pairs.push({ cells, n: Math.max.apply(null, cells.map(c => c.lines.length)) });
         }
-        // Zusatz „· mit KetoCal“ klein und grau hinter dem Namen; passt er nicht neben Name und Uhrzeiten, darunter
-        const sxs = tn * 0.62;
+        // Zusatz „· mit KetoCal“ klein und grau hinter dem Namen, rechts die Uhrzeiten. Was nicht nebeneinander passt,
+        // rutscht in die nächste Zeile: erst der Zusatz, dann die Uhrzeiten (z. B. ein Rezept zu vier Zeiten) – nie überlappend.
+        const sxs = tn * 0.62, W = R - L;
         font("serif", tn, true); const nW = doc.getTextWidth(rc.n);
         font("mono", ti, false); const tW = doc.getTextWidth(rc.times) + 2;
         font("sans", sxs, false); const sW = rc.sx ? doc.getTextWidth(rc.sx) : 0;
-        const sxInline = !rc.sx || nW + 1 + sW <= R - L - tW;
-        const head = 0.45 * em + lineH(tn) + (sxInline ? 0 : lineH(sxs)) + 0.3 * em;
+        const sxInline = !rc.sx || nW + 1 + sW <= W - tW;
+        const line1W = nW + (rc.sx && sxInline ? 1 + sW : 0);
+        const timesInline = !rc.times || line1W + tW <= W;
+        // zweite Zeile: Zusatz (falls umgebrochen) links und/oder Uhrzeiten rechts – beide nur, wenn sie zusammen passen
+        const line2Sx = rc.sx && !sxInline, line2Times = !timesInline && (!line2Sx || sW + tW <= W);
+        const extra = (line2Sx || !timesInline ? lineH(Math.max(line2Sx ? sxs : 0, !timesInline ? ti : 0)) : 0) + (!timesInline && !line2Times ? lineH(ti) : 0);
+        const head = 0.45 * em + lineH(tn) + extra + 0.3 * em;
         const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + 0.5 * em;
         if (draw) {
           pdfRule(doc, L, y, R, y, 0.25);
           let yy = y + 0.45 * em + lineH(tn) * 0.8;
           font("serif", tn, true); doc.text(rc.n, L, yy);
-          if (rc.sx) { font("sans", sxs, false, GREY); if (sxInline) doc.text(rc.sx, L + nW + 1, yy); else doc.text(rc.sx.replace(/^·\s*/, ""), L, yy + lineH(sxs)); }
-          font("mono", ti, false, GREY); doc.text(rc.times, R, yy, { align: "right" });
+          const y2 = yy + lineH(Math.max(line2Sx ? sxs : 0, !timesInline ? ti : 0)); // zweite Zeile
+          if (rc.sx) { font("sans", sxs, false, GREY); if (sxInline) doc.text(rc.sx, L + nW + 1, yy); else doc.text(rc.sx.replace(/^·\s*/, ""), L, y2); }
+          if (rc.times) {
+            font("mono", ti, false, GREY);
+            doc.text(rc.times, R, timesInline ? yy : line2Times ? y2 : y2 + lineH(ti), { align: "right" });
+          }
           yy = y + head;
           pairs.forEach(q => {
             const rowH = q.n * zlh + 2 * ip;
