@@ -289,7 +289,7 @@
      („leer = Standard“), Speichern · Abbrechen · ↺ Standard, die Zahl der betroffenen Rezepte und das Wasser. Weicht ein
      Wert um mehr als ein Drittel vom Standard ab, erscheint ein Hinweis. Geänderte Lebensmittel sind markiert und lassen
      sich einzeln oder alle zurücksetzen – jeweils mit Rückgängig. Eigene Lebensmittel öffnen ihr Formular, das MCT-Öl
-     führt zu „Öl und MCT“ (Etikettwerte dort). */
+     führt zu den Etikettwerten oben (MCT-Öl). */
   let werteEdit = null;
   const WERTE_KEYS = [["eiweiss", "Eiweiß"], ["fett", "Fett"], ["kh", "KH"], ["kcal100", "kcal"]];
   function changedFoods() { return Object.keys(state.foodOverrides || {}).filter(n => { const f = lookup(n); return f && f.changed; }); }
@@ -318,7 +318,7 @@
           '<span class="hint">Gilt für ' + recipesWith(name) + (recipesWith(name) === 1 ? " Rezept" : " Rezepte") + ' · Wasser je 100 g: <input type="text" inputmode="decimal" data-k="wasser" aria-label="Wasser je 100 g" value="' + (o.wasser != null ? fmtNum(o.wasser) : "") + '" placeholder="' + fmt(waterOf(std)) + '"> g (leer = Standard)</span>' +
           '<div class="note warn" id="wt-msg" hidden></div></div></td></tr>';
       }
-      const attr = f.custom ? ' data-cf-open="' + escapeHtml(name) + '"' : mct ? ' data-mct="1" title="Etikettwerte unter Öl und MCT"' : ' data-food="' + escapeHtml(name) + '"';
+      const attr = f.custom ? ' data-cf-open="' + escapeHtml(name) + '"' : mct ? ' data-mct="1" title="Etikettwerte oben unter MCT-Öl"' : ' data-food="' + escapeHtml(name) + '"';
       const std = f.changed ? f.std : null;
       return '<tr class="wt-row' + (std ? " has-std" : "") + '" tabindex="0" role="button"' + attr + ">" + nm +
         WERTE_KEYS.map(([k]) => "<td" + (std && werteVal(std, k) !== werteVal(f, k) ? ' class="chg"' : "") + ">" + werteVal(f, k) + "</td>").join("") + kat(f) + "</tr>" +
@@ -374,7 +374,7 @@
     box.dataset.wb = "1";
     const open = (tr) => {
       if (tr.dataset.cfOpen) { cfOpen(tr.dataset.cfOpen); return; }
-      if (tr.dataset.mct) { showVgPage("oel"); return; }
+      if (tr.dataset.mct) { const c = document.getElementById("mct-oil-card"); if (c) try { c.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} const f = document.getElementById("set-mct-kcal"); if (f) f.focus({ preventScroll: true }); return; }
       werteEdit = tr.dataset.food; renderWerte();
       const row = box.querySelector("tr.editing");
       if (row) try { row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}

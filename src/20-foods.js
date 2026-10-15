@@ -12,7 +12,7 @@
       if (o.kcal100 == null && ["eiweiss", "fett", "kh"].some(k => o[k] != null && o[k] !== f[k])) delete nf.kcal100;
       foodIndex[n] = nf;
     });
-    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Öl und MCT).
+    // MCT-Öl: Fett- und kcal-Wert vom Etikett übersteuerbar (Vorgaben › Lebensmittel und Rezepte).
     // Vorbelegung: Fett 100 g/100 g; 8,3 kcal/g ist ein PRAXISWERT, keine belegte
     // Konstante. Emulsionen (z. B. 50 % Fett) sind damit ebenfalls abbildbar –
     // "Öl = 100 % Fett" ist bewusst NICHT hart verdrahtet.

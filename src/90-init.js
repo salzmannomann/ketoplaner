@@ -2,6 +2,7 @@
   function init() {
     rebuildFoodIndex();
     migrateWaterMl();
+    migrateFluid();
     applyTheme();
     bindSettingsBar();
     bindVgPages();

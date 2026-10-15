@@ -231,10 +231,6 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
 .tlink[hidden] { display: none; }
 .hint { font-size: var(--t-s); line-height: 1.45; color: var(--grey); text-wrap: pretty; }
 .hint.warn { color: var(--red); }
-.hint.attn { color: var(--yellow); }
-/* Textlink mitten in einem Hinweis (Konsistenz): bricht mit seinem Trennpunkt um, ohne die Zeile aufzublähen */
-.hint .nw { white-space: nowrap; }
-.ratio-line .tlink, #konsistenz-hint .tlink { min-height: 32px; margin: -8px 0; vertical-align: middle; }
 
 /* ======================================================================
    Heute (Tagesplan)
@@ -685,6 +681,13 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .vo-in .unit { min-width: 30px; font: 500 var(--t-s) var(--f-mono); color: var(--grey); }
 /* Segment rechts in einer Feldzeile (neben der Beschriftung): so breit wie die Optionen, nicht über die ganze Zeile */
 .vo-row > .seg-ink { flex: none; width: auto; }
+/* Zeile mit Segment darunter (z. B. „Wenn nicht beides geht“) und Feld mit festem Vorsatz („1 : 1,25“) */
+.vo-row.vo-col { flex-direction: column; align-items: stretch; gap: 8px; }
+.vo-row.vo-col > .seg-ink { width: 100%; }
+.vo-in .unit.pre { min-width: 0; }
+/* Gelber Hinweis direkt unter einer Zeile der Verordnung (Flüssigkeit unter dem Richtwert) */
+.note.fluid-low { margin: 10px 0 4px; }
+.note.fluid-low[hidden] { display: none; }
 .mahl-seg button { flex: 0 0 auto; min-width: 44px; font-family: var(--f-mono); }
 .btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 14px; }
 .btn-pair .btn { min-height: 48px; }

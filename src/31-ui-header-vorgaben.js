@@ -36,14 +36,10 @@
       (d.mctShare > 0 ? " · MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " (Kalorien halten)" : "") : "");
     let l2 = "";
     if (d.fluidDay > 0) {
-      l2 = fmt(d.fluidDay, 0) + " ml/Tag · ";
-      if (d.wasserModus === "mahlzeit") l2 += "alles in den Mahlzeiten (je " + fmt(d.fluidMahl, 0) + " ml)";
-      else {
-        // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
-        const wg = waterGiftsText(d);
-        l2 += "Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
-        if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
-      }
+      // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
+      const wg = waterGiftsText(d);
+      l2 = fmt(d.fluidDay, 0) + " ml/Tag · Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
+      if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
     }
     chip.innerHTML = '<span class="rx-pill">' + escapeHtml(fmtRx(d.ratio)) + '</span><span class="rx-sub">' + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + "</span>";
     chip.setAttribute("aria-label", l1 + (l2 ? " · " + l2 : ""));
@@ -59,16 +55,24 @@
       '<button type="button" class="tlink" id="side-rx-edit" title="Verordnung in den Vorgaben ändern">Ändern</button></div>' +
       '<div class="side-ratio"><b>' + escapeHtml(fmtRx(d.ratio)) + '</b><span>Fett : Eiweiß + KH</span></div>' +
       row("Kalorien am Tag", fmt(d.kcal, 0) + " kcal") + row("je Mahlzeit", d.mahl + " × " + fmt(d.kcalMahl, 0)) +
-      row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
-      '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
+      row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit am Tag", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
+      '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " % · " + regelLabel(d) : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
   }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
+  // MCT-Anteil in Worten (Verordnung › Bearbeiten) und gelber Hinweis, wenn die Flüssigkeit unter dem Richtwert liegt
+  function mctMixText(d) {
+    if (!(d.mctShare > 0)) return "derzeit kein MCT – alles Rapsöl";
+    const pct = Math.round(d.mctShare * 1000) / 10;
+    return d.mctShare >= 1 ? "nur MCT-Öl, kein Rapsöl" : fmtNum(pct) + " % MCT, " + fmtNum(Math.round((100 - pct) * 10) / 10) + " % Rapsöl";
+  }
+  function fluidLowText(d) { return "Flüssigkeit liegt unter dem Richtwert nach Gewicht (" + fmt(d.fluidAuto, 0) + " ml). Bitte mit dem Team abklären, ob das so passt."; }
   /* ---------- Vorgaben: Liste mit Unterseiten ----------
      Die Liste zeigt je Bereich eine Zusammenfassung; jede Zeile öffnet eine Unterseite („‹ Vorgaben“ zurück).
      Die Verordnung ist gesperrt, bis man „Bearbeiten“ tippt: Felder wirken sofort (die Kennzahlen rechnen mit),
      „Abbrechen“ stellt den Stand von vorher wieder her, „Speichern“ schließt die Felder (Meldung mit Rückgängig). */
   let vgPage = null, voEdit = false, voSnap = null;
-  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss"];
+  let voFluidBefore = null; // Tagesmenge beim Öffnen von „Bearbeiten“ (grau „vorher … ml“, wenn sie sich ändert)
+  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss", "fluidRatio", "mctShare", "mctMode"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
     // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
@@ -94,17 +98,15 @@
   function voRestore(snap) { VO_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; }); save(); renderRezepte(); }
   function voFinish(keep) {
     const snap = voSnap, changed = snap && JSON.stringify(voSnapshot()) !== JSON.stringify(snap);
-    voEdit = false; voSnap = null;
+    voEdit = false; voSnap = null; voFluidBefore = null;
     if (!keep && snap) voRestore(snap); else renderRezepte();
     if (keep && changed) showToast("Verordnung gespeichert", [["Rückgängig", () => voRestore(snap)]]);
   }
   function renderVgList(d) {
     if (typeof renderLebensmittel === "function") renderLebensmittel();
     const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
-    put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
-    put("vgs-fluessigkeit", (d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel") +
-      (d.konsistenz > 0 ? " · Konsistenz " + fmtKml(d.konsistenz) + " kcal/ml" : ""));
-    put("vgs-oel", d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " · Kalorien halten" : "") : "nur Rapsöl");
+    put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") +
+      (d.mctShare > 0 ? " · MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " %" : ""));
     put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
     const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
@@ -116,24 +118,25 @@
       ["Mahlzeiten pro Tag", "", String(d.mahl)],
       ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
       ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
+      // Flüssigkeit hängt an den Kalorien (das Verhältnis steht nur beim Bearbeiten); darunter ggf. der gelbe Hinweis
+      ["Flüssigkeit pro Tag", d.fluidRatio > 0 ? "wächst mit den Kalorien" : d.fluidAuto > 0 ? "Richtwert nach Gewicht" : "", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "—",
+        d.fluidLow ? '<div class="note attn fluid-low">' + escapeHtml(fluidLowText(d)) + "</div>" : ""],
       ["Kalorien mindestens", src("src-kcalmin"), fmt(d.kcalMin, 0) + " kcal"],
       ["Eiweiß pro Tag", d.autoProtein ? (d.proteinPerKg === d.proteinStandard ? "Standard · " : "") + fmt(d.proteinPerKg, 1) + " g/kg" : "manuell", fmt(d.eiweiss, 0) + " g"],
+      ["MCT-Anteil am Öl", d.mctShare > 0 ? (d.mctShare >= 1 ? "kein Rapsöl" : "Rest Rapsöl") + " · " + (d.mctMode === "kalorien" ? "Kalorien werden gehalten" : "Verhältnis wird gehalten") : "derzeit kein MCT – alles Rapsöl",
+        fmtNum(Math.round(d.mctShare * 1000) / 10) + " %"],
     ];
     const vv = document.getElementById("vo-view");
-    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>").join("");
+    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>" + (r[3] || "")).join("");
     const eb = document.getElementById("vo-editbox"); if (eb) eb.hidden = !voEdit;
     if (vv) vv.hidden = voEdit;
     const ed = document.getElementById("vo-edit"); if (ed) ed.hidden = voEdit;
-    const mt = document.getElementById("mct-mode-text");
-    if (mt) mt.textContent = d.mctMode === "kalorien"
-      ? "Die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung."
-      : "Das Verhältnis bleibt exakt. Die Kalorien sinken etwas, weil MCT weniger kcal je Gramm liefert.";
   }
   function bindVgPages() {
     document.querySelectorAll("#view-vorgaben [data-vg]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vg)));
     document.querySelectorAll("#view-vorgaben [data-vgback]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vgback === "list" ? null : b.dataset.vgback)));
     const ed = document.getElementById("vo-edit"), ca = document.getElementById("vo-cancel"), sv = document.getElementById("vo-save");
-    if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
+    if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voFluidBefore = derived().fluidDay; voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
     if (ca) ca.addEventListener("click", () => voFinish(false));
     if (sv) sv.addEventListener("click", () => voFinish(true));
   }
@@ -163,38 +166,14 @@
       ];
       if (d.kcalBereich) facts.push(fact("bereich", "Bereich laut Schätzungen", fmt(d.kcalLoBd, 0) + "–" + fmt(d.kcalRefBd, 0), "kcal/Tag · ESPGHAN–FAO/WHO", "von der ESPGHAN-Faustregel (60 %) bis zum Bedarf gesunder Kinder (FAO/WHO) – siehe Bedarf schätzen"));
       else if (d.kcalRichtwert) facts.push(fact("bereich", "Korridor nach Gewicht", fmt(d.kcalMinAuto, 0) + "–" + fmt(d.kcalMaxAuto, 0), "kcal/Tag · 70–90 kcal/kg", "Richtwert nach Körpergewicht: 70–90 kcal/kg"));
-      sum.innerHTML = ratioWarn + '<div class="vg-facts">' + facts.join("") + "</div>";
-    }
-    // Flüssigkeit: Modus-Buttons und Zusammenfassung
-    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
-      b.classList.toggle("active", b.dataset.wmodus === d.wasserModus));
-    const fs = document.getElementById("fluid-summary");
-    if (fs) {
-      if (!(d.fluidDay > 0)) fs.innerHTML = '<div class="note info">Kein Flüssigkeitsziel – Körpergewicht eintragen oder ml/Tag vorgeben.</div>';
-      else {
-        const maxF = d.maxMahlMl > 0 ? fact("max", "höchstens auf einmal", fmt(d.maxMahlMl, 0) + " ml", "25 ml/kg", "mehr auf einmal verträgt der Magen oft schlecht") : "";
-        if (d.wasserModus === "mahlzeit") {
-          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "in jeder Mahlzeit", fmt(d.fluidMahl, 0) + " ml", fmt(d.fluidDay, 0) + " ml/Tag ÷ " + d.mahl,
-            fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " ÷ " + d.mahl + " Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">Kein Wasser zwischen den Mahlzeiten nötig.</p>';
-        } else {
-          const wg = waterGiftsText(d);
-          fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
-              fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">' + (d.konsistenz > 0 ? "Die Mahlzeiten bekommen Wasser nach der Konsistenz." : "Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren.") + ' Uhrzeiten stehen im Tagesplan.</p>';
-        }
+      // Flüssigkeit: Wassergaben laut Tagesplan (Rest bis zur Tagesmenge) und der Richtwert nach Gewicht zum Vergleich
+      if (d.fluidDay > 0) {
+        const wg = waterGiftsText(d);
+        facts.push(fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+          fmt(d.fluidDay, 0) + " ml/Tag abzüglich der Flüssigkeit in den Mahlzeiten"));
       }
-    }
-    // MCT-Karte: bei 0 % nur die Prozent-Buttons, Erklärung und Etikettwerte erst ab 10 %.
-    const more = document.getElementById("mct-more"), zh = document.getElementById("mct-zero-hint");
-    if (more) more.hidden = !(d.mctShare > 0);
-    if (zh) zh.hidden = d.mctShare > 0;
-    const sc = document.getElementById("mct-share-ctl");
-    if (sc) {
-      sc.innerHTML = [0, 10, 20, 30, 50, 100].map(v =>
-        '<button type="button" data-mcts="' + v + '"' + (Math.abs(d.mctShare - v / 100) < 0.005 ? ' class="active"' : "") + ">" + v + "&nbsp;%</button>").join("");
-      sc.querySelectorAll("button[data-mcts]").forEach(b =>
-        b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mcts) / 100; save(); renderRezepte(); }));
+      if (d.fluidAuto > 0) facts.push(fact("richtwert", "Richtwert Flüssigkeit", fmt(d.fluidAuto, 0) + " ml", "nach Gewicht · 100 ml/kg", "Holliday-Segar: 100 ml je kg bis 10 kg, darüber 50 ml je weiterem kg"));
+      sum.innerHTML = ratioWarn + '<div class="vg-facts">' + facts.join("") + "</div>";
     }
     document.querySelectorAll("#mct-mode-ctl button[data-mctmode]").forEach(b =>
       b.classList.toggle("active", b.dataset.mctmode === d.mctMode));
@@ -239,20 +218,20 @@
     const keep = {}; ["pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"].forEach(k => { keep[k] = state.settings[k]; });
     state = load(JSON.stringify(st));
     Object.keys(keep).forEach(k => { if (keep[k] === undefined) delete state.settings[k]; else state.settings[k] = keep[k]; });
-    const stored = save();
-    rebuildFoodIndex(); renderRezepte(); showView(state.settings.view || "rezepte");
+    rebuildFoodIndex(); migrateWaterMl(); migrateFluid();
+    const stored = save(); renderRezepte(); showView(state.settings.view || "rezepte");
     alert(stored ? "Backup importiert." : "Backup übernommen – aber der Speicher dieses Browsers ist nicht beschreibbar (privates Fenster oder voll). Nach dem Schließen ist es wieder weg.");
   }
 
   function bindSettingsBar() {
-    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-fluid": "fluidMl", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
+    const map = { "set-kcal": "kcal", "set-kcalmin": "kcalMin", "set-eiweiss": "eiweiss", "set-weight": "weight", "set-mct-fett": "mctFett100", "set-mct-kcal": "mctKcal100", "set-verdunstung": "dampfVerdunstung" };
     Object.keys(map).forEach(id => {
       const elx = document.getElementById(id); if (!elx) return;
       elx.addEventListener("input", e => {
         let v = num(e.target.value);
         // Vorschlags-Felder: nur ein leeres Feld heißt wieder „automatisch“. Ein eingetippter Wert bleibt fest,
         // auch wenn er zufällig dem Vorschlag entspricht (sonst würde er sich beim Ändern des Gewichts still mitändern).
-        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-fluid" || id === "set-mct-fett" || id === "set-mct-kcal" || id === "set-verdunstung";
+        const isAutoField = id === "set-kcal" || id === "set-kcalmin" || id === "set-mct-fett" || id === "set-mct-kcal" || id === "set-verdunstung";
         if (isAutoField && e.target.value.trim() === "") v = "";
         state.settings[map[id]] = v; save();
         if (id.indexOf("set-mct") === 0) rebuildFoodIndex(); // Etikettwerte fürs MCT-Öl neu anwenden
@@ -309,40 +288,36 @@
       b.addEventListener("click", () => { state.settings.mctMode = b.dataset.mctmode; save(); renderRezepte(); }));
     document.querySelectorAll("#theme-ctl button[data-theme]").forEach(b =>
       b.addEventListener("click", () => { state.settings.theme = b.dataset.theme; save(); applyTheme(); renderRezepte(); }));
-    const di = document.getElementById("set-dichte");
-    if (di) di.addEventListener("input", () => {
-      const v = parseFloat(String(di.value).replace(",", "."));
-      if (di.value.trim() === "") state.settings.maxDichte = "";
-      else if (isFinite(v) && v >= 0) state.settings.maxDichte = v === 1.5 ? "" : v;
-      else return;
-      save(); renderRezepte();
-    });
-    // Konsistenz der Mahlzeiten: wie im Rezept oder feste kcal je ml (Wert von Hand oder aus einer Mahlzeit übernommen)
-    document.querySelectorAll("#konsistenz-ctl button[data-konsistenz]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.konsistenz = b.dataset.konsistenz; save(); renderRezepte(); }));
-    const ki = document.getElementById("set-konsistenz");
-    if (ki) {
-      ki.addEventListener("input", () => {
-        const v = parseFloat(String(ki.value).replace(",", "."));
-        if (ki.value.trim() === "") state.settings.kcalJeMl = "";
-        else if (isFinite(v) && v > 0 && v <= 5) state.settings.kcalJeMl = v;
-        else return;
-        delete state.settings.konsistenzVon; save(); renderRezepte();
+    // Flüssigkeit: Verhältnis Kalorien : Flüssigkeit („1,25“ oder „1:1,25“) oder Tagesmenge in ml – gespeichert wird
+    // immer das Verhältnis (ml je kcal), damit die Menge mit den Kalorien mitwächst.
+    const fr = document.getElementById("set-fluidratio");
+    if (fr) {
+      fr.addEventListener("input", () => {
+        const t = String(fr.value).replace(/\s/g, ""), part = t.indexOf(":") >= 0 ? t.slice(t.indexOf(":") + 1) : t;
+        const v = parseFloat(part.replace(",", "."));
+        if (isFinite(v) && v > 0 && v <= 5) { state.settings.fluidRatio = v; save(); renderRezepte(); }
       });
-      ki.addEventListener("change", () => { const v = num(state.settings.kcalJeMl); ki.value = v > 0 ? fmtNum(v) : ""; });
+      fr.addEventListener("change", () => { fr.value = fmtNum(Math.round(num(state.settings.fluidRatio) * 100) / 100); });
     }
-    document.addEventListener("click", e => {
-      if (!e.target.closest || !e.target.closest("#konsistenz-clear")) return;
-      const prev = JSON.stringify({ water: state.water, waterK: state.waterK, dayPlan: state.dayPlan });
-      state.water = {}; state.waterK = {};
-      (state.dayPlan || []).forEach(sl => { if (sl) { delete sl.water; delete sl.waterK; } });
-      save(); renderRezepte();
-      showToast("Eigene Wassermengen zurückgesetzt", [["Rückgängig", () => { const p = JSON.parse(prev); state.water = p.water; state.waterK = p.waterK || {}; state.dayPlan = p.dayPlan; save(); renderRezepte(); }]]);
+    const fd = document.getElementById("set-fluidday");
+    if (fd) fd.addEventListener("input", () => {
+      const v = num(fd.value), kc = derived().kcal;
+      if (v > 0 && kc > 0) { state.settings.fluidRatio = v / kc; save(); renderRezepte(); }
     });
+    // MCT-Anteil in Prozent (0–100, Komma erlaubt)
+    const mi = document.getElementById("set-mctshare");
+    if (mi) {
+      mi.addEventListener("input", () => {
+        const v = parseFloat(String(mi.value).replace(",", "."));
+        if (mi.value.trim() === "") state.settings.mctShare = 0;
+        else if (isFinite(v) && v >= 0 && v <= 100) state.settings.mctShare = Math.round(v * 10) / 1000;
+        else return;
+        save(); renderRezepte();
+      });
+      mi.addEventListener("change", () => { mi.value = fmtNum(Math.round(num(state.settings.mctShare) * 1000) / 10); });
+    }
     document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mahlzeiten = num(b.dataset.mahl); save(); renderRezepte(); }));
-    document.querySelectorAll("#wasser-modus-ctl button[data-wmodus]").forEach(b =>
-      b.addEventListener("click", () => { state.settings.wasserModus = b.dataset.wmodus; save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
     const impF = document.getElementById("import-file");

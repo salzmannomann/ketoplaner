@@ -246,37 +246,20 @@
     src("kcal", d.kcalManual, d.kcalBasis === "krick" ? "Vorschlag · Krick" : d.weight > 0 ? "Vorschlag · 80 kcal/kg" : "Vorgabe ohne Gewicht", "Vorschlag " + fmt(d.kcalAuto, 0));
     put("set-kcalmin", d.kcalMinManual ? s.kcalMin : ""); hint("set-kcalmin", String(Math.round(d.kcalMinAuto)));
     src("kcalmin", d.kcalMinManual, d.kcalBereich ? "Vorschlag · ESPGHAN 60 %" : d.weight > 0 ? "Vorschlag · 70 kcal/kg" : "Vorschlag · 85 % des Ziels", "Vorschlag " + fmt(d.kcalMinAuto, 0));
-    put("set-fluid", d.fluidManual ? s.fluidMl : ""); hint("set-fluid", d.fluidAuto > 0 ? String(Math.round(d.fluidAuto)) : "Gewicht eintragen");
-    src("fluid", d.fluidManual, d.fluidAuto > 0 ? "Vorschlag · 100 ml/kg" : "kein Vorschlag ohne Gewicht", "Vorschlag " + fmt(d.fluidAuto, 0));
-    // Energiedichte (nur Modus „zwischen“; im anderen Modus ausgegraut, das Feld bleibt an seinem Platz)
+    // Flüssigkeit (Verordnung › Bearbeiten): Verhältnis Kalorien : Flüssigkeit (1 : x = x ml je kcal) oder Tagesmenge
+    // eintippen – das andere rechnet die App. Grau darunter: die Menge vor dem Bearbeiten, falls sie sich geändert hat.
     {
-      const on = d.wasserModus === "zwischen", el2 = $("set-dichte"), manual = !(s.maxDichte === "" || s.maxDichte == null) && num(s.maxDichte) !== 1.5;
-      put("set-dichte", on && manual ? fmtNum(d.maxDichte) : "");
-      if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "–"; }
-      src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "auf 1,5");
-      // Konsistenz: „wie im Rezept“ (mit Höchstdichte) oder feste kcal je ml für alle Mahlzeiten – nur beim Sondieren
-      const fest = d.konsistenzFest, kv = num(s.kcalJeMl);
-      document.querySelectorAll("#konsistenz-ctl button[data-konsistenz]").forEach(b => {
-        b.classList.toggle("active", on && (b.dataset.konsistenz === "fest") === fest); b.disabled = !on;
-      });
-      const kr = $("konsistenz-row"), ki = $("set-konsistenz");
-      if (kr) kr.hidden = !fest;
-      const dfield = $("dichte-field"); if (dfield) dfield.hidden = fest;
-      put("set-konsistenz", on && kv > 0 ? fmtNum(kv) : "");
-      if (ki) { ki.disabled = !on; ki.placeholder = on ? "1,0" : "–"; }
-      const ks = $("src-konsistenz");
-      if (ks) ks.textContent = !on ? "nicht nötig" : s.konsistenzVon && kv > 0 ? "aus " + s.konsistenzVon + " übernommen" : kv > 0 ? "eigener Wert" : "noch kein Wert";
-      const kh = $("konsistenz-hint");
-      if (kh) {
-        // Eigene Wassermengen gehen der Konsistenz vor – Anzahl nennen, mit Weg zurück
-        const nOwn = Object.keys(state.water || {}).length + Object.keys(state.waterK || {}).length +
-          (state.dayPlan || []).filter(sl => sl && (sl.water != null || sl.waterK != null)).length;
-        const own = nOwn ? '<br>Eigene Wassermengen (' + nOwn + ') gehen vor <span class="nw">· <button type="button" class="tlink" id="konsistenz-clear">zurücksetzen</button></span>' : "";
-        kh.innerHTML = !on ? "Nur beim Wasser zwischen den Mahlzeiten – in den Mahlzeiten bestimmt die Tagesmenge das Wasser."
-          : fest && d.konsistenz > 0 ? "Gilt für alle Mahlzeiten: 100 kcal in " + fmt(100 / d.konsistenz, 0) + " ml. Steigen die Kalorien pro Tag, wächst das Wasser in jeder Mahlzeit im selben Maß mit – die Konsistenz bleibt gleich. Der Rest der Tagesmenge kommt als Wassergaben." + own
-          : fest ? "Wert eintragen – oder im Rezept unter den Zutaten bei einer Mahlzeit, die gut passt, „als Konsistenz für alle Mahlzeiten“ tippen."
-          : "Jedes Rezept behält sein Wasser zum Pürieren bzw. Anrühren. Eine feste Konsistenz lässt sich auch im Rezept unter den Zutaten übernehmen.";
-      }
+      const r = d.fluidRatio > 0 ? d.fluidRatio : (d.kcal > 0 ? d.fluidDay / d.kcal : 0);
+      put("set-fluidratio", r > 0 ? fmtNum(Math.round(r * 100) / 100) : "");
+      put("set-fluidday", d.fluidDay > 0 ? String(Math.round(d.fluidDay)) : "");
+      const before = voFluidBefore, sp = $("src-fluidday");
+      if (sp) sp.textContent = (before != null && Math.abs(before - d.fluidDay) > 0.5 ? "vorher " + fmt(before, 0) + " ml · " : "") + "wächst mit den Kalorien";
+      const low = $("fluid-low-edit");
+      if (low) { low.hidden = !d.fluidLow; low.textContent = d.fluidLow ? fluidLowText(d) : ""; }
+      // MCT-Anteil in Prozent; die Regel „Verhältnis oder Kalorien halten“ nur, wenn MCT dabei ist
+      put("set-mctshare", fmtNum(Math.round(d.mctShare * 1000) / 10));
+      const ms = $("src-mctshare"); if (ms) ms.textContent = mctMixText(d);
+      const rr = $("mct-rule-row"); if (rr) rr.hidden = !(d.mctShare > 0);
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);

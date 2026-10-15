@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=4d549508" />
+  <link rel="stylesheet" href="styles.css?v=8d1613da" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -104,8 +104,6 @@
       <div id="vg-list" class="vg-list">
         <div class="overline vg-group">Ernährung</div>
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
-        <button type="button" class="vg-row" data-vg="fluessigkeit"><span class="vg-txt"><span class="vg-name">Flüssigkeit</span><span class="vg-sum" id="vgs-fluessigkeit"></span></span><span class="chev" aria-hidden="true">›</span></button>
-        <button type="button" class="vg-row" data-vg="oel"><span class="vg-txt"><span class="vg-name">Öl und MCT</span><span class="vg-sum" id="vgs-oel"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="lebensmittel"><span class="vg-txt"><span class="vg-name">Lebensmittel und Rezepte</span><span class="vg-sum" id="vgs-lebensmittel"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <div class="overline vg-group">App</div>
         <button type="button" class="vg-row" data-vg="kueche"><span class="vg-txt"><span class="vg-name">Küche</span><span class="vg-sum" id="vgs-kueche"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -136,6 +134,16 @@
             <div class="vo-lbl"><label for="set-kcal">Kalorien pro Tag</label><div class="reset-line"><span class="src" id="src-kcal"></span><button type="button" class="tlink" id="reset-kcal" data-reset="kcal" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
             <div class="vo-in"><input id="set-kcal" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
           </div>
+          <!-- Flüssigkeit hängt über das Verhältnis an den Kalorien: Verhältnis oder ml eintippen, das andere rechnet die App -->
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-fluidratio">Kalorien : Flüssigkeit</label><span class="src">kcal : ml · Faustregel 1 : 1</span></div>
+            <div class="vo-in"><span class="unit pre">1 :</span><input id="set-fluidratio" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,25" /><span class="unit" aria-hidden="true"></span></div>
+          </div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-fluidday">Flüssigkeit pro Tag</label><span class="src" id="src-fluidday"></span></div>
+            <div class="vo-in"><input id="set-fluidday" class="num-input" type="number" min="0" step="10" inputmode="numeric" /><span class="unit">ml</span></div>
+          </div>
+          <div class="note attn fluid-low" id="fluid-low-edit" hidden></div>
           <div class="vo-row">
             <div class="vo-lbl"><label for="set-kcalmin">Kalorien mindestens</label><div class="reset-line"><span class="src" id="src-kcalmin"></span><button type="button" class="tlink" id="reset-kcalmin" data-reset="kcalMin" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
             <div class="vo-in"><input id="set-kcalmin" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">kcal</span></div>
@@ -154,9 +162,25 @@
             <div class="vo-lbl"><label for="set-eiweiss">Eiweiß pro Tag (manuell)</label></div>
             <div class="vo-in"><input id="set-eiweiss" class="num-input" type="number" min="0" step="1" inputmode="numeric" /><span class="unit">g</span></div>
           </div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-mctshare">MCT-Anteil am Öl</label><span class="src" id="src-mctshare"></span></div>
+            <div class="vo-in"><input id="set-mctshare" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0" /><span class="unit">%</span></div>
+          </div>
+          <div class="vo-row vo-col" id="mct-rule-row">
+            <div class="vo-lbl"><span>Wenn nicht beides geht</span><span class="src">MCT hat weniger kcal als Rapsöl</span></div>
+            <div class="seg-ink" id="mct-mode-ctl">
+              <button type="button" data-mctmode="verhaeltnis">Verhältnis halten</button>
+              <button type="button" data-mctmode="kalorien">Kalorien halten</button>
+            </div>
+          </div>
           <div class="btn-pair"><button type="button" class="btn outline" id="vo-cancel">Abbrechen</button><button type="button" class="btn primary" id="vo-save">Speichern</button></div>
         </div>
         <div id="verordnung-summary" class="vg-sum"></div>
+        <details class="more"><summary class="tlink">Mehr dazu</summary>
+          <p><strong>Flüssigkeit pro Tag</strong> hängt über das Verhältnis Kalorien : Flüssigkeit an den Kalorien – bei 1 : 1,25 kommen auf jede kcal 1,25 ml. Steigen die Kalorien, wächst die Flüssigkeit im gleichen Maß mit. Beim Bearbeiten lässt sich das Verhältnis oder die Tagesmenge eintragen, das andere rechnet die App aus. Zum Vergleich: Faustregel 1 : 1; Richtwert nach Gewicht (Holliday-Segar) 100 ml je kg bis 10 kg – liegt die Tagesmenge darunter, weist die App darauf hin.</p>
+          <p><strong>Wasser:</strong> Jede Mahlzeit behält ihr Wasser wie im Rezept – auch das wächst mit, Nahrung und Wasser bleiben im gleichen Verhältnis. Den Rest bis zur Tagesmenge gibt man als Wassergaben zwischen den Mahlzeiten, Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge. Damit eine Mahlzeit nicht zu dick wird, füllt die App das Wasser bei Bedarf bis höchstens 1,5 kcal je ml auf (übliche KetoCal-Zubereitungen 1–1,5 kcal/ml).</p>
+          <p><strong>MCT-Anteil am Öl:</strong> so viel vom Öl wird durch MCT-Öl ersetzt. MCT hat weniger kcal als Rapsöl, deshalb lassen sich Verhältnis und Kalorien nicht beide genau halten: „Verhältnis halten“ – die Kalorien sinken etwas (Warnung, wenn der Tag unter das Minimum fällt); „Kalorien halten“ – das Verhältnis steigt etwas, das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. Die Werte des MCT-Öls vom Etikett stehen unter Lebensmittel und Rezepte. Bitte alles mit dem Behandlungsteam abstimmen.</p>
+        </details>
         <button type="button" class="vg-row" data-vg="bedarf"><span class="vg-txt"><span class="vg-name">Bedarf schätzen</span><span class="vg-sum">zur Orientierung fürs Gespräch mit dem Team</span></span><span class="chev" aria-hidden="true">›</span></button>
       </div>
 
@@ -196,77 +220,23 @@
         </details>
       </div>
 
-      <!-- Unterseite Flüssigkeit -->
-      <div class="vg-page" data-vgpage="fluessigkeit" hidden>
-        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
-        <div class="vg-head"><div class="vg-title"><h2>Flüssigkeit</h2></div></div>
-        <div class="vg-field"><div class="overline">Wasser geben</div>
-          <div class="seg-ink" id="wasser-modus-ctl">
-            <button type="button" data-wmodus="zwischen">Zwischen den Mahlzeiten</button>
-            <button type="button" data-wmodus="mahlzeit">In den Mahlzeiten</button>
-          </div>
-        </div>
-        <div class="vo-rows">
-          <div class="vo-row">
-            <div class="vo-lbl"><label for="set-fluid">Gesamt pro Tag</label><div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="tlink" id="reset-fluid" data-reset="fluidMl" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
-            <div class="vo-in"><input id="set-fluid" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">ml</span></div>
-          </div>
-        </div>
-        <div class="vg-field" id="konsistenz-field"><div class="overline">Konsistenz der Mahlzeiten</div>
-          <div class="seg-ink" id="konsistenz-ctl">
-            <button type="button" data-konsistenz="rezept">Wie im Rezept</button>
-            <button type="button" data-konsistenz="fest">Festes Verhältnis</button>
-          </div>
-        </div>
-        <div class="vo-rows">
-          <div class="vo-row" id="konsistenz-row" hidden>
-            <div class="vo-lbl"><label for="set-konsistenz">kcal je ml Mahlzeit</label><div class="reset-line"><span class="src" id="src-konsistenz"></span></div></div>
-            <div class="vo-in"><input id="set-konsistenz" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,0" /><span class="unit">kcal</span></div>
-          </div>
-          <div class="vo-row" id="dichte-field">
-            <div class="vo-lbl"><label for="set-dichte">Höchstens kcal je ml</label><div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="tlink" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>1,5</button></div></div>
-            <div class="vo-in"><input id="set-dichte" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" /><span class="unit">kcal</span></div>
-          </div>
-        </div>
-        <p class="hint" id="konsistenz-hint"></p>
-        <div id="fluid-summary" class="vg-sum"></div>
-        <details class="more"><summary class="tlink">Mehr dazu</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>Festes Verhältnis:</strong> jede Mahlzeit hat gleich viele kcal je ml – steigen die Kalorien pro Tag, wächst das Wasser im selben Maß mit, Nahrung und Wasser bleiben im gleichen Verhältnis. Den Wert übernimmt man am einfachsten aus einer Mahlzeit, die gut passt (im Rezept unter den Zutaten). Selbst geänderte Wassermengen merkt sich die App ebenfalls als Verhältnis, sie wachsen also auch mit. <strong>In den Mahlzeiten:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
-      </div>
-
-      <!-- Unterseite Öl und MCT -->
-      <div class="vg-page" data-vgpage="oel" hidden>
-        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
-        <div class="vg-head"><div class="vg-title"><h2>Öl und MCT</h2></div></div>
-        <div class="vg-field"><div class="overline">MCT-Anteil an der Ölmenge</div><div class="seg-ink" id="mct-share-ctl"></div></div>
-        <p class="hint" id="mct-zero-hint">Derzeit kein MCT – alles wird mit Rapsöl gerechnet.</p>
-        <div id="mct-more" class="vg-stack">
-          <div class="vg-field"><div class="overline">Wenn nicht beides geht</div>
-            <div class="seg-ink" id="mct-mode-ctl">
-              <button type="button" data-mctmode="verhaeltnis">Verhältnis halten</button>
-              <button type="button" data-mctmode="kalorien">Kalorien halten</button>
-            </div>
-            <p class="hint" id="mct-mode-text"></p>
-          </div>
-          <div class="vo-rows">
-            <div class="vo-row">
-              <div class="vo-lbl"><label for="set-mct-fett">MCT-Öl: Fett je 100 g</label><span class="src">vom Etikett</span></div>
-              <div class="vo-in"><input id="set-mct-fett" class="num-input" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" /><span class="unit">g</span></div>
-            </div>
-            <div class="vo-row">
-              <div class="vo-lbl"><label for="set-mct-kcal">MCT-Öl: kcal je 100 g</label><span class="src">830 ist ein Praxiswert</span></div>
-              <div class="vo-in"><input id="set-mct-kcal" class="num-input" type="number" min="1" step="10" inputmode="numeric" placeholder="830" /><span class="unit">kcal</span></div>
-            </div>
-          </div>
-          <details class="more"><summary class="tlink">Mehr dazu</summary>
-            <p>Beim Tausch eines Fettes gegen ein Fett anderer Energiedichte lassen sich Fettmasse, Kalorien und Verhältnis nicht gleichzeitig halten – nur zwei davon. <strong>Verhältnis halten:</strong> das Verhältnis bleibt exakt, die Kalorien sinken mit dem MCT-Anteil (Warnung, wenn der Tag unter das Minimum fällt). <strong>Kalorien halten:</strong> die Kalorien bleiben exakt, dafür steigt das Verhältnis – das ist eine Änderung der Verordnung. MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, lieber weniger je Mahlzeit, dafür in jeder Mahlzeit. <strong>Fett und kcal je 100 g</strong> vom Etikett des MCT-Öls eintragen; 830 kcal ist ein Praxiswert.</p>
-          </details>
-        </div>
-      </div>
-
       <!-- Unterseite Lebensmittel und Rezepte: eigene Lebensmittel (anlegen, bearbeiten, löschen) und ausgeblendete Rezepte -->
       <div class="vg-page" data-vgpage="lebensmittel" hidden>
         <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
         <div class="vg-head"><div class="vg-title"><h2>Lebensmittel und Rezepte</h2></div></div>
+        <div class="vg-sec" id="mct-oil-card">
+          <h3 class="vg-sec-title">MCT-Öl <span class="hint">Werte je 100 g vom Etikett</span></h3>
+          <div class="vo-rows">
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-fett">Fett</label><span class="src">leer = 100 g</span></div>
+              <div class="vo-in"><input id="set-mct-fett" class="num-input" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="100" /><span class="unit">g</span></div>
+            </div>
+            <div class="vo-row">
+              <div class="vo-lbl"><label for="set-mct-kcal">Energie</label><span class="src">830 ist ein Praxiswert</span></div>
+              <div class="vo-in"><input id="set-mct-kcal" class="num-input" type="number" min="1" step="10" inputmode="numeric" placeholder="830" /><span class="unit">kcal</span></div>
+            </div>
+          </div>
+        </div>
         <div class="vg-sec" id="cf-card">
           <h3 class="vg-sec-title">Eigene Lebensmittel <span class="hint">Werte je 100 g</span></h3>
           <p class="hint">Werte vom Etikett eintragen. Eigene Lebensmittel stehen im Editor zur Auswahl, als Fett markierte auch beim Fett zum Ausgleich. Bitte die Werte mit der Diätologie abstimmen – sie stehen auch unten unter „Werte prüfen“.</p>
@@ -448,7 +418,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=1829d36f"></script>
+  <script src="app.js?v=1f1d7aba"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

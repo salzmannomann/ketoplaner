@@ -38,27 +38,35 @@
     // Der Bereich laut Schätzungen (ESPGHAN–FAO/WHO) wird nur angezeigt, er setzt das Minimum nicht.
     const kcalMinAuto = Math.min(weight > 0 ? r10(weight * 70) : r10(kcal * 0.85), kcal);
     const kcalMin = num(s.kcalMin) > 0 ? num(s.kcalMin) : kcalMinAuto;
-    // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg);
-    // manuell übersteuerbar. Modus: Wasser zwischen den Mahlzeiten sondieren oder in den Mahlzeiten enthalten.
+    // Flüssigkeit: Richtwert nach Holliday-Segar (100 ml/kg bis 10 kg, dann 50 bzw. 20 ml/kg je weiterem kg) – nur noch
+    // zum Vergleich. Die Tagesmenge hängt über das Verhältnis Kalorien : Flüssigkeit (ml je kcal) an den Kalorien und
+    // wächst mit ihnen. Ohne Verhältnis (frühere Daten vor der Umrechnung) gilt eine feste Menge bzw. der Richtwert.
     const hs = (w) => w <= 0 ? 0 : w <= 10 ? 100 * w : w <= 20 ? 1000 + 50 * (w - 10) : 1500 + 20 * (w - 20);
     const fluidAuto = weight > 0 ? r10(hs(weight)) : 0;
-    const fluidDay = num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto;
-    // Zwei Stellungen: „zwischen“ (Standard; frühere Werte „ausgewogen“/„zwischen“ landen hier) oder „mahlzeit“.
-    const wasserModus = s.wasserModus === "mahlzeit" ? "mahlzeit" : "zwischen";
-    // Höchstmenge auf einmal (Mahlzeit oder Wassergabe): 25 ml/kg – darüber warnt die App.
+    const fluidRatio = num(s.fluidRatio) > 0 ? num(s.fluidRatio) : 0;
+    const fluidDay = fluidRatio > 0 ? Math.round(kcal * fluidRatio) : (num(s.fluidMl) > 0 ? num(s.fluidMl) : fluidAuto);
+    // Unter dem Richtwert nach Gewicht (z. B. nach dem Senken der Kalorien): gelber Hinweis in der Verordnung
+    const fluidLow = fluidAuto > 0 && fluidDay < fluidAuto - 5;
+    // Wasser gibt es immer zwischen den Mahlzeiten: jede Mahlzeit behält ihr Rezept-Wasser, der Rest bis zur
+    // Tagesmenge kommt als Wassergaben (Zeitplan). Höchstmenge auf einmal: 25 ml/kg – darüber warnt die App.
+    const wasserModus = "zwischen";
     const maxMahlMl = weight > 0 ? r10(weight * 25) : 0;
-    // Flüssigkeitsziel je Mahlzeit: nur im Modus „in den Mahlzeiten dabei“ (Tagesbedarf gleich verteilt).
-    // Modus „zwischen“: die Mahlzeit behält ihr Rezept-Wasser zum Anrühren, der Rest kommt als Wassergaben (Zeitplan).
-    const fluidMahlZiel = wasserModus === "mahlzeit" ? fluidDay / mahl : 0;
-    // Energiedichte höchstens (kcal je ml Mahlzeit), nur im Modus „zwischen“: reicht das Rezept-Wasser nicht,
-    // wird gerade so weit aufgefüllt. Vorgabe 1,5 kcal/ml (übliche KetoCal-Zubereitungen 1–1,5); 0 = keine Grenze.
+    // Energiedichte höchstens (kcal je ml Mahlzeit): reicht das Rezept-Wasser nicht, wird gerade so weit aufgefüllt
+    // (Vorgabe 1,5 kcal/ml, übliche KetoCal-Zubereitungen 1–1,5). Kein eigenes Feld mehr, frühere Werte gelten weiter.
     const maxDichte = (s.maxDichte === "" || s.maxDichte == null) ? 1.5 : Math.max(0, num(s.maxDichte));
-    // Konsistenz „fest“ (nur Modus „zwischen“): jede Mahlzeit genau so viele kcal je ml – das Wasser wächst mit den
-    // Kalorien mit, Nahrung und Wasser bleiben im gleichen Verhältnis. 0 = wie im Rezept (mit der Höchstdichte oben).
-    const konsistenzFest = s.konsistenz === "fest";
-    const konsistenz = wasserModus === "zwischen" && konsistenzFest && num(s.kcalJeMl) > 0 ? num(s.kcalJeMl) : 0;
     return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung, rundung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
       kcalBasis, kcalBereich, kcalLoBd: bd ? r10(bd.lo) : null, kcalRefBd: bd ? r10(bd.ref) : null,
-      fluidDay, fluidMahl: fluidMahlZiel, fluidAuto, fluidManual: num(s.fluidMl) > 0, wasserModus, maxMahlMl, maxDichte, konsistenzFest, konsistenz };
+      fluidDay, fluidMahl: 0, fluidAuto, fluidRatio, fluidLow, wasserModus, maxMahlMl, maxDichte };
+  }
+  // Frühere Flüssigkeits-Einstellungen einmalig umstellen: die heutige Tagesmenge (eigener Wert oder Richtwert nach
+  // Gewicht) wird zum Verhältnis Kalorien : Flüssigkeit; Wasser-Modus und feste Konsistenz gibt es nicht mehr.
+  function migrateFluid() {
+    const s = state.settings; let changed = false;
+    if (!(num(s.fluidRatio) > 0)) {
+      const d = derived();
+      if (d.kcal > 0 && d.fluidDay > 0) { s.fluidRatio = d.fluidDay / d.kcal; changed = true; }
+    }
+    ["fluidMl", "wasserModus", "konsistenz", "kcalJeMl", "konsistenzVon"].forEach(k => { if (k in s) { delete s[k]; changed = true; } });
+    if (changed) save();
   }
