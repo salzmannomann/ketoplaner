@@ -706,6 +706,12 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   assert.ok(!$(w, "fluid-low-edit").hidden);
   assert.match($(w, "fluid-low-edit").textContent, /^Flüssigkeit liegt unter dem Richtwert nach Gewicht \(850 ml\)/);
   assert.ok($(w, "vo-view").querySelector(".note.attn.fluid-low"));
+  // „Richtwert 850“ wie „Vorschlag“ bei den Kalorien: setzt die Tagesmenge auf den Richtwert, Hinweis und Link verschwinden
+  assert.ok(!$(w, "reset-fluidday").hidden); assert.equal($(w, "reset-fluidday").textContent, "Richtwert 850");
+  fire(w, $(w, "reset-fluidday"));
+  assert.equal($(w, "set-fluidday").value, "850"); assert.ok(Math.abs(st().fluidRatio - 850 / 600) < 1e-9);
+  assert.ok($(w, "fluid-low-edit").hidden); assert.ok($(w, "reset-fluidday").hidden);
+  assert.equal($(w, "vo-view").querySelector(".note.attn.fluid-low"), null);
   // Energiedichte: Compleat & KetoCal hätte mit Rezept-Wasser > 2 kcal/ml – die App füllt bis 1,5 kcal/ml auf
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
   const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));

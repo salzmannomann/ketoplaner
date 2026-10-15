@@ -1097,6 +1097,9 @@
       put("set-fluidday", d.fluidDay > 0 ? String(Math.round(d.fluidDay)) : "");
       const before = voFluidBefore, sp = $("src-fluidday");
       if (sp) sp.textContent = (before != null && Math.abs(before - d.fluidDay) > 0.5 ? "vorher " + fmt(before, 0) + " ml · " : "") + "wächst mit den Kalorien";
+      // Wie „Vorschlag“ bei den Kalorien: Link zum Richtwert nach Gewicht, solange die Tagesmenge davon abweicht
+      const rf = $("reset-fluidday");
+      if (rf) { rf.hidden = !(d.fluidAuto > 0 && Math.abs(d.fluidDay - d.fluidAuto) > 0.5); rf.textContent = "Richtwert " + fmt(d.fluidAuto, 0); }
       const low = $("fluid-low-edit");
       if (low) { low.hidden = !d.fluidLow; low.textContent = d.fluidLow ? fluidLowText(d) : ""; }
       // MCT-Anteil in Prozent; die Regel „Verhältnis oder Kalorien halten“ nur, wenn MCT dabei ist
@@ -1486,6 +1489,12 @@
       });
       fr.addEventListener("change", () => { fr.value = fmtNum(Math.round(num(state.settings.fluidRatio) * 100) / 100); });
     }
+    // „Richtwert …“: Tagesmenge auf den Richtwert nach Gewicht setzen – als Verhältnis, wächst danach wieder mit
+    const rf = document.getElementById("reset-fluidday");
+    if (rf) rf.addEventListener("click", () => {
+      const d = derived(); if (!(d.fluidAuto > 0 && d.kcal > 0)) return;
+      state.settings.fluidRatio = d.fluidAuto / d.kcal; save(); renderRezepte();
+    });
     const fd = document.getElementById("set-fluidday");
     if (fd) fd.addEventListener("input", () => {
       const v = num(fd.value), kc = derived().kcal;

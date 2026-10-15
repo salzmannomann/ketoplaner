@@ -1097,7 +1097,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <div class="vo-in"><span class="unit pre">1 :</span><input id="set-fluidratio" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,25" /><span class="unit" aria-hidden="true"></span></div>
           </div>
           <div class="vo-row">
-            <div class="vo-lbl"><label for="set-fluidday">Flüssigkeit pro Tag</label><span class="src" id="src-fluidday"></span></div>
+            <div class="vo-lbl"><label for="set-fluidday">Flüssigkeit pro Tag</label><div class="reset-line"><span class="src" id="src-fluidday"></span><button type="button" class="tlink" id="reset-fluidday" title="Tagesmenge auf den Richtwert nach Gewicht setzen" hidden>Richtwert</button></div></div>
             <div class="vo-in"><input id="set-fluidday" class="num-input" type="number" min="0" step="10" inputmode="numeric" /><span class="unit">ml</span></div>
           </div>
           <div class="note attn fluid-low" id="fluid-low-edit" hidden></div>
@@ -3585,6 +3585,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       put("set-fluidday", d.fluidDay > 0 ? String(Math.round(d.fluidDay)) : "");
       const before = voFluidBefore, sp = $("src-fluidday");
       if (sp) sp.textContent = (before != null && Math.abs(before - d.fluidDay) > 0.5 ? "vorher " + fmt(before, 0) + " ml · " : "") + "wächst mit den Kalorien";
+      // Wie „Vorschlag“ bei den Kalorien: Link zum Richtwert nach Gewicht, solange die Tagesmenge davon abweicht
+      const rf = $("reset-fluidday");
+      if (rf) { rf.hidden = !(d.fluidAuto > 0 && Math.abs(d.fluidDay - d.fluidAuto) > 0.5); rf.textContent = "Richtwert " + fmt(d.fluidAuto, 0); }
       const low = $("fluid-low-edit");
       if (low) { low.hidden = !d.fluidLow; low.textContent = d.fluidLow ? fluidLowText(d) : ""; }
       // MCT-Anteil in Prozent; die Regel „Verhältnis oder Kalorien halten“ nur, wenn MCT dabei ist
@@ -3974,6 +3977,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       });
       fr.addEventListener("change", () => { fr.value = fmtNum(Math.round(num(state.settings.fluidRatio) * 100) / 100); });
     }
+    // „Richtwert …“: Tagesmenge auf den Richtwert nach Gewicht setzen – als Verhältnis, wächst danach wieder mit
+    const rf = document.getElementById("reset-fluidday");
+    if (rf) rf.addEventListener("click", () => {
+      const d = derived(); if (!(d.fluidAuto > 0 && d.kcal > 0)) return;
+      state.settings.fluidRatio = d.fluidAuto / d.kcal; save(); renderRezepte();
+    });
     const fd = document.getElementById("set-fluidday");
     if (fd) fd.addEventListener("input", () => {
       const v = num(fd.value), kc = derived().kcal;

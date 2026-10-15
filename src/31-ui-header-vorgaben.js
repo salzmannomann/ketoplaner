@@ -299,6 +299,12 @@
       });
       fr.addEventListener("change", () => { fr.value = fmtNum(Math.round(num(state.settings.fluidRatio) * 100) / 100); });
     }
+    // „Richtwert …“: Tagesmenge auf den Richtwert nach Gewicht setzen – als Verhältnis, wächst danach wieder mit
+    const rf = document.getElementById("reset-fluidday");
+    if (rf) rf.addEventListener("click", () => {
+      const d = derived(); if (!(d.fluidAuto > 0 && d.kcal > 0)) return;
+      state.settings.fluidRatio = d.fluidAuto / d.kcal; save(); renderRezepte();
+    });
     const fd = document.getElementById("set-fluidday");
     if (fd) fd.addEventListener("input", () => {
       const v = num(fd.value), kc = derived().kcal;
