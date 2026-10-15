@@ -231,6 +231,10 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
 .tlink[hidden] { display: none; }
 .hint { font-size: var(--t-s); line-height: 1.45; color: var(--grey); text-wrap: pretty; }
 .hint.warn { color: var(--red); }
+.hint.attn { color: var(--yellow); }
+/* Textlink mitten in einem Hinweis (Konsistenz): bricht mit seinem Trennpunkt um, ohne die Zeile aufzublähen */
+.hint .nw { white-space: nowrap; }
+.ratio-line .tlink, #konsistenz-hint .tlink { min-height: 32px; margin: -8px 0; vertical-align: middle; }
 
 /* ======================================================================
    Heute (Tagesplan)

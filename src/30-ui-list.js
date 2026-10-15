@@ -254,6 +254,29 @@
       put("set-dichte", on && manual ? fmtNum(d.maxDichte) : "");
       if (el2) { el2.disabled = !on; el2.placeholder = on ? "1,5" : "–"; }
       src("dichte", on && manual, on ? "Vorgabe" : "nicht nötig", "auf 1,5");
+      // Konsistenz: „wie im Rezept“ (mit Höchstdichte) oder feste kcal je ml für alle Mahlzeiten – nur beim Sondieren
+      const fest = d.konsistenzFest, kv = num(s.kcalJeMl);
+      document.querySelectorAll("#konsistenz-ctl button[data-konsistenz]").forEach(b => {
+        b.classList.toggle("active", on && (b.dataset.konsistenz === "fest") === fest); b.disabled = !on;
+      });
+      const kr = $("konsistenz-row"), ki = $("set-konsistenz");
+      if (kr) kr.hidden = !fest;
+      const dfield = $("dichte-field"); if (dfield) dfield.hidden = fest;
+      put("set-konsistenz", on && kv > 0 ? fmtNum(kv) : "");
+      if (ki) { ki.disabled = !on; ki.placeholder = on ? "1,0" : "–"; }
+      const ks = $("src-konsistenz");
+      if (ks) ks.textContent = !on ? "nicht nötig" : s.konsistenzVon && kv > 0 ? "aus " + s.konsistenzVon + " übernommen" : kv > 0 ? "eigener Wert" : "noch kein Wert";
+      const kh = $("konsistenz-hint");
+      if (kh) {
+        // Eigene Wassermengen gehen der Konsistenz vor – Anzahl nennen, mit Weg zurück
+        const nOwn = Object.keys(state.water || {}).length + Object.keys(state.waterK || {}).length +
+          (state.dayPlan || []).filter(sl => sl && (sl.water != null || sl.waterK != null)).length;
+        const own = nOwn ? '<br>Eigene Wassermengen (' + nOwn + ') gehen vor <span class="nw">· <button type="button" class="tlink" id="konsistenz-clear">zurücksetzen</button></span>' : "";
+        kh.innerHTML = !on ? "Nur beim Wasser zwischen den Mahlzeiten – in den Mahlzeiten bestimmt die Tagesmenge das Wasser."
+          : fest && d.konsistenz > 0 ? "Gilt für alle Mahlzeiten: 100 kcal in " + fmt(100 / d.konsistenz, 0) + " ml. Steigen die Kalorien pro Tag, wächst das Wasser in jeder Mahlzeit im selben Maß mit – die Konsistenz bleibt gleich. Der Rest der Tagesmenge kommt als Wassergaben." + own
+          : fest ? "Wert eintragen – oder im Rezept unter den Zutaten bei einer Mahlzeit, die gut passt, „als Konsistenz für alle Mahlzeiten“ tippen."
+          : "Jedes Rezept behält sein Wasser zum Pürieren bzw. Anrühren. Eine feste Konsistenz lässt sich auch im Rezept unter den Zutaten übernehmen.";
+      }
     }
     // Eiweiß: das Ergebnis (g/Tag) steht in der Zeile unter der Auswahl; das Gramm-Feld erscheint nur bei „manuell“.
     put("set-eiweiss", d.autoProtein ? d.eiweiss : s.eiweiss);

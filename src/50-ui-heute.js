@@ -86,7 +86,7 @@
     if (!sl || !f) return "";
     const out = [], ms = sl.meat ? recipeMeatSlot(f.rec) : null, it = ms && sl.meat !== ms.baseKey ? swapItem(sl.meat) : null;
     if (it && f.res.items.some(x => x.food === it.food)) out.push("mit " + it.label);
-    if (sl.portion != null || sl.water != null) out.push("eigene Menge");
+    if (sl.portion != null || sl.water != null || sl.waterK != null) out.push("eigene Menge");
     return out.join(" · ");
   }
   // Heute (Küchenzettel): eine Zeitleiste für den ganzen Tag. Jede Mahlzeit mit Uhrzeit, Rezeptname, Menge und

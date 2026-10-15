@@ -94,6 +94,37 @@
   // → gemerktes Wasser. Ergebnis ist eine Portion (= eine Mahlzeit).
   // slot: Platz im Tagesplan mit eigenen Änderungen dieser Mahlzeit (Faktor, Wasser) – sie gehen dem beim Rezept
   // Gemerkten vor; ohne slot (Rezepte, Liste) gilt nur das beim Rezept Gemerkte.
+  // Eigenes Wasser einer Mahlzeit: { k } = ml je kcal, frühere Form { ml } = ml je Portion; der Platz im Tagesplan
+  // geht dem beim Rezept Gemerkten vor. slot: ob es nur für diese Mahlzeit gilt.
+  function waterOverride(key, slot) {
+    if (slot && slot.waterK != null) return { k: num(slot.waterK), slot: true };
+    if (slot && slot.water != null) return { ml: num(slot.water), slot: true };
+    const has = (m) => !!m && Object.prototype.hasOwnProperty.call(m, key);
+    if (has(state.waterK)) return { k: num(state.waterK[key]), slot: false };
+    if (has(state.water)) return { ml: num(state.water[key]), slot: false };
+    return { slot: false };
+  }
+  // Frühere eigene Wassermengen (ml je Portion) einmalig in ml je kcal umrechnen – mit den Kalorien von jetzt; die
+  // Mengen bleiben also gleich, wachsen ab jetzt aber mit den Kalorien mit. Unbekannte Rezepte fallen weg.
+  function migrateWaterMl() {
+    const keys = Object.keys(state.water || {}), slots = (state.dayPlan || []).filter(sl => sl && sl.key && sl.water != null);
+    if (!keys.length && !slots.length) return;
+    const d = derived(), recs = allRecipes();
+    if (!state.waterK) state.waterK = {};
+    keys.forEach(k => {
+      const rec = recs.find(r => familyKey(r) === k && !r.ketocal) || recs.find(r => familyKey(r) === k);
+      const kc = rec ? computeMealView(rec, d, null).kcalRoh : 0;
+      if (kc > 0 && !Object.prototype.hasOwnProperty.call(state.waterK, k)) state.waterK[k] = num(state.water[k]) / kc;
+      delete state.water[k];
+    });
+    slots.forEach(sl => {
+      const rec = recipeByKey(sl.key), ml = num(sl.water);
+      const kc = rec ? computeMealView(rec, d, sl.meat || null, Object.assign({}, sl, { water: null })).kcalRoh : 0;
+      delete sl.water;
+      if (kc > 0 && sl.waterK == null) sl.waterK = ml / kc;
+    });
+    save();
+  }
   function computeMealView(rec, d, meatChoice, slot) {
     const base = computeAdjustedRecipe(rec, d.kcalMahl, d.ratio);
     let res = base;
@@ -123,13 +154,16 @@
       const smP = sumMacros(itemsP);
       res = Object.assign({}, res, { items: itemsP, ratio: ratioOf(smP), kcal: smP.kcal });
     }
-    // Wasser darf für sich allein geändert werden (je Rezept gemerkt, Wert je Portion):
+    // Wasser darf für sich allein geändert werden (je Rezept gemerkt, als ml je kcal der Mahlzeit – wächst also beim
+    // Steigern der Kalorien mit; frühere Werte in ml je Portion gelten unverändert, bis sie beim Start umgerechnet sind).
     // Wasser hat keine Nährwerte, beeinflusst also weder Verhältnis noch kcal – nur Volumen.
     const waterKey = familyKey(rec);
-    const slotWater = !!(slot && slot.water != null);
-    const hasWaterOverride = slotWater || Object.prototype.hasOwnProperty.call(state.water, waterKey);
+    const own = waterOverride(waterKey, slot);
+    const slotWater = own.slot;
+    const hasWaterOverride = own.k != null || own.ml != null;
+    const kcalRoh = sumMacros(res.items).kcal; // Bezug für „ml je kcal“ (vor der Rundung fürs Abwiegen)
     if (hasWaterOverride) {
-      const target = Math.max(0, num(slotWater ? slot.water : state.water[waterKey]));
+      const target = Math.max(0, own.k != null ? own.k * kcalRoh : own.ml);
       const isW = (it) => /wasser/i.test(it.food);
       const sumW = res.items.filter(isW).reduce((a, it) => a + num(it.grams), 0);
       let first = true;
@@ -161,10 +195,24 @@
         fluidAdjusted = true;
       }
     }
+    // Konsistenz „fest“: Wasser so setzen, dass die Mahlzeit genau d.konsistenz kcal je ml hat (auch weniger Wasser
+    // als im Rezept). Steigen die Kalorien, wächst das Wasser im selben Maß mit. Gemerktes Wasser hat Vorrang.
+    let konsistAdjusted = false;
+    if (d.konsistenz > 0 && !hasWaterOverride) {
+      const isWk = (it) => /wasser/i.test(it.food);
+      const kcalM = sumMacros(res.items).kcal, vol = volumeMl(res.items);
+      const stdW = res.items.filter(isWk).reduce((a, it) => a + num(it.grams), 0);
+      const want = Math.max(0, kcalM / d.konsistenz - (vol - stdW));
+      const items5 = stdW > 0
+        ? res.items.map(it => isWk(it) ? { food: it.food, grams: round1(num(it.grams) * want / stdW) } : it)
+        : (want > 0 ? res.items.concat([{ food: "Wasser", grams: round1(want) }]) : res.items);
+      res = Object.assign({}, res, { items: items5 });
+      konsistAdjusted = true;
+    }
     // Modus „zwischen“: Rezept-Wasser bleibt, außer die Mahlzeit wäre dichter als erlaubt (kcal je ml) – dann gerade so
     // viel Wasser dazu, dass die Grenze eingehalten ist. Gemerktes Wasser hat Vorrang.
     let densityAdjusted = false;
-    if (d.wasserModus === "zwischen" && d.maxDichte > 0 && !hasWaterOverride) {
+    if (d.wasserModus === "zwischen" && !(d.konsistenz > 0) && d.maxDichte > 0 && !hasWaterOverride) {
       const isW3 = (it) => /wasser/i.test(it.food);
       const kcalM = sumMacros(res.items).kcal, vol = volumeMl(res.items), minVol = kcalM / d.maxDichte;
       if (vol < minVol - 0.5) {
@@ -183,8 +231,8 @@
       res = Object.assign({}, res, { items: itemsR, ratio: ratioOf(smR), kcal: smR.kcal });
     }
     const fluid = fluidOf(res.items);
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
-      portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet, slotPortion, slotWater };
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, konsistAdjusted, waterCapped, fluid,
+      portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet, kcalRoh, slotPortion, slotWater };
   }
   // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern in die abgefüllte Portion eingerührt – als letzter Schritt
   // mit den Mengen einer Portion (Raps/MCT nach Öl-Mix). Angerührte Rezepte nennen das schon im eigenen Text.
@@ -447,7 +495,7 @@
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       const gTxt = (fatRow ? gR.toFixed(1) : String(gR)).replace(".", ","); // Fettträger immer mit einer Nachkommastelle („21,0“)
       // Wasserzeile: nur die Herkunft steht dabei; Anpassungen und ihr Zurücksetzen stehen in der Statuszeile.
-      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
+      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">Flüssigkeitsziel</small>' : (mv.konsistAdjusted ? '<small class="adj">nach Konsistenz ' + fmtKml(d.konsistenz) + ' kcal/ml</small>' : mv.densityAdjusted ? '<small class="adj">höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Blatt Tag: für die Zubereitungsmenge
       const unit = '<span class="unit">' + (isWaterRow ? "ml" : "g") + "</span>";
       const label = (mm) => '<div class="ing-name"><span class="name">' + escapeHtml(it.food) + "</span>" + (i === adjIndex ? adjLabel : "") + waterTag + nutrLine(mm) + "</div>";
@@ -484,13 +532,21 @@
     const waterPer = items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
     const fluidPer = mv.fluid, foodFluidPer = fluidPer - waterPer;
     const volPer = volumeMl(items), bigVol = d.maxMahlMl > 0 && volPer > d.maxMahlMl + 0.5;
-    const fluidLine = d.fluidDay > 0
+    // Verhältnis Nahrung : Wasser dieser Mahlzeit (Konsistenz), dazu kcal je ml. Passt eine Mahlzeit gut, lässt sich ihre
+    // Dichte als feste Konsistenz für alle Mahlzeiten übernehmen (nur beim Sondieren zwischen den Mahlzeiten).
+    const foodPer = items.filter(it => !/wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0);
+    const kmlPer = volPer > 0 ? sumPer.kcal / volPer : 0;
+    const canTake = d.wasserModus === "zwischen" && kmlPer > 0 && (!(d.konsistenz > 0) || hasWaterOverride);
+    const ratioLine = '<div class="hint ratio-line">Verhältnis <strong>' + fmt(foodPer, 0) + ' g Nahrung : ' + fmt(waterPer, 0) + ' ml Wasser</strong> · ' +
+      (mv.konsistAdjusted ? 'Konsistenz ' + fmtKml(d.konsistenz) + ' kcal je ml – bleibt beim Steigern gleich' : fmtKml(kmlPer) + ' kcal je ml') +
+      (canTake ? ' <span class="nw">· <button type="button" class="tlink konsistenz-take" data-kml="' + Math.round(kmlPer * 100) / 100 + '">als Konsistenz für alle Mahlzeiten</button></span>' : '') + '</div>';
+    const fluidLine = ratioLine + (d.fluidDay > 0
       ? '<div class="hint fluid-line">Flüssigkeit ca. <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
         (d.wasserModus === "mahlzeit"
           ? ' · Ziel ' + fmt(d.fluidMahl, 0) + ' ml je Mahlzeit' + (mv.fluidAdjusted ? ' – Wasser dafür erhöht' : (fluidPer >= d.fluidMahl - 0.5 ? ' – erreicht' : ' – <strong>nicht erreicht</strong> (gemerktes Wasser)'))
-          : (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
+          : (mv.konsistAdjusted ? ' · Wasser nach der Konsistenz' : mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : hasWaterOverride ? ' · eigene Wassermenge' : ' · Wasser nur zum Pürieren bzw. Anrühren') + ', der Rest kommt als Wassergaben') +
         (bigVol ? ' · <strong class="attn-txt">' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
-      : "";
+      : "");
     const dayFluid = fluidPer * dayN, dayFluidZiel = d.fluidDay;
     const fluidDayNote = d.fluidDay > 0
       ? (d.wasserModus === "zwischen"
@@ -528,9 +584,11 @@
     // Statuszeile: alle temporären Änderungen (Portion, Wasser) samt Zurücksetzen an einer Stelle.
     let waterRef = null;
     if (hasWaterOverride) {
-      const keep = state.water[waterKey], had = Object.prototype.hasOwnProperty.call(state.water, waterKey); delete state.water[waterKey];
-      try { waterRef = computeMealView(rec, d, detailMeat, pslot ? Object.assign({}, pslot, { water: null }) : null).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
-      finally { if (had) state.water[waterKey] = keep; }
+      const keepW = state.water, keepK = state.waterK;
+      state.water = Object.assign({}, keepW); delete state.water[waterKey];
+      state.waterK = Object.assign({}, keepK); delete state.waterK[waterKey];
+      try { waterRef = computeMealView(rec, d, detailMeat, pslot ? Object.assign({}, pslot, { water: null, waterK: null }) : null).res.items.filter(it => /wasser/i.test(it.food)).reduce((a, it) => a + num(it.grams), 0); }
+      finally { state.water = keepW; state.waterK = keepK; }
     }
     const statusLine = (m, bezug) => {
       const parts = [];
@@ -645,7 +703,14 @@
       else if (Math.abs(f - 1) < 1e-6) delete state.portion[waterKey]; else state.portion[waterKey] = f;
       save(); detailChanged();
     };
-    const setWater = (v) => { if (pslot) pslot.water = Math.round(v * 10) / 10; else state.water[waterKey] = v; save(); detailChanged(); };
+    // Wasser wird als Verhältnis gemerkt (ml je kcal der Mahlzeit): steigen die Kalorien, wächst es mit.
+    const setWater = (v) => {
+      const k = mv.kcalRoh > 0 ? Math.round(v * 10) / 10 / mv.kcalRoh : 0;
+      if (pslot) { delete pslot.water; pslot.waterK = k; }
+      else { delete state.water[waterKey]; if (!state.waterK) state.waterK = {}; state.waterK[waterKey] = k; }
+      save(); detailChanged();
+    };
+    const clearWater = () => { if (pslot) { delete pslot.water; delete pslot.waterK; } else { delete state.water[waterKey]; if (state.waterK) delete state.waterK[waterKey]; } };
     // Blatt Mahlzeit: Gramm je Portion ändern → Portion-Faktor je Rezept (Wasser: gemerkter Wert je Portion)
     c.querySelectorAll(".g-edit").forEach(inp =>
       inp.addEventListener("change", () => {
@@ -672,12 +737,27 @@
     c.querySelectorAll(".meat-reset").forEach(b => b.addEventListener("click", () => setMeat(null)));
     c.querySelectorAll(".slot-reset").forEach(b => b.addEventListener("click", () => {
       const i = pctx.i, prev = slotCopy(pslot);
-      delete pslot.meat; delete pslot.portion; delete pslot.water; save(); detailChanged();
+      delete pslot.meat; delete pslot.portion; delete pslot.water; delete pslot.waterK; save(); detailChanged();
       showToast("Mahlzeit um " + pctx.t + " wieder wie im Rezept", [["Rückgängig", () => { if (state.dayPlan[i] && state.dayPlan[i].key === prev.key) state.dayPlan[i] = prev; save(); detailChanged(); }]]);
     }));
     c.querySelectorAll(".mct-reset").forEach(b => b.addEventListener("click", () => { state.settings.mctShare = num(b.dataset.mct); save(); detailChanged(); }));
     c.querySelectorAll(".water-reset").forEach(b =>
-      b.addEventListener("click", () => { if (pslot) delete pslot.water; else delete state.water[waterKey]; save(); detailChanged(); }));
+      b.addEventListener("click", () => { clearWater(); save(); detailChanged(); }));
+    // Konsistenz dieser Mahlzeit für alle übernehmen: feste kcal je ml, eigene Wassermengen fallen weg (gilt für alle Rezepte)
+    c.querySelectorAll(".konsistenz-take").forEach(b =>
+      b.addEventListener("click", () => {
+        const v = num(b.dataset.kml); if (!(v > 0)) return;
+        const prev = JSON.stringify({ s: [state.settings.konsistenz, state.settings.kcalJeMl, state.settings.konsistenzVon], water: state.water, waterK: state.waterK, dayPlan: state.dayPlan });
+        state.settings.konsistenz = "fest"; state.settings.kcalJeMl = v; state.settings.konsistenzVon = rec.name;
+        state.water = {}; state.waterK = {};
+        (state.dayPlan || []).forEach(sl => { if (sl) { delete sl.water; delete sl.waterK; } });
+        save(); detailChanged();
+        showToast("Konsistenz " + fmtKml(v) + " kcal je ml gilt jetzt für alle Mahlzeiten", [["Rückgängig", () => {
+          const p = JSON.parse(prev), ks = ["konsistenz", "kcalJeMl", "konsistenzVon"];
+          ks.forEach((k, i) => { if (p.s[i] === undefined || p.s[i] === null) delete state.settings[k]; else state.settings[k] = p.s[i]; });
+          state.water = p.water; state.waterK = p.waterK || {}; state.dayPlan = p.dayPlan; save(); detailChanged();
+        }]]);
+      }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
       b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>

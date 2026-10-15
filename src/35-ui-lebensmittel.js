@@ -180,18 +180,18 @@
   function unhideRecipe(k) { state.hiddenRecipes = (state.hiddenRecipes || []).filter(x => x !== k); save(); renderRezepte(); }
   function deleteCustomRecipe(rec) {
     // Alles, was am Rezept hängt, merken – „Rückgängig“ stellt es genau so wieder her
-    const snap = JSON.stringify({ savedRecipes: state.savedRecipes, favorites: state.favorites, portion: state.portion, water: state.water, scales: state.scales, dayPlan: state.dayPlan, editKey: state.compose ? state.compose.editKey : null });
+    const snap = JSON.stringify({ savedRecipes: state.savedRecipes, favorites: state.favorites, portion: state.portion, water: state.water, waterK: state.waterK, scales: state.scales, dayPlan: state.dayPlan, editKey: state.compose ? state.compose.editKey : null });
     state.savedRecipes = state.savedRecipes.filter(s => s.key !== rec.key);
     const fi = state.favorites.indexOf(rec.key); if (fi !== -1) state.favorites.splice(fi, 1);
     // Gemerkte Mengen, Plätze im Tagesplan und den Bezug im Editor mit aufräumen
     const fk = familyKey(rec);
-    [state.portion, state.water, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
+    [state.portion, state.water, state.waterK, state.scales].forEach(m => { if (m) { delete m[fk]; delete m[rec.key]; } });
     state.dayPlan.forEach((sl, i) => { if (sl && sl.key === rec.key) state.dayPlan[i] = { key: null }; });
     if (state.compose && state.compose.editKey === rec.key) state.compose.editKey = null;
     save(); renderRezepte();
     showToast("„" + escapeHtml(displayText(rec)) + "“ gelöscht", [["Rückgängig", () => {
       const s = JSON.parse(snap);
-      ["savedRecipes", "favorites", "portion", "water", "scales", "dayPlan"].forEach(k => { state[k] = s[k]; });
+      ["savedRecipes", "favorites", "portion", "water", "waterK", "scales", "dayPlan"].forEach(k => { state[k] = s[k]; });
       if (state.compose) state.compose.editKey = s.editKey;
       save(); renderRezepte();
     }]]);

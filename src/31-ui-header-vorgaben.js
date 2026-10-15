@@ -102,7 +102,8 @@
     if (typeof renderLebensmittel === "function") renderLebensmittel();
     const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
     put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal");
-    put("vgs-fluessigkeit", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel");
+    put("vgs-fluessigkeit", (d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml am Tag" + (d.wasserModus === "mahlzeit" ? " · in den Mahlzeiten" : "") : "kein Ziel") +
+      (d.konsistenz > 0 ? " · Konsistenz " + fmtKml(d.konsistenz) + " kcal/ml" : ""));
     put("vgs-oel", d.mctShare > 0 ? "MCT " + Math.round(d.mctShare * 100) + " %" + (d.mctMode === "kalorien" ? " · Kalorien halten" : "") : "nur Rapsöl");
     put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
@@ -180,7 +181,7 @@
           const wg = waterGiftsText(d);
           fs.innerHTML = '<div class="vg-facts">' + fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
               fmt(d.fluidDay, 0) + " ml/Tag" + (d.fluidManual ? " (manuell)" : " (Vorschlag, Holliday-Segar)") + " abzüglich des Wassers in den Mahlzeiten") + maxF + "</div>" +
-            '<p class="vg-more">Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren. Uhrzeiten stehen im Tagesplan.</p>';
+            '<p class="vg-more">' + (d.konsistenz > 0 ? "Die Mahlzeiten bekommen Wasser nach der Konsistenz." : "Die Mahlzeit bekommt nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren.") + ' Uhrzeiten stehen im Tagesplan.</p>';
         }
       }
     }
@@ -315,6 +316,28 @@
       else if (isFinite(v) && v >= 0) state.settings.maxDichte = v === 1.5 ? "" : v;
       else return;
       save(); renderRezepte();
+    });
+    // Konsistenz der Mahlzeiten: wie im Rezept oder feste kcal je ml (Wert von Hand oder aus einer Mahlzeit übernommen)
+    document.querySelectorAll("#konsistenz-ctl button[data-konsistenz]").forEach(b =>
+      b.addEventListener("click", () => { state.settings.konsistenz = b.dataset.konsistenz; save(); renderRezepte(); }));
+    const ki = document.getElementById("set-konsistenz");
+    if (ki) {
+      ki.addEventListener("input", () => {
+        const v = parseFloat(String(ki.value).replace(",", "."));
+        if (ki.value.trim() === "") state.settings.kcalJeMl = "";
+        else if (isFinite(v) && v > 0 && v <= 5) state.settings.kcalJeMl = v;
+        else return;
+        delete state.settings.konsistenzVon; save(); renderRezepte();
+      });
+      ki.addEventListener("change", () => { const v = num(state.settings.kcalJeMl); ki.value = v > 0 ? fmtNum(v) : ""; });
+    }
+    document.addEventListener("click", e => {
+      if (!e.target.closest || !e.target.closest("#konsistenz-clear")) return;
+      const prev = JSON.stringify({ water: state.water, waterK: state.waterK, dayPlan: state.dayPlan });
+      state.water = {}; state.waterK = {};
+      (state.dayPlan || []).forEach(sl => { if (sl) { delete sl.water; delete sl.waterK; } });
+      save(); renderRezepte();
+      showToast("Eigene Wassermengen zurückgesetzt", [["Rückgängig", () => { const p = JSON.parse(prev); state.water = p.water; state.waterK = p.waterK || {}; state.dayPlan = p.dayPlan; save(); renderRezepte(); }]]);
     });
     document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b =>
       b.addEventListener("click", () => { state.settings.mahlzeiten = num(b.dataset.mahl); save(); renderRezepte(); }));

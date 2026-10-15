@@ -34,6 +34,8 @@
   function num(v) { const n = parseFloat(typeof v === "string" ? v.replace(",", ".") : v); return isFinite(n) ? n : 0; }
   // Zahl zur Anzeige in einem Textfeld: deutsches Komma, keine überflüssigen Nullen („8,5", „9").
   function fmtNum(v) { return (v === "" || v === null || v === undefined || !isFinite(v)) ? "" : String(v).replace(".", ","); }
+  // kcal je ml: zwei Nachkommastellen, eine genügt, wenn die zweite 0 ist („1,0“, „0,94“)
+  function fmtKml(v) { const r = Math.round(v * 100) / 100; return fmt(r, Math.round(r * 100) % 10 ? 2 : 1); }
   function round1(v) { return Math.round(v * 10) / 10; }
   // Auf einen Schritt runden (0,1 / 0,5 / 1 g) – Fließkomma-sauber auf 3 Nachkommastellen.
   function roundTo(v, step) { const st = step > 0 ? step : 0.1; return Math.round(Math.round(v / st) * st * 1000) / 1000; }

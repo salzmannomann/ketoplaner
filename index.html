@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=bd766eef" />
+  <link rel="stylesheet" href="styles.css?v=4d549508" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -211,13 +211,26 @@
             <div class="vo-lbl"><label for="set-fluid">Gesamt pro Tag</label><div class="reset-line"><span class="src" id="src-fluid"></span><button type="button" class="tlink" id="reset-fluid" data-reset="fluidMl" title="Vorschlag übernehmen" hidden>Vorschlag</button></div></div>
             <div class="vo-in"><input id="set-fluid" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="Vorschlag" /><span class="unit">ml</span></div>
           </div>
+        </div>
+        <div class="vg-field" id="konsistenz-field"><div class="overline">Konsistenz der Mahlzeiten</div>
+          <div class="seg-ink" id="konsistenz-ctl">
+            <button type="button" data-konsistenz="rezept">Wie im Rezept</button>
+            <button type="button" data-konsistenz="fest">Festes Verhältnis</button>
+          </div>
+        </div>
+        <div class="vo-rows">
+          <div class="vo-row" id="konsistenz-row" hidden>
+            <div class="vo-lbl"><label for="set-konsistenz">kcal je ml Mahlzeit</label><div class="reset-line"><span class="src" id="src-konsistenz"></span></div></div>
+            <div class="vo-in"><input id="set-konsistenz" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,0" /><span class="unit">kcal</span></div>
+          </div>
           <div class="vo-row" id="dichte-field">
             <div class="vo-lbl"><label for="set-dichte">Höchstens kcal je ml</label><div class="reset-line"><span class="src" id="src-dichte"></span><button type="button" class="tlink" id="reset-dichte" data-reset="maxDichte" title="Zurück auf 1,5 kcal/ml" hidden>1,5</button></div></div>
             <div class="vo-in"><input id="set-dichte" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="1,5" /><span class="unit">kcal</span></div>
           </div>
         </div>
+        <p class="hint" id="konsistenz-hint"></p>
         <div id="fluid-summary" class="vg-sum"></div>
-        <details class="more"><summary class="tlink">Mehr dazu</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>In den Mahlzeiten:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
+        <details class="more"><summary class="tlink">Mehr dazu</summary><p>Vorschlag nach Holliday-Segar (100 ml/kg bis 10 kg). Gezählt wird das Wasser der Zutaten plus das Rezept-Wasser. <strong>Zwischen den Mahlzeiten:</strong> die Mahlzeit behält nur ihr Rezept-Wasser zum Pürieren bzw. Anrühren – so bleibt sie klein. Der Rest des Tagesbedarfs wird gleichmäßig auf Wassergaben in der Mitte jeder Pause verteilt, dazu eine Gabe vor dem Schlafen; Uhrzeiten und Mengen zeigt der Tagesplan. Für den Stuhl zählt die Tagesmenge, nicht ob das Wasser in der Mahlzeit oder dazwischen kommt. <strong>Höchstens kcal je ml:</strong> damit die Mahlzeit nicht zu dick wird, füllt die App das Rezept-Wasser bei Bedarf so weit auf (Vorgabe 1,5; übliche KetoCal-Zubereitungen haben 1 bis 1,5 kcal/ml – bitte mit dem Team abstimmen). <strong>Festes Verhältnis:</strong> jede Mahlzeit hat gleich viele kcal je ml – steigen die Kalorien pro Tag, wächst das Wasser im selben Maß mit, Nahrung und Wasser bleiben im gleichen Verhältnis. Den Wert übernimmt man am einfachsten aus einer Mahlzeit, die gut passt (im Rezept unter den Zutaten). Selbst geänderte Wassermengen merkt sich die App ebenfalls als Verhältnis, sie wachsen also auch mit. <strong>In den Mahlzeiten:</strong> jede Mahlzeit bekommt ihren Anteil am Tagesbedarf. Bitte mit dem Behandlungsteam abstimmen.</p></details>
       </div>
 
       <!-- Unterseite Öl und MCT -->
@@ -435,7 +448,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=7fd52dbf"></script>
+  <script src="app.js?v=1829d36f"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

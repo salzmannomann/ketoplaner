@@ -8,7 +8,8 @@
       favorites: [],
       savedRecipes: [],
       scales: {},
-      water: {},
+      water: {},  // eigenes Wasser je Portion in ml (frühere Form, wird beim Start in waterK umgerechnet)
+      waterK: {}, // eigenes Wasser als Verhältnis: ml je kcal der Mahlzeit – wächst beim Steigern der Kalorien mit
       portion: {}, // Portion angepasst (Blatt Mahlzeit/Tag): Faktor je Gericht, 1 = wie berechnet
       dayPlan: [],
       basis: {}, // gemerkte Fettbasis-Variante je Gericht (Familien-Schlüssel → Rezept-Schlüssel)
@@ -85,19 +86,22 @@
     });
     return o;
   }
-  // Platz im Tagesplan: { key, meat?, portion?, water? } – eigene Änderungen nur dieser Mahlzeit (Fleisch-/Fischsorte,
-  // Faktor für alle Zutaten, Wasser je Portion in ml); ohne sie gilt, was beim Rezept gemerkt ist.
+  // Wasser als Verhältnis (ml je kcal): nur sinnvolle Werte
+  function cleanWaterK(m) { const o = cleanNumMap(m); Object.keys(o).forEach(k => { if (!(o[k] >= 0 && o[k] <= 20)) delete o[k]; }); return o; }
+  // Platz im Tagesplan: { key, meat?, portion?, waterK?, water? } – eigene Änderungen nur dieser Mahlzeit (Fleisch-/Fischsorte,
+  // Faktor für alle Zutaten, Wasser als ml je kcal bzw. früher je Portion in ml); ohne sie gilt, was beim Rezept gemerkt ist.
   function cleanSlot(sl) {
     const out = { key: isObj(sl) && typeof sl.key === "string" ? sl.key : null };
     if (!out.key) return out;
     if (typeof sl.meat === "string" && sl.meat.length <= 120) out.meat = sl.meat;
     if (typeof sl.portion === "number" && isFinite(sl.portion) && sl.portion > 0 && sl.portion <= 20) out.portion = sl.portion;
     if (typeof sl.water === "number" && isFinite(sl.water) && sl.water >= 0 && sl.water <= 2000) out.water = sl.water;
+    if (typeof sl.waterK === "number" && isFinite(sl.waterK) && sl.waterK >= 0 && sl.waterK <= 20) out.waterK = sl.waterK;
     return out;
   }
   function cleanDayPlan(list) { return (Array.isArray(list) ? list : []).map(cleanSlot); }
   function slotCopy(sl) { return cleanSlot(sl); }
-  function slotHasOwn(sl) { return !!(sl && sl.key && (sl.meat != null || sl.portion != null || sl.water != null)); }
+  function slotHasOwn(sl) { return !!(sl && sl.key && (sl.meat != null || sl.portion != null || sl.water != null || sl.waterK != null)); }
   let state = load();
   // rawOverride: Inhalt eines Backups direkt übernehmen (auch wenn der Speicher nicht beschreibbar ist).
   function load(rawOverride) {
@@ -133,6 +137,7 @@
         savedRecipes: cleanSavedRecipes(p.savedRecipes),
         scales: remapKeys(cleanNumMap(p.scales)),
         water: remapKeys(cleanNumMap(p.water)),
+        waterK: remapKeys(cleanWaterK(p.waterK)),
         portion: remapKeys(cleanNumMap(p.portion)),
         dayPlan: cleanDayPlan(p.dayPlan).map(sl => sl.key && renameKey(sl.key) ? Object.assign(sl, { key: renameKey(sl.key) }) : { key: null }),
         basis: isObj(p.basis) ? p.basis : {},

@@ -1,6 +1,7 @@
   /* ---------- Init ---------- */
   function init() {
     rebuildFoodIndex();
+    migrateWaterMl();
     applyTheme();
     bindSettingsBar();
     bindVgPages();

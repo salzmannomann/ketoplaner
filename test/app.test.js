@@ -137,15 +137,15 @@ test("Wasser wird unabhängig geändert und je Rezept gemerkt; andere Zutaten sk
   // Neustart: Wasser bleibt
   const w2 = boot(JSON.parse(w.localStorage.getItem("ketoplaner.v5")));
   assert.equal(kitchenRows(openRecipe(w2, "Hendl & Brokkoli"))["Wasser"], 100);
-  // Andere Zutat: alles skaliert mit, Wasser folgt je Portion
+  // Andere Zutat: alles skaliert mit – das eigene Wasser ist als Verhältnis gemerkt (ml je kcal) und wächst mit
   let c2 = $(w2, "detail-content");
   const hin = [...c2.querySelectorAll(".ing-list.kitchen .ing-row")].find(r => /Hüh/.test(r.textContent)).querySelector("input");
   hin.value = String(before["Hühnerbrust ohne Haut"] * 2); fire(w2, hin, "change");
   c2 = $(w2, "detail-content");
   const r2 = kitchenRows(c2);
   assert.ok(Math.abs(r2["Broccoli, gekocht"] - before["Broccoli, gekocht"] * 2) < 0.6, "Portion angepasst (0,5-g-Rundung × 5)");
-  assert.equal(r2["Wasser"], 100, "gemerktes Wasser bleibt");
-  assert.match(tagStatus(c2).textContent, /Portion angepasst: 200 %.*wie berechnet · Wasser angepasst \(100 statt \d+ ml\) wie berechnet$/);
+  assert.equal(r2["Wasser"], 200, "gemerktes Wasser wächst mit der Portion (gleiches Verhältnis)");
+  assert.match(tagStatus(c2).textContent, /Portion angepasst: 200 %.*wie berechnet · Wasser angepasst \(200 statt \d+ ml\) wie berechnet$/);
   fire(w2, tagStatus(c2).querySelector(".portion-reset")); c2 = $(w2, "detail-content");
   assert.ok(Math.abs(kitchenRows(c2)["Broccoli, gekocht"] - before["Broccoli, gekocht"]) < 0.2, "Portion zurückgesetzt");
   assert.match(tagStatus(c2).textContent, /^Wasser angepasst/);
@@ -1881,7 +1881,10 @@ test("Tagesplan-Plätze mit eigenen Änderungen überstehen Laden und Backup; ka
     dayPlan: [{ key: "std:Hendl & Zucchini", meat: "pute", portion: 1.2, water: 40 }, { key: "std:Ei & Spinat", portion: -3, water: "viel", meat: 7 }, { key: null, meat: "pute" }] });
   w.document.querySelector('.tabbar [data-view="rezepte"]').click(); // speichert
   const dp = JSON.parse(w.localStorage.getItem("ketoplaner.v5")).dayPlan;
-  assert.deepEqual(dp[0], { key: "std:Hendl & Zucchini", meat: "pute", portion: 1.2, water: 40 });
+  // Frühere Wassermenge (ml je Portion) wird beim Start in ml je kcal umgerechnet: gleiche Menge, wächst künftig mit
+  assert.deepEqual(Object.keys(dp[0]).sort(), ["key", "meat", "portion", "waterK"]);
+  assert.deepEqual([dp[0].key, dp[0].meat, dp[0].portion], ["std:Hendl & Zucchini", "pute", 1.2]);
+  assert.ok(Math.abs(dp[0].waterK * (700 / 3) * 1.2 - 40) < 0.5, "40 ml bei 280 kcal: " + dp[0].waterK);
   assert.deepEqual(dp[1], { key: "std:Ei & Spinat" }, "ungültige Werte fallen weg");
   assert.deepEqual(dp[2], { key: null }, "leerer Platz ohne Änderungen");
   w.document.querySelector('.tabbar [data-view="heute"]').click();
@@ -1923,4 +1926,78 @@ test("PALETTE (Druck, PDF, Browserleiste) und die Farbvariablen in styles.css si
     const t = fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8");
     assert.ok(!/#[0-9a-fA-F]{6}\b/.test(t), "Hex-Farbe in src/" + f);
   }
+});
+
+test("Konsistenz: aus einer Mahlzeit übernehmen, gilt für alle Rezepte, Wasser wächst beim Steigern der Kalorien mit", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 5, kcal: 640, weight: 8 } });
+  const meal = (c) => { const o = {}; [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-list .ing-row:not(.sum)")].forEach(r => { o[r.querySelector(".name").textContent.trim()] = numDe(r.querySelector("input").value); }); return o; };
+  const food = (m) => Object.keys(m).filter(k => !/Wasser/.test(k)).reduce((a, k) => a + m[k], 0);
+  const vol = (c) => numDe([...c.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent);
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  let c = openRecipe(w, "Hendl & Brokkoli");
+  const m0 = meal(c), line0 = c.querySelector(".pane[data-pane=mahlzeit] .ratio-line");
+  assert.match(line0.textContent, new RegExp("^Verhältnis " + Math.round(food(m0)) + " g Nahrung : " + m0["Wasser"] + " ml Wasser · \\d,\\d+ kcal je ml · als Konsistenz für alle Mahlzeiten$"));
+  fire(w, line0.querySelector(".konsistenz-take"));
+  assert.equal(st().settings.konsistenz, "fest");
+  const k = st().settings.kcalJeMl;
+  assert.ok(Math.abs(k - 128 / vol(c)) < 0.01, "kcal je ml dieser Mahlzeit: " + k);
+  assert.equal(st().settings.konsistenzVon, "Hendl & Brokkoli");
+  c = $(w, "detail-content");
+  assert.ok(Math.abs(meal(c)["Wasser"] - m0["Wasser"]) <= 1, "gleiche Mahlzeit, gleiches Wasser");
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ratio-line").textContent, /Konsistenz \d,\d+ kcal je ml – bleibt beim Steigern gleich$/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /nach Konsistenz \d,\d+ kcal\/ml/);
+  fire(w, $(w, "detail-close"));
+  // Gilt für alle Rezepte: Compleat & KetoCal (angerührt) bekommt dieselbe Dichte
+  c = openRecipe(w, "Compleat & KetoCal");
+  assert.ok(Math.abs(vol(c) - 128 / k) <= 2, "Volumen " + vol(c) + " ≈ " + 128 / k);
+  fire(w, $(w, "detail-close"));
+  // Kalorien pro Tag steigern: Nahrung und Wasser wachsen im gleichen Maß, das Verhältnis bleibt
+  const s1 = st(); s1.settings.kcal = 800;
+  const w2 = boot(s1);
+  const c2 = openRecipe(w2, "Hendl & Brokkoli"), m2 = meal(c2);
+  assert.ok(Math.abs(food(m2) / food(m0) - 1.25) < 0.02, "Nahrung × 1,25");
+  assert.ok(Math.abs(m2["Wasser"] / m0["Wasser"] - 1.25) < 0.03, "Wasser × 1,25: " + m0["Wasser"] + " → " + m2["Wasser"]);
+  assert.ok(!c2.querySelector(".konsistenz-take"), "schon die Vorgabe – kein Übernehmen-Link");
+  // Vorgaben › Flüssigkeit: Segment „Festes Verhältnis“, Feld mit Herkunft, Höchstdichte ausgeblendet
+  fire(w2, w2.document.querySelector(".tabbar [data-view=vorgaben]")); fire(w2, w2.document.querySelector('[data-vg="fluessigkeit"]'));
+  assert.ok(w2.document.querySelector('#konsistenz-ctl [data-konsistenz="fest"]').classList.contains("active"));
+  assert.ok(!$(w2, "konsistenz-row").hidden && $(w2, "dichte-field").hidden);
+  assert.equal($(w2, "set-konsistenz").value, String(k).replace(".", ","));
+  assert.equal($(w2, "src-konsistenz").textContent, "aus Hendl & Brokkoli übernommen");
+  assert.match($(w2, "konsistenz-hint").textContent, /^Gilt für alle Mahlzeiten: 100 kcal in \d+ ml\./);
+  // Von Hand ändern
+  const ki = $(w2, "set-konsistenz"); ki.value = "1,2"; fire(w2, ki, "input");
+  const st2 = JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).settings;
+  assert.equal(st2.kcalJeMl, 1.2); assert.equal(st2.konsistenzVon, undefined);
+  assert.match($(w2, "konsistenz-hint").textContent, /100 kcal in 83 ml/);
+  // „Wie im Rezept“: wieder Rezept-Wasser mit Höchstdichte
+  fire(w2, w2.document.querySelector('#konsistenz-ctl [data-konsistenz="rezept"]'));
+  assert.ok($(w2, "konsistenz-row").hidden && !$(w2, "dichte-field").hidden);
+  // In den Mahlzeiten: Konsistenz nicht wählbar
+  fire(w2, w2.document.querySelector('#wasser-modus-ctl [data-wmodus="mahlzeit"]'));
+  assert.ok([...w2.document.querySelectorAll("#konsistenz-ctl button")].every(b => b.disabled));
+  assert.match($(w2, "konsistenz-hint").textContent, /^Nur beim Wasser zwischen den Mahlzeiten/);
+});
+
+test("Konsistenz: eigene Wassermenge geht vor, ist als Verhältnis gemerkt und lässt sich zurücksetzen; alte ml-Werte werden umgerechnet", () => {
+  const w = boot({ settings: { mctShare: 0, mahlzeiten: 5, kcal: 640, weight: 8, konsistenz: "fest", kcalJeMl: 1 }, water: { "fam:Hendl & Karotte": 80 } });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.deepEqual(st().water, {}, "alte ml-Werte umgerechnet");
+  assert.ok(Math.abs(st().waterK["fam:Hendl & Karotte"] * 128 - 80) < 2, "ml je kcal: " + JSON.stringify(st().waterK));
+  let c = openRecipe(w, "Hendl & Karotte");
+  assert.ok(Math.abs(kitchenRows(c)["Wasser"] - 400) <= 5, "weiterhin ca. 80 ml je Portion: " + kitchenRows(c)["Wasser"]);
+  fire(w, $(w, "detail-close"));
+  c = openRecipe(w, "Hendl & Brokkoli");
+  const win = [...c.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].find(r => /Wasser/.test(r.textContent)).querySelector("input");
+  win.value = "70"; fire(w, win, "change");
+  c = $(w, "detail-content");
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /eigener Wert/);
+  assert.ok(c.querySelector(".pane[data-pane=mahlzeit] .ratio-line .konsistenz-take"), "eigene Menge lässt sich als Konsistenz übernehmen");
+  assert.ok(Math.abs(st().waterK["fam:Hendl & Brokkoli"] * 128 - 70) < 2);
+  fire(w, $(w, "detail-close"));
+  fire(w, w.document.querySelector(".tabbar [data-view=vorgaben]")); fire(w, w.document.querySelector('[data-vg="fluessigkeit"]'));
+  assert.match($(w, "konsistenz-hint").textContent, /Eigene Wassermengen \(2\) gehen vor · zurücksetzen$/);
+  fire(w, $(w, "konsistenz-clear"));
+  assert.deepEqual(st().waterK, {});
+  assert.doesNotMatch($(w, "konsistenz-hint").textContent, /Eigene Wassermengen/);
 });

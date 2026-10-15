@@ -54,7 +54,7 @@
   // Durchschnittliche Flüssigkeit einer Mahlzeit über alle Rezepte – Schätzung für noch offene Plätze im Tagesplan.
   let avgFluidMemo = { key: null, v: 0, vol: 0 };
   function avgMealFluid(d) {
-    const key = JSON.stringify([state.settings, state.water, state.portion, (state.savedRecipes || []).length]);
+    const key = JSON.stringify([state.settings, state.water, state.waterK, state.portion, (state.savedRecipes || []).length]);
     if (avgFluidMemo.key === key) return avgFluidMemo;
     let sum = 0, vol = 0, n = 0;
     allRecipes().forEach(rec => {
@@ -98,7 +98,10 @@
     if (times.interval != null && times.interval < 180) notes.push(hintLine("warn", "Nur " + fmtDauer(times.interval) + " Abstand – Keto-Kost braucht oft 3–4 h.", "Steht beim Öffnen noch Nahrung an, 30–60 Minuten warten."));
     if (times.schlaf != null && times.schlaf - lastMeal < 120) notes.push(hintLine("warn", "Letzte Mahlzeit nur " + fmtDauer(times.schlaf - lastMeal) + " vor dem Schlafen – 2 h einplanen.", "Sonst droht Rückfluss im Liegen."));
     if (wp.over) notes.push(hintLine("warn", fmt(wp.per, 0) + " ml je Wassergabe – über " + fmt(d.maxMahlMl, 0) + " ml auf einmal. Schlafenszeit eintragen oder Wasser auf mehr Gaben verteilen."));
-    if (d.fluidDay > 0 && wp.rest < -10) notes.push(hintLine("info", "Die Mahlzeiten liefern schon " + fmt(-wp.rest, 0) + " ml mehr als das Tagesziel – keine Wassergaben nötig."));
+    // Feste Konsistenz: die Mahlzeiten wachsen mit den Kalorien – liefern sie allein mehr als die Tagesmenge, gelb darauf hinweisen
+    if (d.fluidDay > 0 && wp.rest < -10) notes.push(d.konsistenz > 0
+      ? hintLine("attn", "Mit der Konsistenz liefern die Mahlzeiten " + fmt(-wp.rest, 0) + " ml mehr als „Gesamt pro Tag“ (" + fmt(d.fluidDay, 0) + " ml).", "Tagesmenge unter Vorgaben › Flüssigkeit prüfen – bitte mit dem Team abstimmen.")
+      : hintLine("info", "Die Mahlzeiten liefern schon " + fmt(-wp.rest, 0) + " ml mehr als das Tagesziel – keine Wassergaben nötig."));
     return notes.join("");
   }
   function zeitplanSettings(times) {
