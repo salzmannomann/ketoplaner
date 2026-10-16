@@ -209,8 +209,19 @@ test("Liste: jedes Rezept ein Eintrag (mit oder ohne KetoCal), Name mit Zusatz s
   clickChip(w, "Obst & Brei");
   assert.ok(tileNames(w).some(n => /Grieß/.test(n)) && tileNames(w).some(n => /Banane/.test(n)));
   clickChip(w, "Alle");
-  const s = $(w, "recipe-search"); s.value = "zucchini"; fire(w, s, "input");
+  const s = $(w, "recipe-search");
+  assert.ok($(w, "search-clear").hidden, "× erst, wenn etwas eingegeben ist");
+  s.value = "zucchini"; fire(w, s, "input");
   assert.ok(tileNames(w).length > 0 && tileNames(w).every(n => /zucchini/i.test(n)));
+  // × löscht den Suchbegriff, alle Rezepte sind wieder da, × verschwindet
+  assert.ok(!$(w, "search-clear").hidden);
+  const n = tileNames(w).length;
+  fire(w, $(w, "search-clear"));
+  assert.equal(s.value, ""); assert.ok(tileNames(w).length > n); assert.ok($(w, "search-clear").hidden);
+  // Escape löscht ebenso
+  s.value = "ei"; fire(w, s, "input");
+  s.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  assert.equal(s.value, ""); assert.ok($(w, "search-clear").hidden);
 });
 
 test("Rezeptnamen: einheitliche Anzeige mit „· mit KetoCal“, Suche nach vollem Namen, alte Favoriten und Tagesplan bleiben", () => {

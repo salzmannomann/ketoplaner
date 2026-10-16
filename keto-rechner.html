@@ -420,6 +420,13 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 :root .sort-wrap select::-ms-expand { display: none; }
 .search-row { display: flex; align-items: center; gap: 10px; }
 .search-row .line-input { flex: 1; min-width: 0; }
+/* Suchfeld mit ×: das × erscheint, sobald etwas eingegeben ist (eigenes statt des Browser-Kreuzes) */
+.search-box { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+.search-box .line-input { width: 100%; padding-right: 40px; }
+.search-box input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.search-clear { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--grey); font: 400 var(--t-xl)/1 var(--f-sans); cursor: pointer; }
+.search-clear:hover { color: var(--ink); }
+.search-clear[hidden] { display: none; }
 .round-btn.plus { font: 600 var(--t-xl) var(--f-sans); }
 .listbar { margin: 0 -20px; }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 20px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -902,6 +909,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .rz-head .dk-title .overline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rz-search-slot { grid-column: 2; grid-row: 1; min-width: 0; display: flex; }
   .rz-search-slot .line-input { width: 100%; min-height: 40px; font-size: var(--t-m); }
+  .rz-search-slot .search-box { width: 100%; }
   .rz-toggles { grid-column: 1; grid-row: 2; align-self: center; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
   #compose-link { grid-column: 2; grid-row: 2; justify-self: end; align-self: center; min-width: 0; min-height: 40px; margin-left: 0; font-size: var(--t-s); }
   @container (max-width: 700px) {
@@ -1045,7 +1053,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
         </label>
       </div>
       <div class="search-row">
-        <input id="recipe-search" class="line-input" type="search" placeholder="Rezept oder Zutat suchen" autocomplete="off" />
+        <span class="search-box" id="recipe-search-box"><input id="recipe-search" class="line-input" type="search" placeholder="Rezept oder Zutat suchen" autocomplete="off" /><button type="button" class="search-clear" id="search-clear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></span>
         <button id="compose-btn" class="round-btn plus" type="button" title="Eigenes Rezept zusammenstellen" aria-label="Eigenes Rezept">+</button>
       </div>
       <div class="listbar"><div id="filter-bar" class="chips cat" aria-label="Gruppen und Filter"></div></div>
@@ -3611,6 +3619,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“, „nur KetoCal“ und „ohne KetoCal“
     // (die beiden KetoCal-Schalter schließen sich gegenseitig aus).
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
+    const sx = $("search-clear"); if (sx) sx.hidden = !(($("recipe-search") || {}).value || ""); // × nur, wenn etwas drinsteht
     // Suche läuft immer über alle Rezepte („Alle“ ist markiert); die gewählte Gruppe gilt wieder, sobald das Suchfeld leer ist.
     const groupSel = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle", filter = q ? "alle" : groupSel;
     const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto, onlyKeto = !!s.onlyKeto && !hideKeto;
@@ -3667,9 +3676,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     if (typeof syncDetailPanel === "function") syncDetailPanel();
   }
-  // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
+  // Suchfeld (samt ×): am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
   function placeRecipeSearch() {
-    const sq = document.getElementById("recipe-search"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
+    const sq = document.getElementById("recipe-search-box"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
     if (!sq || !slot || !btn) return;
     const want = isDesktop() ? slot : btn.parentElement;
     if (sq.parentElement === want) return;
@@ -3934,6 +3943,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
+    // × im Suchfeld (bzw. Escape): Suchbegriff löschen, Fokus bleibt im Feld
+    const clearSearch = () => { if (!search || !search.value) return; search.value = ""; renderRezepte(); try { search.focus(); } catch (e) {} };
+    const sx = document.getElementById("search-clear");
+    if (sx) sx.addEventListener("click", clearSearch);
+    if (search) search.addEventListener("keydown", (e) => { if (e.key === "Escape" && search.value) { e.preventDefault(); clearSearch(); } });
     // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
     document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
     // Desktop: „Ändern“ in der Verordnung der linken Spalte öffnet Vorgaben → Verordnung

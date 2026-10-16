@@ -409,6 +409,13 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 :root .sort-wrap select::-ms-expand { display: none; }
 .search-row { display: flex; align-items: center; gap: 10px; }
 .search-row .line-input { flex: 1; min-width: 0; }
+/* Suchfeld mit ×: das × erscheint, sobald etwas eingegeben ist (eigenes statt des Browser-Kreuzes) */
+.search-box { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+.search-box .line-input { width: 100%; padding-right: 40px; }
+.search-box input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.search-clear { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--grey); font: 400 var(--t-xl)/1 var(--f-sans); cursor: pointer; }
+.search-clear:hover { color: var(--ink); }
+.search-clear[hidden] { display: none; }
 .round-btn.plus { font: 600 var(--t-xl) var(--f-sans); }
 .listbar { margin: 0 -20px; }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 20px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -891,6 +898,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .rz-head .dk-title .overline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rz-search-slot { grid-column: 2; grid-row: 1; min-width: 0; display: flex; }
   .rz-search-slot .line-input { width: 100%; min-height: 40px; font-size: var(--t-m); }
+  .rz-search-slot .search-box { width: 100%; }
   .rz-toggles { grid-column: 1; grid-row: 2; align-self: center; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
   #compose-link { grid-column: 2; grid-row: 2; justify-self: end; align-self: center; min-width: 0; min-height: 40px; margin-left: 0; font-size: var(--t-s); }
   @container (max-width: 700px) {

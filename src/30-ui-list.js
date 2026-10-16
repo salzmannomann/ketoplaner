@@ -280,6 +280,7 @@
     // Chips: Gruppen (entweder/oder, wischbar) und dahinter die Schalter „nur Diätologie“, „nur KetoCal“ und „ohne KetoCal“
     // (die beiden KetoCal-Schalter schließen sich gegenseitig aus).
     const q = (($("recipe-search") || {}).value || "").trim().toLowerCase();
+    const sx = $("search-clear"); if (sx) sx.hidden = !(($("recipe-search") || {}).value || ""); // × nur, wenn etwas drinsteht
     // Suche läuft immer über alle Rezepte („Alle“ ist markiert); die gewählte Gruppe gilt wieder, sobald das Suchfeld leer ist.
     const groupSel = FILTERS.some(f => f.id === s.filter) ? s.filter : "alle", filter = q ? "alle" : groupSel;
     const onlyQuelle = !!s.onlyQuelle, hideKeto = !!s.hideKeto, onlyKeto = !!s.onlyKeto && !hideKeto;
@@ -336,9 +337,9 @@
     }
     if (typeof syncDetailPanel === "function") syncDetailPanel();
   }
-  // Suchfeld: am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
+  // Suchfeld (samt ×): am Desktop im Kopf der Rezepte, am Handy in der Suchzeile neben „+“ (derselbe Knoten, Eingabe bleibt)
   function placeRecipeSearch() {
-    const sq = document.getElementById("recipe-search"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
+    const sq = document.getElementById("recipe-search-box"), slot = document.getElementById("rz-search-slot"), btn = document.getElementById("compose-btn");
     if (!sq || !slot || !btn) return;
     const want = isDesktop() ? slot : btn.parentElement;
     if (sq.parentElement === want) return;

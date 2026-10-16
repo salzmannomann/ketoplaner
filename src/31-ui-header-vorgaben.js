@@ -256,6 +256,11 @@
     });
     const search = document.getElementById("recipe-search");
     if (search) search.addEventListener("input", () => renderRezepte());
+    // × im Suchfeld (bzw. Escape): Suchbegriff löschen, Fokus bleibt im Feld
+    const clearSearch = () => { if (!search || !search.value) return; search.value = ""; renderRezepte(); try { search.focus(); } catch (e) {} };
+    const sx = document.getElementById("search-clear");
+    if (sx) sx.addEventListener("click", clearSearch);
+    if (search) search.addEventListener("keydown", (e) => { if (e.key === "Escape" && search.value) { e.preventDefault(); clearSearch(); } });
     // „nur Diätologie“ und „ohne KetoCal“ sind Chips in der Gruppenzeile (renderRezepte bindet sie bei jedem Aufbau).
     document.querySelectorAll(".tabbar button[data-view], .side-nav button[data-view]").forEach(b => b.addEventListener("click", () => { chipReturn = null; showView(b.dataset.view); }));
     // Desktop: „Ändern“ in der Verordnung der linken Spalte öffnet Vorgaben → Verordnung
