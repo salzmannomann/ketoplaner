@@ -802,7 +802,7 @@ test("Anpassen: Statuszeile mit Zurücksetzen – Fleisch nur in der Ansicht, MC
   assert.match(st(), /^Wie im Rezept · Fleisch gilt nur in dieser Ansicht · der MCT-Anteil ist die Vorgabe für alle Rezepte$/);
   assert.deepEqual([...c.querySelectorAll(".pane[data-pane=anpassen] .overline")].map(o => o.textContent), ["Fleisch", "MCT-Anteil am Öl", "Standard-Rezept"]);
   assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap .adj-text").textContent, /^Gilt nur für diese Ansicht/);
-  assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap.oil .adj-text").textContent, /^Gilt für alle Rezepte mit Öl, wie unter Vorgaben/);
+  assert.match(c.querySelector(".pane[data-pane=anpassen] .meat-swap.oil .adj-text").textContent, /^Gilt für alle Rezepte mit Öl, wie in der Verordnung/);
   // Fleisch tauschen → Statuszeile + ↺ wie im Rezept
   fire(w, c.querySelector('.meat-swap button[data-meat="rind"]')); c = $(w, "detail-content");
   assert.match(st(), /^Fleisch getauscht: Rind \(nur in dieser Ansicht\) · wie im Rezept$/);

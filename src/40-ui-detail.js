@@ -238,7 +238,7 @@
       (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
-    return '<div class="hint">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="tlink" data-goto="vorgaben">unter Vorgaben ändern</button></div>';
+    return '<div class="hint">Rechenregel: <strong>' + regelLabel(d) + '</strong> · <button type="button" class="tlink" data-goto="vorgaben">in der Verordnung ändern</button></div>';
   }
   /* ---------- Blätter (Reiter am Desktop, Wisch-Seiten mit Punkten am Handy) – für Detail und Editor ---------- */
   function pagerHead(PAGES, cur, tabsId) {
@@ -436,8 +436,8 @@
           ? "<strong>Kalorien halten:</strong> Die Kalorien bleiben für jeden MCT-Anteil gleich; das Verhältnis steigt mit dem Anteil. "
           : "<strong>Verhältnis halten:</strong> Das Verhältnis bleibt für jeden MCT-Anteil exakt gleich; die Kalorien sinken mit dem Anteil (MCT liefert weniger kcal je Gramm). ") : "") +
         "MCT kann durch Capronsäure (C6) den Rachen reizen – klein beginnen, Verträglichkeit beobachten; besser verträglich ist weniger MCT je Mahlzeit, dafür in jeder Mahlzeit. MCT ist je kcal ketogener als langkettiges Fett, ein Tausch senkt die Ketose nicht. Die Vorbelegung 8,3 kcal/g ist ein <strong>Praxiswert</strong> – echte Etikettwerte unter Vorgaben eintragen.</p></details>";
-      const note = !(sOil > 0) ? '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie unter Vorgaben. Derzeit nur Rapsöl.</div>'
-        : '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie unter Vorgaben.</div>' +
+      const note = !(sOil > 0) ? '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie in der Verordnung. Derzeit nur Rapsöl.</div>'
+        : '<div class="adj-text">Gilt für alle Rezepte mit Öl, wie in der Verordnung.</div>' +
           (mm ? '<div class="meat-note stat-line">MCT <strong>' + fmt(mm.gMct, 1) + ' g</strong> je Portion · <strong>' + fmt(mm.energiePz, 1) + ' %</strong> der Energie (' + mctEinordnung(mm.energiePz) + ') · ' + sign(mm.dev) + fmt(Math.abs(mm.dev), 1) + ' kcal je Portion, je Tag ' + sign(mm.dev) + fmt(Math.abs(mm.dev * d.mahl), 0) + ' kcal</div>' : "");
       // Warnhinweise aus der ungerundeten Rechnung (§5)
       let warn = "";
@@ -700,7 +700,7 @@
     c.querySelectorAll(".water-reset").forEach(b =>
       b.addEventListener("click", () => { clearWater(); save(); detailChanged(); }));
     c.querySelectorAll("button[data-goto=vorgaben]").forEach(b =>
-      b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); }));
+      b.addEventListener("click", () => { closeDetail(); showView("vorgaben"); showVgPage("verordnung"); }));
     c.querySelectorAll("button[data-open-rec]").forEach(b =>
       b.addEventListener("click", () => {
         const v = allRecipes().find(x => recipeKey(x) === b.dataset.openRec); if (!v) return;
