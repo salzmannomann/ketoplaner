@@ -854,9 +854,6 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .btn-row #push-toggle.push-off { order: 1; }
 /* Knöpfe einer Reihe gleich hoch (Primär 48 px, Sekundär sonst 44 px) */
 .vg-sec .btn-row .btn { min-height: 48px; }
-/* Backup als Text: Unterstrich-Feld wie die übrigen Eingaben statt Rahmen-Kasten */
-#export-text { padding: 8px 0; border: 0; border-top: 1px dotted var(--dot); border-bottom: 2px solid var(--ink); border-radius: 0; }
-#export-text:focus { outline: none; border-bottom-color: var(--blue); }
 /* Bedarf schätzen: Skala mit drei Einordnungen (Linien statt Farbe) */
 .bd-row label.vo-row { cursor: pointer; }
 .bd-age { font-family: var(--f-mono); }
@@ -1378,11 +1375,6 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
               <select id="backup-remind" class="line-select"><option value="14">nach 2 Wochen</option><option value="28">nach 4 Wochen</option><option value="0">nie</option></select>
             </label>
           </div>
-          <details class="more" id="export-details" hidden>
-            <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
-            <textarea id="export-text" rows="5" spellcheck="false"></textarea>
-            <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
-          </details>
         </div>
 
         <div class="vg-sec" id="push-card">
@@ -4206,10 +4198,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   async function exportData() {
     const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
     const json = JSON.stringify(payload, null, 1), name = "hamham-keto-backup-" + todayIso() + ".json";
-    const ta = document.getElementById("export-text"), det = document.getElementById("export-details");
-    if (ta) ta.value = json;
     const r = await saveFile(name, json, "application/json");
-    if (!r) { if (det) { det.hidden = false; det.open = true; } return; }
+    if (!r) return; // abgebrochen (Teilen-Menü geschlossen)
     state.settings.backupAt = Date.now(); save(); renderRezepte();
     showToast(r === "geteilt" ? "Backup gesichert" : "Backup gespeichert: " + escapeHtml(name));
   }
@@ -4368,8 +4358,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const f = impF.files && impF.files[0]; if (!f) return;
       const rd = new FileReader(); rd.onload = () => importData(String(rd.result || "")); rd.readAsText(f); impF.value = "";
     });
-    const impT = document.getElementById("import-text-btn");
-    if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
   }
 
   /* ---------- Kachel (Übersicht) – eine je Gericht, zeigt die aktive Fettbasis-Variante ---------- */

@@ -205,10 +205,8 @@
   async function exportData() {
     const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
     const json = JSON.stringify(payload, null, 1), name = "hamham-keto-backup-" + todayIso() + ".json";
-    const ta = document.getElementById("export-text"), det = document.getElementById("export-details");
-    if (ta) ta.value = json;
     const r = await saveFile(name, json, "application/json");
-    if (!r) { if (det) { det.hidden = false; det.open = true; } return; }
+    if (!r) return; // abgebrochen (Teilen-Menü geschlossen)
     state.settings.backupAt = Date.now(); save(); renderRezepte();
     showToast(r === "geteilt" ? "Backup gesichert" : "Backup gespeichert: " + escapeHtml(name));
   }
@@ -367,6 +365,4 @@
       const f = impF.files && impF.files[0]; if (!f) return;
       const rd = new FileReader(); rd.onload = () => importData(String(rd.result || "")); rd.readAsText(f); impF.value = "";
     });
-    const impT = document.getElementById("import-text-btn");
-    if (impT) impT.addEventListener("click", () => importData((document.getElementById("export-text") || {}).value || ""));
   }

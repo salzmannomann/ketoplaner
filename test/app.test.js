@@ -559,7 +559,7 @@ test("Vorgaben: Gewicht als Textfeld mit Komma – Zwischenstand „8,“ wird b
   assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.weight, 9.5);
 });
 
-test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", () => {
+test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt global, Chip zeigt aktive Verordnung, Backup-Roundtrip", async () => {
   const w = boot({ settings: { kcal: 700 } });
   const ri = $(w, "set-ratio");
   assert.equal(ri.value, "1,8");
@@ -609,11 +609,19 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.match(c.querySelector(".ratio-pill").textContent, /^0,6[67] : 1$/);
   fire(w, $(w, "detail-close"));
   ri.value = "1"; fire(w, ri, "input");
+  // Backup sichern (Datei) und auf einem anderen Gerät laden
+  let blob = null; w.URL.createObjectURL = (bl) => { blob = bl; return "blob:x"; }; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () {};
   fire(w, $(w, "export-btn"));
-  const json = $(w, "export-text").value;
-  const w2 = boot();
-  $(w2, "export-text").value = json; fire(w2, $(w2, "import-text-btn"));
-  assert.equal(JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).settings.ratio, 1);
+  for (let i = 0; i < 20 && !blob; i++) await new Promise(r => setTimeout(r, 5));
+  const json = await new Promise(res => { const rd = new w.FileReader(); rd.onload = () => res(rd.result); rd.readAsText(blob); });
+  assert.equal($(w, "export-text"), null, "kein Backup als Text mehr");
+  const w2 = boot(), fi = $(w2, "import-file");
+  Object.defineProperty(fi, "files", { configurable: true, value: [new w2.File([json], "backup.json")] });
+  fire(w2, fi, "change");
+  const st2 = () => JSON.parse(w2.localStorage.getItem("ketoplaner.v5"));
+  for (let i = 0; i < 50 && st2().settings.ratio !== 1; i++) await new Promise(r => setTimeout(r, 10));
+  assert.equal(st2().settings.ratio, 1);
 });
 
 test("Tagesplan: Slots folgen der Mahlzeitenzahl, Picker setzt Rezept, Summen stimmen", () => {

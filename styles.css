@@ -843,9 +843,6 @@ button.cf-row:hover .cf-n { text-decoration: underline; text-underline-offset: 3
 .btn-row #push-toggle.push-off { order: 1; }
 /* Knöpfe einer Reihe gleich hoch (Primär 48 px, Sekundär sonst 44 px) */
 .vg-sec .btn-row .btn { min-height: 48px; }
-/* Backup als Text: Unterstrich-Feld wie die übrigen Eingaben statt Rahmen-Kasten */
-#export-text { padding: 8px 0; border: 0; border-top: 1px dotted var(--dot); border-bottom: 2px solid var(--ink); border-radius: 0; }
-#export-text:focus { outline: none; border-bottom-color: var(--blue); }
 /* Bedarf schätzen: Skala mit drei Einordnungen (Linien statt Farbe) */
 .bd-row label.vo-row { cursor: pointer; }
 .bd-age { font-family: var(--f-mono); }
