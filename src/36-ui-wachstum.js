@@ -9,36 +9,75 @@
   const GR_Z = { 1: -2.326348, 3: -1.880794, 15: -1.036433, 50: 0, 85: 1.036433, 97: 1.880794, 99: 2.326348 };
   function todayIso() { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
   function grSexWord() { return growthSex() === "m" ? "Buben" : "Mädchen"; }
+  // Gezeigter Zeitraum: die letzten 6 bzw. 12 Monate oder alles (0, Standard)
+  function grRange() { const r = num(state.settings.grRange); return r === 6 || r === 12 ? r : 0; }
+  const GR_MON = 30.4375;
+  // „Schöne“ Teilung einer Achse mit etwa 4–8 Strichen
+  function grNiceStep(span) { const c = [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20]; return c.find(x => span / x <= 8) || 20; }
   // Wachstumskurve als SVG: Perzentilen-Linien (1 und 99 gestrichelt, 50 kräftiger, Band 3–97), Messpunkte in Tinte,
-  // der letzte als Ring, die ausgewählte mit Linie und Schild. Die Zeitachse reicht etwa ein halbes Jahr über die letzte
-  // Messung hinaus (höchstens 5 Jahre).
+  // der letzte als Ring, die ausgewählte mit Linie und Schild. „Alles“: die Zeitachse reicht etwa ein halbes Jahr über die
+  // letzte Messung hinaus (höchstens 5 Jahre). Ausschnitt (6/12 Monate): die Werteachse rückt eng um die Messpunkte und die
+  // nächsten Perzentilen darüber und darunter – so wird eine Tendenz sichtbar.
   function growthChartSvg(kind) {
-    const K = GROWTH_KINDS[kind], sex = growthSex(), birth = dayNum(state.settings.bdBirth), wide = grIsWide();
-    const W = wide ? 640 : 360, H = wide ? 330 : 310, ml = 34, mr = 26, mt = 20, mb = 34, PW = W - ml - mr, PH = H - mt - mb, MON = 30.4375;
+    const K = GROWTH_KINDS[kind], sex = growthSex(), birth = dayNum(state.settings.bdBirth), wide = grIsWide(), range = grRange();
+    const W = wide ? 640 : 360, H = wide ? 330 : 310, ml = 34, mr = 26, mt = 20, mb = 34, PW = W - ml - mr, PH = H - mt - mb, MON = GR_MON;
     const pts = growthSeries(kind).map(e => [dayNum(e.d) - birth, e[kind], e]).filter(p => p[0] >= 0 && p[0] <= WHO_MAX_DAY);
     const lastDay = Math.max(pts.length ? pts[pts.length - 1][0] : 0, Math.min(WHO_MAX_DAY, dayNum(todayIso()) - birth));
-    const maxM = Math.min(60, Math.max(12, Math.ceil((lastDay / MON + 2) / 6) * 6)), maxD = Math.min(WHO_MAX_DAY, Math.round(maxM * MON));
-    const C = {};
-    GR_P.forEach(p => { const a = []; for (let d = 0; d <= maxD; d += 7) a.push([d, lmsValue(whoLms(kind, sex, d), GR_Z[p])]); a.push([maxD, lmsValue(whoLms(kind, sex, maxD), GR_Z[p])]); C[p] = a; });
-    const step = K.tick;
-    const lo = Math.floor(Math.min(...C[1].map(x => x[1]), ...pts.map(p => p[1])) / step) * step;
-    const hi = Math.ceil(Math.max(...C[99].map(x => x[1]), ...pts.map(p => p[1])) / step) * step;
-    const X = d => ml + d / maxD * PW, Y = v => mt + PH - (v - lo) / (hi - lo) * PH;
+    let d0 = 0, d1;
+    if (range) { d1 = Math.min(WHO_MAX_DAY, lastDay + 10); d0 = Math.max(0, d1 - range * MON); }
+    else d1 = Math.min(WHO_MAX_DAY, Math.round(Math.min(60, Math.max(12, Math.ceil((lastDay / MON + 2) / 6) * 6)) * MON));
+    const vis = pts.filter(p => p[0] >= d0 && p[0] <= d1), stepD = range ? 2 : 7;
+    const curve = (p) => { const a = []; for (let d = d0; d <= d1; d += stepD) a.push([d, lmsValue(whoLms(kind, sex, d), GR_Z[p])]); a.push([d1, lmsValue(whoLms(kind, sex, d1), GR_Z[p])]); return a; };
+    const C = {}; GR_P.forEach(p => { C[p] = curve(p); });
+    let lo, hi, step;
+    if (!range) {
+      step = K.tick;
+      lo = Math.floor(Math.min(...C[1].map(x => x[1]), ...pts.map(p => p[1])) / step) * step;
+      hi = Math.ceil(Math.max(...C[99].map(x => x[1]), ...pts.map(p => p[1])) / step) * step;
+    } else {
+      // eng um die Messpunkte, dazu die nächste Perzentile darunter und darüber
+      const zs = vis.map(p => whoZ(kind, sex, p[0], p[1])).filter(z => z != null);
+      const zMin = zs.length ? Math.min(...zs) : 0, zMax = zs.length ? Math.max(...zs) : 0;
+      const below = GR_P.filter(p => GR_Z[p] <= zMin).pop(), above = GR_P.find(p => GR_Z[p] >= zMax);
+      const vals = vis.map(p => p[1]).concat(...[below, above].filter(p => p != null).map(p => C[p].map(x => x[1])));
+      if (!vals.length) vals.push(...C[50].map(x => x[1]));
+      lo = Math.min(...vals); hi = Math.max(...vals);
+      const minSpan = { w: 1, h: 4, hc: 2 }[kind] || 1;
+      if (hi - lo < minSpan) { const m = (hi + lo) / 2; lo = m - minSpan / 2; hi = m + minSpan / 2; }
+      const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+      step = grNiceStep(hi - lo); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    }
+    const X = d => ml + (d - d0) / (d1 - d0) * PW, Y = v => mt + PH - (v - lo) / (hi - lo) * PH;
     const path = a => a.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ");
-    let s = '<svg class="gc" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + K.name + ' nach Alter mit WHO-Perzentilen">';
-    for (let v = lo; v <= hi + 1e-9; v += step) s += '<line class="gc-grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="gc-ty" x="' + (ml - 6) + '" y="' + (Y(v) + 4) + '">' + fmtNum(Math.round(v * 10) / 10) + "</text>";
-    const mStep = maxM > 36 ? 6 : 3, lStep = maxM > 36 ? (wide ? 6 : 12) : (wide ? 3 : 6);
-    for (let m = 0; m <= maxM; m += mStep) { const x = X(Math.min(maxD, m * MON)); s += '<line class="gc-grid' + (m % lStep ? " minor" : "") + '" x1="' + x + '" x2="' + x + '" y1="' + mt + '" y2="' + (mt + PH) + '"/>' + (m % lStep ? "" : '<text class="gc-tx" x="' + x + '" y="' + (mt + PH + 14) + '">' + m + "</text>"); }
-    s += '<path class="gc-band" d="' + path(C[3]) + " " + C[97].slice().reverse().map(p => "L" + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ") + ' Z"/>';
+    const clip = "gc-clip-" + kind;
+    let s = '<svg class="gc" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + K.name + ' nach Alter mit WHO-Perzentilen">' +
+      '<defs><clipPath id="' + clip + '"><rect x="' + ml + '" y="' + mt + '" width="' + PW + '" height="' + PH + '"/></clipPath></defs>';
+    const dec = step < 0.1 ? 2 : step < 1 ? (step === 0.25 ? 2 : 1) : 0;
+    for (let v = lo; v <= hi + 1e-9; v += step) s += '<line class="gc-grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text class="gc-ty" x="' + (ml - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '">' + fmt(v, dec) + "</text>";
+    // Monatsstriche: „Alles“ alle 3 (bzw. 6) Monate, Ausschnitt jeden Monat (1 Jahr: beschriftet jeden zweiten)
+    const m0 = Math.ceil(d0 / MON - 1e-9), m1 = Math.floor(d1 / MON + 1e-9);
+    const mStep = range ? 1 : (d1 / MON > 36 ? 6 : 3), lStep = range ? (range === 12 && !wide ? 2 : 1) : d1 / MON > 36 ? (wide ? 6 : 12) : (wide ? 3 : 6);
+    for (let m = Math.ceil(m0 / mStep) * mStep; m <= m1; m += mStep) { const x = X(m * MON); s += '<line class="gc-grid' + (m % lStep ? " minor" : "") + '" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + mt + '" y2="' + (mt + PH) + '"/>' + (m % lStep ? "" : '<text class="gc-tx" x="' + x.toFixed(1) + '" y="' + (mt + PH + 14) + '">' + m + "</text>"); }
+    s += '<g clip-path="url(#' + clip + ')"><path class="gc-band" d="' + path(C[3]) + " " + C[97].slice().reverse().map(p => "L" + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ") + ' Z"/>';
     GR_P.forEach(p => { s += '<path class="gc-p' + (p === 50 ? " mid" : p === 1 || p === 99 ? " out" : "") + '" d="' + path(C[p]) + '"/>'; });
-    // Beschriftungen rechts, so verschoben, dass sie sich nicht überlappen
-    const lab = GR_P.map(p => ({ p, y: Y(C[p][C[p].length - 1][1]) + 4 })).sort((a, b) => b.y - a.y);
+    if (pts.length > 1) s += '<path class="gc-line" d="' + path(pts) + '"/>';
+    s += "</g>";
+    // Beschriftungen rechts, so verschoben, dass sie sich nicht überlappen; eine Linie, die im Ausschnitt oben aus dem Bild
+    // läuft, bekommt ihre Zahl dort, wo sie den Rand verlässt
+    const lab = GR_P.map(p => ({ p, v: C[p][C[p].length - 1][1] })).filter(l => l.v >= lo && l.v <= hi).map(l => ({ p: l.p, y: Y(l.v) + 4 })).sort((a, b) => b.y - a.y);
     for (let i = 1; i < lab.length; i++) if (lab[i - 1].y - lab[i].y < 10) lab[i].y = lab[i - 1].y - 10;
     lab.forEach(l => { s += '<text class="gc-pl" x="' + (W - mr + 4) + '" y="' + l.y.toFixed(1) + '">' + l.p + "</text>"; });
-    if (pts.length > 1) s += '<path class="gc-line" d="' + path(pts) + '"/>';
-    pts.forEach((p, i) => { const last = i === pts.length - 1; s += '<circle class="gc-dot' + (last ? " last" : "") + '" cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="' + (last ? 4 : 2.2) + '"/>'; });
-    grPts = pts.map(p => ({ id: p[2].id, x: X(p[0]), y: Y(p[1]) })); grDim = { W, H };
-    const sel = pts.find(p => p[2].id === grSelId);
+    const tops = [];
+    GR_P.filter(p => C[p][C[p].length - 1][1] > hi).forEach(p => {
+      const a = C[p]; let i = a.length - 1; while (i >= 0 && a[i][1] > hi) i--;
+      if (i < 0 || a[i][1] < lo || X(a[i][0]) < ml + 24) return; // ragt nur in der Ecke ins Bild: ohne Zahl
+      const x = X(a[i][0]) - 4; if (tops.some(t => Math.abs(t - x) < 16)) return; tops.push(x);
+      s += '<text class="gc-pl gc-pl-top" x="' + x.toFixed(1) + '" y="' + (mt + 11) + '">' + p + "</text>";
+    });
+    const r = range ? 3 : 2.2;
+    vis.forEach(p => { const last = p === pts[pts.length - 1]; s += '<circle class="gc-dot' + (last ? " last" : "") + '" cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="' + (last ? 4 : r) + '"/>'; });
+    grPts = vis.map(p => ({ id: p[2].id, x: X(p[0]), y: Y(p[1]) })); grDim = { W, H };
+    const sel = vis.find(p => p[2].id === grSelId);
     if (sel) {
       const x = X(sel[0]), y = Y(sel[1]), f = growthFacts(kind, sel[2]);
       const txt = fmtDay(sel[2].d) + " · " + grValueText(kind, sel[1]) + (f.p != null ? " · P " + fmtPct(f.p) : ""), tw = txt.length * 6.4 + 16;
@@ -76,6 +115,8 @@
     const K = GROWTH_KINDS[grKind], ser = growthSeries(grKind), last = ser[ser.length - 1];
     $("gr-chart").innerHTML = birthOk ? growthChartSvg(grKind)
       : '<div class="note info">Geburtsdatum unten eintragen – dann zeichnet die App die WHO-Kurven und nennt die Perzentilen.</div>';
+    const rg = grRange(); card.querySelectorAll("#gr-range button[data-gr]").forEach(b => b.setAttribute("aria-pressed", String(num(b.dataset.gr) === rg)));
+    if ($("gr-range")) $("gr-range").hidden = !birthOk;
     const fact = (label, value, sub) => '<div class="vg-fact"><small>' + label + "</small><b>" + value + "</b><span>" + sub + "</span></div>";
     if (last) {
       const f = growthFacts(grKind, last);
@@ -214,6 +255,7 @@
       grPts.forEach(p => { const d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y); if (d < bd) { bd = d; best = p; } });
       if (best) grSelect(best.id);
     });
+    card.querySelectorAll("#gr-range button[data-gr]").forEach(b => b.addEventListener("click", () => { state.settings.grRange = num(b.dataset.gr); save(); renderWachstum(); }));
     if (window.matchMedia) { const mq = window.matchMedia("(min-width: 821px)"); const re = () => renderWachstum(); if (mq.addEventListener) mq.addEventListener("change", re); else if (mq.addListener) mq.addListener(re); }
     $("gr-csv").addEventListener("click", async () => {
       if (!growthList().length) { showToast("Noch keine Messungen."); return; }

@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=ee484b9b" />
+  <link rel="stylesheet" href="styles.css?v=2d6c6fe7" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -239,6 +239,7 @@
         <div class="seg-ink" id="gr-kind">
           <button type="button" data-gk="w">Gewicht</button><button type="button" data-gk="h">Länge</button><button type="button" data-gk="hc">Kopf</button>
         </div>
+        <div class="gr-range" id="gr-range" role="group" aria-label="Zeitraum"><button type="button" data-gr="6">6 Monate</button><button type="button" data-gr="12">1 Jahr</button><button type="button" data-gr="0">Alles</button></div>
         <div id="gr-chart" class="gr-chart"></div>
         <div id="gr-facts" class="vg-facts"></div>
         <div class="overline gr-list-title">Messungen</div>
@@ -252,7 +253,7 @@
         </div>
         <p class="hint">Messungen bleiben nur auf diesem Gerät (beim Geräte-Abgleich verschlüsselt). <button type="button" class="tlink gr-import-btn" id="gr-import">Werte importieren</button> <span class="nowrap">· <button type="button" class="tlink gr-import-btn" id="gr-csv">Als Tabelle sichern (CSV)</button></span><input type="file" id="gr-file" accept=".growth,.csv,.txt,text/csv,text/plain,application/octet-stream" hidden /></p>
         <details class="more"><summary class="tlink">Mehr dazu</summary>
-          <p>Die Linien sind die Perzentilen der <strong>WHO-Wachstumsstandards</strong> (2006) für Mädchen bzw. Buben von der Geburt bis 5 Jahre: 50 ist der Durchschnitt, 3 bedeutet, dass 3 von 100 gesunden Kindern gleichen Alters kleiner bzw. leichter sind. Bis 2 Jahre wird die Länge im Liegen gemessen, danach die Größe im Stehen – deshalb macht die Kurve dort einen kleinen Sprung. Wichtig ist vor allem, dass ein Kind seiner Kurve folgt; die Einordnung übernimmt das Behandlungsteam. Das zuletzt gemessene Gewicht gilt automatisch in der Verordnung. Antippen einer Messung zeigt sie im Graphen; Bearbeiten und Löschen durch Wischen nach links oder langes Drücken. „Als Tabelle sichern“ schreibt alle Messungen als CSV (für Excel oder Numbers); so eine Tabelle lässt sich – auch ergänzt – wieder importieren, ebenso Dateien der App „Growth“ (Teilen → Datei *.growth). Gleiche Tage werden dabei zusammengeführt; was in der Tabelle fehlt, bleibt in der App erhalten.</p>
+          <p>Die Linien sind die Perzentilen der <strong>WHO-Wachstumsstandards</strong> (2006) für Mädchen bzw. Buben von der Geburt bis 5 Jahre: 50 ist der Durchschnitt, 3 bedeutet, dass 3 von 100 gesunden Kindern gleichen Alters kleiner bzw. leichter sind. Bis 2 Jahre wird die Länge im Liegen gemessen, danach die Größe im Stehen – deshalb macht die Kurve dort einen kleinen Sprung. Wichtig ist vor allem, dass ein Kind seiner Kurve folgt; die Einordnung übernimmt das Behandlungsteam. Das zuletzt gemessene Gewicht gilt automatisch in der Verordnung. Mit „6 Monate“ oder „1 Jahr“ rückt der Graph nah an die letzten Messungen heran, so ist eine Tendenz leichter zu sehen. Antippen einer Messung zeigt sie im Graphen; Bearbeiten und Löschen durch Wischen nach links oder langes Drücken. „Als Tabelle sichern“ schreibt alle Messungen als CSV (für Excel oder Numbers); so eine Tabelle lässt sich – auch ergänzt – wieder importieren, ebenso Dateien der App „Growth“ (Teilen → Datei *.growth). Gleiche Tage werden dabei zusammengeführt; was in der Tabelle fehlt, bleibt in der App erhalten.</p>
         </details>
       </div>
 
@@ -459,7 +460,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=3d9d3b69"></script>
+  <script src="app.js?v=64f0f392"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

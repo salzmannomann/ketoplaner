@@ -2141,6 +2141,33 @@ test("Backup: sichern merkt sich den Zeitpunkt; gelbe Erinnerung nach der einges
   assert.ok(!$(w, "vg-backup").hidden, "auch ohne Messungen, wenn schon einmal gesichert");
 });
 
+test("Wachstum: Zeitraum 6 Monate / 1 Jahr / Alles – Ausschnitt mit enger Werteachse, Wahl wird gemerkt", () => {
+  // erfundene Messungen: monatlich ab Geburt bis heute (20 Monate)
+  const iso = (t) => new Date(t).toISOString().slice(0, 10), now = Date.now(), M = 30.4375 * 864e5;
+  const birth = iso(now - 20 * M), growth = [];
+  for (let m = 0; m <= 20; m++) growth.push({ id: "m" + m, d: iso(now - (20 - m) * M), w: 3.3 + 0.38 * m });
+  const w = boot({ settings: { view: "vorgaben", bdBirth: birth, bdSex: "w" }, growth });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  const pressed = () => [...w.document.querySelectorAll("#gr-range button")].filter(b => b.getAttribute("aria-pressed") === "true").map(b => b.textContent);
+  const xs = () => [...$(w, "gr-chart").querySelectorAll(".gc-tx")].map(t => +t.textContent);
+  const ys = () => [...$(w, "gr-chart").querySelectorAll(".gc-ty")].map(t => parseFloat(t.textContent.replace(",", ".")));
+  assert.deepEqual(pressed(), ["Alles"], "Standard: alles");
+  assert.equal(Math.min(...xs()), 0); assert.equal(Math.min(...ys()), 2);
+  assert.equal($(w, "gr-chart").querySelectorAll(".gc-dot").length, 21);
+  fire(w, w.document.querySelector('#gr-range [data-gr="6"]'));
+  assert.deepEqual(pressed(), ["6 Monate"]); assert.equal(st().settings.grRange, 6);
+  assert.ok(Math.min(...xs()) >= 14 && Math.max(...xs()) <= 21, "nur die letzten Monate: " + xs());
+  assert.ok(Math.min(...ys()) > 6 && Math.max(...ys()) < 14, "enge Werteachse: " + ys());
+  assert.equal($(w, "gr-chart").querySelectorAll(".gc-dot").length, 6, "nur Messungen im Ausschnitt (antippbar)");
+  fire(w, w.document.querySelector('#gr-kind [data-gk="h"]')); assert.deepEqual(pressed(), ["6 Monate"], "gilt für alle Reiter");
+  fire(w, w.document.querySelector('#gr-range [data-gr="12"]'));
+  assert.ok(Math.min(...xs()) >= 8, "1 Jahr: " + xs());
+  // Wahl bleibt beim nächsten Öffnen
+  const w2 = boot(st()); fire(w2, w2.document.querySelector('[data-vg="wachstum"]'));
+  assert.equal(w2.document.querySelector('#gr-range [data-gr="12"]').getAttribute("aria-pressed"), "true");
+});
+
 test("Wachstum: ohne Geburtsdatum Hinweis statt Kurve; kaputte Messungen werden beim Laden verworfen", () => {
   const w = boot({ settings: { view: "vorgaben" }, growth: [{ id: "a", d: "2025-05-01", w: 9 }, { id: "b", d: "kein Datum", w: 9 }, { id: "c", d: "2025-06-01", w: 900 }, "x", { id: "d", d: "2025-07-01", h: 80, hc: "viel" }] });
   const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
