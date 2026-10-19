@@ -747,6 +747,7 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .gr-form-title[hidden] { display: none; }
 .ms-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .nowrap { white-space: nowrap; }
+#backup-card .vo-rows { margin-top: 10px; }
 .vg-backup { margin: 0 0 14px; }
 .vg-backup[hidden] { display: none; }
 .vg-backup .tlink { min-height: 0; margin: 0; }

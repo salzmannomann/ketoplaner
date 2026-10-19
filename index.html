@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=230d7013" />
+  <link rel="stylesheet" href="styles.css?v=ee484b9b" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -344,12 +344,15 @@
             <button id="export-btn" class="btn primary" type="button">Backup sichern …</button>
             <label class="btn outline file-btn">Backup laden<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
           </div>
-          <p class="hint">Am Handy öffnet sich das Teilen-Menü: dort <strong>Synology Drive</strong>, <strong>Google Drive</strong> oder <strong>In Dateien sichern</strong> wählen – am Computer wird die Datei heruntergeladen. Das Backup enthält alles: Vorgaben, Rezepte, Tagesplan und Messungen.</p>
           <div class="vo-rows">
             <label class="vo-row"><span class="vo-lbl"><span>Erinnern</span><span class="src">wenn so lange kein Backup</span></span>
               <select id="backup-remind" class="line-select"><option value="14">nach 2 Wochen</option><option value="28">nach 4 Wochen</option><option value="0">nie</option></select>
             </label>
           </div>
+          <details class="more">
+            <summary class="tlink">Wie funktioniert das?</summary>
+            <p>Am Handy öffnet „Backup sichern“ das Teilen-Menü: dort <strong>Synology Drive</strong>, <strong>Google Drive</strong> oder <strong>In Dateien sichern</strong> wählen – am Computer wird die Datei heruntergeladen. Das Backup enthält alles: Vorgaben, Rezepte, Tagesplan und Messungen. „Backup laden“ stellt diesen Stand wieder her (z. B. nach dem Löschen der App oder auf einem neuen Handy); nur die Erinnerungen schaltet man auf jedem Gerät selbst wieder ein. Ein Backup auf einem abgeglichenen Gerät zählt für alle.</p>
+          </details>
         </div>
 
         <div class="vg-sec" id="push-card">
