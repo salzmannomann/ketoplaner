@@ -16,6 +16,7 @@
       customFoods: [], // eigene Lebensmittel (Werte je 100 g vom Etikett), auf Wunsch auch als Fett zum Ausgleich
       hiddenRecipes: [], // ausgeblendete Standard-Rezepte (Rezept-Schlüssel)
       foodOverrides: {}, // geänderte Werte von Lebensmitteln der Diätologen-Liste (Name → nur die geänderten Felder)
+      growth: [], // Messungen fürs Wachstum: { id, d: "JJJJ-MM-TT", w?, h?, hc? } – nur auf diesem Gerät
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -144,6 +145,7 @@
         customFoods: cleanCustomFoods(p.customFoods),
         hiddenRecipes: cleanFavorites(p.hiddenRecipes),
         foodOverrides: cleanFoodOverrides(p.foodOverrides),
+        growth: cleanGrowth(p.growth),
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.

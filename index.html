@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=085dc4a5" />
+  <link rel="stylesheet" href="styles.css?v=63de38fd" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -104,6 +104,7 @@
       <div id="vg-list" class="vg-list">
         <div class="overline vg-group">Ernährung</div>
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
+        <button type="button" class="vg-row" data-vg="wachstum"><span class="vg-txt"><span class="vg-name">Wachstum</span><span class="vg-sum" id="vgs-wachstum"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="lebensmittel"><span class="vg-txt"><span class="vg-name">Lebensmittel und Rezepte</span><span class="vg-sum" id="vgs-lebensmittel"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <div class="overline vg-group">App</div>
         <button type="button" class="vg-row" data-vg="kueche"><span class="vg-txt"><span class="vg-name">Küche</span><span class="vg-sum" id="vgs-kueche"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -127,7 +128,7 @@
             </div>
           </div>
           <div class="vo-row">
-            <div class="vo-lbl"><label for="set-weight">Körpergewicht</label><span class="src">zuletzt gewogen</span></div>
+            <div class="vo-lbl"><label for="set-weight">Körpergewicht</label><span class="src" id="src-weight">zuletzt gewogen</span></div>
             <div class="vo-in"><input id="set-weight" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="8,5" /><span class="unit">kg</span></div>
           </div>
           <div class="vo-row">
@@ -217,6 +218,40 @@
           <p>Ändert die Verordnung nicht – nur ein Vergleich mit Studienwerten fürs Gespräch mit dem Team. „Getragen“ gilt auch für Kinder im Rollstuhl.</p>
           <p><strong>Grundumsatz</strong> nach Schofield (1985) aus Gewicht, Alter und Geschlecht (z. B. Mädchen 0–3 J.: 58,3 × kg − 31). <strong>Krick</strong> (1992): Grundumsatz × Muskelspannung (schlaff 0,9 · normal 1,0 · erhöht 1,1) × Bewegung (liegt viel 1,15 · getragen/Rollstuhl 1,2 · krabbelt 1,25 · geht 1,3) + 5 kcal je g gewünschter Zunahme – die Faktoren stammen aus Sekundärquellen. <strong>Faustregel 60–70 %</strong>: ESPGHAN 2017 für Kinder, die nicht gehen – ein gröberer zweiter Rechenweg, nur nach Alter, ohne Muskelspannung und Bewegung (Romano et al., JPGN 2017). <strong>Gesund</strong>: Energiebedarf gesund entwickelter Kinder nach FAO/WHO/UNU 2004 (kcal/kg je Alter, aus Sekundärquellen). <strong>Eiweiß</strong>: Referenzwerte für Kleinkinder ca. 0,9–1,1 g/kg (EFSA).</p>
           <p>Studien: Walker 2012 (2–4-Jährige, gemessen: nicht gehende Kinder ca. 31 % weniger als gesunde, Formeln unterschätzten um ca. 22 %), Borsani 2023 (Ruheverbrauch ca. 47 kcal/kg bei unter 5-Jährigen), Arrowsmith 2012 (Streuung ± 38 %), Kossoff 2018 (ketogene Diät: Kalorien individuell, keine pauschale Beschränkung). Formeln irren im Einzelfall um 20–40 % – <strong>ob die Menge passt, zeigt das Wachstum</strong>; Änderungen entscheidet das Behandlungsteam.</p>
+        </details>
+      </div>
+
+      <!-- Unterseite Wachstum: Messungen mit WHO-Perzentilen (Gewicht, Länge, Kopf); bleiben nur auf diesem Gerät -->
+      <div class="vg-page" data-vgpage="wachstum" id="wachstum-card" hidden>
+        <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
+        <div class="vg-head"><div class="vg-title"><span class="overline">Perzentilen nach WHO</span><h2>Wachstum</h2></div><button type="button" class="tlink" id="gr-add">+ Messung</button></div>
+        <div class="vo-rows gr-form" id="gr-form" hidden>
+          <div class="overline gr-form-title" id="gr-form-title">Neue Messung</div>
+          <label class="vo-row"><span class="vo-lbl"><span>Datum</span></span><span class="date-wrap"><input id="gr-date" class="line-date" type="date" /></span></label>
+          <div class="vo-row"><div class="vo-lbl"><label for="gr-w">Gewicht</label></div><div class="vo-in"><input id="gr-w" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="–" /><span class="unit">kg</span></div></div>
+          <div class="vo-row"><div class="vo-lbl"><label for="gr-h">Länge</label><span class="src">leer lassen, wenn nicht gemessen</span></div><div class="vo-in"><input id="gr-h" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="–" /><span class="unit">cm</span></div></div>
+          <div class="vo-row"><div class="vo-lbl"><label for="gr-hc">Kopfumfang</label></div><div class="vo-in"><input id="gr-hc" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="–" /><span class="unit">cm</span></div></div>
+          <div class="note warn" id="gr-msg" hidden></div>
+          <div class="btn-pair"><button type="button" class="btn outline" id="gr-cancel">Abbrechen</button><button type="button" class="btn primary" id="gr-save">Speichern</button></div>
+          <button type="button" class="tlink danger gr-del" id="gr-del" hidden>Messung löschen</button>
+        </div>
+        <div class="seg-ink" id="gr-kind">
+          <button type="button" data-gk="w">Gewicht</button><button type="button" data-gk="h">Länge</button><button type="button" data-gk="hc">Kopf</button>
+        </div>
+        <div id="gr-chart" class="gr-chart"></div>
+        <div id="gr-facts" class="vg-facts"></div>
+        <div class="overline gr-list-title">Messungen</div>
+        <div id="gr-list" class="gr-list"></div>
+        <button type="button" class="tlink gr-all" id="gr-all" hidden></button>
+        <div class="vo-rows gr-child">
+          <label class="vo-row"><span class="vo-lbl"><span>Geboren</span><span class="src" id="gr-age"></span></span><span class="date-wrap"><input id="gr-birth" class="line-date" type="date" /><span class="ph" aria-hidden="true">TT.MM.JJJJ</span></span></label>
+          <label class="vo-row"><span class="vo-lbl"><span>Geschlecht</span><span class="src">für die WHO-Kurven</span></span>
+            <select id="gr-sex" class="line-select"><option value="w">Mädchen</option><option value="m">Bub</option></select>
+          </label>
+        </div>
+        <p class="hint">Messungen bleiben nur auf diesem Gerät (beim Geräte-Abgleich verschlüsselt). <button type="button" class="tlink gr-import-btn" id="gr-import">Werte importieren</button><input type="file" id="gr-file" accept=".growth,application/octet-stream" hidden /></p>
+        <details class="more"><summary class="tlink">Mehr dazu</summary>
+          <p>Die Linien sind die Perzentilen der <strong>WHO-Wachstumsstandards</strong> (2006) für Mädchen bzw. Buben von der Geburt bis 5 Jahre: 50 ist der Durchschnitt, 3 bedeutet, dass 3 von 100 gesunden Kindern gleichen Alters kleiner bzw. leichter sind. Bis 2 Jahre wird die Länge im Liegen gemessen, danach die Größe im Stehen – deshalb macht die Kurve dort einen kleinen Sprung. Wichtig ist vor allem, dass ein Kind seiner Kurve folgt; die Einordnung übernimmt das Behandlungsteam. Das zuletzt gemessene Gewicht gilt automatisch in der Verordnung. Importieren lassen sich Dateien der App „Growth“ (Teilen → Datei *.growth); gleiche Tage werden zusammengeführt.</p>
         </details>
       </div>
 
@@ -418,7 +453,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=98790a5d"></script>
+  <script src="app.js?v=c3343bfc"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

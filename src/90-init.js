@@ -10,6 +10,7 @@
     bindSync();
     bindBedarf();
     bindLebensmittel();
+    bindWachstum();
     bindDetail();
     bindCompose();
     bindHeute();

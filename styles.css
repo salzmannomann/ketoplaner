@@ -692,6 +692,34 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .vo-row.vo-col { flex-direction: column; align-items: stretch; gap: 8px; }
 .vo-row.vo-col > .seg-ink { width: 100%; }
 .vo-in .unit.pre { min-width: 0; }
+/* Wachstum: Kurve (SVG) mit WHO-Perzentilen, Liste der Messungen, Formular */
+.gr-chart { max-width: 480px; }
+.gr-form[hidden] { display: none; }
+.gc { display: block; width: 100%; height: auto; margin: 4px 0 2px; }
+.gc-grid { stroke: var(--rule); stroke-width: .6; }
+.gc-grid.minor { stroke-dasharray: 2 3; }
+.gc-ty, .gc-tx, .gc-pl, .gc-unit, .gc-xl { font: 500 10px var(--f-mono); fill: var(--grey); }
+.gc-ty, .gc-unit { text-anchor: end; }
+.gc-tx, .gc-xl { text-anchor: middle; }
+.gc-band { fill: var(--paper-2); opacity: .7; }
+.gc-p { fill: none; stroke: var(--dot); stroke-width: 1; }
+.gc-p.mid { stroke: var(--ink-2); stroke-width: 1.2; }
+.gc-p.out { stroke-dasharray: 3 3; }
+.gc-line { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
+.gc-dot { fill: var(--ink); }
+.gc-dot.last { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.gr-list { display: flex; flex-direction: column; margin-top: -8px; }
+.ms-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px dotted var(--dot); background: none; color: inherit; text-align: left; cursor: pointer; }
+.ms-row:hover .d { text-decoration: underline; }
+.ms-row .d { font: 600 var(--t-s) var(--f-mono); color: var(--ink); }
+.ms-row .a, .ms-row .p { display: block; font-size: var(--t-xs); color: var(--grey); }
+.ms-row .v { display: block; font: 600 var(--t-m) var(--f-mono); color: var(--ink); text-align: right; }
+.ms-row .p { text-align: right; }
+.gr-all, .gr-del { align-self: flex-start; }
+.gr-form .btn-pair { padding-top: 10px; }
+.gr-form .note { margin: 10px 0 0; }
+.gr-import-btn { min-height: 32px; margin: -8px 0; vertical-align: middle; }
+.src .tlink.src-link { display: inline; min-width: 0; min-height: 0; padding: 0; margin: 0; font: inherit; color: var(--ink-2); }
 /* Gelber Hinweis direkt unter einer Zeile der Verordnung (Flüssigkeit unter dem Richtwert) */
 .note.fluid-low { margin: 10px 0 4px; }
 .note.fluid-low[hidden] { display: none; }

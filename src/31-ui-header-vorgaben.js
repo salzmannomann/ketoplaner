@@ -58,6 +58,8 @@
       row("Eiweiß am Tag", fmt(d.eiweiss, 0) + " g") + row("Flüssigkeit am Tag", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "kein Ziel") +
       '<span class="side-foot">' + (d.mctShare > 0 ? "MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " % · " + regelLabel(d) : "nur Rapsöl") + (d.weight > 0 ? " · " + fmt(d.weight, 1) + " kg" : "") + "</span>";
   }
+  // Herkunft des Gewichts: die letzte Messung unter Wachstum (das Gewicht wird von dort übernommen)
+  function weightSrcText() { const lw = typeof latestWeight === "function" ? latestWeight() : null; return lw && Math.abs(num(state.settings.weight) - lw.w) < 1e-9 ? "zuletzt gewogen " + fmtDay(lw.d) : "zuletzt gewogen"; }
   function regelLabel(d) { return d.mctMode === "kalorien" ? "Kalorien halten" : "Verhältnis halten"; }
   // MCT-Anteil in Worten (Verordnung › Bearbeiten) und gelber Hinweis, wenn die Flüssigkeit unter dem Richtwert liegt
   function mctMixText(d) {
@@ -107,6 +109,7 @@
     const s = state.settings, put = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
     put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") +
       (d.mctShare > 0 ? " · MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " %" : ""));
+    put("vgs-wachstum", growthSummary());
     put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
     const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
@@ -116,7 +119,7 @@
     const rows = [
       ["Verhältnis (Fett : Eiweiß + KH)", "", fmtRx(d.ratio)], // ohne Untertitel – die Seite heißt schon „Verordnung“
       ["Mahlzeiten pro Tag", "", String(d.mahl)],
-      ["Körpergewicht", "zuletzt gewogen", d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
+      ["Körpergewicht", weightSrcText(), d.weight > 0 ? fmt(d.weight, 1) + " kg" : "—"],
       ["Kalorien pro Tag", src("src-kcal"), fmt(d.kcal, 0) + " kcal"],
       // Flüssigkeit hängt an den Kalorien (das Verhältnis steht nur beim Bearbeiten); darunter ggf. der gelbe Hinweis
       ["Flüssigkeit pro Tag", d.fluidRatio > 0 ? "wächst mit den Kalorien" : d.fluidAuto > 0 ? "Richtwert nach Gewicht" : "", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "—",
@@ -127,13 +130,16 @@
         fmtNum(Math.round(d.mctShare * 1000) / 10) + " %"],
     ];
     const vv = document.getElementById("vo-view");
-    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>" + (r[3] || "")).join("");
+    if (vv) vv.innerHTML = rows.map(r => '<div class="vo-row"><div class="vo-lbl"><span>' + r[0] + '</span>' + (r[1] ? '<span class="src">' + escapeHtml(r[1]) +
+      (r[0] === "Körpergewicht" ? ' · <button type="button" class="tlink src-link" data-vg-go="wachstum">Wachstum ›</button>' : "") + "</span>" : "") + '</div><div class="vo-val">' + escapeHtml(r[2]) + "</div></div>" + (r[3] || "")).join("");
     const eb = document.getElementById("vo-editbox"); if (eb) eb.hidden = !voEdit;
     if (vv) vv.hidden = voEdit;
     const ed = document.getElementById("vo-edit"); if (ed) ed.hidden = voEdit;
   }
   function bindVgPages() {
     document.querySelectorAll("#view-vorgaben [data-vg]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vg)));
+    // Links in Texten, die zu einer anderen Unterseite führen („Wachstum ›“ beim Körpergewicht)
+    document.addEventListener("click", (e) => { const g = e.target.closest && e.target.closest("[data-vg-go]"); if (g) showVgPage(g.dataset.vgGo); });
     document.querySelectorAll("#view-vorgaben [data-vgback]").forEach(b => b.addEventListener("click", () => showVgPage(b.dataset.vgback === "list" ? null : b.dataset.vgback)));
     const ed = document.getElementById("vo-edit"), ca = document.getElementById("vo-cancel"), sv = document.getElementById("vo-save");
     if (ed) ed.addEventListener("click", () => { voSnap = voSnapshot(); voFluidBefore = derived().fluidDay; voEdit = true; renderRezepte(); const f = document.getElementById("set-ratio"); try { if (f) f.focus(); } catch (e) {} });
@@ -143,6 +149,7 @@
   function renderVorgaben(d) {
     const s = state.settings;
     renderVgList(d);
+    if (typeof renderWachstum === "function") renderWachstum();
     if (typeof renderPushCard === "function") renderPushCard();
     if (typeof renderSyncCard === "function") renderSyncCard();
     if (typeof renderBedarf === "function") renderBedarf(d);

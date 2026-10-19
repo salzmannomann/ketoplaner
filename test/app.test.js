@@ -1548,7 +1548,7 @@ test("Vorgaben: Liste mit Unterseiten; Verordnung gesperrt bis „Bearbeiten“,
   const w = boot({ settings: { view: "vorgaben", weight: 8, ratio: 1.8, mahlzeiten: 5, mctShare: 0.1, kcal: "", kcalMin: "" } });
   const d = w.document;
   assert.equal($(w, "vg-list").hidden, false);
-  assert.deepEqual([...d.querySelectorAll("#vg-list .vg-name")].map(e => e.textContent), ["Verordnung", "Lebensmittel und Rezepte", "Küche", "Erinnerungen und Daten"]);
+  assert.deepEqual([...d.querySelectorAll("#vg-list .vg-name")].map(e => e.textContent), ["Verordnung", "Wachstum", "Lebensmittel und Rezepte", "Küche", "Erinnerungen und Daten"]);
   assert.equal($(w, "vgs-verordnung").textContent, "1,8 : 1 · 640 kcal · 800 ml · MCT 10 %");
   // Unterseite öffnen und zurück
   fire(w, d.querySelector('[data-vg="kueche"]'));
@@ -1958,4 +1958,116 @@ test("Eigene Wassermenge je Rezept: als Verhältnis gemerkt (wächst mit den Kal
   const c2 = openRecipe(w2, "Hendl & Brokkoli");
   const w70 = [...c2.querySelectorAll(".pane[data-pane=mahlzeit] .ing-row")].find(r => /Wasser/.test(r.textContent)).querySelector("input").value;
   assert.ok(Math.abs(numDe(w70) - 87.5) <= 1, "70 ml × 1,25: " + w70);
+});
+
+test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht in die Verordnung, Bearbeiten, Löschen mit Rückgängig", () => {
+  const w = boot({ settings: { view: "vorgaben", weight: 8, bdBirth: "2024-01-01", bdSex: "w", mctShare: 0 } });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  assert.equal($(w, "wachstum-card").hidden, false);
+  assert.equal($(w, "vgs-wachstum").textContent, "noch keine Messungen");
+  assert.ok($(w, "gr-form").hidden, "Formular erst nach „+ Messung“");
+  assert.ok($(w, "gr-chart").querySelector("svg.gc"), "WHO-Kurven auch ohne Messungen");
+  assert.equal($(w, "gr-chart").querySelectorAll(".gc-p").length, 7, "Perzentilen 1, 3, 15, 50, 85, 97, 99");
+  // Neue Messung am Geburtstag mit dem WHO-Median → Perzentile 50
+  fire(w, $(w, "gr-add")); assert.ok(!$(w, "gr-form").hidden);
+  $(w, "gr-date").value = "2024-01-01"; $(w, "gr-w").value = "3,2322"; $(w, "gr-h").value = "49,1477";
+  fire(w, $(w, "gr-save"));
+  assert.ok($(w, "gr-form").hidden);
+  assert.equal(st().growth.length, 1); assert.equal(st().growth[0].w, 3.2322);
+  assert.match($(w, "gr-facts").textContent, /^Zuletzt3,23 kg1\.1\.2024 · 0 MPerzentile50WHO Mädchen · z 0,0$/);
+  assert.equal(st().settings.weight, 3.2322, "zuletzt gemessenes Gewicht gilt in der Verordnung");
+  assert.match($(w, "vo-view").textContent, /Körpergewichtzuletzt gewogen 1\.1\.2024 · Wachstum ›3,2 kg/);
+  assert.match($(w, "toast").textContent, /Messung gespeichert/);
+  // Länge: dieselbe Messung, Reiter „Länge“
+  fire(w, w.document.querySelector('#gr-kind [data-gk="h"]'));
+  assert.match($(w, "gr-facts").textContent, /49,1 cm.*Perzentile50/);
+  // Buben haben andere Kurven: 49,1477 cm ist für einen Buben unter dem Median
+  const sx = $(w, "gr-sex"); sx.value = "m"; fire(w, sx, "change");
+  assert.equal(st().settings.bdSex, "m");
+  assert.match($(w, "gr-facts").textContent, /WHO Buben · z -0,4/);
+  sx.value = "w"; fire(w, sx, "change");
+  // Spätere Messung: Liste neueste zuerst, Zusammenfassung in der Liste der Vorgaben
+  fire(w, w.document.querySelector('#gr-kind [data-gk="w"]'));
+  fire(w, $(w, "gr-add")); $(w, "gr-date").value = "2024-07-01"; $(w, "gr-w").value = "7,3"; $(w, "gr-hc").value = "42";
+  fire(w, $(w, "gr-save"));
+  assert.equal(st().settings.weight, 7.3);
+  assert.match($(w, "gr-list").querySelector(".ms-row").textContent, /^1\.7\.20246 M7,30 kgPerzentile \d+$/);
+  assert.equal($(w, "vgs-wachstum").textContent, "7,30 kg · 49,1 cm · 42,0 cm · 1.7.2024");
+  // Prüfungen im Formular
+  fire(w, $(w, "gr-add")); $(w, "gr-date").value = "2999-01-01"; $(w, "gr-w").value = "8";
+  fire(w, $(w, "gr-save")); assert.match($(w, "gr-msg").textContent, /Zukunft/);
+  $(w, "gr-date").value = "2024-08-01"; $(w, "gr-w").value = "800";
+  fire(w, $(w, "gr-save")); assert.match($(w, "gr-msg").textContent, /Gewicht: bitte einen Wert zwischen 0,5 und 80 kg/);
+  $(w, "gr-w").value = ""; fire(w, $(w, "gr-save")); assert.match($(w, "gr-msg").textContent, /mindestens einen Wert/);
+  fire(w, $(w, "gr-cancel")); assert.equal(st().growth.length, 2);
+  // Bearbeiten: Tipp auf die Zeile füllt das Formular; Gewicht ändern
+  fire(w, $(w, "gr-list").querySelector(".ms-row"));
+  assert.equal($(w, "gr-form-title").textContent, "Messung vom 1.7.2024"); assert.equal($(w, "gr-w").value, "7,3"); assert.ok(!$(w, "gr-del").hidden);
+  $(w, "gr-w").value = "7,4"; fire(w, $(w, "gr-save"));
+  assert.equal(st().growth[1].w, 7.4); assert.equal(st().growth[1].hc, 42); assert.equal(st().settings.weight, 7.4);
+  // Löschen der letzten Messung: das Gewicht davor gilt wieder; Rückgängig stellt beides her
+  fire(w, $(w, "gr-list").querySelector(".ms-row")); fire(w, $(w, "gr-del"));
+  assert.equal(st().growth.length, 1); assert.equal(st().settings.weight, 3.2322);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.equal(st().growth.length, 2); assert.equal(st().settings.weight, 7.4);
+});
+
+test("Wachstum: ohne Geburtsdatum Hinweis statt Kurve; kaputte Messungen werden beim Laden verworfen", () => {
+  const w = boot({ settings: { view: "vorgaben" }, growth: [{ id: "a", d: "2025-05-01", w: 9 }, { id: "b", d: "kein Datum", w: 9 }, { id: "c", d: "2025-06-01", w: 900 }, "x", { id: "d", d: "2025-07-01", h: 80, hc: "viel" }] });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  assert.match($(w, "gr-chart").textContent, /Geburtsdatum unten eintragen/);
+  assert.match($(w, "gr-facts").textContent, /Perzentile–Geburtsdatum fehlt/);
+  fire(w, w.document.querySelector('[data-vg="verordnung"]')); // speichert
+  assert.deepEqual(st().growth, [{ id: "a", d: "2025-05-01", w: 9 }, { id: "d", d: "2025-07-01", h: 80 }]);
+  // Geburtsdatum auf der Seite Wachstum = dasselbe wie unter „Bedarf schätzen“
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  const b = $(w, "gr-birth"); b.value = "2024-01-15"; fire(w, b, "change");
+  assert.equal(st().settings.bdBirth, "2024-01-15"); assert.equal($(w, "bd-birth").value, "2024-01-15");
+  assert.ok($(w, "gr-chart").querySelector("svg.gc .gc-dot.last"));
+});
+
+test("Wachstum: Import einer *.growth-Datei (App „Growth“) – Kind, Geburtsdatum, Messreihen, Zusammenführen, Rückgängig", async () => {
+  // Kleine Protobuf-Datei wie aus der App „Growth“ (erfundene Werte)
+  const enc = []; // Hilfen zum Schreiben
+  const varint = (n) => { const b = []; do { let c = n % 128; n = Math.floor(n / 128); if (n) c |= 128; b.push(c); } while (n); return b; };
+  const key = (f, wt) => varint(f * 8 + wt);
+  const dbl = (f, v) => { const a = new ArrayBuffer(8); new DataView(a).setFloat64(0, v, true); return key(f, 1).concat([...new Uint8Array(a)]); };
+  const str = (f, s) => { const b = [...Buffer.from(s, "utf8")]; return key(f, 2).concat(varint(b.length), b); };
+  const msg = (f, parts) => { const b = [].concat(...parts); return key(f, 2).concat(varint(b.length), b); };
+  const day = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 1000;
+  const entry = (iso, v) => msg(1, [str(1, "-id" + iso + v), dbl(2, 1.7e9), dbl(4, day(iso)), dbl(5, v)]);
+  const series = (name, list) => msg(6, [str(1, name), msg(2, list.map(([d, v]) => entry(d, v)))]);
+  const bytes = [].concat(
+    msg(1, [key(1, 0), varint(2), key(2, 0), varint(1)]), str(2, "-root"),
+    msg(3, [str(1, "-kid"), dbl(2, 1.7e9), str(4, "Testkind"), key(5, 0), varint(1), dbl(6, day("2024-03-10")), dbl(7, day("2024-03-12"))]),
+    series("w-kg", [["2024-03-10", 3.1], ["2024-06-10", 6.05], ["2024-09-10", 7.62]]),
+    series("h-cm", [["2024-03-10", 49], ["2024-09-10", 66.5]]),
+    series("hc-cm", [["2024-09-10", 42.1]]),
+    dbl(9, 1.78e9));
+  const w = boot({ settings: { view: "vorgaben", weight: 8 }, growth: [{ id: "x", d: "2024-06-10", w: 6, hc: 40 }] });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  let asked = "";
+  w.TextDecoder = TextDecoder; // jsdom hat keinen (alle Browser schon)
+  w.confirm = (t) => { asked = t; return true; };
+  const fi = $(w, "gr-file");
+  Object.defineProperty(fi, "files", { configurable: true, value: [new w.File([new Uint8Array(bytes)], "Testkind.growth")] });
+  fire(w, fi, "change");
+  for (let i = 0; i < 50 && !st().growth.some(e => e.d === "2024-09-10"); i++) await new Promise(r => setTimeout(r, 10));
+  assert.match(asked, /^Testkind: 3 Gewichte, 2 Längen, 1 Kopfumfänge \(10\.3\.2024 – 10\.9\.2024\), geboren 10\.3\.2024\./);
+  assert.deepEqual(st().growth.map(e => [e.d, e.w, e.h, e.hc]), [
+    ["2024-03-10", 3.1, 49, undefined], ["2024-06-10", 6.05, undefined, 40], ["2024-09-10", 7.62, 66.5, 42.1]], "gleicher Tag zusammengeführt, neuer Wert geht vor");
+  assert.equal(st().settings.bdBirth, "2024-03-10"); assert.equal(st().settings.bdSex, "w");
+  assert.equal(st().settings.weight, 7.62, "letztes Gewicht in die Verordnung");
+  assert.match($(w, "toast").textContent, /6 Werte übernommen/);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.deepEqual(st().growth.map(e => e.d), ["2024-06-10"]); assert.equal(st().settings.weight, 8); assert.equal(st().settings.bdBirth, undefined);
+  // Keine gültige Datei → Meldung, nichts geändert
+  let warned = ""; w.alert = (t) => { warned = t; };
+  Object.defineProperty(fi, "files", { configurable: true, value: [new w.File([new Uint8Array([1, 2, 3, 4, 5])], "x.growth")] });
+  fire(w, fi, "change");
+  for (let i = 0; i < 50 && !warned; i++) await new Promise(r => setTimeout(r, 10));
+  assert.match(warned, /lässt sich nicht lesen/); assert.equal(st().growth.length, 1);
 });

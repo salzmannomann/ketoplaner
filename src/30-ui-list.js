@@ -229,6 +229,7 @@
     document.querySelectorAll("#mahlzeiten-ctl button[data-mahl]").forEach(b => b.classList.toggle("active", num(b.dataset.mahl) === mahlCount(s)));
     put("set-ratio", fmtRatioNum(num(s.ratio)));
     put("set-weight", fmtNum(num(s.weight) > 0 ? num(s.weight) : ""));
+    { const sw = $("src-weight"); if (sw) sw.textContent = weightSrcText(); }
     put("set-mct-fett", isDef(s.mctFett100, 100) || !(num(s.mctFett100) > 0) ? "" : s.mctFett100); hint("set-mct-fett", "100");
     put("set-mct-kcal", isDef(s.mctKcal100, 830) || !(num(s.mctKcal100) > 0) ? "" : s.mctKcal100); hint("set-mct-kcal", "830");
     put("set-verdunstung", isDef(s.dampfVerdunstung, DAMPF_STANDARD) ? "" : s.dampfVerdunstung); hint("set-verdunstung", String(DAMPF_STANDARD));
