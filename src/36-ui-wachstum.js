@@ -66,10 +66,11 @@
     const bw = $("gr-birth") && $("gr-birth").closest(".date-wrap"); if (bw) bw.classList.toggle("empty", !s.bdBirth);
     const mo = birthOk ? ageMonths(s.bdBirth, todayIso()) : null;
     if ($("gr-age")) $("gr-age").textContent = mo != null && mo >= 0 ? bdAgeText(mo) : "für die Perzentilen";
-    // Formular
-    const form = $("gr-form"), open = grEditId !== null, cur = open && grEditId ? growthList().find(e => e.id === grEditId) : null;
+    // Formular: eine neue Messung oben, eine bestehende klappt in ihrer Zeile auf (das Formular wird dorthin verschoben)
+    const form = $("gr-form"), list = $("gr-list"), open = grEditId !== null, cur = open && grEditId ? growthList().find(e => e.id === grEditId) : null;
+    if (form && list.contains(form)) card.querySelector(".vg-head").after(form);
     if (form) form.hidden = !open;
-    if ($("gr-form-title")) $("gr-form-title").textContent = cur ? "Messung vom " + fmtDay(cur.d) : "Neue Messung";
+    if ($("gr-form-title")) { $("gr-form-title").textContent = cur ? "Messung vom " + fmtDay(cur.d) : "Neue Messung"; $("gr-form-title").hidden = false; }
     if ($("gr-del")) $("gr-del").hidden = !cur;
     // Kurve, letzte Werte, Liste
     const K = GROWTH_KINDS[grKind], ser = growthSeries(grKind), last = ser[ser.length - 1];
@@ -92,25 +93,40 @@
     }).join("") : '<p class="hint">Noch keine ' + (grKind === "w" ? "Gewichte" : grKind === "h" ? "Längen" : "Kopfumfänge") + " – „+ Messung“ oder „Werte importieren“.</p>";
     const all = $("gr-all");
     if (all) { all.hidden = rows.length <= 5; all.textContent = grShowAll ? "weniger anzeigen" : "alle " + rows.length + " anzeigen"; }
+    const w = cur && form ? [...list.querySelectorAll(".ms-wrap")].find(x => x.dataset.gid === cur.id) : null;
+    if (w) { // ohne passende Zeile (z. B. Reiter ohne diesen Wert) bleibt das Formular oben
+      const box = document.createElement("div"); box.className = "ms-edit"; box.dataset.gid = cur.id;
+      w.replaceWith(box); box.appendChild(w.querySelector(".ms-row")); box.appendChild(form);
+      $("gr-form-title").hidden = true;
+    }
   }
   // Alle Messungen als Tabelle (CSV für Excel/Numbers): eine Zeile je Tag, neueste zuerst, mit Perzentilen;
   // Strichpunkt und Dezimalkomma wie im deutschsprachigen Excel, BOM für die Umlaute
+  // Wert für die Tabelle: wie angezeigt, aber feinere Werte (z. B. 6,045 kg aus der App „Growth“) ohne Verlust (bis 3 Stellen)
+  function csvNum(v, dec) {
+    const r = Math.round(v * 1000) / 1000; let d = dec;
+    while (d < 3 && Math.abs(r * Math.pow(10, d) - Math.round(r * Math.pow(10, d))) > 1e-6) d++;
+    return fmt(r, d);
+  }
   function growthCsv() {
     const head = ["Datum", "Alter", "Gewicht (kg)", "Perzentile", "Länge (cm)", "Perzentile", "Kopfumfang (cm)", "Perzentile"];
     const rows = growthList().slice().reverse().map(e => {
       const mo = ageMonths(state.settings.bdBirth, e.d), out = [fmtDay(e.d), mo != null && mo >= 0 ? bdAgeText(mo) : ""];
       Object.keys(GROWTH_KINDS).forEach(k => {
         if (e[k] == null) { out.push("", ""); return; }
-        const f = growthFacts(k, e); out.push(fmt(e[k], GROWTH_KINDS[k].dec), f.p != null ? fmtPct(f.p) : "");
+        const f = growthFacts(k, e); out.push(csvNum(e[k], GROWTH_KINDS[k].dec), f.p != null ? fmtPct(f.p) : "");
       });
       return out;
     });
     return "\uFEFF" + [head].concat(rows).map(r => r.join(";")).join("\r\n") + "\r\n";
   }
+  // Bestehende Messung bearbeiten: im Graphen markiert, Formular direkt in der Zeile
   function grEdit(id) {
     const e = growthList().find(x => x.id === id); if (!e) return;
-    grEditId = e.id; grFormFill(e); renderWachstum();
-    try { document.getElementById("gr-form").scrollIntoView({ block: "start", behavior: "smooth" }); } catch (er) {}
+    grEditId = e.id; grSelId = e.id;
+    if (!grShowAll && growthSeries(grKind).slice().reverse().findIndex(x => x.id === e.id) >= 5) grShowAll = true;
+    grFormFill(e); renderWachstum();
+    try { document.getElementById("gr-form").scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (er) {}
   }
   function grSelect(id) {
     grSelId = grSelId === id ? null : id;
@@ -132,7 +148,7 @@
   }
   function bindWachstum() {
     const $ = id => document.getElementById(id), card = $("wachstum-card"); if (!card) return;
-    card.querySelectorAll("#gr-kind button[data-gk]").forEach(b => b.addEventListener("click", () => { grKind = b.dataset.gk; grShowAll = false; renderWachstum(); }));
+    card.querySelectorAll("#gr-kind button[data-gk]").forEach(b => b.addEventListener("click", () => { grKind = b.dataset.gk; grShowAll = false; if (grEditId) grEditId = null; renderWachstum(); }));
     $("gr-add").addEventListener("click", () => { grEditId = ""; grFormFill(null); renderWachstum(); const f = $("gr-w"); try { if (f) f.focus(); } catch (e) {} });
     $("gr-cancel").addEventListener("click", () => { grEditId = null; renderWachstum(); });
     const list = $("gr-list");
@@ -152,24 +168,42 @@
       const c = $("gr-chart"), top = c ? c.getBoundingClientRect().top : 0;
       if (grSelId && top < 0) { try { window.scrollBy({ top: top - 12, behavior: "smooth" }); } catch (er) {} }
     });
-    // Wischen nach links öffnet Bearbeiten/Löschen (nur Touch; am Computer zeigt sie das Darüberfahren)
+    // Wischen nach links öffnet Bearbeiten/Löschen, lange drücken (0,5 s) gleich das Bearbeiten (nur Touch;
+    // am Computer zeigt das Darüberfahren die beiden, Rechtsklick bearbeitet)
     let sw = null;
+    const swStop = () => { if (sw) clearTimeout(sw.lp); sw = null; };
     list.addEventListener("touchstart", (ev) => {
-      const w = ev.target.closest && ev.target.closest(".ms-wrap"); if (!w || ev.target.closest(".ms-acts") || ev.touches.length !== 1) { sw = null; return; }
-      const acts = w.querySelector(".ms-acts");
-      sw = { w, row: w.querySelector(".ms-row"), x: ev.touches[0].clientX, y: ev.touches[0].clientY, base: w.classList.contains("open") ? -(acts.offsetWidth || 160) : 0, max: acts.offsetWidth || 160, drag: false, dx: 0 };
+      swStop();
+      const w = ev.target.closest && ev.target.closest(".ms-wrap"); if (!w || ev.target.closest(".ms-acts") || ev.touches.length !== 1) return;
+      const acts = w.querySelector(".ms-acts"), max = acts.offsetWidth || 168;
+      sw = { w, id: w.dataset.gid, row: w.querySelector(".ms-row"), x: ev.touches[0].clientX, y: ev.touches[0].clientY, base: w.classList.contains("open") ? -max : 0, max, drag: false, dx: 0 };
+      sw.lp = setTimeout(() => { // die Liste kann inzwischen neu gezeichnet sein – darum über die Id
+        if (!sw || sw.drag) return;
+        const id = sw.id; sw = null; grSwipeAt = Date.now();
+        try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+        grCloseSwipe(); grEdit(id);
+      }, 500);
     }, { passive: true });
     list.addEventListener("touchmove", (ev) => {
       if (!sw) return;
       const dx = ev.touches[0].clientX - sw.x, dy = ev.touches[0].clientY - sw.y;
-      if (!sw.drag) { if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { sw.drag = true; grCloseSwipe(sw.w); } else if (Math.abs(dy) > 8) { sw = null; return; } else return; }
+      if (!sw.drag) {
+        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { sw.drag = true; clearTimeout(sw.lp); grCloseSwipe(sw.w); }
+        else if (Math.abs(dy) > 8) { swStop(); return; } else return;
+      }
       ev.preventDefault(); sw.dx = dx;
       sw.row.style.transition = "none"; sw.row.style.transform = "translateX(" + Math.min(0, Math.max(-sw.max, sw.base + dx)) + "px)";
     }, { passive: false });
     list.addEventListener("touchend", () => {
       if (!sw) return;
       if (sw.drag) { sw.w.classList.toggle("open", sw.base + sw.dx < -sw.max / 2); sw.row.style.transition = ""; sw.row.style.transform = ""; grSwipeAt = Date.now(); }
-      sw = null;
+      swStop();
+    });
+    list.addEventListener("touchcancel", swStop);
+    list.addEventListener("contextmenu", (ev) => {
+      const w = ev.target.closest && ev.target.closest(".ms-wrap"); if (!w) return;
+      ev.preventDefault(); if (Date.now() - grSwipeAt < 800) return; // Finger: kam schon über das Halten
+      grEdit(w.dataset.gid);
     });
     // Punkt im Graphen antippen = Messung auswählen (nächster Punkt in Reichweite)
     $("gr-chart").addEventListener("click", (ev) => {
@@ -218,17 +252,26 @@
     birth.addEventListener("input", () => { const w = birth.closest(".date-wrap"); if (w) w.classList.toggle("empty", !birth.value); });
     birth.addEventListener("change", () => { state.settings.bdBirth = birth.value; save(); renderRezepte(); });
     $("gr-sex").addEventListener("change", (e) => { state.settings.bdSex = e.target.value; save(); renderRezepte(); });
-    // Import aus der App „Growth“: Datei wird nur hier gelesen; vorher bestätigen, danach Rückgängig möglich
+    // Import aus der App „Growth“ (*.growth) oder einer Tabelle (*.csv, z. B. aus „Als Tabelle sichern“ und in Excel ergänzt):
+    // Datei wird nur hier gelesen; vorher bestätigen, danach Rückgängig möglich
     $("gr-import").addEventListener("click", () => $("gr-file").click());
     $("gr-file").addEventListener("change", () => {
       const fi = $("gr-file"), f = fi.files && fi.files[0]; if (!f) return;
       const rd = new FileReader();
       rd.onload = () => {
         fi.value = "";
-        let r; try { r = parseGrowthFile(rd.result); } catch (e) { alert("Diese Datei lässt sich nicht lesen – bitte eine *.growth-Datei aus der App „Growth“ wählen."); return; }
+        const bytes = new Uint8Array(rd.result);
+        if (bytes[0] === 0x50 && bytes[1] === 0x4B) { alert("Das ist eine Excel-Datei (.xlsx). Bitte in Excel „Speichern unter“ → „CSV UTF-8“ wählen und diese Datei importieren."); return; }
+        let r = null;
+        const asCsv = () => parseGrowthCsv(decodeText(rd.result)), asGrowth = () => parseGrowthFile(rd.result);
+        const order = /\.(csv|txt)$/i.test(f.name || "") ? [asCsv, asGrowth] : [asGrowth, asCsv];
+        for (const fn of order) { try { r = fn(); break; } catch (e) { r = null; } }
+        if (!r) { alert("Diese Datei lässt sich nicht lesen – bitte eine *.growth-Datei aus der App „Growth“ oder eine Tabelle (CSV) mit den Spalten Datum, Gewicht, Länge, Kopfumfang wählen."); return; }
         const cnt = (k) => r.entries.filter(e => e[k] != null).length, days = r.entries.map(e => e.d).sort();
         const text = (r.name ? r.name + ": " : "") + cnt("w") + " Gewichte, " + cnt("h") + " Längen, " + cnt("hc") + " Kopfumfänge (" + fmtDay(days[0]) + " – " + fmtDay(days[days.length - 1]) + ")" +
-          (r.birth && !state.settings.bdBirth ? ", geboren " + fmtDay(r.birth) : "") + ".\n\nÜbernehmen? Gleiche Tage werden zusammengeführt.";
+          (r.birth && !state.settings.bdBirth ? ", geboren " + fmtDay(r.birth) : "") + "." +
+          (r.skipped ? "\nNicht übernommen: " + r.skipped + (r.skipped === 1 ? " Eintrag" : " Einträge") + " (unlesbar, unplausibel oder in der Zukunft)." : "") +
+          "\n\nÜbernehmen? Gleiche Tage werden zusammengeführt.";
         if (!confirm(text)) return;
         const prevS = { bdBirth: state.settings.bdBirth, bdSex: state.settings.bdSex };
         const snap = JSON.stringify({ growth: growthList(), weight: state.settings.weight });
@@ -236,7 +279,8 @@
         if (r.birth && !state.settings.bdBirth) state.settings.bdBirth = r.birth;
         if (r.sex && !state.settings.bdSex) state.settings.bdSex = r.sex;
         syncWeightFromGrowth(); save(); renderRezepte();
-        showToast(r.entries.length + " Werte übernommen", [["Rückgängig", () => {
+        const nVals = r.entries.reduce((n, e) => n + Object.keys(GROWTH_KINDS).filter(k => e[k] != null).length, 0);
+        showToast(nVals + " Werte übernommen", [["Rückgängig", () => {
           const p = JSON.parse(snap); state.growth = p.growth; state.settings.weight = p.weight;
           Object.keys(prevS).forEach(k => { if (prevS[k] === undefined) delete state.settings[k]; else state.settings[k] = prevS[k]; });
           save(); renderRezepte();

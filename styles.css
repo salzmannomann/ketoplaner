@@ -738,6 +738,15 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
   .ms-acts .ms-del { color: var(--red); }
   .ms-wrap.open .ms-row { transform: none; }
 }
+/* Bearbeiten direkt in der Zeile: Zeile oben, Formular darunter, hinterlegt wie die Auswahl */
+.ms-edit { margin: 0 -10px; padding: 0 10px 14px; background: var(--paper-2); border-radius: var(--r-s); border-bottom: 1px dotted var(--dot); }
+.ms-edit .ms-row { background: none; padding: 10px 0 4px; }
+.ms-edit .gr-form { margin-top: 4px; scroll-margin: 20px 0 120px; } /* beim Aufklappen nicht unter der Leiste unten */
+.ms-edit .num-input, .ms-edit .line-date { background: var(--paper); }
+.ms-edit .gr-del { margin-top: 10px; }
+.gr-form-title[hidden] { display: none; }
+.ms-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.nowrap { white-space: nowrap; }
 .vg-backup { margin: 0 0 14px; }
 .vg-backup[hidden] { display: none; }
 .vg-backup .tlink { min-height: 0; margin: 0; }

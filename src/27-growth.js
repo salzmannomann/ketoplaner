@@ -118,3 +118,54 @@
     if (!res.entries.length) throw new Error("keine Messungen");
     return res;
   }
+  // Text einer Datei: UTF-8 (auch mit BOM), sonst Windows-1252 – so speichert Excel „CSV (Trennzeichen-getrennt)“
+  function decodeText(buf) {
+    let t; try { t = new TextDecoder("utf-8", { fatal: true }).decode(buf); } catch (e) { t = new TextDecoder("windows-1252").decode(buf); }
+    return t.replace(/^\uFEFF/, "");
+  }
+  /* Tabelle (CSV) wieder einlesen – so, wie „Als Tabelle sichern“ sie schreibt, auch nach dem Speichern in Excel:
+     Strichpunkt, Tabulator oder Komma als Trenner, Felder in Anführungszeichen, Datum „3.9.2026“, „03.09.26“ oder
+     „2026-09-03“, Dezimalkomma oder -punkt. Spalten nach der Überschrift (Datum, Gewicht, Länge/Größe, Kopfumfang);
+     Alter und Perzentilen rechnet die App selbst. Unlesbares, Unplausibles und Zukünftiges wird gezählt und ausgelassen. */
+  function parseGrowthCsv(text) {
+    const src = String(text || "").replace(/^\uFEFF/, "");
+    const first = src.split(/\r\n|\n|\r/).find(l => l.trim()) || "", n = (c) => first.split(c).length - 1;
+    const sep = n(";") > 0 && n(";") >= n("\t") ? ";" : n("\t") > 0 ? "\t" : ",";
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (q) { if (c === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === sep) { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && src[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    const data = rows.filter(r => r.some(x => x.trim()));
+    if (!data.length) throw new Error("leer");
+    const head = data[0].map(h => h.trim().toLowerCase()), col = (re) => head.findIndex(h => re.test(h));
+    const ci = { d: col(/^(datum|date)/), w: col(/^(gewicht|weight)/), h: col(/^(länge|laenge|größe|groesse|grösse|height|length)/), hc: col(/^(kopf|head)/) };
+    if (ci.d < 0 || (ci.w < 0 && ci.h < 0 && ci.hc < 0)) throw new Error("keine Spalten");
+    const iso = (y, m, d) => { const t = Date.UTC(y, m - 1, d), x = new Date(t); return x.getUTCFullYear() === y && x.getUTCMonth() === m - 1 && x.getUTCDate() === d ? isoDay(t / 864e5) : ""; };
+    const parseD = (t) => {
+      t = String(t || "").trim(); let m = /^(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4}|\d{2})$/.exec(t);
+      if (m) return iso(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2], +m[1]);
+      m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(t); return m ? iso(+m[1], +m[2], +m[3]) : "";
+    };
+    const parseV = (t) => { const x = String(t).replace(/\s|kg|cm/gi, "").replace(",", "."); return /^\d+(\.\d+)?$/.test(x) ? parseFloat(x) : NaN; };
+    const today = isoDay(Math.floor((Date.now() - new Date().getTimezoneOffset() * 6e4) / 864e5)), entries = [];
+    let skipped = 0;
+    data.slice(1).forEach(r => {
+      const d = parseD(r[ci.d]);
+      if (!d || d > today) { skipped++; return; }
+      const o = { d };
+      ["w", "h", "hc"].forEach(k => {
+        const raw = ci[k] < 0 ? "" : String(r[ci[k]] || "").trim(); if (!raw) return;
+        const v = parseV(raw), K = GROWTH_KINDS[k];
+        if (isFinite(v) && v >= K.min && v <= K.max) o[k] = Math.round(v * 1000) / 1000; else skipped++;
+      });
+      if (o.w != null || o.h != null || o.hc != null) entries.push(o);
+    });
+    if (!entries.length) throw new Error("keine Messungen");
+    return { name: "", sex: null, birth: "", entries, skipped };
+  }

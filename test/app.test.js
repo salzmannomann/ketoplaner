@@ -1960,7 +1960,7 @@ test("Eigene Wassermenge je Rezept: als Verhältnis gemerkt (wächst mit den Kal
   assert.ok(Math.abs(numDe(w70) - 87.5) <= 1, "70 ml × 1,25: " + w70);
 });
 
-test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht in die Verordnung, Bearbeiten, Löschen mit Rückgängig", () => {
+test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht in die Verordnung, Bearbeiten, Löschen mit Rückgängig", async () => {
   const w = boot({ settings: { view: "vorgaben", weight: 8, bdBirth: "2024-01-01", bdSex: "w", mctShare: 0 } });
   const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
   fire(w, w.document.querySelector('[data-vg="wachstum"]'));
@@ -2015,6 +2015,16 @@ test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht
   // Bearbeiten (liegt hinter der Zeile: Wischen bzw. Darüberfahren) füllt das Formular; Gewicht ändern
   fire(w, $(w, "gr-list").querySelector("[data-ged]"));
   assert.equal($(w, "gr-form-title").textContent, "Messung vom 1.7.2024"); assert.equal($(w, "gr-w").value, "7,3"); assert.ok(!$(w, "gr-del").hidden);
+  const box = $(w, "gr-list").querySelector(".ms-edit");
+  assert.ok(box && box.contains($(w, "gr-form")), "Formular klappt in der Zeile auf"); assert.ok($(w, "gr-form-title").hidden);
+  assert.match(box.querySelector(".ms-row").textContent, /^1\.7\.2024/); assert.ok($(w, "gr-chart").querySelector(".gc-tip"), "im Graphen markiert");
+  fire(w, $(w, "gr-cancel")); assert.ok(!$(w, "gr-list").querySelector(".ms-edit")); assert.ok($(w, "gr-form").hidden);
+  assert.ok(!$(w, "gr-list").contains($(w, "gr-form")), "Formular wieder oben");
+  // Lange drücken (0,5 s) öffnet ebenfalls das Bearbeiten
+  const touch = (type, el) => { const ev = new w.Event(type, { bubbles: true, cancelable: true }); Object.defineProperty(ev, "touches", { value: type === "touchend" ? [] : [{ clientX: 50, clientY: 20 }] }); el.dispatchEvent(ev); };
+  touch("touchstart", $(w, "gr-list").querySelector(".ms-row"));
+  await new Promise(r => setTimeout(r, 560)); touch("touchend", $(w, "gr-list"));
+  assert.ok($(w, "gr-list").querySelector(".ms-edit"), "langes Drücken → Bearbeiten");
   $(w, "gr-w").value = "7,4"; fire(w, $(w, "gr-save"));
   assert.equal(st().growth[1].w, 7.4); assert.equal(st().growth[1].hc, 42); assert.equal(st().settings.weight, 7.4);
   // Löschen direkt an der Zeile: das Gewicht davor gilt wieder; Rückgängig stellt beides her
@@ -2040,8 +2050,56 @@ test("Wachstum: Messungen als Tabelle (CSV) – Strichpunkt, Dezimalkomma, Perze
   const lines = text.replace(/^\uFEFF/, "").split("\r\n");
   assert.equal(lines[0], "Datum;Alter;Gewicht (kg);Perzentile;Länge (cm);Perzentile;Kopfumfang (cm);Perzentile");
   assert.match(lines[1], /^15\.7\.2024;6 M;7,30;\d+;;;42,0;\d+$/);
-  assert.equal(lines[2], "1.1.2024;0 M;3,23;50;49,1;50;;");
+  assert.equal(lines[2], "1.1.2024;0 M;3,232;50;49,148;50;;", "feinere Werte ohne Verlust (bis 3 Stellen)");
   assert.match($(w, "toast").textContent, /Tabelle gespeichert: wachstum-\d{4}-\d\d-\d\d\.csv/);
+  // Rundreise: dieselbe Tabelle in ein leeres Gerät importieren → dieselben Messungen
+  const w2 = boot({ settings: { view: "vorgaben", bdBirth: "2024-01-01" } });
+  w2.TextDecoder = TextDecoder;
+  let asked = ""; w2.confirm = (t) => { asked = t; return true; };
+  fire(w2, w2.document.querySelector('[data-vg="wachstum"]'));
+  const fi = $(w2, "gr-file");
+  Object.defineProperty(fi, "files", { configurable: true, value: [new w2.File([text], "wachstum.csv")] });
+  fire(w2, fi, "change");
+  const st2 = () => JSON.parse(w2.localStorage.getItem("ketoplaner.v5"));
+  for (let i = 0; i < 50 && !st2().growth.length; i++) await new Promise(r => setTimeout(r, 10));
+  assert.match(asked, /^2 Gewichte, 1 Längen, 1 Kopfumfänge \(1\.1\.2024 – 15\.7\.2024\)\./);
+  assert.deepEqual(st2().growth.map(e => [e.d, e.w, e.h, e.hc]), [["2024-01-01", 3.232, 49.148, undefined], ["2024-07-15", 7.3, undefined, 42]]);
+});
+
+test("Wachstum: CSV aus Excel importieren – Trenner, Datumsformate, Dezimalpunkt, Unplausibles, Zusammenführen; .xlsx wird erkannt", async () => {
+  const w = boot({ settings: { view: "vorgaben", weight: 8 }, growth: [{ id: "x", d: "2025-03-01", w: 9, h: 75 }] });
+  w.TextDecoder = TextDecoder;
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  let asked = "", warned = ""; w.confirm = (t) => { asked = t; return true; }; w.alert = (t) => { warned = t; };
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  const fi = $(w, "gr-file");
+  const load = async (parts, name) => {
+    Object.defineProperty(fi, "files", { configurable: true, value: [new w.File(parts, name)] });
+    asked = ""; warned = ""; fire(w, fi, "change");
+    for (let i = 0; i < 50 && !asked && !warned; i++) await new Promise(r => setTimeout(r, 10));
+  };
+  // Excel (Windows): Tabulator, Windows-1252 (ä = 0xE4), Spalten in anderer Reihenfolge, Datum mit führender Null bzw. ISO
+  const rows = "Kopfumfang (cm)\tDatum\tL\xe4nge (cm)\tGewicht (kg)\tAlter\r\n" +
+    "44,5\t01.03.2025\t\t9,1\t1 J\r\n" +      // gleicher Tag wie vorhanden: Gewicht neu, Länge bleibt
+    "\t2025-04-02\t76.5\t9.25\t\r\n" +         // Dezimalpunkt, ISO-Datum
+    "\t5.5.25\t\t850\t\r\n" +                 // 850 kg: unplausibel
+    "\t1.1.2999\t\t9\t\r\n" +                 // Zukunft
+    "\tkein Datum\t\t9\t\r\n";
+  await load([Uint8Array.from([...rows].map(c => c.charCodeAt(0)))], "Wachstum.csv");
+  assert.equal(warned, "");
+  assert.match(asked, /^2 Gewichte, 1 Längen, 1 Kopfumfänge \(1\.3\.2025 – 2\.4\.2025\)\.\nNicht übernommen: 3 Einträge/);
+  assert.deepEqual(st().growth.map(e => [e.d, e.w, e.h, e.hc]), [["2025-03-01", 9.1, 75, 44.5], ["2025-04-02", 9.25, 76.5, undefined]]);
+  assert.equal(st().settings.weight, 9.25, "letztes Gewicht in die Verordnung");
+  assert.match($(w, "toast").textContent, /4 Werte übernommen/);
+  // Felder in Anführungszeichen mit Komma als Trenner
+  await load(['Datum,Gewicht\r\n"10.04.2025","9,4"\r\n'], "export.csv");
+  assert.match(asked, /^1 Gewichte/); assert.equal(st().growth.find(e => e.d === "2025-04-10").w, 9.4);
+  // Excel-Arbeitsmappe statt CSV → Hinweis, wie man richtig speichert
+  await load([Uint8Array.from([0x50, 0x4B, 3, 4, 0, 0])], "Wachstum.xlsx");
+  assert.match(warned, /Excel-Datei \(\.xlsx\).*CSV UTF-8/);
+  // Tabelle ohne Datum-Spalte → nicht lesbar
+  await load(["Gewicht;Länge\r\n9;80\r\n"], "x.csv");
+  assert.match(warned, /lässt sich nicht lesen/);
 });
 
 test("Backup: sichern merkt sich den Zeitpunkt; gelbe Erinnerung nach der eingestellten Zeit (nur mit eigenen Daten)", async () => {
