@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=63de38fd" />
+  <link rel="stylesheet" href="styles.css?v=900a2b74" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -102,6 +102,7 @@
       <!-- Liste: Gruppen „Ernährung“ und „App“, jede Zeile öffnet eine Unterseite -->
       <header class="dk-head dk-only vg-dkhead"><div class="dk-title"><span class="overline">Einstellungen</span><h1>Vorgaben</h1></div></header>
       <div id="vg-list" class="vg-list">
+        <div class="note attn vg-backup" id="vg-backup" hidden></div>
         <div class="overline vg-group">Ernährung</div>
         <button type="button" class="vg-row" data-vg="verordnung"><span class="vg-txt"><span class="vg-name">Verordnung</span><span class="vg-sum" id="vgs-verordnung"></span></span><span class="chev" aria-hidden="true">›</span></button>
         <button type="button" class="vg-row" data-vg="wachstum"><span class="vg-txt"><span class="vg-name">Wachstum</span><span class="vg-sum" id="vgs-wachstum"></span></span><span class="chev" aria-hidden="true">›</span></button>
@@ -249,7 +250,7 @@
             <select id="gr-sex" class="line-select"><option value="w">Mädchen</option><option value="m">Bub</option></select>
           </label>
         </div>
-        <p class="hint">Messungen bleiben nur auf diesem Gerät (beim Geräte-Abgleich verschlüsselt). <button type="button" class="tlink gr-import-btn" id="gr-import">Werte importieren</button><input type="file" id="gr-file" accept=".growth,application/octet-stream" hidden /></p>
+        <p class="hint">Messungen bleiben nur auf diesem Gerät (beim Geräte-Abgleich verschlüsselt). <button type="button" class="tlink gr-import-btn" id="gr-import">Werte importieren</button> · <button type="button" class="tlink gr-import-btn" id="gr-csv">Als Tabelle sichern (CSV)</button><input type="file" id="gr-file" accept=".growth,application/octet-stream" hidden /></p>
         <details class="more"><summary class="tlink">Mehr dazu</summary>
           <p>Die Linien sind die Perzentilen der <strong>WHO-Wachstumsstandards</strong> (2006) für Mädchen bzw. Buben von der Geburt bis 5 Jahre: 50 ist der Durchschnitt, 3 bedeutet, dass 3 von 100 gesunden Kindern gleichen Alters kleiner bzw. leichter sind. Bis 2 Jahre wird die Länge im Liegen gemessen, danach die Größe im Stehen – deshalb macht die Kurve dort einen kleinen Sprung. Wichtig ist vor allem, dass ein Kind seiner Kurve folgt; die Einordnung übernimmt das Behandlungsteam. Das zuletzt gemessene Gewicht gilt automatisch in der Verordnung. Importieren lassen sich Dateien der App „Growth“ (Teilen → Datei *.growth); gleiche Tage werden zusammengeführt.</p>
         </details>
@@ -336,6 +337,26 @@
         <button type="button" class="tlink vg-back" data-vgback="list">‹ Vorgaben</button>
         <div class="vg-head"><div class="vg-title"><h2>Erinnerungen und Daten</h2></div></div>
 
+        <div class="vg-sec" id="backup-card">
+          <h3 class="vg-sec-title">Daten sichern <span class="hint">Backup</span></h3>
+          <div id="backup-status" class="note info"></div>
+          <div class="btn-row">
+            <button id="export-btn" class="btn primary" type="button">Backup sichern …</button>
+            <label class="btn outline file-btn">Backup laden<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+          </div>
+          <p class="hint">Am Handy öffnet sich das Teilen-Menü: dort <strong>Synology Drive</strong>, <strong>Google Drive</strong> oder <strong>In Dateien sichern</strong> wählen – am Computer wird die Datei heruntergeladen. Das Backup enthält alles: Vorgaben, Rezepte, Tagesplan und Messungen.</p>
+          <div class="vo-rows">
+            <label class="vo-row"><span class="vo-lbl"><span>Erinnern</span><span class="src">wenn so lange kein Backup</span></span>
+              <select id="backup-remind" class="line-select"><option value="14">nach 2 Wochen</option><option value="28">nach 4 Wochen</option><option value="0">nie</option></select>
+            </label>
+          </div>
+          <details class="more" id="export-details" hidden>
+            <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
+            <textarea id="export-text" rows="5" spellcheck="false"></textarea>
+            <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
+          </details>
+        </div>
+
         <div class="vg-sec" id="push-card">
           <h3 class="vg-sec-title">Erinnerungen <span class="hint">zu Mahlzeiten und Wasser</span></h3>
           <div id="push-status" class="note info"></div>
@@ -389,19 +410,6 @@
           </details>
         </div>
 
-        <div class="vg-sec">
-          <h3 class="vg-sec-title">Daten <span class="hint">nur auf diesem Gerät</span></h3>
-          <p class="hint">Ein Backup sichert eigene Rezepte und Lebensmittel, Favoriten, gemerkte Mengen und Vorgaben.</p>
-          <div class="btn-row">
-            <button id="export-btn" class="btn primary" type="button">Backup exportieren</button>
-            <label class="btn outline file-btn">Backup importieren<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
-          </div>
-          <details class="more" id="export-details" hidden>
-            <summary class="tlink">Backup als Text (kopieren / einfügen)</summary>
-            <textarea id="export-text" rows="5" spellcheck="false"></textarea>
-            <div class="btn-row"><button id="import-text-btn" class="btn outline" type="button">Eingefügten Text importieren</button></div>
-          </details>
-        </div>
 
         <div class="vg-sec">
           <h3 class="vg-sec-title">Darstellung</h3>
@@ -453,7 +461,7 @@
   <script src="recipes.js?v=3a28278d"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=c3343bfc"></script>
+  <script src="app.js?v=04685de5"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

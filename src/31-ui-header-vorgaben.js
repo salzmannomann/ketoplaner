@@ -112,8 +112,9 @@
     put("vgs-wachstum", growthSummary());
     put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
-    const app = [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : ""].filter(Boolean);
-    put("vgs-app", app.length ? app.join(" · ") : "nur auf diesem Gerät");
+    const bd = backupDays();
+    put("vgs-app", [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : "", bd == null ? "noch kein Backup" : "Backup " + backupAgeText(bd)].filter(Boolean).join(" · "));
+    renderBackup();
     // Verordnung: Ansicht (gesperrt) mit Herkunft der Werte; die Felder liegen in #vo-editbox
     const src = (id) => { const e = document.getElementById(id); return e ? e.textContent : ""; };
     const rows = [
@@ -199,21 +200,42 @@
       m.setAttribute("content", t === "dark" ? PALETTE_DARK.paper : PALETTE.paper);
     });
   }
-  // Backup: alles, was nur auf diesem Gerät liegt.
-  function exportData() {
+  // Backup: alles, was nur auf diesem Gerät liegt. Am Handy über das Teilen-Menü (z. B. Synology Drive, Google Drive),
+  // sonst als Download. Der Zeitpunkt (backupAt) wird abgeglichen – ein Backup auf einem der Geräte zählt für alle.
+  async function exportData() {
     const payload = { app: "hamham-keto", version: 1, exported: new Date().toISOString(), state: state };
-    const json = JSON.stringify(payload, null, 1);
+    const json = JSON.stringify(payload, null, 1), name = "hamham-keto-backup-" + todayIso() + ".json";
     const ta = document.getElementById("export-text"), det = document.getElementById("export-details");
     if (ta) ta.value = json;
-    if (det) { det.hidden = false; det.open = true; }
-    try {
-      const blob = new Blob([json], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "hamham-keto-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    } catch (e) {}
+    const r = await saveFile(name, json, "application/json");
+    if (!r) { if (det) { det.hidden = false; det.open = true; } return; }
+    state.settings.backupAt = Date.now(); save(); renderRezepte();
+    showToast(r === "geteilt" ? "Backup gesichert" : "Backup gespeichert: " + escapeHtml(name));
+  }
+  // Erinnerung ans Backup: nach backupRemind Tagen (Standard 28, 0 = nie); ohne bisheriges Backup erst, wenn es eigene Daten gibt
+  function backupDays() { const a = num(state.settings.backupAt); return a > 0 ? Math.max(0, Math.floor((Date.now() - a) / 864e5)) : null; }
+  function backupAgeText(d) { return d === 0 ? "heute" : d === 1 ? "gestern" : "vor " + d + " Tagen"; }
+  function backupDue() {
+    const s = state.settings, every = s.backupRemind == null ? 28 : num(s.backupRemind), d = backupDays();
+    if (!(every > 0)) return false;
+    if (d == null) return growthList().length > 0 || state.savedRecipes.length > 0 || state.customFoods.length > 0;
+    return d >= every;
+  }
+  function renderBackup() {
+    const d = backupDays(), due = backupDue();
+    const note = document.getElementById("vg-backup");
+    if (note) {
+      note.hidden = !due;
+      if (due) note.innerHTML = (d == null ? "Noch kein Backup gesichert." : "Letztes Backup " + backupAgeText(d) + ".") +
+        ' <button type="button" class="tlink" data-vg-go="app">Jetzt sichern ›</button>';
+    }
+    const st = document.getElementById("backup-status");
+    if (st) {
+      st.className = "note " + (due ? "attn" : "info");
+      st.textContent = d == null ? "Noch kein Backup gesichert." : "Letztes Backup " + backupAgeText(d) + " (" + new Date(num(state.settings.backupAt)).toLocaleDateString("de-AT") + ").";
+    }
+    const sel = document.getElementById("backup-remind");
+    if (sel) sel.value = String(state.settings.backupRemind == null ? 28 : num(state.settings.backupRemind));
   }
   function importData(text) {
     let p;
@@ -338,6 +360,8 @@
       b.addEventListener("click", () => { state.settings.mahlzeiten = num(b.dataset.mahl); save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
+    const rem = document.getElementById("backup-remind");
+    if (rem) rem.addEventListener("change", () => { state.settings.backupRemind = num(rem.value); save(); renderRezepte(); });
     const impF = document.getElementById("import-file");
     if (impF) impF.addEventListener("change", () => {
       const f = impF.files && impF.files[0]; if (!f) return;

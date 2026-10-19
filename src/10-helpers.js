@@ -89,6 +89,23 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
   }
   function hideToast() { const t = document.getElementById("toast"); if (t) { t.classList.remove("show"); t.hidden = true; } clearTimeout(toastTimer); }
+  // Datei sichern: am Handy über das Teilen-Menü (Synology Drive, Google Drive, „In Dateien sichern“ …), sonst herunterladen.
+  // Ergebnis: "geteilt", "geladen" oder null (abgebrochen bzw. nicht möglich).
+  async function saveFile(name, text, type) {
+    const blob = new Blob([text], { type });
+    let file = null;
+    try { file = new File([blob], name, { type }); } catch (e) {}
+    const touch = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    if (touch && file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return "geteilt"; } catch (e) { return null; }
+    }
+    try {
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return "geladen";
+    } catch (e) { return null; }
+  }
   // Einfache Strich-Symbole (statt Emojis) für runde Knöpfe; erben die Textfarbe.
   const SVG_ATTR = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
   const ICON = {

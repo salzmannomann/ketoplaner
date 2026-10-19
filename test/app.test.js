@@ -2001,16 +2001,78 @@ test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht
   fire(w, $(w, "gr-save")); assert.match($(w, "gr-msg").textContent, /Gewicht: bitte einen Wert zwischen 0,5 und 80 kg/);
   $(w, "gr-w").value = ""; fire(w, $(w, "gr-save")); assert.match($(w, "gr-msg").textContent, /mindestens einen Wert/);
   fire(w, $(w, "gr-cancel")); assert.equal(st().growth.length, 2);
-  // Bearbeiten: Tipp auf die Zeile füllt das Formular; Gewicht ändern
+  // Antippen einer Zeile markiert die Messung im Graphen (kein Formular, keine Knöpfe); noch einmal hebt die Auswahl auf
   fire(w, $(w, "gr-list").querySelector(".ms-row"));
+  assert.ok($(w, "gr-form").hidden, "Antippen öffnet nicht das Formular");
+  assert.ok($(w, "gr-list").querySelector(".ms-wrap").classList.contains("sel"));
+  assert.match($(w, "gr-chart").querySelector(".gc-tip").textContent, /^1\.7\.2024 · 7,30 kg · P \d+$/);
+  assert.ok($(w, "gr-chart").querySelector(".gc-sel") && $(w, "gr-chart").querySelector(".gc-ring"));
+  fire(w, w.document.querySelector('#gr-kind [data-gk="hc"]')); // Auswahl bleibt beim Wechsel, wenn an dem Tag gemessen
+  assert.match($(w, "gr-chart").querySelector(".gc-tip").textContent, /^1\.7\.2024 · 42,0 cm/);
+  fire(w, w.document.querySelector('#gr-kind [data-gk="w"]'));
+  fire(w, $(w, "gr-list").querySelector(".ms-row"));
+  assert.equal($(w, "gr-chart").querySelector(".gc-tip"), null); assert.ok(!$(w, "gr-list").querySelector(".ms-wrap.sel"));
+  // Bearbeiten (liegt hinter der Zeile: Wischen bzw. Darüberfahren) füllt das Formular; Gewicht ändern
+  fire(w, $(w, "gr-list").querySelector("[data-ged]"));
   assert.equal($(w, "gr-form-title").textContent, "Messung vom 1.7.2024"); assert.equal($(w, "gr-w").value, "7,3"); assert.ok(!$(w, "gr-del").hidden);
   $(w, "gr-w").value = "7,4"; fire(w, $(w, "gr-save"));
   assert.equal(st().growth[1].w, 7.4); assert.equal(st().growth[1].hc, 42); assert.equal(st().settings.weight, 7.4);
-  // Löschen der letzten Messung: das Gewicht davor gilt wieder; Rückgängig stellt beides her
-  fire(w, $(w, "gr-list").querySelector(".ms-row")); fire(w, $(w, "gr-del"));
+  // Löschen direkt an der Zeile: das Gewicht davor gilt wieder; Rückgängig stellt beides her
+  fire(w, $(w, "gr-list").querySelector("[data-gdel]"));
+  assert.match($(w, "toast").textContent, /Messung vom 1\.7\.2024 gelöscht/);
   assert.equal(st().growth.length, 1); assert.equal(st().settings.weight, 3.2322);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal(st().growth.length, 2); assert.equal(st().settings.weight, 7.4);
+  // … oder im Formular
+  fire(w, $(w, "gr-list").querySelector("[data-ged]")); fire(w, $(w, "gr-del"));
+  assert.equal(st().growth.length, 1); assert.match($(w, "toast").textContent, /Messung gelöscht/);
+});
+
+test("Wachstum: Messungen als Tabelle (CSV) – Strichpunkt, Dezimalkomma, Perzentilen, neueste zuerst", async () => {
+  const w = boot({ settings: { view: "vorgaben", bdBirth: "2024-01-01", bdSex: "w" }, growth: [
+    { id: "a", d: "2024-01-01", w: 3.2322, h: 49.1477 }, { id: "b", d: "2024-07-15", w: 7.3, hc: 42 }] });
+  let blob = null; w.URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () {}; // kein Seitenwechsel in jsdom
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  fire(w, $(w, "gr-csv"));
+  for (let i = 0; i < 20 && !blob; i++) await new Promise(r => setTimeout(r, 5));
+  const text = await new Promise(res => { const rd = new w.FileReader(); rd.onload = () => res(rd.result); rd.readAsText(blob); });
+  const lines = text.replace(/^\uFEFF/, "").split("\r\n");
+  assert.equal(lines[0], "Datum;Alter;Gewicht (kg);Perzentile;Länge (cm);Perzentile;Kopfumfang (cm);Perzentile");
+  assert.match(lines[1], /^15\.7\.2024;6 M;7,30;\d+;;;42,0;\d+$/);
+  assert.equal(lines[2], "1.1.2024;0 M;3,23;50;49,1;50;;");
+  assert.match($(w, "toast").textContent, /Tabelle gespeichert: wachstum-\d{4}-\d\d-\d\d\.csv/);
+});
+
+test("Backup: sichern merkt sich den Zeitpunkt; gelbe Erinnerung nach der eingestellten Zeit (nur mit eigenen Daten)", async () => {
+  const day = 864e5;
+  // Ohne eigene Daten und ohne Backup: keine Erinnerung
+  let w = boot({ settings: { view: "vorgaben" } });
+  assert.ok($(w, "vg-backup").hidden); assert.match($(w, "vgs-app").textContent, /noch kein Backup/);
+  // Mit Messungen, noch nie gesichert → Erinnerung mit Weg zur Seite
+  w = boot({ settings: { view: "vorgaben" }, growth: [{ id: "a", d: "2025-05-01", w: 9 }] });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  assert.ok(!$(w, "vg-backup").hidden); assert.match($(w, "vg-backup").textContent, /Noch kein Backup gesichert\. Jetzt sichern ›/);
+  fire(w, $(w, "vg-backup").querySelector("[data-vg-go]"));
+  assert.equal(w.document.querySelector('[data-vgpage="app"]').hidden, false);
+  assert.ok($(w, "backup-status").classList.contains("attn"));
+  let blob = null; w.URL.createObjectURL = (b) => { blob = b; return "blob:x"; }; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () {};
+  fire(w, $(w, "export-btn"));
+  for (let i = 0; i < 20 && !st().settings.backupAt; i++) await new Promise(r => setTimeout(r, 5));
+  assert.ok(Math.abs(st().settings.backupAt - Date.now()) < 5000);
+  assert.ok(blob && /application\/json/.test(blob.type));
+  assert.match($(w, "toast").textContent, /Backup gespeichert: hamham-keto-backup-\d{4}-\d\d-\d\d\.json/);
+  assert.ok($(w, "vg-backup").hidden); assert.match($(w, "vgs-app").textContent, /Backup heute/);
+  assert.match($(w, "backup-status").textContent, /^Letztes Backup heute/); assert.ok(!$(w, "backup-status").classList.contains("attn"));
+  // Vor 30 Tagen gesichert: Standard „nach 4 Wochen“ → Erinnerung; „nie“ → keine; „nach 2 Wochen“ bei 20 Tagen → wieder
+  w = boot({ settings: { view: "vorgaben", backupAt: Date.now() - 30 * day }, growth: [{ id: "a", d: "2025-05-01", w: 9 }] });
+  assert.match($(w, "vg-backup").textContent, /Letztes Backup vor 30 Tagen\./);
+  assert.match($(w, "vgs-app").textContent, /Backup vor 30 Tagen/);
+  const sel = $(w, "backup-remind"); assert.equal(sel.value, "28");
+  sel.value = "0"; fire(w, sel, "change"); assert.ok($(w, "vg-backup").hidden);
+  w = boot({ settings: { view: "vorgaben", backupAt: Date.now() - 20 * day, backupRemind: 14 } });
+  assert.ok(!$(w, "vg-backup").hidden, "auch ohne Messungen, wenn schon einmal gesichert");
 });
 
 test("Wachstum: ohne Geburtsdatum Hinweis statt Kurve; kaputte Messungen werden beim Laden verworfen", () => {

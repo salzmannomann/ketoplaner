@@ -694,6 +694,7 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .vo-in .unit.pre { min-width: 0; }
 /* Wachstum: Kurve (SVG) mit WHO-Perzentilen, Liste der Messungen, Formular */
 .gr-chart { max-width: 480px; }
+@media (min-width: 821px) { .gr-chart { max-width: none; } } /* Desktop: Querformat über die ganze Spalte */
 .gr-form[hidden] { display: none; }
 .gc { display: block; width: 100%; height: auto; margin: 4px 0 2px; }
 .gc-grid { stroke: var(--rule); stroke-width: .6; }
@@ -708,13 +709,38 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .gc-line { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
 .gc-dot { fill: var(--ink); }
 .gc-dot.last { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.gc-sel { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+.gc-ring { fill: var(--paper); stroke: var(--ink); stroke-width: 2.4; }
+.gc-tip rect { fill: var(--ink); }
+.gc-tip text { font: 600 10.5px var(--f-mono); fill: var(--paper); text-anchor: middle; }
+.gr-chart svg { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Messungen: Antippen markiert (Hintergrund wie im Graphen); Bearbeiten/Löschen liegen hinter der Zeile und kommen
+   durch Wischen nach links hervor – am Computer erscheinen sie beim Darüberfahren */
 .gr-list { display: flex; flex-direction: column; margin-top: -8px; }
-.ms-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px dotted var(--dot); background: none; color: inherit; text-align: left; cursor: pointer; }
-.ms-row:hover .d { text-decoration: underline; }
+.ms-wrap { position: relative; overflow: hidden; border-bottom: 1px dotted var(--dot); }
+.ms-row { position: relative; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 0; border: 0; background: var(--paper); color: inherit; text-align: left; cursor: pointer; transition: transform .2s ease; -webkit-tap-highlight-color: transparent; }
+.ms-wrap.open .ms-row { transform: translateX(-168px); }
+.ms-wrap.sel { margin: 0 -10px; border-radius: var(--r-s); }
+.ms-wrap.sel .ms-row { padding: 10px; background: var(--paper-2); }
 .ms-row .d { font: 600 var(--t-s) var(--f-mono); color: var(--ink); }
 .ms-row .a, .ms-row .p { display: block; font-size: var(--t-xs); color: var(--grey); }
 .ms-row .v { display: block; font: 600 var(--t-m) var(--f-mono); color: var(--ink); text-align: right; }
 .ms-row .p { text-align: right; }
+.ms-acts { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
+.ms-acts button { width: 84px; border: 0; font: 600 var(--t-s) var(--f-sans); color: var(--paper); cursor: pointer; }
+.ms-acts .ms-ed { background: var(--ink-2); }
+.ms-acts .ms-del { background: var(--red); }
+@media (hover: hover) and (pointer: fine) {
+  .ms-acts { z-index: 2; left: 50%; right: auto; transform: translateX(-50%); align-items: center; gap: 18px; opacity: 0; transition: opacity .12s; pointer-events: none; }
+  .ms-wrap:hover .ms-acts, .ms-wrap:focus-within .ms-acts { opacity: 1; }
+  .ms-wrap:hover .ms-acts button, .ms-wrap:focus-within .ms-acts button { pointer-events: auto; }
+  .ms-acts button { width: auto; min-height: 32px; padding: 0; background: none !important; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .ms-acts .ms-del { color: var(--red); }
+  .ms-wrap.open .ms-row { transform: none; }
+}
+.vg-backup { margin: 0 0 14px; }
+.vg-backup[hidden] { display: none; }
+.vg-backup .tlink { min-height: 0; margin: 0; }
 .gr-all, .gr-del { align-self: flex-start; }
 .gr-form .btn-pair { padding-top: 10px; }
 .gr-form .note { margin: 10px 0 0; }
