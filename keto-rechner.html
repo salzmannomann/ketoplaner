@@ -1723,7 +1723,9 @@ const RECIPES_SONDE = [
     ketocal: true,
     angeruehrt: true,
     zubereitung: "KetoCal 3:1 und Pre Apta abwiegen, ins vorbereitete Wasser geben und klumpenfrei schütteln bzw. rühren. Zügig verwenden. Die Mengen rechnet die App auf das eingestellte Verhältnis um (z. B. 1,8:1 oder in der Ausschleich-Phase 1:1) – bei 1:1 ist die Mischung entsprechend dünner.",
-    items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 80 } ],
+    // Wasser bewusst knapp: die App füllt bis zur Obergrenze (1,5 kcal/ml) auf, wie bei Compleat & KetoCal –
+    // kleinere Mahlzeit, der Rest der Tagesmenge kommt als Wassergaben.
+    items: [ { food: "Ketocal 3:1", grams: 17 }, { food: "Aptamil Pre (Pulver)", grams: 6.5 }, { food: "Wasser", grams: 30 } ],
   },
   {
     name: "Compleat & KetoCal",
