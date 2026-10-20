@@ -238,10 +238,11 @@
     if (cards.length) {
       const kd = new J({ unit: "mm", format: "a4", compress: true });
       const front = cards.find(c => !c.classList.contains("kz-how")), how = cards.find(c => c.classList.contains("kz-how"));
-      // beide Karten in derselben (der kleineren) Schriftgröße
+      // beide Karten in derselben (der kleineren) Schriftgröße – auch wenn eine abgewählt ist (class off, nicht gezeichnet)
       const sc = Math.min(front ? kitchenCardPdf(kd, front, { measure: true }) : 9, how ? kitchenHowPdf(kd, how, 105, { measure: true }) : 9);
-      if (front) kitchenCardPdf(kd, front, { s: sc });
-      if (how) kitchenHowPdf(kd, how, front ? 105 : 0, { s: sc });
+      const on = c => c && !c.classList.contains("off");
+      if (on(front)) kitchenCardPdf(kd, front, { s: sc });
+      if (on(how)) kitchenHowPdf(kd, how, on(front) ? 105 : 0, { s: sc });
       return kd;
     }
     const doc = new J({ unit: "mm", format: "a4", compress: true });

@@ -2231,10 +2231,12 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const opts = () => [...$(w, "print-overlay").querySelectorAll(".print-opts input[data-pi]")];
   assert.deepEqual(opts().map(x => x.checked), [true, true]);
   opts()[1].checked = false; fire(w, opts()[1], "change");
-  root = $(w, "print-sheet").shadowRoot; assert.equal(root.querySelector(".kz-how"), null); assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.printHow, false);
+  root = $(w, "print-sheet").shadowRoot; assert.ok(root.querySelector(".kz.kz-how.off") && !root.querySelector(".kz:not(.kz-how).off")); assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.printHow, false);
   opts()[0].checked = false; fire(w, opts()[0], "change"); assert.equal(opts()[0].checked, true, "mindestens eine Seite");
   opts()[1].checked = true; fire(w, opts()[1], "change"); opts()[0].checked = false; fire(w, opts()[0], "change");
-  root = $(w, "print-sheet").shadowRoot; assert.ok(root.querySelector(".kz.kz-how.solo") && !root.querySelector(".kz:not(.kz-how)"), "nur Zubereitung");
+  root = $(w, "print-sheet").shadowRoot; assert.ok(root.querySelector(".kz.kz-how.solo:not(.off)") && root.querySelector(".kz:not(.kz-how).off"), "nur Zubereitung");
+  // die abgewählte Karte bleibt unsichtbar im Blatt, damit die Schrift gleich groß ist wie mit beiden Seiten
+  assert.match(root.querySelector("style").textContent, /\.kz\.off\{visibility:hidden\}/);
 });
 
 test("Wachstum: ohne Geburtsdatum Hinweis statt Kurve; kaputte Messungen werden beim Laden verworfen", () => {

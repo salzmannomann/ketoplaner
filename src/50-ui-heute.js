@@ -600,14 +600,15 @@
       const lis = q ? q.map(x => x.html) : shortSteps(g.rec.zubereitung).map(escapeHtml);
       return lis.length ? "<div class='st'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span></div><ol>" + lis.map(x => "<li><span>" + x + "</span></li>").join("") + "</ol></div>" : "";
     }).join("");
-    // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt
+    // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt.
+    // Eine abgewählte Karte bleibt unsichtbar (class off) im Blatt, damit die Schriftgröße gleich bleibt wie mit beiden.
     const front = state.settings.printFront !== false || !how, back = !!how && state.settings.printHow !== false;
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'>" + (front ? "<div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
+      "<div class='kz-page'>" + "<div class='kz" + (front ? "" : " off") + "'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
       "<div class='lbl'>Zeitplan</div>" + rows.map(r => r.h).join("") +
-      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" : "") +
-      (back ? "<div class='kz kz-how" + (front ? " kz2" : " solo") + "'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Zubereitung</b></div><div class='rx'><small>je Mahlzeit</small></div></div><div class='lbl'>Kurzanleitung</div>" + how + "</div>" : "") +
+      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" +
+      (how ? "<div class='kz kz-how" + (front ? " kz2" : " solo") + (back ? "" : " off") + "'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Zubereitung</b></div><div class='rx'><small>je Mahlzeit</small></div></div><div class='lbl'>Kurzanleitung</div>" + how + "</div>" : "") +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
     openPrintView(html, "Tagesplan " + fileDate(), how ? {
       parts: [{ label: "Tagesplan", on: front }, { label: "Zubereitung", on: back }],
