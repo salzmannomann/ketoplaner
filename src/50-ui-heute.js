@@ -583,7 +583,7 @@
       const g = groups.find(x => x.sig === sig);
       const dn = displayName(f.rec);
       if (note) dn.suffix = (dn.suffix ? dn.suffix + " · " : "") + note;
-      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
+      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], rec: f.rec, kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
@@ -592,11 +592,24 @@
     const rez = groups.map(g => "<div class='rb'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
       g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div>" +
       (g.kettle ? "<div class='wk'>" + kettleHtml(g.kettle) + "</div>" : "") + "</div>").join("");
+    // Rückseite (rechtes oberes Viertel, nach hinten gefaltet): Kurzanleitung je Rezept – angerührte Mahlzeiten Schritt
+    // für Schritt mit Feinwaage, Wasserkocher-Stufe und Mengen, sonst die Zubereitung ohne Erklärsätze
+    const how = groups.map(g => {
+      const q = quickSteps(g.rec, g.items);
+      const lis = q ? q.map(x => x.html).concat(prepNotes(g.rec.zubereitung).map(escapeHtml)) : shortSteps(g.rec.zubereitung).map(escapeHtml);
+      return lis.length ? "<div class='st'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span></div><ol>" + lis.map(x => "<li><span>" + x + "</span></li>").join("") + "</ol></div>" : "";
+    }).join("");
+    // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt
+    const front = state.settings.printFront !== false || !how, back = !!how && state.settings.printHow !== false;
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
+      "<div class='kz-page'>" + (front ? "<div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
       "<div class='lbl'>Zeitplan</div>" + rows.map(r => r.h).join("") +
-      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" +
+      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" : "") +
+      (back ? "<div class='kz kz-how" + (front ? " kz2" : " solo") + "'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Zubereitung</b></div><div class='rx'><small>je Mahlzeit</small></div></div><div class='lbl'>Kurzanleitung</div>" + how + "</div>" : "") +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
-    openPrintView(html, "Tagesplan " + fileDate());
+    openPrintView(html, "Tagesplan " + fileDate(), how ? {
+      parts: [{ label: "Tagesplan", on: front }, { label: "Zubereitung", on: back }],
+      onParts: (on) => { state.settings.printFront = on[0]; state.settings.printHow = on[1]; save(); printDayPlan(d, facts); },
+    } : null);
   }

@@ -199,7 +199,7 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
   body.printing > *:not(#print-overlay) { display: none !important; }
   body.printing, body.printing.modal-open { position: static !important; top: auto !important; overflow: visible !important; background: #fff !important; }
   body.printing .print-overlay { position: static; display: block; background: #fff; }
-  body.printing .print-bar { display: none; }
+  body.printing .print-bar, body.printing .print-opts { display: none !important; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
   body.printing .print-frame { width: auto !important; height: auto !important; }
   body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; transform: none !important; }
@@ -760,6 +760,9 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .kettle-range { gap: 6px; }
 .kettle-range .num-input { width: 56px; }
 .kettle-range .dash { color: var(--grey); }
+.kitchen-reset { margin-top: 18px; }
+.kitchen-reset[hidden] { display: none; }
+.kitchen-reset .tlink { min-height: 32px; margin: -8px 0; }
 .vg-backup { margin: 0 0 14px; }
 .vg-backup[hidden] { display: none; }
 .vg-backup .tlink { min-height: 0; margin: 0; }
@@ -899,6 +902,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 .print-bar { display: flex; align-items: center; gap: 10px; padding: 8px 20px; padding-top: calc(8px + env(safe-area-inset-top) + var(--top-gap)); background: var(--paper); border-bottom: 2px solid var(--ink); }
 .print-bar #print-back { margin-left: -6px; font-size: var(--t-m); text-decoration: none; }
 .print-bar .print-title { flex: 1; min-width: 0; font: 600 var(--t-l) var(--f-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
+/* Teile zum An-/Abhaken (z. B. Tagesplan · Zubereitung) unter der Leiste */
+.print-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 8px 20px; background: var(--paper); border-bottom: 1px dotted var(--dot); }
+.print-opts[hidden] { display: none; }
+.print-opts .po-lbl { font-size: var(--t-s); color: var(--grey); }
+.print-opts .nw-toggle { color: var(--ink); font-size: var(--t-s); min-height: 36px; }
 @media (max-width: 560px) { .print-bar { gap: 8px; padding-left: 16px; padding-right: 16px; } .print-bar .print-title { display: none; } .print-bar #print-back { margin-right: auto; } .print-bar .btn { padding: 0 12px; } }
 
 /* ======================================================================

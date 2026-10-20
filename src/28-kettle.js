@@ -3,8 +3,8 @@
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers in
-     10-ml-Schritten (10, 20, 30 …) lauwarm genommen. Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
+     lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 34, hi: 39, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
@@ -29,7 +29,7 @@
     });
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
     const mid = (ks.lo + ks.hi) / 2, Ls = [0];
-    for (let L = 10; L <= W - 10; L += 10) Ls.push(L); // mindestens 10 ml bleiben heiß (zum Anrühren)
+    for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.steps.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
     // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
@@ -58,9 +58,33 @@
     const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
     put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
     Object.keys(KETTLE_FIELDS).forEach(id => { const v = s[KETTLE_FIELDS[id]]; put(id, v === "" || v == null ? "" : fmtNum(v)); });
+    const own = kitchenOwn(), box = document.getElementById("kitchen-reset");
+    if (box) { box.hidden = !own.length; document.getElementById("kitchen-own").textContent = own.length ? "Eigene Werte: " + own.join(", ") + "." : ""; }
+  }
+  // Küche: welche Werte weichen vom Standard ab? (für „Auf Standard zurücksetzen“)
+  const KITCHEN_KEYS = ["dampfVerdunstung", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss"];
+  function kitchenOwn() {
+    const s = state.settings, out = [], has = (k) => s[k] !== undefined && s[k] !== "" && s[k] !== null;
+    if (has("dampfVerdunstung") && num(s.dampfVerdunstung) !== DAMPF_STANDARD) out.push("Verdunstung " + fmt(num(s.dampfVerdunstung), 0) + " ml");
+    if (Array.isArray(s.kettleSteps) && s.kettleSteps.join() !== KETTLE_STD.steps.join()) out.push("Stufen " + s.kettleSteps.join("/") + " °C");
+    if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
+    if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
+    if (has("kettleLuke")) out.push("lauwarmes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
+    if (has("kettleLoss")) out.push("Abkühlen " + fmtNum(num(s.kettleLoss)) + " °C");
+    return out;
   }
   function bindKettleSettings() {
     const st = document.getElementById("set-kettle-steps"); if (!st) return;
+    const rb = document.getElementById("kitchen-reset-btn");
+    if (rb) rb.addEventListener("click", () => {
+      const snap = {}; KITCHEN_KEYS.forEach(k => { snap[k] = state.settings[k]; });
+      KITCHEN_KEYS.forEach(k => { delete state.settings[k]; }); state.settings.dampfVerdunstung = "";
+      save(); renderRezepte();
+      showToast("Küche auf Standard zurückgesetzt", [["Rückgängig", () => {
+        KITCHEN_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; });
+        save(); renderRezepte();
+      }]]);
+    });
     st.addEventListener("change", () => {
       const a = parseKettleSteps(st.value);
       if (a.length) state.settings.kettleSteps = a; else delete state.settings.kettleSteps;
@@ -76,4 +100,35 @@
         save(); renderRezepte();
       });
     });
+  }
+  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; lauwarmes Wasser
+     (falls nötig) zuerst, weil es sich so am besten abwiegen lässt; Pulver einwiegen; heißes Wasser aus dem Wasserkocher
+     mit der Spritze dazu; kalte Zutaten (Compleat) einwiegen; verschließen, schütteln, aufziehen, verabreichen.
+     Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
+  function quickSteps(rec, items) {
+    if (!rec || !rec.angeruehrt) return null;
+    const p = kettlePlan(items); if (!p) return null;
+    const isW = (it) => /^wasser$/i.test(it.food), pos = items.filter(it => !isW(it) && num(it.grams) > 0);
+    const wp = (it) => { const f = lookup(it.food); return f && f.wasser != null ? num(f.wasser) : 10; };
+    const powders = pos.filter(it => wp(it) < 50 && !isOilName(it.food)), cold = pos.filter(it => wp(it) >= 50), oils = pos.filter(it => isOilName(it.food));
+    const amt = (it) => "<b>" + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + " " + gramsShort(num(it.grams)) + "</b>";
+    const out = ["Messglas auf die Feinwaage, Tara"];
+    let tared = true;
+    if (p.luke) { out.push("<b>" + p.luke + " ml lauwarmes Wasser</b> einwiegen"); tared = false; }
+    powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
+    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas");
+    cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
+    oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
+    out.push("Verschließen, schütteln");
+    const ks = kettleSettings();
+    out.push("Aufziehen, verabreichen – ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > ks.hi ? ", etwas zu warm: kurz abkühlen lassen" : ", etwas kühler als geplant"));
+    return out.map(html => ({ html }));
+  }
+  // Hinweise aus dem Rezepttext, die zur Kurzanleitung gehören (z. B. angebrochene Packung) – Erklärungen zur App nicht
+  function prepNotes(text) {
+    return splitSteps(text || "").filter(s => /Packung|Kühlschrank|verbrauchen/i.test(s) && !/\bApp\b/.test(s));
+  }
+  // Kurzfassung beliebiger Rezepttexte für den Küchenzettel: Erklärsätze zur App weglassen, höchstens 5 Schritte
+  function shortSteps(text) {
+    return splitSteps(text || "").filter(s => !/\bApp\b|lässt sich|dient nur/i.test(s)).slice(0, 5);
   }

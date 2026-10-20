@@ -482,10 +482,11 @@
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
-    // Angerührt: zuerst das Wasser – Stufe am Wasserkocher, damit die Mahlzeit gleich körperwarm ist (je Mahlzeit)
-    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
-    const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
-    const stepsHtml = steps.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
+    // Angerührt (KetoCal, Compleat …): Kurzanleitung mit Feinwaage, Wasserkocher-Stufe und Mengen je Mahlzeit statt Fließtext
+    const quick = quickSteps(rec, items);
+    const oilStep = quick ? null : oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
+    const stepLis = quick ? quick.map(q => q.html).concat(prepNotes(prepText).map(escapeHtml)) : steps.map(escapeHtml);
+    const stepsHtml = stepLis.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + stepLis.map(s => "<li>" + s + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));
     // Vier Blätter: am Handy nebeneinander (seitlich wischen), am Desktop als Reiter.

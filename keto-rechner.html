@@ -210,7 +210,7 @@ td:first-child { font-family: var(--f-sans); font-size: var(--t-s); }
   body.printing > *:not(#print-overlay) { display: none !important; }
   body.printing, body.printing.modal-open { position: static !important; top: auto !important; overflow: visible !important; background: #fff !important; }
   body.printing .print-overlay { position: static; display: block; background: #fff; }
-  body.printing .print-bar { display: none; }
+  body.printing .print-bar, body.printing .print-opts { display: none !important; }
   body.printing .print-scroll { overflow: visible; padding: 0; }
   body.printing .print-frame { width: auto !important; height: auto !important; }
   body.printing .print-sheet { width: auto; min-height: 0; max-width: none; padding: 0; box-shadow: none; border-radius: 0; transform: none !important; }
@@ -771,6 +771,9 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .kettle-range { gap: 6px; }
 .kettle-range .num-input { width: 56px; }
 .kettle-range .dash { color: var(--grey); }
+.kitchen-reset { margin-top: 18px; }
+.kitchen-reset[hidden] { display: none; }
+.kitchen-reset .tlink { min-height: 32px; margin: -8px 0; }
 .vg-backup { margin: 0 0 14px; }
 .vg-backup[hidden] { display: none; }
 .vg-backup .tlink { min-height: 0; margin: 0; }
@@ -910,6 +913,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
 .print-bar { display: flex; align-items: center; gap: 10px; padding: 8px 20px; padding-top: calc(8px + env(safe-area-inset-top) + var(--top-gap)); background: var(--paper); border-bottom: 2px solid var(--ink); }
 .print-bar #print-back { margin-left: -6px; font-size: var(--t-m); text-decoration: none; }
 .print-bar .print-title { flex: 1; min-width: 0; font: 600 var(--t-l) var(--f-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; color: var(--ink); }
+/* Teile zum An-/Abhaken (z. B. Tagesplan · Zubereitung) unter der Leiste */
+.print-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 8px 20px; background: var(--paper); border-bottom: 1px dotted var(--dot); }
+.print-opts[hidden] { display: none; }
+.print-opts .po-lbl { font-size: var(--t-s); color: var(--grey); }
+.print-opts .nw-toggle { color: var(--ink); font-size: var(--t-s); min-height: 36px; }
 @media (max-width: 560px) { .print-bar { gap: 8px; padding-left: 16px; padding-right: 16px; } .print-bar .print-title { display: none; } .print-bar #print-back { margin-right: auto; } .print-bar .btn { padding: 0 12px; } }
 
 /* ======================================================================
@@ -1379,9 +1387,10 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen beim Zubereiten</label><span class="src">Spritze, Becher, Mischen</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="3" /><span class="unit">°C</span></div></div>
           </div>
           <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
-            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (10, 20, 30 ml …). Die Angabe steht unter „Kochen“ als erster Schritt und auf dem gedruckten Tagesplan. Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
+            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (ab 20 ml: 20, 30, 40 ml …) – das lauwarme Wasser zuerst ins Messglas, so lässt es sich am besten abwiegen. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
           </details>
         </div>
+        <p class="hint kitchen-reset" id="kitchen-reset" hidden><span id="kitchen-own"></span> <button type="button" class="tlink" id="kitchen-reset-btn">Auf Standard zurücksetzen</button></p>
       </div>
 
       <!-- Unterseite Erinnerungen und Daten: Erinnerungen, Geräte abgleichen, Daten (Backup, Werte), Darstellung -->
@@ -3677,8 +3686,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers in
-     10-ml-Schritten (10, 20, 30 …) lauwarm genommen. Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
+     lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 34, hi: 39, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
@@ -3703,7 +3712,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
     const mid = (ks.lo + ks.hi) / 2, Ls = [0];
-    for (let L = 10; L <= W - 10; L += 10) Ls.push(L); // mindestens 10 ml bleiben heiß (zum Anrühren)
+    for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.steps.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
     // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
@@ -3732,9 +3741,33 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
     put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
     Object.keys(KETTLE_FIELDS).forEach(id => { const v = s[KETTLE_FIELDS[id]]; put(id, v === "" || v == null ? "" : fmtNum(v)); });
+    const own = kitchenOwn(), box = document.getElementById("kitchen-reset");
+    if (box) { box.hidden = !own.length; document.getElementById("kitchen-own").textContent = own.length ? "Eigene Werte: " + own.join(", ") + "." : ""; }
+  }
+  // Küche: welche Werte weichen vom Standard ab? (für „Auf Standard zurücksetzen“)
+  const KITCHEN_KEYS = ["dampfVerdunstung", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss"];
+  function kitchenOwn() {
+    const s = state.settings, out = [], has = (k) => s[k] !== undefined && s[k] !== "" && s[k] !== null;
+    if (has("dampfVerdunstung") && num(s.dampfVerdunstung) !== DAMPF_STANDARD) out.push("Verdunstung " + fmt(num(s.dampfVerdunstung), 0) + " ml");
+    if (Array.isArray(s.kettleSteps) && s.kettleSteps.join() !== KETTLE_STD.steps.join()) out.push("Stufen " + s.kettleSteps.join("/") + " °C");
+    if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
+    if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
+    if (has("kettleLuke")) out.push("lauwarmes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
+    if (has("kettleLoss")) out.push("Abkühlen " + fmtNum(num(s.kettleLoss)) + " °C");
+    return out;
   }
   function bindKettleSettings() {
     const st = document.getElementById("set-kettle-steps"); if (!st) return;
+    const rb = document.getElementById("kitchen-reset-btn");
+    if (rb) rb.addEventListener("click", () => {
+      const snap = {}; KITCHEN_KEYS.forEach(k => { snap[k] = state.settings[k]; });
+      KITCHEN_KEYS.forEach(k => { delete state.settings[k]; }); state.settings.dampfVerdunstung = "";
+      save(); renderRezepte();
+      showToast("Küche auf Standard zurückgesetzt", [["Rückgängig", () => {
+        KITCHEN_KEYS.forEach(k => { if (snap[k] === undefined) delete state.settings[k]; else state.settings[k] = snap[k]; });
+        save(); renderRezepte();
+      }]]);
+    });
     st.addEventListener("change", () => {
       const a = parseKettleSteps(st.value);
       if (a.length) state.settings.kettleSteps = a; else delete state.settings.kettleSteps;
@@ -3750,6 +3783,37 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         save(); renderRezepte();
       });
     });
+  }
+  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; lauwarmes Wasser
+     (falls nötig) zuerst, weil es sich so am besten abwiegen lässt; Pulver einwiegen; heißes Wasser aus dem Wasserkocher
+     mit der Spritze dazu; kalte Zutaten (Compleat) einwiegen; verschließen, schütteln, aufziehen, verabreichen.
+     Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
+  function quickSteps(rec, items) {
+    if (!rec || !rec.angeruehrt) return null;
+    const p = kettlePlan(items); if (!p) return null;
+    const isW = (it) => /^wasser$/i.test(it.food), pos = items.filter(it => !isW(it) && num(it.grams) > 0);
+    const wp = (it) => { const f = lookup(it.food); return f && f.wasser != null ? num(f.wasser) : 10; };
+    const powders = pos.filter(it => wp(it) < 50 && !isOilName(it.food)), cold = pos.filter(it => wp(it) >= 50), oils = pos.filter(it => isOilName(it.food));
+    const amt = (it) => "<b>" + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + " " + gramsShort(num(it.grams)) + "</b>";
+    const out = ["Messglas auf die Feinwaage, Tara"];
+    let tared = true;
+    if (p.luke) { out.push("<b>" + p.luke + " ml lauwarmes Wasser</b> einwiegen"); tared = false; }
+    powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
+    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas");
+    cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
+    oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
+    out.push("Verschließen, schütteln");
+    const ks = kettleSettings();
+    out.push("Aufziehen, verabreichen – ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > ks.hi ? ", etwas zu warm: kurz abkühlen lassen" : ", etwas kühler als geplant"));
+    return out.map(html => ({ html }));
+  }
+  // Hinweise aus dem Rezepttext, die zur Kurzanleitung gehören (z. B. angebrochene Packung) – Erklärungen zur App nicht
+  function prepNotes(text) {
+    return splitSteps(text || "").filter(s => /Packung|Kühlschrank|verbrauchen/i.test(s) && !/\bApp\b/.test(s));
+  }
+  // Kurzfassung beliebiger Rezepttexte für den Küchenzettel: Erklärsätze zur App weglassen, höchstens 5 Schritte
+  function shortSteps(text) {
+    return splitSteps(text || "").filter(s => !/\bApp\b|lässt sich|dient nur/i.test(s)).slice(0, 5);
   }
 
   /* ---------- Wischen in der Rezeptliste: links = nächste Gruppe, rechts = vorige ----------
@@ -5837,10 +5901,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
-    // Angerührt: zuerst das Wasser – Stufe am Wasserkocher, damit die Mahlzeit gleich körperwarm ist (je Mahlzeit)
-    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
-    const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
-    const stepsHtml = steps.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
+    // Angerührt (KetoCal, Compleat …): Kurzanleitung mit Feinwaage, Wasserkocher-Stufe und Mengen je Mahlzeit statt Fließtext
+    const quick = quickSteps(rec, items);
+    const oilStep = quick ? null : oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
+    const stepLis = quick ? quick.map(q => q.html).concat(prepNotes(prepText).map(escapeHtml)) : steps.map(escapeHtml);
+    const stepsHtml = stepLis.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + stepLis.map(s => "<li>" + s + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));
     // Vier Blätter: am Handy nebeneinander (seitlich wischen), am Desktop als Reiter.
@@ -6828,7 +6893,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const g = groups.find(x => x.sig === sig);
       const dn = displayName(f.rec);
       if (note) dn.suffix = (dn.suffix ? dn.suffix + " · " : "") + note;
-      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
+      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], rec: f.rec, kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
@@ -6837,13 +6902,26 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const rez = groups.map(g => "<div class='rb'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
       g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div>" +
       (g.kettle ? "<div class='wk'>" + kettleHtml(g.kettle) + "</div>" : "") + "</div>").join("");
+    // Rückseite (rechtes oberes Viertel, nach hinten gefaltet): Kurzanleitung je Rezept – angerührte Mahlzeiten Schritt
+    // für Schritt mit Feinwaage, Wasserkocher-Stufe und Mengen, sonst die Zubereitung ohne Erklärsätze
+    const how = groups.map(g => {
+      const q = quickSteps(g.rec, g.items);
+      const lis = q ? q.map(x => x.html).concat(prepNotes(g.rec.zubereitung).map(escapeHtml)) : shortSteps(g.rec.zubereitung).map(escapeHtml);
+      return lis.length ? "<div class='st'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span></div><ol>" + lis.map(x => "<li><span>" + x + "</span></li>").join("") + "</ol></div>" : "";
+    }).join("");
+    // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt
+    const front = state.settings.printFront !== false || !how, back = !!how && state.settings.printHow !== false;
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
-      "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
+      "<div class='kz-page'>" + (front ? "<div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
       "<div class='lbl'>Zeitplan</div>" + rows.map(r => r.h).join("") +
-      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" +
+      (rez ? "<div class='lbl'>Zutaten je Portion</div>" + rez : "") + "</div>" : "") +
+      (back ? "<div class='kz kz-how" + (front ? " kz2" : " solo") + "'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Zubereitung</b></div><div class='rx'><small>je Mahlzeit</small></div></div><div class='lbl'>Kurzanleitung</div>" + how + "</div>" : "") +
       "<div class='kz-fold v'></div><div class='kz-fold h'></div></div></body></html>";
-    openPrintView(html, "Tagesplan " + fileDate());
+    openPrintView(html, "Tagesplan " + fileDate(), how ? {
+      parts: [{ label: "Tagesplan", on: front }, { label: "Zubereitung", on: back }],
+      onParts: (on) => { state.settings.printFront = on[0]; state.settings.printHow = on[1]; save(); printDayPlan(d, facts); },
+    } : null);
   }
 
   /* ---------- Zeitplan: Uhrzeiten für Mahlzeiten und Wassergaben ----------
@@ -7356,7 +7434,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      Druckformatierung die App nicht berührt; gedruckt wird nur die Vorschau (@media print in styles.css).
      „Teilen“ erzeugt aus derselben Vorlage ein PDF (jsPDF, offline eingebettet) und öffnet das Teilen-Menü. */
   let printCurrent = null; // { html, title, file } der offenen Vorschau – Grundlage fürs PDF
-  function openPrintView(html, file) {
+  // opts.parts (optional): Teile zum An-/Abhaken über dem Blatt, z. B. [{ label: "Tagesplan", on: true }, …];
+  // opts.onParts(an/aus je Teil) baut die Vorlage neu – mindestens ein Teil bleibt angehakt.
+  function openPrintView(html, file, opts) {
     const rawCss = ((html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "");
     const pageRule = (rawCss.match(/@page\s*\{[^}]*\}/) || [""])[0];
     const css = rawCss.replace(/@page\s*\{[^}]*\}/g, "").replace(/(^|[}\s])body\s*\{/g, "$1:host{");
@@ -7386,6 +7466,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       document.addEventListener("keydown", e => { if (e.key === "Escape" && !ov.hidden) closePrintView(); });
     }
     ov.querySelector(".print-title").textContent = title;
+    let po = ov.querySelector(".print-opts");
+    if (!po) { po = document.createElement("div"); po.className = "print-opts"; ov.querySelector(".print-bar").after(po); }
+    const parts = opts && opts.parts;
+    po.hidden = !parts;
+    if (parts) {
+      po.innerHTML = '<span class="po-lbl">Drucken:</span>' + parts.map((p, i) => '<label class="nw-toggle"><input type="checkbox" data-pi="' + i + '"' + (p.on ? " checked" : "") + "> " + escapeHtml(p.label) + "</label>").join("");
+      po.querySelectorAll("input[data-pi]").forEach(cb => cb.addEventListener("change", () => {
+        const on = [...po.querySelectorAll("input[data-pi]")].map(x => x.checked);
+        if (!on.some(Boolean)) { cb.checked = true; return; } // nichts zu drucken geht nicht
+        opts.onParts(on);
+      }));
+    }
     const sheet = ov.querySelector("#print-sheet");
     sheet.classList.toggle("landscape", /size\s*:\s*A4\s+landscape/.test(pageRule));
     sheet.classList.toggle("bleed", /margin\s*:\s*0\s*[;}]/.test(pageRule)); // Vorlage setzt ihre Ränder selbst
@@ -7494,14 +7586,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // --s anpassen kann. Küchenzettel-Stil: Tinte auf Papier, Linien statt Karten, Zahlen in Mono, Wasser blau gepunktet.
   // Die Schriften (Newsreader, IBM Plex) lädt index.html; @font-face gilt auch im Shadow-DOM der Vorschau.
   const KITCHEN_CSS =
-    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:" + PALETTE.ink + ";margin:0}@page{size:A4 portrait;margin:0}.kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}.kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}.kz-fold{position:absolute;border:0 dashed " + PALETTE.rule + "}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}.kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;padding-bottom:.45em;border-bottom:.5mm solid " + PALETTE.ink + "}.kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin-bottom:.25em}.kz-h .ti b{display:block;font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:2.1em;line-height:1}.kz-h .rx{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}.kz-h .rx .pill{display:inline-block;border:.3mm solid " + PALETTE.ink + ";color:" + PALETTE.ink + ";font-weight:600;border-radius:99px;padding:.1em .65em;font-size:1em}.kz-h .rx small{display:block;color:" + PALETTE.grey + ";margin-top:.3em;font-size:.88em}.lbl{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin:1.1em 0 .3em}.r{display:grid;grid-template-columns:calc(12mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.4em 0;break-inside:avoid}.r.me{border-top:.25mm solid " + PALETTE.ink + "}.r.sl,.r.wa{border-top:.2mm dotted " + PALETTE.dot + "}.lbl + .r{border-top:0}.r .t{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em}.r .n{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.r i{font-style:normal}.r .d{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:" + PALETTE.grey + ";font-size:.82em;margin-left:.4em}.r .m{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em;text-align:right;white-space:nowrap}.r.wa{padding:.22em 0;color:" + PALETTE.blue + "}.r.wa .t,.r.wa .m{font-size:.95em;font-weight:500}.r.wa .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.r.wa .d{color:" + PALETTE.blue + "}.r.sl{color:" + PALETTE.grey + ";padding:.22em 0}.r.sl .t,.r.sl .m{font-size:.95em;font-weight:500}.r.sl .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.rb{border-top:.25mm solid " + PALETTE.ink + ";padding:.45em 0 .5em;break-inside:avoid}.rn{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 2mm;margin-bottom:.3em}.rn i{margin-left:auto}.rn b{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.rn .rt{min-width:0}.rn .name-suffix{font:400 .8em var(--f-sans,'IBM Plex Sans',Helvetica,Arial,sans-serif);color:var(--grey," + PALETTE.grey + ");white-space:nowrap}.rn i{font-style:normal;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-size:.82em;color:" + PALETTE.grey + ";white-space:nowrap}.rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;font-size:1.08em;line-height:1.25}.rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;padding:.12em 0;border-bottom:.2mm dotted " + PALETTE.dot + "}.rb .z .i span{color:" + PALETTE.ink + "}.rb .z .i b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;white-space:nowrap}.rb .wk{margin-top:.35em;font-size:.95em}.rb .wk b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600}";
+    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:" + PALETTE.ink + ";margin:0}@page{size:A4 portrait;margin:0}.kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}.kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}.kz-fold{position:absolute;border:0 dashed " + PALETTE.rule + "}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}.kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;padding-bottom:.45em;border-bottom:.5mm solid " + PALETTE.ink + "}.kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin-bottom:.25em}.kz-h .ti b{display:block;font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:2.1em;line-height:1}.kz-h .rx{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}.kz-h .rx .pill{display:inline-block;border:.3mm solid " + PALETTE.ink + ";color:" + PALETTE.ink + ";font-weight:600;border-radius:99px;padding:.1em .65em;font-size:1em}.kz-h .rx small{display:block;color:" + PALETTE.grey + ";margin-top:.3em;font-size:.88em}.lbl{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin:1.1em 0 .3em}.r{display:grid;grid-template-columns:calc(12mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.4em 0;break-inside:avoid}.r.me{border-top:.25mm solid " + PALETTE.ink + "}.r.sl,.r.wa{border-top:.2mm dotted " + PALETTE.dot + "}.lbl + .r{border-top:0}.r .t{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em}.r .n{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.r i{font-style:normal}.r .d{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:" + PALETTE.grey + ";font-size:.82em;margin-left:.4em}.r .m{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em;text-align:right;white-space:nowrap}.r.wa{padding:.22em 0;color:" + PALETTE.blue + "}.r.wa .t,.r.wa .m{font-size:.95em;font-weight:500}.r.wa .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.r.wa .d{color:" + PALETTE.blue + "}.r.sl{color:" + PALETTE.grey + ";padding:.22em 0}.r.sl .t,.r.sl .m{font-size:.95em;font-weight:500}.r.sl .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.rb{border-top:.25mm solid " + PALETTE.ink + ";padding:.45em 0 .5em;break-inside:avoid}.rn{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 2mm;margin-bottom:.3em}.rn i{margin-left:auto}.rn b{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.rn .rt{min-width:0}.rn .name-suffix{font:400 .8em var(--f-sans,'IBM Plex Sans',Helvetica,Arial,sans-serif);color:var(--grey," + PALETTE.grey + ");white-space:nowrap}.rn i{font-style:normal;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-size:.82em;color:" + PALETTE.grey + ";white-space:nowrap}.rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;font-size:1.08em;line-height:1.25}.rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;padding:.12em 0;border-bottom:.2mm dotted " + PALETTE.dot + "}.rb .z .i span{color:" + PALETTE.ink + "}.rb .z .i b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;white-space:nowrap}.rb .wk{margin-top:.35em;font-size:.95em}.rb .wk b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600}.kz.kz2{left:105mm}.kz.kz-how.solo{left:0}.st{border-top:.25mm solid " + PALETTE.ink + ";padding:.45em 0 .5em;break-inside:avoid}.st ol{margin:0;padding:0;list-style:none;counter-reset:s}.st li{counter-increment:s;display:grid;grid-template-columns:1.6em 1fr;padding:.14em 0;font-size:1.02em;line-height:1.25;border-bottom:.2mm dotted " + PALETTE.dot + "}.st li::before{content:counter(s) '.';font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600}.st li b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:.95em}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
   // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
-    const kz = root && root.querySelector && root.querySelector(".kz"); if (!kz) return;
-    let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
-    while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll(".kz").forEach(kz => { // Vorder- und Rückseite je für sich einpassen
+      let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
+      while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+    });
   }
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, Tintenlinie, Tabellen mit Punktlinien, Fußzeile.
@@ -7563,11 +7657,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         (oilsP.length ? " und " + oilsP.map(o => escapeHtml(oilName(o.food)) + " " + fmt(num(o.grams), 1) + " g").join(" + ") + " einrühren – zusammen ca. " + fmt(volPer, 0) + " ml" : " (ca. " + fmt(volumeMl(noOilP), 0) + " ml)") +
         (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ca. " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
-    const steps = splitSteps(prepSrc);
-    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
-    const oilStepP = oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(oilStepP);
+    const quick = quickSteps(rec, items);
+    const steps = quick ? quick.map(q => q.html).concat(prepNotes(prepSrc).map(escapeHtml)) : splitSteps(prepSrc).map(escapeHtml);
+    const oilStepP = quick ? null : oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(escapeHtml(oilStepP));
     const prep = steps.length
-      ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" +
+      ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + s + "</li>").join("") + "</ol>" +
         (!rec.angeruehrt ? "<div class='box'>Vor dem Abfüllen durch ein feines Sieb streichen, damit nichts die Spritze verstopft." + (showMult ? " Garzeiten gelten für eine Portion – bei der größeren Menge länger garen, bis alles weich ist." : "") + " Im Kühlschrank lagern.</div>" : "")
       : "";
     const pState = proteinState(sumPer.eiweiss, d.eiweissMahl);
@@ -7632,6 +7726,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const recs = [...kz.querySelectorAll(".rb")].map(b => ({
       n: txt(b, ".rn b"), sx: txt(b, ".rn .name-suffix").trim(), times: txt(b, ".rn i"),
       z: [...b.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
+      wk: txt(b, ".wk"), // Wasserkocher-Stufe (angerührte Mahlzeiten)
     }));
     const labels = [...kz.querySelectorAll(".lbl")].map(l => pdfText(l.textContent));
     const layout = (s, draw) => {
@@ -7723,7 +7818,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         const extra = tLines ? Math.max(0, (tLines.length - 1) * lineH(ti) - 0.2 * (lineH(tn) - lineH(ti)))
           : (line2Sx || below ? lineH(Math.max(line2Sx ? sxs : 0, below ? ti : 0)) : 0) + (below && !line2Times ? lineH(ti) : 0);
         const head = 0.45 * em + lineH(tn) + extra + 0.3 * em;
-        const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + 0.5 * em;
+        const WS = ZS * 0.92; font("sans", WS, false); const wkLines = rc.wk ? doc.splitTextToSize(rc.wk, R - L) : [];
+        const wkH = wkLines.length ? 0.35 * em + wkLines.length * lineH(WS) : 0;
+        const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + wkH + 0.5 * em;
         if (draw) {
           pdfRule(doc, L, y, R, y, 0.25);
           let yy = y + 0.45 * em + lineH(tn) * 0.8;
@@ -7746,6 +7843,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             });
             yy += rowH;
           });
+          if (wkLines.length) { font("sans", WS, false, INK); wkLines.forEach((l, i) => doc.text(l, L, yy + 0.35 * em + (i + 0.8) * lineH(WS))); }
         }
         y += h;
       });
@@ -7758,12 +7856,63 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
   }
+  // Rückseite des Küchenzettels (rechtes oberes Viertel, ox = 105) bzw. allein links (ox = 0): Kurzanleitung je Rezept –
+  // Name in Times, nummerierte Schritte (Nummer in Courier), gepunktet getrennt; Schrift passt sich an wie vorne.
+  function kitchenHowPdf(doc, kz, ox) {
+    const PX = 6, PY = 6, BOTTOM = 148.5 - 25, L = ox + PX, R = ox + 105 - PX, INK = PDF_INK, GREY = PDF_GREY;
+    const PT = 0.3528, lineH = (size) => size * PT * 1.2, FAM = { sans: "helvetica", serif: "times", mono: "courier" };
+    const font = (fam, size, bold, color) => { doc.setFont(FAM[fam], bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
+    const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
+    const blocks = [...kz.querySelectorAll(".st")].map(b => ({ n: txt(b, ".rn b"), sx: txt(b, ".rn .name-suffix").replace(/^·\s*/, ""), steps: [...b.querySelectorAll("li")].map(li => pdfText(li.textContent)) }));
+    const layout = (s, draw) => {
+      const em = 10 * s * PT, bs = 6.2 * s, ts = 21 * s, ks = 8.8 * s;
+      let y = PY;
+      const headH = lineH(bs) + 0.25 * em + ts * PT;
+      if (draw) {
+        font("sans", bs, true, GREY); doc.text(txt(kz, ".ti small").toUpperCase(), L, y + lineH(bs) * 0.8, { charSpace: bs * PT * 0.13 });
+        font("serif", ts, true); doc.text(txt(kz, ".ti b"), L, y + lineH(bs) + 0.25 * em + ts * PT * 0.8);
+        font("mono", ks, false, GREY); doc.text(txt(kz, ".rx small"), R, y + headH - 0.1 * em, { align: "right" });
+      }
+      y += headH + 0.45 * em; if (draw) pdfRule(doc, L, y, R, y, 0.5);
+      const ls = 7.2 * s; y += 1.1 * 0.72 * em;
+      if (draw) { font("sans", ls, true, GREY); doc.text(txt(kz, ".lbl").toUpperCase(), L, y + lineH(ls) * 0.8, { charSpace: ls * PT * 0.13 }); }
+      y += lineH(ls) + 0.3 * 0.72 * em;
+      const tn = 13 * s, ZS = 10.2 * s, nw = 1.6 * em;
+      blocks.forEach(b => {
+        if (draw) pdfRule(doc, L, y, R, y, 0.25);
+        y += 0.45 * em;
+        if (draw) { font("serif", tn, true); doc.text(b.n, L, y + lineH(tn) * 0.8); if (b.sx) { const w = doc.getTextWidth(b.n); font("sans", tn * 0.62, false, GREY); doc.text("· " + b.sx, L + w + 1, y + lineH(tn) * 0.8); } }
+        y += lineH(tn) + 0.3 * em;
+        b.steps.forEach((st, i) => {
+          font("sans", ZS, false); const lines = doc.splitTextToSize(st, R - L - nw), h = lines.length * lineH(ZS) + 0.28 * em;
+          if (draw) {
+            font("mono", ZS, true); doc.text((i + 1) + ".", L, y + 0.14 * em + lineH(ZS) * 0.8);
+            font("sans", ZS, false); lines.forEach((l, k) => doc.text(l, L + nw, y + 0.14 * em + (k + 0.8) * lineH(ZS)));
+            pdfDotted(doc, L, y + h, R, y + h, 0.2);
+          }
+          y += h;
+        });
+        y += 0.5 * em;
+      });
+      return y;
+    };
+    let s = 1.5;
+    while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (!ox) { doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0); doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0); }
+    layout(s, true);
+  }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
     const dom = new DOMParser().parseFromString(html, "text/html");
-    const kz = dom.body.querySelector(".kz");
-    if (kz) { const kd = new J({ unit: "mm", format: "a4", compress: true }); kitchenCardPdf(kd, kz); return kd; }
+    const cards = [...dom.body.querySelectorAll(".kz")];
+    if (cards.length) {
+      const kd = new J({ unit: "mm", format: "a4", compress: true });
+      const front = cards.find(c => !c.classList.contains("kz-how")), how = cards.find(c => c.classList.contains("kz-how"));
+      if (front) kitchenCardPdf(kd, front);
+      if (how) kitchenHowPdf(kd, how, front ? 105 : 0);
+      return kd;
+    }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = PDF_INK, GREY = PDF_GREY, RED = PDF_RED;

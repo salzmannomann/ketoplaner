@@ -49,6 +49,7 @@
     const recs = [...kz.querySelectorAll(".rb")].map(b => ({
       n: txt(b, ".rn b"), sx: txt(b, ".rn .name-suffix").trim(), times: txt(b, ".rn i"),
       z: [...b.querySelectorAll(".z .i")].map(i => ({ n: txt(i, "span"), g: txt(i, "b") })),
+      wk: txt(b, ".wk"), // Wasserkocher-Stufe (angerührte Mahlzeiten)
     }));
     const labels = [...kz.querySelectorAll(".lbl")].map(l => pdfText(l.textContent));
     const layout = (s, draw) => {
@@ -140,7 +141,9 @@
         const extra = tLines ? Math.max(0, (tLines.length - 1) * lineH(ti) - 0.2 * (lineH(tn) - lineH(ti)))
           : (line2Sx || below ? lineH(Math.max(line2Sx ? sxs : 0, below ? ti : 0)) : 0) + (below && !line2Times ? lineH(ti) : 0);
         const head = 0.45 * em + lineH(tn) + extra + 0.3 * em;
-        const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + 0.5 * em;
+        const WS = ZS * 0.92; font("sans", WS, false); const wkLines = rc.wk ? doc.splitTextToSize(rc.wk, R - L) : [];
+        const wkH = wkLines.length ? 0.35 * em + wkLines.length * lineH(WS) : 0;
+        const h = head + pairs.reduce((a, q) => a + q.n * zlh + 2 * ip, 0) + wkH + 0.5 * em;
         if (draw) {
           pdfRule(doc, L, y, R, y, 0.25);
           let yy = y + 0.45 * em + lineH(tn) * 0.8;
@@ -163,6 +166,7 @@
             });
             yy += rowH;
           });
+          if (wkLines.length) { font("sans", WS, false, INK); wkLines.forEach((l, i) => doc.text(l, L, yy + 0.35 * em + (i + 0.8) * lineH(WS))); }
         }
         y += h;
       });
@@ -175,12 +179,63 @@
     doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
   }
+  // Rückseite des Küchenzettels (rechtes oberes Viertel, ox = 105) bzw. allein links (ox = 0): Kurzanleitung je Rezept –
+  // Name in Times, nummerierte Schritte (Nummer in Courier), gepunktet getrennt; Schrift passt sich an wie vorne.
+  function kitchenHowPdf(doc, kz, ox) {
+    const PX = 6, PY = 6, BOTTOM = 148.5 - 25, L = ox + PX, R = ox + 105 - PX, INK = PDF_INK, GREY = PDF_GREY;
+    const PT = 0.3528, lineH = (size) => size * PT * 1.2, FAM = { sans: "helvetica", serif: "times", mono: "courier" };
+    const font = (fam, size, bold, color) => { doc.setFont(FAM[fam], bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
+    const txt = (el, sel) => { const n = sel ? el.querySelector(sel) : el; return n ? pdfText(n.textContent) : ""; };
+    const blocks = [...kz.querySelectorAll(".st")].map(b => ({ n: txt(b, ".rn b"), sx: txt(b, ".rn .name-suffix").replace(/^·\s*/, ""), steps: [...b.querySelectorAll("li")].map(li => pdfText(li.textContent)) }));
+    const layout = (s, draw) => {
+      const em = 10 * s * PT, bs = 6.2 * s, ts = 21 * s, ks = 8.8 * s;
+      let y = PY;
+      const headH = lineH(bs) + 0.25 * em + ts * PT;
+      if (draw) {
+        font("sans", bs, true, GREY); doc.text(txt(kz, ".ti small").toUpperCase(), L, y + lineH(bs) * 0.8, { charSpace: bs * PT * 0.13 });
+        font("serif", ts, true); doc.text(txt(kz, ".ti b"), L, y + lineH(bs) + 0.25 * em + ts * PT * 0.8);
+        font("mono", ks, false, GREY); doc.text(txt(kz, ".rx small"), R, y + headH - 0.1 * em, { align: "right" });
+      }
+      y += headH + 0.45 * em; if (draw) pdfRule(doc, L, y, R, y, 0.5);
+      const ls = 7.2 * s; y += 1.1 * 0.72 * em;
+      if (draw) { font("sans", ls, true, GREY); doc.text(txt(kz, ".lbl").toUpperCase(), L, y + lineH(ls) * 0.8, { charSpace: ls * PT * 0.13 }); }
+      y += lineH(ls) + 0.3 * 0.72 * em;
+      const tn = 13 * s, ZS = 10.2 * s, nw = 1.6 * em;
+      blocks.forEach(b => {
+        if (draw) pdfRule(doc, L, y, R, y, 0.25);
+        y += 0.45 * em;
+        if (draw) { font("serif", tn, true); doc.text(b.n, L, y + lineH(tn) * 0.8); if (b.sx) { const w = doc.getTextWidth(b.n); font("sans", tn * 0.62, false, GREY); doc.text("· " + b.sx, L + w + 1, y + lineH(tn) * 0.8); } }
+        y += lineH(tn) + 0.3 * em;
+        b.steps.forEach((st, i) => {
+          font("sans", ZS, false); const lines = doc.splitTextToSize(st, R - L - nw), h = lines.length * lineH(ZS) + 0.28 * em;
+          if (draw) {
+            font("mono", ZS, true); doc.text((i + 1) + ".", L, y + 0.14 * em + lineH(ZS) * 0.8);
+            font("sans", ZS, false); lines.forEach((l, k) => doc.text(l, L + nw, y + 0.14 * em + (k + 0.8) * lineH(ZS)));
+            pdfDotted(doc, L, y + h, R, y + h, 0.2);
+          }
+          y += h;
+        });
+        y += 0.5 * em;
+      });
+      return y;
+    };
+    let s = 1.5;
+    while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (!ox) { doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0); doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0); }
+    layout(s, true);
+  }
   function buildPdfFromHtml(html) {
     const J = typeof window !== "undefined" && window.jspdf && window.jspdf.jsPDF;
     if (!J) return null;
     const dom = new DOMParser().parseFromString(html, "text/html");
-    const kz = dom.body.querySelector(".kz");
-    if (kz) { const kd = new J({ unit: "mm", format: "a4", compress: true }); kitchenCardPdf(kd, kz); return kd; }
+    const cards = [...dom.body.querySelectorAll(".kz")];
+    if (cards.length) {
+      const kd = new J({ unit: "mm", format: "a4", compress: true });
+      const front = cards.find(c => !c.classList.contains("kz-how")), how = cards.find(c => c.classList.contains("kz-how"));
+      if (front) kitchenCardPdf(kd, front);
+      if (how) kitchenHowPdf(kd, how, front ? 105 : 0);
+      return kd;
+    }
     const doc = new J({ unit: "mm", format: "a4", compress: true });
     const PW = 210, PH = 297, M = 14, W = PW - 2 * M, BOTTOM = PH - M - 6;
     const INK = PDF_INK, GREY = PDF_GREY, RED = PDF_RED;
