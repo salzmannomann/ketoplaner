@@ -179,19 +179,24 @@
       res = Object.assign({}, res, { items: items2, ratio: ratioOf(sm2), kcal: sm2.kcal });
     }
     let fluidAdjusted = false, waterCapped = false;
-    // Wasser zwischen den Mahlzeiten: Rezept-Wasser bleibt, außer die Mahlzeit wäre dichter als erlaubt (kcal je ml) – dann gerade so
-    // viel Wasser dazu, dass die Grenze eingehalten ist. Gemerktes Wasser hat Vorrang.
-    let densityAdjusted = false;
+    // Wasser zwischen den Mahlzeiten: jede Mahlzeit wird auf etwa maxDichte kcal/ml gebracht (verträgt sie gut), der Rest der
+    // Tagesmenge kommt als Wassergaben. Zu dichte Rezepte bekommen Wasser dazu; zu dünne geben Rezept-Wasser ab – gekochte Breie
+    // behalten aber mindestens das Mindestwasser zum Pürieren (Küche), angerührte mindestens 10 ml. Gemüse ist selbst sehr
+    // wasserreich, solche Breie bleiben dann etwas dünner. Gemerktes Wasser hat Vorrang.
+    let densityAdjusted = false, waterTrimmed = false, waterAtMin = false;
     if (d.wasserModus === "zwischen" && d.maxDichte > 0 && !hasWaterOverride) {
       const isW3 = (it) => /wasser/i.test(it.food);
-      const kcalM = sumMacros(res.items).kcal, vol = volumeMl(res.items), minVol = kcalM / d.maxDichte;
-      if (vol < minVol - 0.5) {
-        const add = minVol - vol, stdW = res.items.filter(isW3).reduce((a, it) => a + num(it.grams), 0);
+      const kcalM = sumMacros(res.items).kcal, vol = volumeMl(res.items);
+      const stdW = res.items.filter(isW3).reduce((a, it) => a + num(it.grams), 0);
+      const need = stdW + kcalM / d.maxDichte - vol;
+      const floor = Math.min(stdW, rec.angeruehrt ? 10 : breiWasserMin(d));
+      const want = need > stdW ? need : Math.max(need, floor);
+      if (Math.abs(want - stdW) >= 0.5) {
         const items4 = stdW > 0
-          ? res.items.map(it => isW3(it) ? { food: it.food, grams: round1(num(it.grams) * (stdW + add) / stdW) } : it)
-          : res.items.concat([{ food: "Wasser", grams: round1(add) }]);
+          ? res.items.map(it => isW3(it) ? { food: it.food, grams: round1(num(it.grams) * want / stdW) } : it)
+          : res.items.concat([{ food: "Wasser", grams: round1(want) }]);
         res = Object.assign({}, res, { items: items4 });
-        densityAdjusted = true;
+        densityAdjusted = want > stdW; waterTrimmed = want < stdW; waterAtMin = waterTrimmed && want > need + 0.5;
       }
     }
     // Zum Schluss: Rundung fürs Abwiegen (fest 0,5 g / Wasser 1 ml), Verhältnis über die Fettträger nachgestellt.
@@ -201,7 +206,7 @@
       res = Object.assign({}, res, { items: itemsR, ratio: ratioOf(smR), kcal: smR.kcal });
     }
     const fluid = fluidOf(res.items);
-    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterCapped, fluid,
+    return { res, adjIndex, adjLabel, baseOilIndex, waterKey, hasWaterOverride, fluidAdjusted, densityAdjusted, waterTrimmed, waterAtMin, waterCapped, fluid,
       portionF: hasPortion ? portionF : 1, hasPortion, kcalBerechnet, kcalRoh, slotPortion, slotWater };
   }
   // Gekochte Rezepte: Öl wird nicht mitpüriert, sondern in die abgefüllte Portion eingerührt – als letzter Schritt
@@ -465,7 +470,7 @@
       const gR = fatRow ? roundTo(g, 0.1) : roundTo(g, isWaterRow ? 1 : d.rundung);
       const gTxt = (fatRow ? gR.toFixed(1) : String(gR)).replace(".", ","); // Fettträger immer mit einer Nachkommastelle („21,0“)
       // Wasserzeile: nur die Herkunft steht dabei; Anpassungen und ihr Zurücksetzen stehen in der Statuszeile.
-      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">Flüssigkeitsziel</small>' : (mv.densityAdjusted ? '<small class="adj">höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : ""))) : "";
+      const waterTag = isWaterRow ? (hasWaterOverride ? '<small class="adj">eigener Wert</small>' : (mv.fluidAdjusted ? '<small class="adj">Flüssigkeitsziel</small>' : (mv.densityAdjusted || (mv.waterTrimmed && !mv.waterAtMin) ? '<small class="adj">' + fmt(d.maxDichte, 1) + ' kcal/ml</small>' : mv.waterAtMin ? '<small class="adj">mindestens zum Pürieren</small>' : ""))) : "";
       const mK = lineMacros({ food: it.food, grams: gR }); // Blatt Tag: für die Zubereitungsmenge
       const unit = '<span class="unit">' + (isWaterRow ? "ml" : "g") + "</span>";
       const label = (mm) => '<div class="ing-name"><span class="name">' + escapeHtml(it.food) + "</span>" + (i === adjIndex ? adjLabel : "") + waterTag + nutrLine(mm) + "</div>";
@@ -510,7 +515,7 @@
     const ratioLine = '<div class="hint ratio-line">Fertig <strong>' + fmt(volPer, 0) + ' ml für ' + fmt(sumPer.kcal, 0) + ' kcal</strong> (Nahrung ' + fmt(foodPer, 0) + ' g + Wasser ' + fmt(waterPer, 0) + ' ml) – bei mehr Kalorien wächst alles im gleichen Verhältnis</div>';
     const fluidLine = ratioLine + (d.fluidDay > 0
       ? '<div class="hint fluid-line">Flüssigkeit ca. <strong>' + fmt(fluidPer, 0) + ' ml</strong> (Zutaten ' + fmt(foodFluidPer, 0) + ' + Wasser ' + fmt(waterPer, 0) + ')' +
-        (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit höchstens ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : hasWaterOverride ? ' · eigene Wassermenge' : ' · Wasser wie im Rezept') + ', der Rest der Tagesmenge kommt als Wassergaben' +
+        (mv.densityAdjusted ? ' · Wasser so weit erhöht, dass die Mahlzeit ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : mv.waterAtMin ? ' · Wasser verringert, aber mindestens ' + fmt(breiWasserMin(d), 0) + ' ml zum Pürieren (Küche)' : mv.waterTrimmed ? ' · Wasser so weit verringert, dass die Mahlzeit ' + fmt(d.maxDichte, 1) + ' kcal/ml hat' : hasWaterOverride ? ' · eigene Wassermenge' : ' · Wasser wie im Rezept') + ', der Rest der Tagesmenge kommt als Wassergaben' +
         (bigVol ? ' · <strong class="attn-txt">' + fmt(volPer, 0) + ' ml auf einmal, über ' + fmt(d.maxMahlMl, 0) + ' ml</strong>' : '') + '</div>'
       : "");
     const fluidDayNote = d.fluidDay > 0 ? zwischenText(d, fluidPer) : "";

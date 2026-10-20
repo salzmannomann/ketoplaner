@@ -326,8 +326,12 @@
             <div class="vo-lbl"><label for="set-verdunstung">Verdunstung beim Dämpfen</label></div>
             <div class="vo-in"><input id="set-verdunstung" class="num-input" type="number" min="0" step="10" inputmode="numeric" placeholder="150" /><span class="unit">ml</span></div>
           </div>
+          <div class="vo-row">
+            <div class="vo-lbl"><label for="set-brei-wasser">Wasser im Brei mindestens</label><span class="src">je Portion, zum Pürieren und für die Sonde</span></div>
+            <div class="vo-in"><input id="set-brei-wasser" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="30" /><span class="unit">ml</span></div>
+          </div>
         </div>
-        <p class="hint">So viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf.</p>
+        <p class="hint">Verdunstung: so viel Wasser verdampft beim Dämpfen – damit rechnet die Varoma-Anleitung das Wasser im Topf. Jede Mahlzeit wird auf etwa 1,5 kcal/ml gebracht, der Rest der Tagesmenge kommt als Wassergaben; ein gekochter Brei behält aber mindestens das Wasser oben. Geht er schlecht durch die Sonde, den Wert erhöhen.</p>
         <details class="more"><summary class="tlink">Rundung und Verdunstung</summary>
           <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
@@ -474,7 +478,7 @@
   <script src="recipes.js?v=ae32c2ed"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=078dbfde"></script>
+  <script src="app.js?v=d21df04a"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

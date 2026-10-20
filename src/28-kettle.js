@@ -54,7 +54,7 @@
     return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
   }
   // Vorgaben › Küche: Felder füllen (leer = Standard, grau als Platzhalter) und Änderungen übernehmen
-  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss" };
+  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss", "set-brei-wasser": "breiWasserMin" };
   function renderKettleSettings() {
     const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
     put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
@@ -63,10 +63,11 @@
     if (box) { box.hidden = !own.length; document.getElementById("kitchen-own").textContent = own.length ? "Eigene Werte: " + own.join(", ") + "." : ""; }
   }
   // Küche: welche Werte weichen vom Standard ab? (für „Auf Standard zurücksetzen“)
-  const KITCHEN_KEYS = ["dampfVerdunstung", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss"];
+  const KITCHEN_KEYS = ["dampfVerdunstung", "breiWasserMin", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss"];
   function kitchenOwn() {
     const s = state.settings, out = [], has = (k) => s[k] !== undefined && s[k] !== "" && s[k] !== null;
     if (has("dampfVerdunstung") && num(s.dampfVerdunstung) !== DAMPF_STANDARD) out.push("Verdunstung " + fmt(num(s.dampfVerdunstung), 0) + " ml");
+    if (has("breiWasserMin") && num(s.breiWasserMin) !== BREI_WASSER_STD) out.push("Brei mindestens " + fmt(num(s.breiWasserMin), 0) + " ml Wasser");
     if (Array.isArray(s.kettleSteps) && s.kettleSteps.join() !== KETTLE_STD.steps.join()) out.push("Stufen " + s.kettleSteps.join("/") + " °C");
     if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
     if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");

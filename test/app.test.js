@@ -698,11 +698,13 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   assert.match(fact(w, "verordnung-summary", "gabe"), /^Wassergabenca\. 4 × \d+ mlzwischen den Mahlzeiten/);
   assert.match(fact(w, "verordnung-summary", "richtwert"), /^Richtwert Flüssigkeit850 mlnach Gewicht · 100 ml\/kg/);
   assert.match($(w, "rx-chip").getAttribute("aria-label"), /850 ml\/Tag · Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
-  // Rezept: Wasser wie im Rezept, Verhältnis Nahrung : Wasser sichtbar, Rest als Wassergaben
-  let c = openRecipe(w, "Hendl & Brokkoli");
+  const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
+  // Rezept: Wasser bis etwa 1,5 kcal/ml verringert, Verhältnis Nahrung : Wasser sichtbar, Rest als Wassergaben
+  let c = openRecipe(w, "Hendl & Erbsen");
   const water0 = kitchenRows(c)["Wasser"];
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ratio-line").textContent, /^Fertig \d+ ml für 170 kcal \(Nahrung \d+ g \+ Wasser \d+ ml\) – bei mehr Kalorien wächst alles im gleichen Verhältnis$/);
-  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .fluid-line").textContent, /Wasser wie im Rezept, der Rest der Tagesmenge kommt als Wassergaben/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ratio-line").textContent, /^Fertig \d+ ml für 17\d kcal \(Nahrung \d+ g \+ Wasser \d+ ml\) – bei mehr Kalorien wächst alles im gleichen Verhältnis$/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .fluid-line").textContent, /Wasser so weit verringert, dass die Mahlzeit 1,5 kcal\/ml hat, der Rest der Tagesmenge kommt als Wassergaben/);
+  assert.ok(Math.abs(171 / volOf(c) - 1.5) < 0.04, "ca. 1,5 kcal/ml: " + volOf(c));
   assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ca\. \d+ ml am Tag/);
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
   fire(w, $(w, "detail-close"));
@@ -710,9 +712,22 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   const k = $(w, "set-kcal"); k.value = "850"; fire(w, k, "input");
   assert.equal($(w, "set-fluidday").value, "1063", "850 kcal × 1,25");
   assert.equal($(w, "set-fluidratio").value, "1,25", "Verhältnis bleibt");
-  c = openRecipe(w, "Hendl & Brokkoli");
+  c = openRecipe(w, "Hendl & Erbsen");
   assert.ok(Math.abs(kitchenRows(c)["Wasser"] / water0 - 1.25) < 0.03, water0 + " → " + kitchenRows(c)["Wasser"]);
   fire(w, $(w, "detail-close"));
+  // Gemüsereicher Brei: Wasser nur bis zum Mindestwasser zum Pürieren (Annahme 30 ml, Küche änderbar)
+  const portionWater = (cc) => +/Wasser (\d+) ml\)/.exec(cc.querySelector(".pane[data-pane=mahlzeit] .ratio-line").textContent)[1];
+  c = openRecipe(w, "Hendl & Brokkoli");
+  assert.equal(portionWater(c), 30);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .fluid-line").textContent, /Wasser verringert, aber mindestens 30 ml zum Pürieren \(Küche\)/);
+  assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /mindestens zum Pürieren/);
+  fire(w, $(w, "detail-close"));
+  assert.equal($(w, "set-brei-wasser").placeholder, "30");
+  const bw = $(w, "set-brei-wasser"); bw.value = "45"; fire(w, bw, "input");
+  assert.equal(st().breiWasserMin, 45);
+  c = openRecipe(w, "Hendl & Brokkoli"); assert.equal(portionWater(c), 45); fire(w, $(w, "detail-close"));
+  assert.match($(w, "kitchen-own").textContent, /Brei mindestens 45 ml Wasser/);
+  bw.value = ""; fire(w, bw, "input"); assert.equal(st().breiWasserMin, undefined);
   // Tagesmenge eintippen → Verhältnis; Verhältnis („1:1“) eintippen → Tagesmenge
   const fd = $(w, "set-fluidday"); fd.value = "1000"; fire(w, fd, "input");
   assert.ok(Math.abs(st().fluidRatio - 1000 / 850) < 1e-9); assert.equal($(w, "set-fluidratio").value, "1,18");
@@ -733,11 +748,10 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   assert.equal($(w, "vo-view").querySelector(".note.attn.fluid-low"), null);
   // Energiedichte: Compleat & KetoCal hätte mit Rezept-Wasser > 2 kcal/ml – die App füllt bis 1,5 kcal/ml auf
   const w3 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5 } });
-  const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
   let c3 = openRecipe(w3, "Compleat & KetoCal");
   assert.ok(Math.abs(volOf(c3) - 188 / 1.5) <= 2, "Volumen ≈ 125 ml: " + volOf(c3));
-  assert.match(c3.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /höchstens 1,5 kcal\/ml/);
-  assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser so weit erhöht, dass die Mahlzeit höchstens 1,5 kcal\/ml hat/);
+  assert.match(c3.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /1,5 kcal\/ml/);
+  assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser so weit erhöht, dass die Mahlzeit 1,5 kcal\/ml hat/);
   // Ein früher eingestellter Wert gilt weiter (kein eigenes Feld mehr)
   const w4 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5, maxDichte: 2 } });
   const c4 = openRecipe(w4, "Compleat & KetoCal");
