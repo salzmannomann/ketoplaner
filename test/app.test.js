@@ -2168,6 +2168,37 @@ test("Wachstum: Zeitraum 6 Monate / 1 Jahr / Alles – Ausschnitt mit enger Wert
   assert.equal(w2.document.querySelector('#gr-range [data-gr="12"]').getAttribute("aria-pressed"), "true");
 });
 
+test("Wasserkocher: Stufe unter „Kochen“ und auf dem Tagesplan – ohne lauwarmes Wasser, wenn eine Stufe passt", () => {
+  const plan = [{ key: "std:Compleat & KetoCal" }, { key: "std:KetoCal & Pre Apta" }, { key: "std:HiPP Hühnchen & Öl" }, { key: null }, { key: null }];
+  const w = boot({ settings: { kcal: 680, ratio: 1.8, mahlzeiten: 5, weight: 8.5, mctShare: 0 }, dayPlan: plan });
+  const step1 = (name) => { const c = openRecipe(w, name), ol = c.querySelector('.pane[data-pane="zubereitung"] ol.steps'); const t = ol ? ol.children[0].textContent : ""; fire(w, $(w, "detail-close")); return t; };
+  const tempOf = (t) => +(/ca\. (\d+) °C/.exec(t) || [])[1];
+  // Compleat & KetoCal bei 1,8:1: wenig kaltes Compleat, viel Wasser – keine Stufe allein passt → ein Teil lauwarm (10er-Schritte)
+  let t = step1("Compleat & KetoCal");
+  assert.match(t, /^Wasser vorbereiten \(je Mahlzeit\): Wasserkocher auf (45|65|85|100) °C stellen und \d+ ml mit der Spritze abnehmen, dazu (10|20|30|40|50) ml lauwarmes Wasser\. Mit den übrigen Zutaten ergibt das ca\. \d+ °C\.$/);
+  assert.ok(tempOf(t) >= 34 && tempOf(t) <= 39, t);
+  // KetoCal & Pre Apta: 45 °C allein wäre knapp über 39 °C → 10 ml lauwarm; mit Obergrenze 41 °C reicht die Stufe allein
+  t = step1("KetoCal & Pre Apta");
+  assert.match(t, /Wasserkocher auf 45 °C stellen und \d+ ml mit der Spritze abnehmen, dazu 10 ml lauwarmes Wasser/);
+  fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
+  const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
+  t = step1("KetoCal & Pre Apta");
+  assert.match(t, /Wasserkocher auf 45 °C stellen und \d+ ml mit der Spritze abnehmen\. Mit den übrigen Zutaten ergibt das ca\. (39|40|41) °C\.$/, "ohne lauwarmes Wasser: " + t);
+  // Eigene Stufen
+  const stp = $(w, "set-kettle-steps"); stp.value = "50 / 70 / 90"; fire(w, stp, "change");
+  assert.equal(stp.value, "50, 70, 90"); assert.deepEqual(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kettleSteps, [50, 70, 90]);
+  assert.match(step1("Compleat & KetoCal"), /Wasserkocher auf (50|70|90) °C/);
+  assert.match($(w, "vgs-kueche").textContent, /Wasserkocher 50\/70\/90 °C/);
+  // HiPP-Gläschen: kein Wasserkocher-Schritt
+  assert.doesNotMatch(step1("HiPP Hühnchen & Öl"), /Wasserkocher/);
+  // Gedruckter Tagesplan: je angerührtes Rezept eine Zeile, nicht bei HiPP
+  fire(w, $(w, "tab-heute")); fire(w, $(w, "print-day"));
+  const root = $(w, "print-sheet").shadowRoot, blocks = [...root.querySelectorAll(".rb")];
+  const wk = (n) => { const b = blocks.find(x => x.querySelector(".rn b").textContent === n); return b && b.querySelector(".wk") ? b.querySelector(".wk").textContent : ""; };
+  assert.match(wk("Compleat & KetoCal"), /^Wasserkocher (50|70|90) °C(: \d+ ml heiß \+ \d+ ml lauwarm)? → ca\. \d+ °C/);
+  assert.equal(wk("HiPP Hühnchen & Öl"), "");
+});
+
 test("Wachstum: ohne Geburtsdatum Hinweis statt Kurve; kaputte Messungen werden beim Laden verworfen", () => {
   const w = boot({ settings: { view: "vorgaben" }, growth: [{ id: "a", d: "2025-05-01", w: 9 }, { id: "b", d: "kein Datum", w: 9 }, { id: "c", d: "2025-06-01", w: 900 }, "x", { id: "d", d: "2025-07-01", h: 80, hc: "viel" }] });
   const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));

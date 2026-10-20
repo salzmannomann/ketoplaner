@@ -482,6 +482,8 @@
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
+    // Angerührt: zuerst das Wasser – Stufe am Wasserkocher, damit die Mahlzeit gleich körperwarm ist (je Mahlzeit)
+    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
     const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
     const stepsHtml = steps.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)

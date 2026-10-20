@@ -10,7 +10,7 @@
     bindSync();
     bindBedarf();
     bindLebensmittel();
-    bindWachstum();
+    bindWachstum(); bindKettleSettings();
     bindDetail();
     bindCompose();
     bindHeute();

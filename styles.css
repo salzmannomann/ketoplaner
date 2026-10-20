@@ -754,6 +754,12 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .ms-row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .nowrap { white-space: nowrap; }
 #backup-card .vo-rows { margin-top: 10px; }
+/* Küche › Wasserkocher: Stufen als Textfeld (breiter), Spanne mit zwei Feldern */
+.kettle-sec { margin-top: 22px; }
+.num-input.kettle-steps { width: 150px; font-size: var(--t-m); }
+.kettle-range { gap: 6px; }
+.kettle-range .num-input { width: 56px; }
+.kettle-range .dash { color: var(--grey); }
 .vg-backup { margin: 0 0 14px; }
 .vg-backup[hidden] { display: none; }
 .vg-backup .tlink { min-height: 0; margin: 0; }

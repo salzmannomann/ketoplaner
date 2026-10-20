@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=2d6c6fe7" />
+  <link rel="stylesheet" href="styles.css?v=efb01edd" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -331,6 +331,19 @@
         <details class="more"><summary class="tlink">Rundung und Verdunstung</summary>
           <p><strong>Rundung:</strong> Gemüse, Fleisch, Obst, Brei und Pulver werden auf 0,5 g gerundet, Wasser auf 1 ml. Fettträger (Öl, Butter, Obers, KetoCal) werden danach so nachgestellt, dass das Verhältnis exakt stimmt, und immer auf 0,1 g genau angezeigt (z. B. 21,0 g). <strong>Verdunstung kalibrieren:</strong> einmal z. B. 400 ml einfüllen, wie üblich dämpfen, Rest abmessen – die Differenz ist die Verdunstung deines Geräts; die Varoma-Anleitung rechnet damit das Topf-Wasser.</p>
         </details>
+        <div class="vg-sec kettle-sec">
+          <h3 class="vg-sec-title">Wasserkocher <span class="hint">für angerührte Mahlzeiten</span></h3>
+          <div class="vo-rows">
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-steps">Stufen</label><span class="src">Temperaturen am Wasserkocher</span></div><div class="vo-in"><input id="set-kettle-steps" class="num-input kettle-steps" type="text" inputmode="numeric" autocomplete="off" placeholder="45, 65, 85, 100" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><span>Körperwarm</span><span class="src">fertige Mahlzeit, nicht heißer</span></div><div class="vo-in kettle-range"><input id="set-kettle-lo" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="34" aria-label="von" /><span class="dash">–</span><input id="set-kettle-hi" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="39" aria-label="bis" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-fridge">Aus dem Kühlschrank</label><span class="src">z. B. Compleat, BioFresh ca. 0–3 °C</span></div><div class="vo-in"><input id="set-kettle-fridge" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="2" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-luke">Lauwarmes Wasser</label><span class="src">nur wenn keine Stufe passt</span></div><div class="vo-in"><input id="set-kettle-luke" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="30" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen beim Zubereiten</label><span class="src">Spritze, Becher, Mischen</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="3" /><span class="unit">°C</span></div></div>
+          </div>
+          <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
+            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (10, 20, 30 ml …). Die Angabe steht unter „Kochen“ als erster Schritt und auf dem gedruckten Tagesplan. Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
+          </details>
+        </div>
       </div>
 
       <!-- Unterseite Erinnerungen und Daten: Erinnerungen, Geräte abgleichen, Daten (Backup, Werte), Darstellung -->
@@ -457,10 +470,10 @@
   </div>
 
   <script src="foods.js?v=ab545b76"></script>
-  <script src="recipes.js?v=3a28278d"></script>
+  <script src="recipes.js?v=d96d05be"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=64f0f392"></script>
+  <script src="app.js?v=50995de6"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

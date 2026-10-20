@@ -1048,6 +1048,86 @@
     return { name: "", sex: null, birth: "", entries, skipped };
   }
 
+  /* ---------- Wasserkocher: Stufe für angerührte Mahlzeiten ----------
+     Angerührte Mahlzeiten (KetoCal, Compleat …) sollen gleich körperwarm in die Sonde: heißes Wasser aus dem Wasserkocher
+     (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
+     Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
+     beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
+     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers in
+     10-ml-Schritten (10, 20, 30 …) lauwarm genommen. Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 34, hi: 39, fridge: 2, room: 21, luke: 30, loss: 3 };
+  function kettleSettings() {
+    const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
+    const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
+    let lo = n(s.kettleLo, KETTLE_STD.lo), hi = n(s.kettleHi, KETTLE_STD.hi); if (hi < lo) { const t = lo; lo = hi; hi = t; }
+    return { steps: steps.length ? steps : KETTLE_STD.steps, lo, hi, fridge: n(s.kettleFridge, KETTLE_STD.fridge), room: KETTLE_STD.room, luke: n(s.kettleLuke, KETTLE_STD.luke), loss: n(s.kettleLoss, KETTLE_STD.loss) };
+  }
+  // „45, 65, 85, 100“ → [45, 65, 85, 100]
+  function parseKettleSteps(t) { return String(t || "").split(/[^\d]+/).map(Number).filter(v => v >= 30 && v <= 100).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b); }
+  // Plan für Zutaten (eine Portion oder die Zubereitungsmenge): { t, hot, luke, ml, temp, inRange } oder null
+  function kettlePlan(items) {
+    const ks = kettleSettings(), isW = (it) => /^wasser$/i.test(it.food);
+    const water = items.filter(isW).reduce((a, it) => a + num(it.grams), 0), rest = items.filter(it => !isW(it) && num(it.grams) > 0);
+    // nur Sondennahrung zum Anrühren (KetoCal, Compleat, Pulver wie Pre Apta) – nicht z. B. HiPP-Gläschen
+    if (!(water >= 5) || !rest.some(it => /ketocal|compleat|pulver/i.test(it.food))) return null;
+    // Wärmekapazität aus dem Wasseranteil (Wasser 4,18, Trockenmasse ca. 1,5 J/(g·K)); flüssige Zutaten (≥ 50 % Wasser) kalt
+    let C = water * 4.18, Q0 = 0;
+    rest.forEach(it => {
+      const f = lookup(it.food), wp = f && f.wasser != null ? Math.max(0, Math.min(100, num(f.wasser))) / 100 : 0.1, g = num(it.grams);
+      const c = 4.18 * wp + 1.5 * (1 - wp), T = wp >= 0.5 ? ks.fridge : ks.room;
+      C += g * c; Q0 += g * c * T;
+    });
+    const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
+    const mid = (ks.lo + ks.hi) / 2, Ls = [0];
+    for (let L = 10; L <= W - 10; L += 10) Ls.push(L); // mindestens 10 ml bleiben heiß (zum Anrühren)
+    const all = [];
+    Ls.forEach(L => ks.steps.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
+    // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
+    const fit = all.filter(x => x.inRange).sort((a, b) => a.luke - b.luke || Math.abs(a.temp - mid) - Math.abs(b.temp - mid));
+    if (fit.length) return fit[0];
+    // Nichts passt: die wärmste Variante, die nicht zu heiß ist (sonst die kühlste)
+    const ok = all.filter(x => x.temp <= ks.hi + 0.5).sort((a, b) => b.temp - a.temp || a.luke - b.luke);
+    return ok[0] || all.sort((a, b) => a.temp - b.temp)[0];
+  }
+  // Text für den ersten Schritt der Zubereitung bzw. den Ausdruck
+  function kettleText(p, short) {
+    if (!p) return "";
+    const temp = "ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > kettleSettings().hi ? " – etwas zu warm, kurz abkühlen lassen" : " – etwas kühler als geplant");
+    if (short) return "Wasserkocher " + p.t + " °C" + (p.luke ? ": " + p.hot + " ml heiß + " + p.luke + " ml lauwarm" : "") + " → " + temp;
+    return "Wasser vorbereiten (je Mahlzeit): Wasserkocher auf " + p.t + " °C stellen und " + p.hot + " ml mit der Spritze abnehmen" +
+      (p.luke ? ", dazu " + p.luke + " ml lauwarmes Wasser" : "") + ". Mit den übrigen Zutaten ergibt das " + temp + ".";
+  }
+  // Kurzform für den Küchenzettel: „Wasserkocher 65 °C · 40 ml heiß + 20 ml lauwarm → ca. 37 °C“
+  function kettleHtml(p) {
+    const t = kettleText(p, true), i = t.indexOf(" °C");
+    return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
+  }
+  // Vorgaben › Küche: Felder füllen (leer = Standard, grau als Platzhalter) und Änderungen übernehmen
+  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss" };
+  function renderKettleSettings() {
+    const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
+    put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
+    Object.keys(KETTLE_FIELDS).forEach(id => { const v = s[KETTLE_FIELDS[id]]; put(id, v === "" || v == null ? "" : fmtNum(v)); });
+  }
+  function bindKettleSettings() {
+    const st = document.getElementById("set-kettle-steps"); if (!st) return;
+    st.addEventListener("change", () => {
+      const a = parseKettleSteps(st.value);
+      if (a.length) state.settings.kettleSteps = a; else delete state.settings.kettleSteps;
+      st.value = a.join(", "); save(); renderRezepte();
+    });
+    Object.keys(KETTLE_FIELDS).forEach(id => {
+      const e = document.getElementById(id); if (!e) return;
+      e.addEventListener("input", () => {
+        const t = e.value.trim(), v = parseFloat(t.replace(",", "."));
+        if (t === "") delete state.settings[KETTLE_FIELDS[id]];
+        else if (isFinite(v) && v >= -5 && v <= 100) state.settings[KETTLE_FIELDS[id]] = v;
+        else return;
+        save(); renderRezepte();
+      });
+    });
+  }
+
   /* ---------- Wischen in der Rezeptliste: links = nächste Gruppe, rechts = vorige ----------
      Drücken und Ziehen im Bereich der Rezepte (Finger oder Maus) blättert zwischen den Gruppen wie zwischen
      den Blättern der Detailansicht: die Nachbargruppe wird beim Ziehen in eine zweite Fläche gerendert und
@@ -1509,7 +1589,9 @@
     put("vgs-verordnung", fmtRx(d.ratio) + " · " + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") +
       (d.mctShare > 0 ? " · MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " %" : ""));
     put("vgs-wachstum", growthSummary());
-    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml");
+    const ks = kettleSettings();
+    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml · Wasserkocher " + ks.steps.join("/") + " °C");
+    renderKettleSettings();
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
     const bd = backupDays();
     put("vgs-app", [s.pushOn ? "Erinnerungen an" : "", syncOn ? "Abgleich an" : "", bd == null ? "noch kein Backup" : "Backup " + backupAgeText(bd)].filter(Boolean).join(" · "));
@@ -3131,6 +3213,8 @@
       ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat)))
       : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepText);
+    // Angerührt: zuerst das Wasser – Stufe am Wasserkocher, damit die Mahlzeit gleich körperwarm ist (je Mahlzeit)
+    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
     const oilStep = oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
     const stepsHtml = steps.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
@@ -4120,14 +4204,15 @@
       const g = groups.find(x => x.sig === sig);
       const dn = displayName(f.rec);
       if (note) dn.suffix = (dn.suffix ? dn.suffix + " · " : "") + note;
-      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t] });
+      if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
     });
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     // Rezeptname groß, Zusatz „· mit KetoCal“ klein und grau daneben (.rt hält beides links zusammen)
     const rez = groups.map(g => "<div class='rb'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span> <i>" + g.times.map(fmtHM).join(" · ") + "</i></div><div class='z'>" +
-      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div></div>").join("");
+      g.items.map(it => '<span class="i"><span>' + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + "</span><b>" + (it.food === "Wasser" ? fmt(num(it.grams), 0) + " ml" : gramsShort(num(it.grams))) + "</b></span>").join("") + "</div>" +
+      (g.kettle ? "<div class='wk'>" + kettleHtml(g.kettle) + "</div>" : "") + "</div>").join("");
     const html = "<!DOCTYPE html><html lang='de'><head><meta charset='utf-8'><title>Tagesplan</title><style>" + KITCHEN_CSS + "</style></head><body>" +
       "<div class='kz-page'><div class='kz'><div class='kz-h'><div class='ti'><small>HamHam Keto</small><b>Tagesplan</b></div>" +
       "<div class='rx'><span class='pill'>Verhältnis " + fmtTarget(d.ratio) + "</span><small>" + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + " pro Tag</small></div></div>" +
@@ -4785,7 +4870,7 @@
   // --s anpassen kann. Küchenzettel-Stil: Tinte auf Papier, Linien statt Karten, Zahlen in Mono, Wasser blau gepunktet.
   // Die Schriften (Newsreader, IBM Plex) lädt index.html; @font-face gilt auch im Shadow-DOM der Vorschau.
   const KITCHEN_CSS =
-    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:" + PALETTE.ink + ";margin:0}@page{size:A4 portrait;margin:0}.kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}.kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}.kz-fold{position:absolute;border:0 dashed " + PALETTE.rule + "}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}.kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;padding-bottom:.45em;border-bottom:.5mm solid " + PALETTE.ink + "}.kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin-bottom:.25em}.kz-h .ti b{display:block;font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:2.1em;line-height:1}.kz-h .rx{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}.kz-h .rx .pill{display:inline-block;border:.3mm solid " + PALETTE.ink + ";color:" + PALETTE.ink + ";font-weight:600;border-radius:99px;padding:.1em .65em;font-size:1em}.kz-h .rx small{display:block;color:" + PALETTE.grey + ";margin-top:.3em;font-size:.88em}.lbl{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin:1.1em 0 .3em}.r{display:grid;grid-template-columns:calc(12mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.4em 0;break-inside:avoid}.r.me{border-top:.25mm solid " + PALETTE.ink + "}.r.sl,.r.wa{border-top:.2mm dotted " + PALETTE.dot + "}.lbl + .r{border-top:0}.r .t{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em}.r .n{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.r i{font-style:normal}.r .d{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:" + PALETTE.grey + ";font-size:.82em;margin-left:.4em}.r .m{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em;text-align:right;white-space:nowrap}.r.wa{padding:.22em 0;color:" + PALETTE.blue + "}.r.wa .t,.r.wa .m{font-size:.95em;font-weight:500}.r.wa .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.r.wa .d{color:" + PALETTE.blue + "}.r.sl{color:" + PALETTE.grey + ";padding:.22em 0}.r.sl .t,.r.sl .m{font-size:.95em;font-weight:500}.r.sl .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.rb{border-top:.25mm solid " + PALETTE.ink + ";padding:.45em 0 .5em;break-inside:avoid}.rn{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 2mm;margin-bottom:.3em}.rn i{margin-left:auto}.rn b{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.rn .rt{min-width:0}.rn .name-suffix{font:400 .8em var(--f-sans,'IBM Plex Sans',Helvetica,Arial,sans-serif);color:var(--grey," + PALETTE.grey + ");white-space:nowrap}.rn i{font-style:normal;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-size:.82em;color:" + PALETTE.grey + ";white-space:nowrap}.rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;font-size:1.08em;line-height:1.25}.rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;padding:.12em 0;border-bottom:.2mm dotted " + PALETTE.dot + "}.rb .z .i span{color:" + PALETTE.ink + "}.rb .z .i b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;white-space:nowrap}";
+    "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;color:" + PALETTE.ink + ";margin:0}@page{size:A4 portrait;margin:0}.kz-page{position:relative;width:210mm;height:296mm;overflow:hidden}.kz{position:absolute;left:0;top:0;width:105mm;height:123.5mm;padding:6mm 6mm 0;overflow:hidden;font-size:calc(10pt * var(--s, 1));line-height:1.2;font-variant-numeric:tabular-nums}.kz-fold{position:absolute;border:0 dashed " + PALETTE.rule + "}.kz-fold.v{left:105mm;top:0;bottom:0;border-left-width:.25mm}.kz-fold.h{top:148.5mm;left:0;right:0;border-top-width:.25mm}.kz-h{display:flex;justify-content:space-between;align-items:flex-end;gap:2mm;padding-bottom:.45em;border-bottom:.5mm solid " + PALETTE.ink + "}.kz-h .ti small{display:block;font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin-bottom:.25em}.kz-h .ti b{display:block;font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:2.1em;line-height:1}.kz-h .rx{text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace}.kz-h .rx .pill{display:inline-block;border:.3mm solid " + PALETTE.ink + ";color:" + PALETTE.ink + ";font-weight:600;border-radius:99px;padding:.1em .65em;font-size:1em}.kz-h .rx small{display:block;color:" + PALETTE.grey + ";margin-top:.3em;font-size:.88em}.lbl{font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:" + PALETTE.grey + ";font-weight:600;margin:1.1em 0 .3em}.r{display:grid;grid-template-columns:calc(12mm * var(--s, 1)) 1fr auto;column-gap:.6em;align-items:baseline;padding:.4em 0;break-inside:avoid}.r.me{border-top:.25mm solid " + PALETTE.ink + "}.r.sl,.r.wa{border-top:.2mm dotted " + PALETTE.dot + "}.lbl + .r{border-top:0}.r .t{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em}.r .n{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.r i{font-style:normal}.r .d{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;color:" + PALETTE.grey + ";font-size:.82em;margin-left:.4em}.r .m{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;font-size:1.1em;text-align:right;white-space:nowrap}.r.wa{padding:.22em 0;color:" + PALETTE.blue + "}.r.wa .t,.r.wa .m{font-size:.95em;font-weight:500}.r.wa .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.r.wa .d{color:" + PALETTE.blue + "}.r.sl{color:" + PALETTE.grey + ";padding:.22em 0}.r.sl .t,.r.sl .m{font-size:.95em;font-weight:500}.r.sl .n{font-family:'IBM Plex Sans',Helvetica,Arial,sans-serif;font-weight:500;font-size:.95em}.rb{border-top:.25mm solid " + PALETTE.ink + ";padding:.45em 0 .5em;break-inside:avoid}.rn{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 2mm;margin-bottom:.3em}.rn i{margin-left:auto}.rn b{font-family:Newsreader,Georgia,'Times New Roman',serif;font-weight:600;font-size:1.3em;line-height:1.1}.rn .rt{min-width:0}.rn .name-suffix{font:400 .8em var(--f-sans,'IBM Plex Sans',Helvetica,Arial,sans-serif);color:var(--grey," + PALETTE.grey + ");white-space:nowrap}.rn i{font-style:normal;font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-size:.82em;color:" + PALETTE.grey + ";white-space:nowrap}.rb .z{display:grid;grid-template-columns:1fr 1fr;column-gap:4.5mm;font-size:1.08em;line-height:1.25}.rb .z .i{display:flex;justify-content:space-between;align-items:baseline;gap:1.5mm;padding:.12em 0;border-bottom:.2mm dotted " + PALETTE.dot + "}.rb .z .i span{color:" + PALETTE.ink + "}.rb .z .i b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600;white-space:nowrap}.rb .wk{margin-top:.35em;font-size:.95em}.rb .wk b{font-family:'IBM Plex Mono',Menlo,'Courier New',monospace;font-weight:600}";
   // Schrift der Karte so groß wie möglich: von 150 % schrittweise kleiner, bis der Inhalt hineinpasst (mindestens 40 %).
   // Abstände sind in em angegeben und schrumpfen mit.
   const KITCHEN_SCALE_MAX = 1.5;
@@ -4855,6 +4940,7 @@
         (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ca. " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const steps = splitSteps(prepSrc);
+    if (rec.angeruehrt) { const kp = kettlePlan(items); if (kp) steps.unshift(kettleText(kp)); }
     const oilStepP = oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(oilStepP);
     const prep = steps.length
       ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" +
@@ -5495,7 +5581,7 @@
     bindSync();
     bindBedarf();
     bindLebensmittel();
-    bindWachstum();
+    bindWachstum(); bindKettleSettings();
     bindDetail();
     bindCompose();
     bindHeute();
