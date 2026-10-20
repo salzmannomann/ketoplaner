@@ -3,6 +3,7 @@
   const PROTEIN_STANDARD = 1.5;
   // Eiweiß gegen das Ziel: „low“ unter 90 %, „high“ über dem Doppelten (viel Eiweiß kann die Ketose schwächen), sonst „ok“.
   const DAMPF_STANDARD = 150; // ml Verdunstung beim Dämpfen (Vorschlag, wenn das Feld leer ist)
+  const DICHTE_STD = 1.5; // kcal je ml Mahlzeit (Vorschlag; verträgt sie gut), Verordnung › Bearbeiten
   const BREI_WASSER_STD = 30; // ml Wasser je Portion gekochter Brei mindestens (Annahme, Vorgaben › Küche)
   const breiWasserMin = (d) => d && d.breiMin != null ? d.breiMin : BREI_WASSER_STD;
   function proteinState(e, target) { return !(target > 0) ? "ok" : e < target * 0.9 ? "low" : e > target * 2 ? "high" : "ok"; }
@@ -55,13 +56,14 @@
     const maxMahlMl = weight > 0 ? r10(weight * 25) : 0;
     // Energiedichte höchstens (kcal je ml Mahlzeit): reicht das Rezept-Wasser nicht, wird gerade so weit aufgefüllt
     // (Vorgabe 1,5 kcal/ml, übliche KetoCal-Zubereitungen 1–1,5). Kein eigenes Feld mehr, frühere Werte gelten weiter.
-    const maxDichte = (s.maxDichte === "" || s.maxDichte == null) ? 1.5 : Math.max(0, num(s.maxDichte));
+    const dichteManual = !(s.maxDichte === "" || s.maxDichte == null);
+    const maxDichte = dichteManual ? Math.max(0, num(s.maxDichte)) : DICHTE_STD;
     // Wasser im gekochten Brei mindestens (zum Pürieren und damit er durch die Sonde geht) – Annahme 30 ml, in Küche änderbar
     const breiMin = (s.breiWasserMin === "" || s.breiWasserMin == null) ? BREI_WASSER_STD : Math.max(0, num(s.breiWasserMin));
     return { kcal, kcalAuto, kcalManual, ratio, mahl, eiweiss, autoProtein, proteinPerKg: perKg, proteinStandard: PROTEIN_STANDARD, kcalMahl: kcal / mahl, eiweissMahl: eiweiss / mahl, mctShare, mctMode, dampfVerdunstung, rundung,
       kcalMin, kcalMinMahl: kcalMin / mahl, kcalMinAuto, kcalMinManual: num(s.kcalMin) > 0, kcalRichtwert, kcalMaxAuto, weight,
       kcalBasis, kcalBereich, kcalLoBd: bd ? r10(bd.lo) : null, kcalRefBd: bd ? r10(bd.ref) : null,
-      fluidDay, fluidMahl: 0, fluidAuto, fluidRatio, fluidLow, wasserModus, maxMahlMl, maxDichte, breiMin };
+      fluidDay, fluidMahl: 0, fluidAuto, fluidRatio, fluidLow, wasserModus, maxMahlMl, maxDichte, dichteManual, breiMin };
   }
   // Frühere Flüssigkeits-Einstellungen einmalig umstellen: die heutige Tagesmenge (eigener Wert oder Richtwert nach
   // Gewicht) wird zum Verhältnis Kalorien : Flüssigkeit; Wasser-Modus und feste Konsistenz gibt es nicht mehr.

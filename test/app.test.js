@@ -752,7 +752,20 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   assert.ok(Math.abs(volOf(c3) - 188 / 1.5) <= 2, "Volumen ≈ 125 ml: " + volOf(c3));
   assert.match(c3.querySelector(".pane[data-pane=mahlzeit] .ing-list").textContent, /1,5 kcal\/ml/);
   assert.match(c3.querySelector(".pane[data-pane=mahlzeit]").textContent, /Wasser so weit erhöht, dass die Mahlzeit 1,5 kcal\/ml hat/);
-  // Ein früher eingestellter Wert gilt weiter (kein eigenes Feld mehr)
+  fire(w3, $(w3, "detail-close"));
+  // Verordnung › Bearbeiten: Energie je ml Mahlzeit – leer = Vorschlag 1,5, eigener Wert mit Link zurück zum Vorschlag
+  assert.equal($(w3, "set-kcalml").value, ""); assert.equal($(w3, "set-kcalml").placeholder, "1,5");
+  assert.equal($(w3, "src-kcalml").textContent, "Vorschlag · Rest als Wassergaben"); assert.ok($(w3, "reset-kcalml").hidden);
+  assert.match($(w3, "vo-view").textContent, /Energie je ml MahlzeitVorschlag · Rest als Wassergaben1,5 kcal\/ml/);
+  const km = $(w3, "set-kcalml"); km.value = "1,2"; fire(w3, km, "input");
+  assert.equal(JSON.parse(w3.localStorage.getItem("ketoplaner.v5")).settings.maxDichte, 1.2);
+  assert.equal($(w3, "src-kcalml").textContent, "eigener Wert"); assert.ok(!$(w3, "reset-kcalml").hidden); assert.equal($(w3, "reset-kcalml").textContent, "Vorschlag 1,5");
+  c3 = openRecipe(w3, "Compleat & KetoCal");
+  assert.ok(Math.abs(volOf(c3) - 188 / 1.2) <= 3, "bei 1,2 kcal/ml ≈ 157 ml: " + volOf(c3));
+  fire(w3, $(w3, "detail-close"));
+  fire(w3, $(w3, "reset-kcalml"));
+  assert.equal(JSON.parse(w3.localStorage.getItem("ketoplaner.v5")).settings.maxDichte, ""); assert.equal($(w3, "set-kcalml").value, ""); assert.ok($(w3, "reset-kcalml").hidden);
+  // Ein früher eingestellter Wert gilt weiter
   const w4 = boot({ settings: { mctShare: 0, mahlzeiten: 4, weight: 8.5, kcal: 750, ratio: 1.5, maxDichte: 2 } });
   const c4 = openRecipe(w4, "Compleat & KetoCal");
   assert.ok(volOf(c4) >= 90 && volOf(c4) <= 100, "bei 2 kcal/ml ≈ 94 ml: " + volOf(c4));

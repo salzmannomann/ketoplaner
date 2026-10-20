@@ -260,6 +260,8 @@
       if (rf) { rf.hidden = !(d.fluidAuto > 0 && Math.abs(d.fluidDay - d.fluidAuto) > 0.5); rf.textContent = "Richtwert " + fmt(d.fluidAuto, 0); }
       const low = $("fluid-low-edit");
       if (low) { low.hidden = !d.fluidLow; low.textContent = d.fluidLow ? fluidLowText(d) : ""; }
+      put("set-kcalml", d.dichteManual ? fmtNum(d.maxDichte) : ""); hint("set-kcalml", fmtNum(DICHTE_STD));
+      src("kcalml", d.dichteManual, "Vorschlag · Rest als Wassergaben", "Vorschlag " + fmtNum(DICHTE_STD));
       // MCT-Anteil in Prozent; die Regel „Verhältnis oder Kalorien halten“ nur, wenn MCT dabei ist
       put("set-mctshare", fmtNum(Math.round(d.mctShare * 1000) / 10));
       const ms = $("src-mctshare"); if (ms) ms.textContent = mctMixText(d);

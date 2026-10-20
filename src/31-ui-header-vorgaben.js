@@ -74,7 +74,7 @@
      „Abbrechen“ stellt den Stand von vorher wieder her, „Speichern“ schließt die Felder (Meldung mit Rückgängig). */
   let vgPage = null, voEdit = false, voSnap = null;
   let voFluidBefore = null; // Tagesmenge beim Öffnen von „Bearbeiten“ (grau „vorher … ml“, wenn sie sich ändert)
-  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss", "fluidRatio", "mctShare", "mctMode"];
+  const VO_KEYS = ["ratio", "mahlzeiten", "weight", "kcal", "kcalMin", "proteinPerKg", "eiweiss", "fluidRatio", "maxDichte", "mctShare", "mctMode"];
   function showVgPage(name, quiet) {
     if (voEdit && name !== "verordnung") voFinish(true);
     // Desktop: Menü links bleibt stehen, rechts immer eine Unterseite (ohne Auswahl die Verordnung)
@@ -127,6 +127,7 @@
       // Flüssigkeit hängt an den Kalorien (das Verhältnis steht nur beim Bearbeiten); darunter ggf. der gelbe Hinweis
       ["Flüssigkeit pro Tag", d.fluidRatio > 0 ? "wächst mit den Kalorien" : d.fluidAuto > 0 ? "Richtwert nach Gewicht" : "", d.fluidDay > 0 ? fmt(d.fluidDay, 0) + " ml" : "—",
         d.fluidLow ? '<div class="note attn fluid-low">' + escapeHtml(fluidLowText(d)) + "</div>" : ""],
+      ["Energie je ml Mahlzeit", src("src-kcalml"), fmt(d.maxDichte, 1) + " kcal/ml"],
       ["Kalorien mindestens", src("src-kcalmin"), fmt(d.kcalMin, 0) + " kcal"],
       ["Eiweiß pro Tag", d.autoProtein ? (d.proteinPerKg === d.proteinStandard ? "Standard · " : "") + fmt(d.proteinPerKg, 1) + " g/kg" : "manuell", fmt(d.eiweiss, 0) + " g"],
       ["MCT-Anteil am Öl", d.mctShare > 0 ? (d.mctShare >= 1 ? "kein Rapsöl" : "Rest Rapsöl") + " · " + (d.mctMode === "kalorien" ? "Kalorien werden gehalten" : "Verhältnis wird gehalten") : "derzeit kein MCT – alles Rapsöl",
@@ -344,6 +345,18 @@
       const v = num(fd.value), kc = derived().kcal;
       if (v > 0 && kc > 0) { state.settings.fluidRatio = v / kc; save(); renderRezepte(); }
     });
+    // Energie je ml Mahlzeit (Komma erlaubt, 0,5–3); leer = Vorschlag
+    const dm = document.getElementById("set-kcalml");
+    if (dm) {
+      dm.addEventListener("input", () => {
+        const t = dm.value.trim(), v = parseFloat(t.replace(",", "."));
+        if (t === "") state.settings.maxDichte = "";
+        else if (isFinite(v) && v >= 0.5 && v <= 3) state.settings.maxDichte = v;
+        else return;
+        save(); renderRezepte();
+      });
+      dm.addEventListener("change", () => { const d = derived(); dm.value = d.dichteManual ? fmtNum(d.maxDichte) : ""; });
+    }
     // MCT-Anteil in Prozent (0–100, Komma erlaubt)
     const mi = document.getElementById("set-mctshare");
     if (mi) {
