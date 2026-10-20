@@ -162,10 +162,14 @@
   const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     if (!root || !root.querySelectorAll) return;
-    root.querySelectorAll(".kz").forEach(kz => { // Vorder- und Rückseite je für sich einpassen
+    // Jede Karte einpassen, dann alle auf die kleinste Größe – Vorder- und Rückseite sehen gleich aus
+    const cards = [...root.querySelectorAll(".kz")];
+    const fits = cards.map(kz => {
       let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
       while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+      return sc;
     });
+    if (cards.length > 1) { const m = Math.min.apply(null, fits); cards.forEach(kz => kz.style.setProperty("--s", String(m))); }
   }
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, Tintenlinie, Tabellen mit Punktlinien, Fußzeile.
@@ -228,7 +232,7 @@
         (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ca. " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const quick = quickSteps(rec, items);
-    const steps = quick ? quick.map(q => q.html).concat(prepNotes(prepSrc).map(escapeHtml)) : splitSteps(prepSrc).map(escapeHtml);
+    const steps = quick ? quick.map(q => q.html) : splitSteps(prepSrc).map(escapeHtml);
     const oilStepP = quick ? null : oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(escapeHtml(oilStepP));
     const prep = steps.length
       ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + s + "</li>").join("") + "</ol>" +

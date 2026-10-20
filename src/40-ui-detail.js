@@ -485,7 +485,7 @@
     // Angerührt (KetoCal, Compleat …): Kurzanleitung mit Feinwaage, Wasserkocher-Stufe und Mengen je Mahlzeit statt Fließtext
     const quick = quickSteps(rec, items);
     const oilStep = quick ? null : oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
-    const stepLis = quick ? quick.map(q => q.html).concat(prepNotes(prepText).map(escapeHtml)) : steps.map(escapeHtml);
+    const stepLis = quick ? quick.map(q => q.html) : steps.map(escapeHtml);
     const stepsHtml = stepLis.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + stepLis.map(s => "<li>" + s + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));

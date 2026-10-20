@@ -3,9 +3,10 @@
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
+     landet (Standard 30–38 °C: lieber etwas kühler als über Körpertemperatur – Sondennahrung darf
+     zimmerwarm bis körperwarm sein) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
      lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
-  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 34, hi: 39, fridge: 2, room: 21, luke: 30, loss: 3 };
+  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
@@ -123,10 +124,6 @@
     const ks = kettleSettings();
     out.push("Aufziehen, verabreichen – ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > ks.hi ? ", etwas zu warm: kurz abkühlen lassen" : ", etwas kühler als geplant"));
     return out.map(html => ({ html }));
-  }
-  // Hinweise aus dem Rezepttext, die zur Kurzanleitung gehören (z. B. angebrochene Packung) – Erklärungen zur App nicht
-  function prepNotes(text) {
-    return splitSteps(text || "").filter(s => /Packung|Kühlschrank|verbrauchen/i.test(s) && !/\bApp\b/.test(s));
   }
   // Kurzfassung beliebiger Rezepttexte für den Küchenzettel: Erklärsätze zur App weglassen, höchstens 5 Schritte
   function shortSteps(text) {

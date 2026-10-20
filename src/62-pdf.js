@@ -32,7 +32,8 @@
   // Tintenrahmen, Tintenlinie darunter; Zeitplan mit Tintenlinie vor jeder Mahlzeit, Wasser und Schlafen gepunktet;
   // darunter jedes Rezept mit Tintenlinie oben und den Zutaten in zwei Spalten (gepunktet getrennt, Gramm in Courier).
   // Die Schrift beginnt bei 150 % und wird samt Abständen kleiner, bis alles hineinpasst (mindestens 40 %).
-  function kitchenCardPdf(doc, kz) {
+  // opt.measure: nur die passende Schriftgröße ermitteln (Rückgabe), opt.s: mit dieser Größe zeichnen
+  function kitchenCardPdf(doc, kz, opt) {
     const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25;
     const L = PX, R = CW - PX;
     const INK = PDF_INK, GREY = PDF_GREY, BLUE = PDF_BLUE, ZUT = PDF_INK;
@@ -174,14 +175,17 @@
     };
     let s = 1.5;
     while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (opt && opt.measure) return s;
+    if (opt && opt.s) s = Math.min(s, opt.s);
     // Falzlinien: A4 zweimal falten → A6
     doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0);
     doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
+    return s;
   }
   // Rückseite des Küchenzettels (rechtes oberes Viertel, ox = 105) bzw. allein links (ox = 0): Kurzanleitung je Rezept –
   // Name in Times, nummerierte Schritte (Nummer in Courier), gepunktet getrennt; Schrift passt sich an wie vorne.
-  function kitchenHowPdf(doc, kz, ox) {
+  function kitchenHowPdf(doc, kz, ox, opt) {
     const PX = 6, PY = 6, BOTTOM = 148.5 - 25, L = ox + PX, R = ox + 105 - PX, INK = PDF_INK, GREY = PDF_GREY;
     const PT = 0.3528, lineH = (size) => size * PT * 1.2, FAM = { sans: "helvetica", serif: "times", mono: "courier" };
     const font = (fam, size, bold, color) => { doc.setFont(FAM[fam], bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
@@ -221,6 +225,8 @@
     };
     let s = 1.5;
     while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (opt && opt.measure) return s;
+    if (opt && opt.s) s = Math.min(s, opt.s);
     if (!ox) { doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0); doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0); }
     layout(s, true);
   }
@@ -232,8 +238,10 @@
     if (cards.length) {
       const kd = new J({ unit: "mm", format: "a4", compress: true });
       const front = cards.find(c => !c.classList.contains("kz-how")), how = cards.find(c => c.classList.contains("kz-how"));
-      if (front) kitchenCardPdf(kd, front);
-      if (how) kitchenHowPdf(kd, how, front ? 105 : 0);
+      // beide Karten in derselben (der kleineren) Schriftgröße
+      const sc = Math.min(front ? kitchenCardPdf(kd, front, { measure: true }) : 9, how ? kitchenHowPdf(kd, how, 105, { measure: true }) : 9);
+      if (front) kitchenCardPdf(kd, front, { s: sc });
+      if (how) kitchenHowPdf(kd, how, front ? 105 : 0, { s: sc });
       return kd;
     }
     const doc = new J({ unit: "mm", format: "a4", compress: true });

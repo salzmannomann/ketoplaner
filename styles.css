@@ -760,6 +760,9 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 .kettle-range { gap: 6px; }
 .kettle-range .num-input { width: 56px; }
 .kettle-range .dash { color: var(--grey); }
+/* Tagesplan: Wasserkocher-Stufe unter den Zutaten einer angerührten Mahlzeit */
+.zp-wk { margin-top: 6px; font-size: var(--t-s); color: var(--ink-2); }
+.zp-wk b { font: 600 var(--t-s) var(--f-mono); color: var(--ink); }
 .kitchen-reset { margin-top: 18px; }
 .kitchen-reset[hidden] { display: none; }
 .kitchen-reset .tlink { min-height: 32px; margin: -8px 0; }

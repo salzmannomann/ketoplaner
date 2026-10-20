@@ -1053,9 +1053,10 @@
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 34–39 °C) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
+     landet (Standard 30–38 °C: lieber etwas kühler als über Körpertemperatur – Sondennahrung darf
+     zimmerwarm bis körperwarm sein) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
      lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
-  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 34, hi: 39, fridge: 2, room: 21, luke: 30, loss: 3 };
+  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
@@ -1173,10 +1174,6 @@
     const ks = kettleSettings();
     out.push("Aufziehen, verabreichen – ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > ks.hi ? ", etwas zu warm: kurz abkühlen lassen" : ", etwas kühler als geplant"));
     return out.map(html => ({ html }));
-  }
-  // Hinweise aus dem Rezepttext, die zur Kurzanleitung gehören (z. B. angebrochene Packung) – Erklärungen zur App nicht
-  function prepNotes(text) {
-    return splitSteps(text || "").filter(s => /Packung|Kühlschrank|verbrauchen/i.test(s) && !/\bApp\b/.test(s));
   }
   // Kurzfassung beliebiger Rezepttexte für den Küchenzettel: Erklärsätze zur App weglassen, höchstens 5 Schritte
   function shortSteps(text) {
@@ -3271,7 +3268,7 @@
     // Angerührt (KetoCal, Compleat …): Kurzanleitung mit Feinwaage, Wasserkocher-Stufe und Mengen je Mahlzeit statt Fließtext
     const quick = quickSteps(rec, items);
     const oilStep = quick ? null : oilFeedStep(rec, items); if (oilStep && steps.length) steps.push(oilStep);
-    const stepLis = quick ? quick.map(q => q.html).concat(prepNotes(prepText).map(escapeHtml)) : steps.map(escapeHtml);
+    const stepLis = quick ? quick.map(q => q.html) : steps.map(escapeHtml);
     const stepsHtml = stepLis.length ? "<ol class='steps" + (oilStep ? " oil-last" : "") + "'>" + stepLis.map(s => "<li>" + s + "</li>").join("") + "</ol>" : "";
     // Abfüllen: Öl-Zeilen je Portion (werden in die abgefüllte Portion eingerührt)
     const oilRowsPer = items.filter(it => isOil(it.food));
@@ -3805,6 +3802,7 @@
       if (ps === "low") attns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
       if (ratioClass(f.ratio, d.ratio) !== "ok") warns.push("Verhältnis " + fmtRxA(f.ratio, 2));
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
+      const kp = rec.angeruehrt ? kettlePlan(f.res.items) : null; // Wasserkocher-Stufe (angerührte Mahlzeiten)
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + (note ? '<span class="name-suffix slot-note"> · ' + escapeHtml(note) + '</span>' : '') + '</span>' +
@@ -3812,7 +3810,7 @@
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
           warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + attns.map(w => '<span class="zp-warn attn">' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
-        '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
+        '<div class="zp-ing">' + ingRows(f) + '</div>' + (kp ? '<div class="zp-wk">' + kettleHtml(kp) + '</div>' : '') + '</div></div>' });
     });
     zeitplanExtraRows(times, wp).forEach(r => rows.push(r));
     rows.sort((a, b) => a.t - b.t);
@@ -4273,7 +4271,7 @@
     // für Schritt mit Feinwaage, Wasserkocher-Stufe und Mengen, sonst die Zubereitung ohne Erklärsätze
     const how = groups.map(g => {
       const q = quickSteps(g.rec, g.items);
-      const lis = q ? q.map(x => x.html).concat(prepNotes(g.rec.zubereitung).map(escapeHtml)) : shortSteps(g.rec.zubereitung).map(escapeHtml);
+      const lis = q ? q.map(x => x.html) : shortSteps(g.rec.zubereitung).map(escapeHtml);
       return lis.length ? "<div class='st'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span></div><ol>" + lis.map(x => "<li><span>" + x + "</span></li>").join("") + "</ol></div>" : "";
     }).join("");
     // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt
@@ -4959,10 +4957,14 @@
   const KITCHEN_SCALE_MAX = 1.5;
   function fitKitchenCard(root) {
     if (!root || !root.querySelectorAll) return;
-    root.querySelectorAll(".kz").forEach(kz => { // Vorder- und Rückseite je für sich einpassen
+    // Jede Karte einpassen, dann alle auf die kleinste Größe – Vorder- und Rückseite sehen gleich aus
+    const cards = [...root.querySelectorAll(".kz")];
+    const fits = cards.map(kz => {
       let sc = KITCHEN_SCALE_MAX; kz.style.setProperty("--s", String(sc));
       while (kz.scrollHeight > kz.clientHeight + 1 && sc > 0.4) { sc = Math.round((sc - 0.04) * 100) / 100; kz.style.setProperty("--s", String(sc)); }
+      return sc;
     });
+    if (cards.length > 1) { const m = Math.min.apply(null, fits); cards.forEach(kz => kz.style.setProperty("--s", String(m))); }
   }
 
   // Gemeinsamer Rahmen aller Ausdrucke: Kopf mit Titel und Datum, Tintenlinie, Tabellen mit Punktlinien, Fußzeile.
@@ -5025,7 +5027,7 @@
         (showMult ? "<br>Zubereitet wird für " + escapeHtml(portionLabel) + (oilsP.length ? " (ohne Öl ca. " + fmt(gNoOil * mult, 0) + " g)" : "") + "." : "") + "</div>";
     const prepSrc = rec.varoma ? adaptOil(adaptVaroma(adaptPrep(rec.varoma, rec, detailMeat))) : (rec.zubereitung ? adaptOil(adaptPrep(rec.zubereitung, rec, detailMeat)) : "");
     const quick = quickSteps(rec, items);
-    const steps = quick ? quick.map(q => q.html).concat(prepNotes(prepSrc).map(escapeHtml)) : splitSteps(prepSrc).map(escapeHtml);
+    const steps = quick ? quick.map(q => q.html) : splitSteps(prepSrc).map(escapeHtml);
     const oilStepP = quick ? null : oilFeedStep(rec, items); if (oilStepP && steps.length) steps.push(escapeHtml(oilStepP));
     const prep = steps.length
       ? "<h2>" + (rec.varoma ? "Zubereitung mit Varoma (dämpfen)" : "Zubereitung") + "</h2><ol>" + steps.map(s => "<li>" + s + "</li>").join("") + "</ol>" +
@@ -5076,7 +5078,8 @@
   // Tintenrahmen, Tintenlinie darunter; Zeitplan mit Tintenlinie vor jeder Mahlzeit, Wasser und Schlafen gepunktet;
   // darunter jedes Rezept mit Tintenlinie oben und den Zutaten in zwei Spalten (gepunktet getrennt, Gramm in Courier).
   // Die Schrift beginnt bei 150 % und wird samt Abständen kleiner, bis alles hineinpasst (mindestens 40 %).
-  function kitchenCardPdf(doc, kz) {
+  // opt.measure: nur die passende Schriftgröße ermitteln (Rückgabe), opt.s: mit dieser Größe zeichnen
+  function kitchenCardPdf(doc, kz, opt) {
     const CW = 105, PX = 6, PY = 6, BOTTOM = 148.5 - 25;
     const L = PX, R = CW - PX;
     const INK = PDF_INK, GREY = PDF_GREY, BLUE = PDF_BLUE, ZUT = PDF_INK;
@@ -5218,14 +5221,17 @@
     };
     let s = 1.5;
     while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (opt && opt.measure) return s;
+    if (opt && opt.s) s = Math.min(s, opt.s);
     // Falzlinien: A4 zweimal falten → A6
     doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0);
     doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0);
     layout(s, true);
+    return s;
   }
   // Rückseite des Küchenzettels (rechtes oberes Viertel, ox = 105) bzw. allein links (ox = 0): Kurzanleitung je Rezept –
   // Name in Times, nummerierte Schritte (Nummer in Courier), gepunktet getrennt; Schrift passt sich an wie vorne.
-  function kitchenHowPdf(doc, kz, ox) {
+  function kitchenHowPdf(doc, kz, ox, opt) {
     const PX = 6, PY = 6, BOTTOM = 148.5 - 25, L = ox + PX, R = ox + 105 - PX, INK = PDF_INK, GREY = PDF_GREY;
     const PT = 0.3528, lineH = (size) => size * PT * 1.2, FAM = { sans: "helvetica", serif: "times", mono: "courier" };
     const font = (fam, size, bold, color) => { doc.setFont(FAM[fam], bold ? "bold" : "normal"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || INK); };
@@ -5265,6 +5271,8 @@
     };
     let s = 1.5;
     while (layout(s, false) > BOTTOM && s > 0.4) s = Math.round((s - 0.04) * 100) / 100;
+    if (opt && opt.measure) return s;
+    if (opt && opt.s) s = Math.min(s, opt.s);
     if (!ox) { doc.setDrawColor.apply(doc, PDF_FOLD); doc.setLineWidth(0.25); doc.setLineDashPattern([1.6, 1.2], 0); doc.line(105, 0, 105, 297); doc.line(0, 148.5, 210, 148.5); doc.setLineDashPattern([], 0); }
     layout(s, true);
   }
@@ -5276,8 +5284,10 @@
     if (cards.length) {
       const kd = new J({ unit: "mm", format: "a4", compress: true });
       const front = cards.find(c => !c.classList.contains("kz-how")), how = cards.find(c => c.classList.contains("kz-how"));
-      if (front) kitchenCardPdf(kd, front);
-      if (how) kitchenHowPdf(kd, how, front ? 105 : 0);
+      // beide Karten in derselben (der kleineren) Schriftgröße
+      const sc = Math.min(front ? kitchenCardPdf(kd, front, { measure: true }) : 9, how ? kitchenHowPdf(kd, how, 105, { measure: true }) : 9);
+      if (front) kitchenCardPdf(kd, front, { s: sc });
+      if (how) kitchenHowPdf(kd, how, front ? 105 : 0, { s: sc });
       return kd;
     }
     const doc = new J({ unit: "mm", format: "a4", compress: true });

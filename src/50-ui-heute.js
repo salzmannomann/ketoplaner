@@ -128,6 +128,7 @@
       if (ps === "low") attns.push("Eiweiß nur " + fmt(f.sum.eiweiss) + " g");
       if (ratioClass(f.ratio, d.ratio) !== "ok") warns.push("Verhältnis " + fmtRxA(f.ratio, 2));
       const big = d.maxMahlMl > 0 && m.vol > d.maxMahlMl + 0.5; // über 25 ml/kg auf einmal → gelb markieren
+      const kp = rec.angeruehrt ? kettlePlan(f.res.items) : null; // Wasserkocher-Stufe (angerührte Mahlzeiten)
       const oilTxt = f.hasOil ? f.oils.map(o => escapeHtml(String(o.food).replace(/\s*C8\+C10/, "")) + " " + fmt(num(o.grams), 1) + " g").join(" + ") : "";
       rows.push({ t, html: '<div class="zp-row meal slot" role="button" tabindex="0" data-open="' + i + '" title="' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g' + (oilTxt ? ' · Öl: ' + oilTxt : '') + '">' + time +
         '<div class="zp-main"><div class="zp-head"><span class="zp-txt"><span class="zp-name">' + displayHtml(rec) + (note ? '<span class="name-suffix slot-note"> · ' + escapeHtml(note) + '</span>' : '') + '</span>' +
@@ -135,7 +136,7 @@
             (big ? '▲ ' : '') + fmt(m.vol, 0) + ' ml · <span class="ca">ca. </span>' + sondierMin(m.vol) + ' min<span class="zp-more"> · ' + fmt(f.sum.kcal, 0) + ' kcal · Eiweiß ' + fmt(f.sum.eiweiss) + ' g</span></span>' +
           warns.map(w => '<span class="zp-warn">▲ ' + w + '</span>').join("") + attns.map(w => '<span class="zp-warn attn">' + w + '</span>').join("") + '</span>' +
           link("tauschen", 'data-pick="' + i + '" title="Rezept tauschen oder Mahlzeit leeren"', "slot-act") + '</div>' +
-        '<div class="zp-ing">' + ingRows(f) + '</div></div></div>' });
+        '<div class="zp-ing">' + ingRows(f) + '</div>' + (kp ? '<div class="zp-wk">' + kettleHtml(kp) + '</div>' : '') + '</div></div>' });
     });
     zeitplanExtraRows(times, wp).forEach(r => rows.push(r));
     rows.sort((a, b) => a.t - b.t);
@@ -596,7 +597,7 @@
     // für Schritt mit Feinwaage, Wasserkocher-Stufe und Mengen, sonst die Zubereitung ohne Erklärsätze
     const how = groups.map(g => {
       const q = quickSteps(g.rec, g.items);
-      const lis = q ? q.map(x => x.html).concat(prepNotes(g.rec.zubereitung).map(escapeHtml)) : shortSteps(g.rec.zubereitung).map(escapeHtml);
+      const lis = q ? q.map(x => x.html) : shortSteps(g.rec.zubereitung).map(escapeHtml);
       return lis.length ? "<div class='st'><div class='rn'><span class='rt'><b>" + escapeHtml(g.dn.name) + "</b>" + (g.dn.suffix ? "<span class='name-suffix'> · " + escapeHtml(g.dn.suffix) + "</span>" : "") + "</span></div><ol>" + lis.map(x => "<li><span>" + x + "</span></li>").join("") + "</ol></div>" : "";
     }).join("");
     // Beim Drucken anhakbar: Tagesplan (vorne) und Zubereitung (Rückseite) – die Wahl bleibt gemerkt

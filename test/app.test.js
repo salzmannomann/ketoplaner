@@ -2172,27 +2172,28 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const plan = [{ key: "std:Compleat & KetoCal" }, { key: "std:KetoCal & Pre Apta" }, { key: "std:HiPP Hühnchen & Öl" }, { key: null }, { key: null }];
   const w = boot({ settings: { kcal: 680, ratio: 1.8, mahlzeiten: 5, weight: 8.5, mctShare: 0 }, dayPlan: plan });
   const steps = (name) => { const c = openRecipe(w, name), ol = c.querySelector('.pane[data-pane="zubereitung"] ol.steps'); const t = ol ? [...ol.children].map(li => li.textContent.replace(/\u00a0/g, " ")) : []; fire(w, $(w, "detail-close")); return t; };
-  // Compleat & KetoCal bei 1,8:1: wenig kaltes Compleat, viel Wasser – keine Stufe allein passt → lauwarmes Wasser zuerst
+  // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): 45 °C allein passt – kein lauwarmes Wasser
   let t = steps("Compleat & KetoCal");
   assert.equal(t[0], "Messglas auf die Feinwaage, Tara");
-  assert.match(t[1], /^[2-5]0 ml lauwarmes Wasser einwiegen$/, "lauwarm erst ab 20 ml");
-  assert.match(t[2], /^Tara, Ketocal 3:1 \d+(,\d)? g einwiegen$/);
-  assert.match(t[3], /^Wasserkocher (45|65|85|100) °C: \d+ ml mit der Spritze abnehmen, ins Messglas$/);
-  assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
-  assert.equal(t[5], "Verschließen, schütteln");
-  assert.match(t[6], /^Aufziehen, verabreichen – ca\. 3[4-9] °C$/);
-  assert.match(t[7], /Angebrochene Packung/, "Hinweis zur Packung bleibt");
-  assert.ok(!t.some(x => /\bApp\b/.test(x)), "keine Erklärsätze zur App");
-  const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
-  assert.equal(ml(t[1]) + ml(t[3]), 56, "heiß + lauwarm = Wasser der Mahlzeit");
-  // KetoCal & Pre Apta: 45 °C allein wäre knapp über 39 °C → 20 ml lauwarm (nie 10 ml); mit Obergrenze 41 °C ohne lauwarmes Wasser
+  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
+  assert.match(t[2], /^Wasserkocher 45 °C: 56 ml mit der Spritze abnehmen, ins Messglas$/);
+  assert.match(t[3], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
+  assert.equal(t[4], "Verschließen, schütteln");
+  assert.match(t[5], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
+  assert.equal(t.length, 6, "kein Hinweis zur Packung, keine Erklärsätze");
+  // KetoCal & Pre Apta: 45 °C allein wäre knapp über 38 °C → lauwarmes Wasser zuerst, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
-  assert.equal(t[1], "20 ml lauwarmes Wasser einwiegen"); assert.match(t[3], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/); assert.match(t[4], /^Wasserkocher 45 °C/);
+  assert.match(t[1], /^[2-5]0 ml lauwarmes Wasser einwiegen$/, "lauwarm erst ab 20 ml");
+  assert.match(t[2], /^Tara, Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[3], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
+  assert.match(t[4], /^Wasserkocher (45|65|85|100) °C: \d+ ml mit der Spritze abnehmen, ins Messglas$/);
+  const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
+  assert.equal(ml(t[1]) + ml(t[4]), 69, "lauwarm + heiß = Wasser der Mahlzeit");
+  assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
   fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
   const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
   t = steps("KetoCal & Pre Apta");
-  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
+  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/);
   assert.match(t[3], /^Wasserkocher 45 °C: 69 ml mit der Spritze abnehmen, ins Messglas$/);
   assert.ok(!t.some(x => /lauwarm/.test(x)));
   // Eigene Stufen
@@ -2201,7 +2202,7 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   assert.ok(steps("Compleat & KetoCal").some(x => /^Wasserkocher (50|70|90) °C/.test(x)));
   assert.match($(w, "vgs-kueche").textContent, /Wasserkocher 50\/70\/90 °C/);
   // Küche auf Standard zurücksetzen (mit Rückgängig)
-  assert.ok(!$(w, "kitchen-reset").hidden); assert.match($(w, "kitchen-own").textContent, /^Eigene Werte: Stufen 50\/70\/90 °C, körperwarm 34–41 °C\.$/);
+  assert.ok(!$(w, "kitchen-reset").hidden); assert.match($(w, "kitchen-own").textContent, /^Eigene Werte: Stufen 50\/70\/90 °C, körperwarm 30–41 °C\.$/);
   fire(w, $(w, "kitchen-reset-btn"));
   let st = JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings;
   assert.equal(st.kettleSteps, undefined); assert.equal(st.kettleHi, undefined); assert.ok($(w, "kitchen-reset").hidden); assert.equal($(w, "set-kettle-hi").value, "");
@@ -2210,8 +2211,13 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   st = JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings; assert.deepEqual(st.kettleSteps, [50, 70, 90]); assert.equal(st.kettleHi, 41);
   // HiPP-Gläschen: kein Wasserkocher, Rezepttext wie bisher
   assert.ok(!steps("HiPP Hühnchen & Öl").some(x => /Wasserkocher|Feinwaage/.test(x)));
+  // Tagesplan in der App: Wasserkocher-Zeile unter den Zutaten angerührter Mahlzeiten (nicht bei HiPP)
+  fire(w, $(w, "tab-heute"));
+  const slots = [...$(w, "heute-content").querySelectorAll(".zp-row.slot")];
+  assert.match(slots[0].querySelector(".zp-wk").textContent, /^Wasserkocher (50|70|90) °C/);
+  assert.equal(slots[2].querySelector(".zp-wk"), null);
   // Gedruckter Tagesplan: vorne die Wasserkocher-Zeile, Rückseite „Zubereitung“ mit den Schritten
-  fire(w, $(w, "tab-heute")); fire(w, $(w, "print-day"));
+  fire(w, $(w, "print-day"));
   let root = $(w, "print-sheet").shadowRoot;
   const front = root.querySelector(".kz:not(.kz-how)"), back = root.querySelector(".kz.kz-how.kz2");
   assert.ok(front && back, "Vorder- und Rückseite");
