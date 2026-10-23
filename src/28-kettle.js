@@ -3,11 +3,11 @@
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 30–38 °C) – zuerst ganz ohne lauwarmes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
-     Teil des Wassers lauwarm genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
+     landet (Standard 30–38 °C) – zuerst ganz ohne kaltes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
+     Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
      (nie darüber) und möglichst der niedrigeren Stufe (65 vor 85 °C). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
-  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
@@ -34,14 +34,14 @@
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
     // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
     const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
-    for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
+    for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // kaltes Wasser erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
-    // Geht es ganz ohne lauwarmes Wasser (irgendwo in der Spanne), hat das Vorrang – dann mit der niedrigsten Stufe.
+    // Geht es ganz ohne kaltes Wasser (irgendwo in der Spanne), hat das Vorrang – dann mit der niedrigsten Stufe.
     const plain = all.filter(x => x.inRange && x.luke === 0).sort((a, b) => a.t - b.t);
     if (plain.length) return plain[0];
     // Sonst: nahe am Ziel (bis 2 °C darunter) mit der niedrigsten Stufe (65 vor 85 °C), sonst am nächsten am Ziel;
-    // dann so wenig lauwarmes Wasser wie möglich
+    // dann so wenig kaltes Wasser wie möglich
     const dist = (x) => Math.round(Math.abs(x.temp - aim)), near = (x) => Math.abs(x.temp - aim) <= 2 ? 0 : 1;
     const fit = all.filter(x => x.inRange).sort((a, b) => near(a) - near(b) || (near(a) ? dist(a) - dist(b) : a.t - b.t) || dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
@@ -53,11 +53,11 @@
   function kettleText(p, short) {
     if (!p) return "";
     const temp = "ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > kettleSettings().hi ? " – etwas zu warm, kurz abkühlen lassen" : " – etwas kühler als geplant");
-    if (short) return "Wasserkocher " + p.t + " °C" + (p.luke ? ": " + p.hot + " ml heiß + " + p.luke + " ml lauwarm" : "") + " → " + temp;
+    if (short) return "Wasserkocher " + p.t + " °C" + (p.luke ? ": " + p.hot + " ml heiß + " + p.luke + " ml kalt" : "") + " → " + temp;
     return "Wasser vorbereiten (je Mahlzeit): Wasserkocher auf " + p.t + " °C stellen und " + p.hot + " ml mit der Spritze abnehmen" +
-      (p.luke ? ", dazu " + p.luke + " ml lauwarmes Wasser" : "") + ". Mit den übrigen Zutaten ergibt das " + temp + ".";
+      (p.luke ? ", dazu " + p.luke + " ml kaltes Wasser" : "") + ". Mit den übrigen Zutaten ergibt das " + temp + ".";
   }
-  // Kurzform für den Küchenzettel: „Wasserkocher 65 °C · 40 ml heiß + 20 ml lauwarm → ca. 37 °C“
+  // Kurzform für den Küchenzettel: „Wasserkocher 65 °C · 40 ml heiß + 20 ml kalt → ca. 37 °C“
   function kettleHtml(p) {
     const t = kettleText(p, true), i = t.indexOf(" °C");
     return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
@@ -81,7 +81,7 @@
     if (has("kettleMin")) out.push("heiß mindestens " + fmtNum(num(s.kettleMin)) + " °C");
     if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
     if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
-    if (has("kettleLuke")) out.push("lauwarmes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
+    if (has("kettleLuke")) out.push("kaltes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
     if (has("kettleLoss")) out.push("Abkühlen " + fmtNum(num(s.kettleLoss)) + " °C");
     return out;
   }
@@ -115,7 +115,7 @@
   }
   /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; Pulver einwiegen;
      heißes Wasser aus dem Wasserkocher mit der Spritze darauf und das Pulver auflösen (in kühlem Wasser verklumpt es);
-     erst dann lauwarmes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
+     erst dann kaltes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
      aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
      Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
   function quickSteps(rec, items) {
@@ -129,7 +129,7 @@
     let tared = true;
     powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
     out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen");
-    if (p.luke) out.push("Tara, <b>" + p.luke + " ml lauwarmes Wasser</b> dazu einwiegen");
+    if (p.luke) out.push("Tara, <b>" + p.luke + " ml kaltes Wasser</b> dazu einwiegen");
     cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
     oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
     out.push("Verschließen, schütteln");

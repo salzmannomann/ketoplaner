@@ -1396,11 +1396,11 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-min">Heißes Wasser mindestens</label><span class="src">kälter verklumpt das Pulver</span></div><div class="vo-in"><input id="set-kettle-min" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="60" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><span>Körperwarm</span><span class="src">fertige Mahlzeit, nicht über Körpertemperatur</span></div><div class="vo-in kettle-range"><input id="set-kettle-lo" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="30" aria-label="von" /><span class="dash">–</span><input id="set-kettle-hi" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="38" aria-label="bis" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-fridge">Aus dem Kühlschrank</label><span class="src">z. B. Compleat, BioFresh ca. 0–3 °C</span></div><div class="vo-in"><input id="set-kettle-fridge" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="2" /><span class="unit">°C</span></div></div>
-            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-luke">Lauwarmes Wasser</label><span class="src">nur wenn keine Stufe passt</span></div><div class="vo-in"><input id="set-kettle-luke" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="30" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-luke">Kaltes Wasser</label><span class="src">nur wenn keine Stufe passt · z. B. abgekocht, zimmerwarm</span></div><div class="vo-in"><input id="set-kettle-luke" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="20" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen beim Zubereiten</label><span class="src">Spritze, Becher, Mischen</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="3" /><span class="unit">°C</span></div></div>
           </div>
           <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
-            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist (nie über der Obergrenze): heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ganz ohne lauwarmes Wasser – dann reicht irgendwo in der Spanne. Geht das nicht, nimmt sie möglichst die niedrigere Stufe (65 vor 85 °C) und gleicht mit lauwarmem Wasser aus (ab 20 ml in 5-ml-Schritten: 20, 25, 30 ml …), mit Ziel am oberen Ende der Spanne – das lauwarme Wasser erst, nachdem das Pulver im heißen Wasser aufgelöst ist, dann Compleat kalt dazu. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
+            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist (nie über der Obergrenze): heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ganz ohne kaltes Wasser – dann reicht irgendwo in der Spanne. Geht das nicht, nimmt sie möglichst die niedrigere Stufe (65 vor 85 °C) und gleicht mit kaltem Wasser aus (ab 20 ml in 5-ml-Schritten: 20, 25, 30 ml …), mit Ziel am oberen Ende der Spanne – das kalte Wasser erst, nachdem das Pulver im heißen Wasser aufgelöst ist, dann Compleat kalt dazu. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
           </details>
         </div>
         <p class="hint kitchen-reset" id="kitchen-reset" hidden><span id="kitchen-own"></span> <button type="button" class="tlink" id="kitchen-reset-btn">Auf Standard zurücksetzen</button></p>
@@ -3707,11 +3707,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 30–38 °C) – zuerst ganz ohne lauwarmes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
-     Teil des Wassers lauwarm genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
+     landet (Standard 30–38 °C) – zuerst ganz ohne kaltes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
+     Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
      (nie darüber) und möglichst der niedrigeren Stufe (65 vor 85 °C). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
-  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
@@ -3738,14 +3738,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
     // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
     const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
-    for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
+    for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // kaltes Wasser erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
-    // Geht es ganz ohne lauwarmes Wasser (irgendwo in der Spanne), hat das Vorrang – dann mit der niedrigsten Stufe.
+    // Geht es ganz ohne kaltes Wasser (irgendwo in der Spanne), hat das Vorrang – dann mit der niedrigsten Stufe.
     const plain = all.filter(x => x.inRange && x.luke === 0).sort((a, b) => a.t - b.t);
     if (plain.length) return plain[0];
     // Sonst: nahe am Ziel (bis 2 °C darunter) mit der niedrigsten Stufe (65 vor 85 °C), sonst am nächsten am Ziel;
-    // dann so wenig lauwarmes Wasser wie möglich
+    // dann so wenig kaltes Wasser wie möglich
     const dist = (x) => Math.round(Math.abs(x.temp - aim)), near = (x) => Math.abs(x.temp - aim) <= 2 ? 0 : 1;
     const fit = all.filter(x => x.inRange).sort((a, b) => near(a) - near(b) || (near(a) ? dist(a) - dist(b) : a.t - b.t) || dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
@@ -3757,11 +3757,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function kettleText(p, short) {
     if (!p) return "";
     const temp = "ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > kettleSettings().hi ? " – etwas zu warm, kurz abkühlen lassen" : " – etwas kühler als geplant");
-    if (short) return "Wasserkocher " + p.t + " °C" + (p.luke ? ": " + p.hot + " ml heiß + " + p.luke + " ml lauwarm" : "") + " → " + temp;
+    if (short) return "Wasserkocher " + p.t + " °C" + (p.luke ? ": " + p.hot + " ml heiß + " + p.luke + " ml kalt" : "") + " → " + temp;
     return "Wasser vorbereiten (je Mahlzeit): Wasserkocher auf " + p.t + " °C stellen und " + p.hot + " ml mit der Spritze abnehmen" +
-      (p.luke ? ", dazu " + p.luke + " ml lauwarmes Wasser" : "") + ". Mit den übrigen Zutaten ergibt das " + temp + ".";
+      (p.luke ? ", dazu " + p.luke + " ml kaltes Wasser" : "") + ". Mit den übrigen Zutaten ergibt das " + temp + ".";
   }
-  // Kurzform für den Küchenzettel: „Wasserkocher 65 °C · 40 ml heiß + 20 ml lauwarm → ca. 37 °C“
+  // Kurzform für den Küchenzettel: „Wasserkocher 65 °C · 40 ml heiß + 20 ml kalt → ca. 37 °C“
   function kettleHtml(p) {
     const t = kettleText(p, true), i = t.indexOf(" °C");
     return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
@@ -3785,7 +3785,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (has("kettleMin")) out.push("heiß mindestens " + fmtNum(num(s.kettleMin)) + " °C");
     if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
     if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
-    if (has("kettleLuke")) out.push("lauwarmes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
+    if (has("kettleLuke")) out.push("kaltes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
     if (has("kettleLoss")) out.push("Abkühlen " + fmtNum(num(s.kettleLoss)) + " °C");
     return out;
   }
@@ -3819,7 +3819,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; Pulver einwiegen;
      heißes Wasser aus dem Wasserkocher mit der Spritze darauf und das Pulver auflösen (in kühlem Wasser verklumpt es);
-     erst dann lauwarmes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
+     erst dann kaltes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
      aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
      Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
   function quickSteps(rec, items) {
@@ -3833,7 +3833,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     let tared = true;
     powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
     out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen");
-    if (p.luke) out.push("Tara, <b>" + p.luke + " ml lauwarmes Wasser</b> dazu einwiegen");
+    if (p.luke) out.push("Tara, <b>" + p.luke + " ml kaltes Wasser</b> dazu einwiegen");
     cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
     oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
     out.push("Verschließen, schütteln");
