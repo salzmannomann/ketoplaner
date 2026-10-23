@@ -1400,7 +1400,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen beim Zubereiten</label><span class="src">Spritze, Becher, Mischen</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="3" /><span class="unit">°C</span></div></div>
           </div>
           <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
-            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (ab 20 ml: 20, 30, 40 ml …) – erst nachdem das Pulver im heißen Wasser aufgelöst ist, dann Compleat kalt dazu. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
+            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist – eher am oberen Ende der Spanne (knapp unter der Obergrenze, nie darüber): heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (ab 20 ml: 20, 30, 40 ml …) – erst nachdem das Pulver im heißen Wasser aufgelöst ist, dann Compleat kalt dazu. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
           </details>
         </div>
         <p class="hint kitchen-reset" id="kitchen-reset" hidden><span id="kitchen-own"></span> <button type="button" class="tlink" id="kitchen-reset-btn">Auf Standard zurücksetzen</button></p>
@@ -3736,12 +3736,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       C += g * c; Q0 += g * c * T;
     });
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
-    const mid = (ks.lo + ks.hi) / 2, Ls = [0];
+    // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
+    const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
     for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
-    // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
-    const fit = all.filter(x => x.inRange).sort((a, b) => a.luke - b.luke || Math.abs(a.temp - mid) - Math.abs(b.temp - mid));
+    // In der Spanne: am nächsten am Ziel (auf 1 °C genau), dann so wenig lauwarmes Wasser wie möglich
+    const dist = (x) => Math.round(Math.abs(x.temp - aim));
+    const fit = all.filter(x => x.inRange).sort((a, b) => dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
     // Nichts passt: die wärmste Variante, die nicht zu heiß ist (sonst die kühlste)
     const ok = all.filter(x => x.temp <= ks.hi + 0.5).sort((a, b) => b.temp - a.temp || a.luke - b.luke);

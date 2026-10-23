@@ -32,12 +32,14 @@
       C += g * c; Q0 += g * c * T;
     });
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
-    const mid = (ks.lo + ks.hi) / 2, Ls = [0];
+    // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
+    const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
     for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
-    // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
-    const fit = all.filter(x => x.inRange).sort((a, b) => a.luke - b.luke || Math.abs(a.temp - mid) - Math.abs(b.temp - mid));
+    // In der Spanne: am nächsten am Ziel (auf 1 °C genau), dann so wenig lauwarmes Wasser wie möglich
+    const dist = (x) => Math.round(Math.abs(x.temp - aim));
+    const fit = all.filter(x => x.inRange).sort((a, b) => dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
     // Nichts passt: die wärmste Variante, die nicht zu heiß ist (sonst die kühlste)
     const ok = all.filter(x => x.temp <= ks.hi + 0.5).sort((a, b) => b.temp - a.temp || a.luke - b.luke);

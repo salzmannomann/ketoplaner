@@ -2208,7 +2208,7 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   assert.match(t[3], /^Tara, [2-5]0 ml lauwarmes Wasser dazu einwiegen$/);
   assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
   assert.equal(t[5], "Verschließen, schütteln");
-  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
+  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[6-8]) °C$/, "eher oben in der Spanne");
   assert.equal(t.length, 7, "kein Hinweis zur Packung, keine Erklärsätze");
   // KetoCal & Pre Apta: lauwarmes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
