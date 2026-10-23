@@ -6,12 +6,15 @@
      landet (Standard 30–38 °C: lieber etwas kühler als über Körpertemperatur – Sondennahrung darf
      zimmerwarm bis körperwarm sein) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
      lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
-  const KETTLE_STD = { steps: [45, 65, 85, 100], lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
+  // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
     let lo = n(s.kettleLo, KETTLE_STD.lo), hi = n(s.kettleHi, KETTLE_STD.hi); if (hi < lo) { const t = lo; lo = hi; hi = t; }
-    return { steps: steps.length ? steps : KETTLE_STD.steps, lo, hi, fridge: n(s.kettleFridge, KETTLE_STD.fridge), room: KETTLE_STD.room, luke: n(s.kettleLuke, KETTLE_STD.luke), loss: n(s.kettleLoss, KETTLE_STD.loss) };
+    const all = steps.length ? steps : KETTLE_STD.steps, min = n(s.kettleMin, KETTLE_STD.min);
+    const usable = all.filter(t => t >= min);
+    return { steps: all, use: usable.length ? usable : [all[all.length - 1]], min, lo, hi, fridge: n(s.kettleFridge, KETTLE_STD.fridge), room: KETTLE_STD.room, luke: n(s.kettleLuke, KETTLE_STD.luke), loss: n(s.kettleLoss, KETTLE_STD.loss) };
   }
   // „45, 65, 85, 100“ → [45, 65, 85, 100]
   function parseKettleSteps(t) { return String(t || "").split(/[^\d]+/).map(Number).filter(v => v >= 30 && v <= 100).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b); }
@@ -32,7 +35,7 @@
     const mid = (ks.lo + ks.hi) / 2, Ls = [0];
     for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
     const all = [];
-    Ls.forEach(L => ks.steps.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
+    Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
     // In der Spanne: so wenig lauwarmes Wasser wie möglich, dann am nächsten an der Mitte
     const fit = all.filter(x => x.inRange).sort((a, b) => a.luke - b.luke || Math.abs(a.temp - mid) - Math.abs(b.temp - mid));
     if (fit.length) return fit[0];
@@ -54,7 +57,7 @@
     return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
   }
   // Vorgaben › Küche: Felder füllen (leer = Standard, grau als Platzhalter) und Änderungen übernehmen
-  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss", "set-brei-wasser": "breiWasserMin" };
+  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss", "set-kettle-min": "kettleMin", "set-brei-wasser": "breiWasserMin" };
   function renderKettleSettings() {
     const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
     put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
@@ -63,12 +66,13 @@
     if (box) { box.hidden = !own.length; document.getElementById("kitchen-own").textContent = own.length ? "Eigene Werte: " + own.join(", ") + "." : ""; }
   }
   // Küche: welche Werte weichen vom Standard ab? (für „Auf Standard zurücksetzen“)
-  const KITCHEN_KEYS = ["dampfVerdunstung", "breiWasserMin", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss"];
+  const KITCHEN_KEYS = ["dampfVerdunstung", "breiWasserMin", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss", "kettleMin"];
   function kitchenOwn() {
     const s = state.settings, out = [], has = (k) => s[k] !== undefined && s[k] !== "" && s[k] !== null;
     if (has("dampfVerdunstung") && num(s.dampfVerdunstung) !== DAMPF_STANDARD) out.push("Verdunstung " + fmt(num(s.dampfVerdunstung), 0) + " ml");
     if (has("breiWasserMin") && num(s.breiWasserMin) !== BREI_WASSER_STD) out.push("Brei mindestens " + fmt(num(s.breiWasserMin), 0) + " ml Wasser");
     if (Array.isArray(s.kettleSteps) && s.kettleSteps.join() !== KETTLE_STD.steps.join()) out.push("Stufen " + s.kettleSteps.join("/") + " °C");
+    if (has("kettleMin")) out.push("heiß mindestens " + fmtNum(num(s.kettleMin)) + " °C");
     if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
     if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
     if (has("kettleLuke")) out.push("lauwarmes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");

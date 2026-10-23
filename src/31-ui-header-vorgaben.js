@@ -111,7 +111,7 @@
       (d.mctShare > 0 ? " · MCT " + fmtNum(Math.round(d.mctShare * 1000) / 10) + " %" : ""));
     put("vgs-wachstum", growthSummary());
     const ks = kettleSettings();
-    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml · Wasserkocher " + ks.steps.join("/") + " °C");
+    put("vgs-kueche", "Verdunstung " + fmt(num(d.dampfVerdunstung), 0) + " ml · Wasserkocher " + ks.use.join("/") + " °C");
     renderKettleSettings();
     let syncOn = false; try { syncOn = typeof syncLoadMeta === "function" && !!syncLoadMeta().key; } catch (e) {}
     const bd = backupDays();
