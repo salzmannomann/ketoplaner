@@ -1163,9 +1163,10 @@
       });
     });
   }
-  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; lauwarmes Wasser
-     (falls nötig) zuerst, weil es sich so am besten abwiegen lässt; Pulver einwiegen; heißes Wasser aus dem Wasserkocher
-     mit der Spritze dazu; kalte Zutaten (Compleat) einwiegen; verschließen, schütteln, aufziehen, verabreichen.
+  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; Pulver einwiegen;
+     heißes Wasser aus dem Wasserkocher mit der Spritze darauf und das Pulver auflösen (in kühlem Wasser verklumpt es);
+     erst dann lauwarmes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
+     aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
      Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
   function quickSteps(rec, items) {
     if (!rec || !rec.angeruehrt) return null;
@@ -1176,9 +1177,9 @@
     const amt = (it) => "<b>" + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + " " + gramsShort(num(it.grams)) + "</b>";
     const out = ["Messglas auf die Feinwaage, Tara"];
     let tared = true;
-    if (p.luke) { out.push("<b>" + p.luke + " ml lauwarmes Wasser</b> einwiegen"); tared = false; }
     powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
-    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas");
+    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen");
+    if (p.luke) out.push("Tara, <b>" + p.luke + " ml lauwarmes Wasser</b> dazu einwiegen");
     cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
     oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
     out.push("Verschließen, schütteln");

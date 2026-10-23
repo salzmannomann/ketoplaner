@@ -2202,20 +2202,21 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 °C mit lauwarmem Wasser
   let t = steps("Compleat & KetoCal");
   assert.equal(t[0], "Messglas auf die Feinwaage, Tara");
-  assert.match(t[1], /^[2-5]0 ml lauwarmes Wasser einwiegen$/);
-  assert.match(t[2], /^Tara, Ketocal 3:1 \d+(,\d)? g einwiegen$/);
-  assert.match(t[3], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas$/);
+  // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, erst dann lauwarmes Wasser und Compleat
+  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
+  assert.match(t[2], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
+  assert.match(t[3], /^Tara, [2-5]0 ml lauwarmes Wasser dazu einwiegen$/);
   assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
   assert.equal(t[5], "Verschließen, schütteln");
   assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
   assert.equal(t.length, 7, "kein Hinweis zur Packung, keine Erklärsätze");
-  // KetoCal & Pre Apta: lauwarmes Wasser zuerst, erst ab 20 ml (nie 10 ml)
+  // KetoCal & Pre Apta: lauwarmes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
-  assert.match(t[1], /^[2-7]0 ml lauwarmes Wasser einwiegen$/, "lauwarm erst ab 20 ml");
-  assert.match(t[2], /^Tara, Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[3], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
-  assert.match(t[4], /^Wasserkocher (65|85|100) °C: \d+ ml mit der Spritze abnehmen, ins Messglas$/);
+  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[2], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
+  assert.match(t[3], /^Wasserkocher (65|85|100) °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
+  assert.match(t[4], /^Tara, [2-7]0 ml lauwarmes Wasser dazu einwiegen$/, "lauwarm erst ab 20 ml");
   const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
-  assert.equal(ml(t[1]) + ml(t[4]), 69, "lauwarm + heiß = Wasser der Mahlzeit");
+  assert.equal(ml(t[3]) + ml(t[4]), 69, "heiß + lauwarm = Wasser der Mahlzeit");
   assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
   fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
@@ -2225,8 +2226,8 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const mn = $(w, "set-kettle-min"); mn.value = "40"; fire(w, mn, "input");
   const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
   t = steps("KetoCal & Pre Apta");
-  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
-  assert.match(t[3], /^Wasserkocher 45 °C: 69 ml mit der Spritze abnehmen, ins Messglas$/);
+  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/);
+  assert.match(t[3], /^Wasserkocher 45 °C: 69 ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
   assert.ok(!t.some(x => /lauwarm/.test(x)));
   assert.match($(w, "kitchen-own").textContent, /heiß mindestens 40 °C/);
   mn.value = ""; fire(w, mn, "input"); assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kettleMin, undefined);

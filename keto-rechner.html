@@ -1400,7 +1400,7 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen beim Zubereiten</label><span class="src">Spritze, Becher, Mischen</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="3" /><span class="unit">°C</span></div></div>
           </div>
           <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
-            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (ab 20 ml: 20, 30, 40 ml …) – das lauwarme Wasser zuerst ins Messglas, so lässt es sich am besten abwiegen. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
+            <p>Bei angerührten Mahlzeiten mit KetoCal, Compleat oder Pre rechnet die App aus, auf welche Stufe ihr den Wasserkocher stellt, damit die fertige Mahlzeit gleich körperwarm ist: heißes Wasser, Pulver zimmerwarm, Compleat kalt aus dem Kühlschrank. Stufen unter „Heißes Wasser mindestens“ (z. B. 45 °C) verwendet sie nie, weil das Pulver sonst verklumpt. Zuerst sucht sie eine Stufe ohne zusätzliches Wasser; nur wenn keine passt, wird ein Teil des Wassers lauwarm genommen (ab 20 ml: 20, 30, 40 ml …) – erst nachdem das Pulver im heißen Wasser aufgelöst ist, dann Compleat kalt dazu. Die Schritte stehen unter „Kochen“ und auf dem gedruckten Tagesplan (Rückseite „Zubereitung“, beim Drucken abwählbar). Es sind Schätzungen: einmal mit einem Küchenthermometer nachmessen und „Abkühlen beim Zubereiten“ anpassen – ist die Mahlzeit wärmer als angegeben, die Zahl kleiner machen, ist sie kühler, größer. Leere Felder nutzen die grauen Standardwerte.</p>
           </details>
         </div>
         <p class="hint kitchen-reset" id="kitchen-reset" hidden><span id="kitchen-own"></span> <button type="button" class="tlink" id="kitchen-reset-btn">Auf Standard zurücksetzen</button></p>
@@ -3811,9 +3811,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       });
     });
   }
-  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; lauwarmes Wasser
-     (falls nötig) zuerst, weil es sich so am besten abwiegen lässt; Pulver einwiegen; heißes Wasser aus dem Wasserkocher
-     mit der Spritze dazu; kalte Zutaten (Compleat) einwiegen; verschließen, schütteln, aufziehen, verabreichen.
+  /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; Pulver einwiegen;
+     heißes Wasser aus dem Wasserkocher mit der Spritze darauf und das Pulver auflösen (in kühlem Wasser verklumpt es);
+     erst dann lauwarmes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
+     aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
      Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
   function quickSteps(rec, items) {
     if (!rec || !rec.angeruehrt) return null;
@@ -3824,9 +3825,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const amt = (it) => "<b>" + escapeHtml(shortFood(it.food).replace(/\s*C8\+C10/, "")) + " " + gramsShort(num(it.grams)) + "</b>";
     const out = ["Messglas auf die Feinwaage, Tara"];
     let tared = true;
-    if (p.luke) { out.push("<b>" + p.luke + " ml lauwarmes Wasser</b> einwiegen"); tared = false; }
     powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
-    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas");
+    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen");
+    if (p.luke) out.push("Tara, <b>" + p.luke + " ml lauwarmes Wasser</b> dazu einwiegen");
     cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
     oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
     out.push("Verschließen, schütteln");
