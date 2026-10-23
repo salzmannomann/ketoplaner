@@ -2205,7 +2205,7 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, erst dann lauwarmes Wasser und Compleat
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
   assert.match(t[2], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.match(t[3], /^Tara, [2-5]0 ml lauwarmes Wasser dazu einwiegen$/);
+  assert.match(t[3], /^Tara, [2-5][05] ml lauwarmes Wasser dazu einwiegen$/);
   assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
   assert.equal(t[5], "Verschließen, schütteln");
   assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[6-8]) °C$/, "eher oben in der Spanne");
@@ -2213,11 +2213,11 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   // KetoCal & Pre Apta: lauwarmes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[2], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
-  assert.match(t[3], /^Wasserkocher (65|85|100) °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.match(t[4], /^Tara, [2-7]0 ml lauwarmes Wasser dazu einwiegen$/, "lauwarm erst ab 20 ml");
+  assert.match(t[3], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
+  assert.match(t[4], /^Tara, [2-7][05] ml lauwarmes Wasser dazu einwiegen$/, "lauwarm erst ab 20 ml, in 5-ml-Schritten");
   const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
   assert.equal(ml(t[3]) + ml(t[4]), 69, "heiß + lauwarm = Wasser der Mahlzeit");
-  assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/);
+  assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[6-8]) °C$/, "65 vor 85 °C, eher oben in der Spanne");
   fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
   assert.equal($(w, "set-kettle-min").placeholder, "60");

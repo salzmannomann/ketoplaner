@@ -1059,9 +1059,8 @@
      (Stufen z. B. 45/65/85/100 °C), Pulver zimmerwarm, flüssige Zutaten (z. B. Compleat) kalt aus dem Kühlschrank.
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
-     landet (Standard 30–38 °C: lieber etwas kühler als über Körpertemperatur – Sondennahrung darf
-     zimmerwarm bis körperwarm sein) – zuerst ohne zusätzliches lauwarmes Wasser; geht das nicht, wird ein Teil des Wassers
-     lauwarm genommen, ab 20 ml in 10-ml-Schritten (20, 30, 40 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+     landet (Standard 30–38 °C, Ziel knapp unter der Obergrenze, nie darüber) – möglichst mit der niedrigeren Stufe
+     (65 vor 85 °C); ein Teil des Wassers wird dazu lauwarm genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
   const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 30, loss: 3 };
   function kettleSettings() {
@@ -1090,12 +1089,13 @@
     const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
     // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
     const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
-    for (let L = 20; L <= W - 10; L += 10) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam); mind. 10 ml heiß
+    for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // lauwarm erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
     const all = [];
     Ls.forEach(L => ks.use.forEach(t => { const temp = mix(t, L); all.push({ t, luke: L, hot: W - L, ml: W, temp, inRange: temp >= ks.lo - 0.5 && temp <= ks.hi + 0.5 }); }));
-    // In der Spanne: am nächsten am Ziel (auf 1 °C genau), dann so wenig lauwarmes Wasser wie möglich
-    const dist = (x) => Math.round(Math.abs(x.temp - aim));
-    const fit = all.filter(x => x.inRange).sort((a, b) => dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
+    // In der Spanne: nahe am Ziel (bis 2 °C darunter) mit der niedrigsten Stufe (65 vor 85 °C), sonst am nächsten am Ziel;
+    // dann so wenig lauwarmes Wasser wie möglich
+    const dist = (x) => Math.round(Math.abs(x.temp - aim)), near = (x) => Math.abs(x.temp - aim) <= 2 ? 0 : 1;
+    const fit = all.filter(x => x.inRange).sort((a, b) => near(a) - near(b) || (near(a) ? dist(a) - dist(b) : a.t - b.t) || dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
     // Nichts passt: die wärmste Variante, die nicht zu heiß ist (sonst die kühlste)
     const ok = all.filter(x => x.temp <= ks.hi + 0.5).sort((a, b) => b.temp - a.temp || a.luke - b.luke);
