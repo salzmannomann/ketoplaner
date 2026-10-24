@@ -347,7 +347,7 @@
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-min">Heißes Wasser mindestens</label><span class="src">kälter verklumpt das Pulver</span></div><div class="vo-in"><input id="set-kettle-min" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="60" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><span>Körperwarm</span><span class="src">fertige Mahlzeit, nicht über Körpertemperatur</span></div><div class="vo-in kettle-range"><input id="set-kettle-lo" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="30" aria-label="von" /><span class="dash">–</span><input id="set-kettle-hi" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="38" aria-label="bis" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-fridge">Aus dem Kühlschrank</label><span class="src">z. B. Compleat, BioFresh ca. 0–3 °C</span></div><div class="vo-in"><input id="set-kettle-fridge" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="2" /><span class="unit">°C</span></div></div>
-            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-luke">Kaltes Wasser</label><span class="src">nur wenn keine Stufe passt · z. B. abgekocht, zimmerwarm</span></div><div class="vo-in"><input id="set-kettle-luke" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="20" /><span class="unit">°C</span></div></div>
+            <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-luke">Kaltes Wasser</label><span class="src">nur wenn keine Stufe passt · gemessen 26,5 °C</span></div><div class="vo-in"><input id="set-kettle-luke" class="num-input" type="text" inputmode="decimal" autocomplete="off" placeholder="26,5" /><span class="unit">°C</span></div></div>
             <div class="vo-row"><div class="vo-lbl"><label for="set-kettle-loss">Abkühlen des heißen Wassers</label><span class="src">Spritze, Messglas, Schütteln · gemessen ca. 8 °C</span></div><div class="vo-in"><input id="set-kettle-loss" class="num-input" type="text" inputmode="numeric" autocomplete="off" placeholder="8" /><span class="unit">°C</span></div></div>
           </div>
           <details class="more"><summary class="tlink">Wie funktioniert das?</summary>
@@ -484,7 +484,7 @@
   <script src="recipes.js?v=ae32c2ed"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=888a0df4"></script>
+  <script src="app.js?v=fc0159cd"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
