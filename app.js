@@ -1063,7 +1063,10 @@
      Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
      (nie darüber) und möglichst der niedrigeren Stufe (65 vor 85 °C). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
-  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 3 };
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 12 };
+  // loss: so viel kühlt das heiße Wasser auf dem Weg ab (Spritze, Messglas, Schütteln). Gemessen: 39 ml aus dem
+  // Wasserkocher (65 °C) auf 18,2 g KetoCal ergaben nach dem Schütteln 48 °C – gerechnet ohne Verlust wären es 58 °C,
+  // das heiße Wasser kam also mit ca. 53 °C an (rund 12 °C weniger).
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
@@ -1087,7 +1090,7 @@
       const c = 4.18 * wp + 1.5 * (1 - wp), T = wp >= 0.5 ? ks.fridge : ks.room;
       C += g * c; Q0 += g * c * T;
     });
-    const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0) / C - ks.loss;
+    const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * (t - ks.loss) + L * 4.18 * ks.luke + Q0) / C;
     // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
     const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
     for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // kaltes Wasser erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
