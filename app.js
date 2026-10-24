@@ -1175,9 +1175,9 @@
     });
   }
   /* Kurzanleitung für angerührte Mahlzeiten – so, wie ihr zubereitet: Messglas auf die Feinwaage, Tara; Pulver einwiegen;
-     heißes Wasser aus dem Wasserkocher mit der Spritze darauf und das Pulver auflösen (in kühlem Wasser verklumpt es);
-     erst dann kaltes Wasser (falls nötig) und kalte Zutaten (Compleat) dazu einwiegen; verschließen, schütteln,
-     aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
+     heißes Wasser aus dem Wasserkocher mit der Spritze darauf, gleich verschließen und schütteln, bis sich das Pulver
+     aufgelöst hat (in kühlem Wasser verklumpt es, Schütteln löst am besten); erst dann kaltes Wasser (falls nötig) und
+     kalte Zutaten (Compleat) dazu einwiegen, nochmal verschließen und schütteln; aufziehen, verabreichen. Die Mischtemperatur am Ende hängt nicht von der Reihenfolge ab.
      Ergebnis: [{ html }] mit den aktuellen Mengen je Mahlzeit, oder null, wenn das Rezept nicht angerührt wird. */
   function quickSteps(rec, items) {
     if (!rec || !rec.angeruehrt) return null;
@@ -1189,11 +1189,13 @@
     const out = ["Messglas auf die Feinwaage, Tara"];
     let tared = true;
     powders.forEach(it => { out.push((tared ? "" : "Tara, ") + amt(it) + " einwiegen"); tared = false; });
-    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen");
+    out.push("Wasserkocher <b>" + p.t + " °C</b>: <b>" + p.hot + " ml</b> mit der Spritze abnehmen, ins Messglas");
+    out.push("Gleich verschließen und schütteln, bis sich das Pulver aufgelöst hat");
+    const n0 = out.length;
     if (p.luke) out.push("Tara, <b>" + p.luke + " ml kaltes Wasser</b> dazu einwiegen");
     cold.forEach(it => out.push("Tara, " + amt(it) + " kalt dazu einwiegen"));
     oils.forEach(it => out.push("Tara, " + amt(it) + " dazu einwiegen"));
-    out.push("Verschließen, schütteln");
+    if (out.length > n0) out.push("Verschließen, nochmal schütteln");
     const ks = kettleSettings();
     out.push("Aufziehen, verabreichen – ca. " + Math.round(p.temp) + " °C" + (p.inRange ? "" : p.temp > ks.hi ? ", etwas zu warm: kurz abkühlen lassen" : ", etwas kühler als geplant"));
     return out.map(html => ({ html }));

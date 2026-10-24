@@ -2202,20 +2202,23 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 °C ohne kaltes Wasser passt
   let t = steps("Compleat & KetoCal");
   assert.equal(t[0], "Messglas auf die Feinwaage, Tara");
-  // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, dann Compleat
+  // Reihenfolge: Pulver, heißes Wasser darauf, gleich verschließen und schütteln (löst am besten), dann Compleat, nochmal schütteln
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
-  assert.match(t[2], /^Wasserkocher 65 °C: 56 ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.match(t[3], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
-  assert.equal(t[4], "Verschließen, schütteln");
-  assert.match(t[5], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "in der Spanne");
-  assert.equal(t.length, 6, "kein kaltes Wasser, kein Hinweis zur Packung, keine Erklärsätze");
+  assert.match(t[2], /^Wasserkocher 65 °C: 56 ml mit der Spritze abnehmen, ins Messglas$/);
+  assert.equal(t[3], "Gleich verschließen und schütteln, bis sich das Pulver aufgelöst hat");
+  assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
+  assert.equal(t[5], "Verschließen, nochmal schütteln");
+  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "in der Spanne");
+  assert.equal(t.length, 7, "kein kaltes Wasser, kein Hinweis zur Packung, keine Erklärsätze");
   // KetoCal & Pre Apta: kaltes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[2], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
-  assert.match(t[3], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.match(t[4], /^Tara, [2-7][05] ml kaltes Wasser dazu einwiegen$/, "kaltes Wasser erst ab 20 ml, in 5-ml-Schritten");
+  assert.match(t[3], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas$/);
+  assert.equal(t[4], "Gleich verschließen und schütteln, bis sich das Pulver aufgelöst hat");
+  assert.match(t[5], /^Tara, [2-7][05] ml kaltes Wasser dazu einwiegen$/, "kaltes Wasser erst ab 20 ml, in 5-ml-Schritten");
+  assert.equal(t[6], "Verschließen, nochmal schütteln");
   const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
-  assert.equal(ml(t[3]) + ml(t[4]), 69, "heiß + kalt = Wasser der Mahlzeit");
+  assert.equal(ml(t[3]) + ml(t[5]), 69, "heiß + kalt = Wasser der Mahlzeit");
   assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "65 vor 85 °C, in der Spanne");
   fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
