@@ -2199,17 +2199,16 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const plan = [{ key: "std:Compleat & KetoCal" }, { key: "std:KetoCal & Pre Apta" }, { key: "std:HiPP Hühnchen & Öl" }, { key: null }, { key: null }];
   const w = boot({ settings: { kcal: 680, ratio: 1.8, mahlzeiten: 5, weight: 8.5, mctShare: 0 }, dayPlan: plan });
   const steps = (name) => { const c = openRecipe(w, name), ol = c.querySelector('.pane[data-pane="zubereitung"] ol.steps'); const t = ol ? [...ol.children].map(li => li.textContent.replace(/\u00a0/g, " ")) : []; fire(w, $(w, "detail-close")); return t; };
-  // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 °C vor 85 °C, mit kaltem Wasser
+  // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 °C ohne kaltes Wasser passt
   let t = steps("Compleat & KetoCal");
   assert.equal(t[0], "Messglas auf die Feinwaage, Tara");
-  // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, erst dann kaltes Wasser und Compleat
+  // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, dann Compleat
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
-  assert.match(t[2], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.match(t[3], /^Tara, [2-5][05] ml kaltes Wasser dazu einwiegen$/);
-  assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
-  assert.equal(t[5], "Verschließen, schütteln");
-  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "in der Spanne");
-  assert.equal(t.length, 7, "kein Hinweis zur Packung, keine Erklärsätze");
+  assert.match(t[2], /^Wasserkocher 65 °C: 56 ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
+  assert.match(t[3], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
+  assert.equal(t[4], "Verschließen, schütteln");
+  assert.match(t[5], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "in der Spanne");
+  assert.equal(t.length, 6, "kein kaltes Wasser, kein Hinweis zur Packung, keine Erklärsätze");
   // KetoCal & Pre Apta: kaltes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/); assert.match(t[2], /^Tara, Aptamil Pre \d+(,\d)? g einwiegen$/);
@@ -2222,14 +2221,15 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
   assert.equal($(w, "set-kettle-min").placeholder, "60");
   assert.match($(w, "vgs-kueche").textContent, /Wasserkocher 65\/85\/100 °C/, "45 °C wird nie verwendet");
-  // Wer 45 °C ausdrücklich zulässt (heiß mindestens 40 °C) und bis 41 °C erlaubt: 45 °C allein, ohne kaltes Wasser
+  // Wer 45 °C ausdrücklich zulässt (heiß mindestens 40 °C), bekommt die Stufe wieder angeboten
   const mn = $(w, "set-kettle-min"); mn.value = "40"; fire(w, mn, "input");
-  const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
-  t = steps("KetoCal & Pre Apta");
-  assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/);
-  assert.match(t[3], /^Wasserkocher 45 °C: 69 ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
-  assert.ok(!t.some(x => /kaltes Wasser/.test(x)));
+  assert.match($(w, "vgs-kueche").textContent, /Wasserkocher 45\/65\/85\/100 °C/);
   assert.match($(w, "kitchen-own").textContent, /heiß mindestens 40 °C/);
+  // Obergrenze anheben: mehr heißes, weniger kaltes Wasser
+  const kalt = (x) => +((/(\d+) ml kaltes Wasser/.exec(x.join(" ")) || [0, 0])[1]);
+  const before = kalt(steps("KetoCal & Pre Apta"));
+  const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
+  assert.ok(kalt(steps("KetoCal & Pre Apta")) < before, "weniger kaltes Wasser bei 41 °C");
   mn.value = ""; fire(w, mn, "input"); assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kettleMin, undefined);
   // Eigene Stufen
   const stp = $(w, "set-kettle-steps"); stp.value = "50 / 70 / 90"; fire(w, stp, "change");
