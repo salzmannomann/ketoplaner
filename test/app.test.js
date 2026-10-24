@@ -2199,16 +2199,16 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const plan = [{ key: "std:Compleat & KetoCal" }, { key: "std:KetoCal & Pre Apta" }, { key: "std:HiPP Hühnchen & Öl" }, { key: null }, { key: null }];
   const w = boot({ settings: { kcal: 680, ratio: 1.8, mahlzeiten: 5, weight: 8.5, mctShare: 0 }, dayPlan: plan });
   const steps = (name) => { const c = openRecipe(w, name), ol = c.querySelector('.pane[data-pane="zubereitung"] ol.steps'); const t = ol ? [...ol.children].map(li => li.textContent.replace(/\u00a0/g, " ")) : []; fire(w, $(w, "detail-close")); return t; };
-  // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 oder 85 °C mit kaltem Wasser
+  // Compleat & KetoCal bei 1,8:1 (Spanne 30–38 °C): nie 45 °C (Pulver verklumpt) – 65 °C vor 85 °C, mit kaltem Wasser
   let t = steps("Compleat & KetoCal");
   assert.equal(t[0], "Messglas auf die Feinwaage, Tara");
   // Reihenfolge: Pulver, heißes Wasser darauf und auflösen, erst dann kaltes Wasser und Compleat
   assert.match(t[1], /^Ketocal 3:1 \d+(,\d)? g einwiegen$/, "gleich nach dem Tara: ohne „Tara,“");
-  assert.match(t[2], /^Wasserkocher (65|85) °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
+  assert.match(t[2], /^Wasserkocher 65 °C: \d+ ml mit der Spritze abnehmen, ins Messglas, Pulver darin auflösen$/);
   assert.match(t[3], /^Tara, [2-5][05] ml kaltes Wasser dazu einwiegen$/);
   assert.match(t[4], /^Tara, Compleat \d+(,\d)? g kalt dazu einwiegen$/);
   assert.equal(t[5], "Verschließen, schütteln");
-  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[6-8]) °C$/, "eher oben in der Spanne");
+  assert.match(t[6], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "in der Spanne");
   assert.equal(t.length, 7, "kein Hinweis zur Packung, keine Erklärsätze");
   // KetoCal & Pre Apta: kaltes Wasser nach dem heißen, erst ab 20 ml (nie 10 ml)
   t = steps("KetoCal & Pre Apta");

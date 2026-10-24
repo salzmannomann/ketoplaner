@@ -3708,8 +3708,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
      Wärmebilanz: Mischtemperatur = Σ(Menge × Wärmekapazität × Temperatur) / Σ(Menge × Wärmekapazität), abzüglich dem, was
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
      landet (Standard 30–38 °C) – zuerst ganz ohne kaltes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
-     Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
-     (nie darüber) und möglichst der niedrigeren Stufe (65 vor 85 °C). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+     Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …): zuerst die niedrigste Stufe, die in die
+     Spanne kommt (65 vor 85 °C), damit möglichst knapp unter der Obergrenze (nie darüber). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
   const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 26.5, loss: 8 };
   // loss: so viel Wärme verliert das heiße Wasser bis zur fertigen Mahlzeit (Spritze, Messglas, Schütteln). Gemessen:
@@ -3748,10 +3748,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     // Geht es ganz ohne kaltes Wasser (irgendwo in der Spanne), hat das Vorrang – dann mit der niedrigsten Stufe.
     const plain = all.filter(x => x.inRange && x.luke === 0).sort((a, b) => a.t - b.t);
     if (plain.length) return plain[0];
-    // Sonst: nahe am Ziel (bis 2 °C darunter) mit der niedrigsten Stufe (65 vor 85 °C), sonst am nächsten am Ziel;
-    // dann so wenig kaltes Wasser wie möglich
-    const dist = (x) => Math.round(Math.abs(x.temp - aim)), near = (x) => Math.abs(x.temp - aim) <= 2 ? 0 : 1;
-    const fit = all.filter(x => x.inRange).sort((a, b) => near(a) - near(b) || (near(a) ? dist(a) - dist(b) : a.t - b.t) || dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
+    // Sonst: die niedrigste Stufe, die irgendwo in die Spanne kommt (65 vor 85 °C), damit am nächsten am Ziel (auf 1 °C
+    // genau), dann so wenig kaltes Wasser wie möglich
+    const dist = (x) => Math.round(Math.abs(x.temp - aim));
+    const fit = all.filter(x => x.inRange).sort((a, b) => a.t - b.t || dist(a) - dist(b) || a.luke - b.luke || Math.abs(a.temp - aim) - Math.abs(b.temp - aim));
     if (fit.length) return fit[0];
     // Nichts passt: die wärmste Variante, die nicht zu heiß ist (sonst die kühlste)
     const ok = all.filter(x => x.temp <= ks.hi + 0.5).sort((a, b) => b.temp - a.temp || a.luke - b.luke);
