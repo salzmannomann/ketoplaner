@@ -7,10 +7,11 @@
      Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …), mit Ziel knapp unter der Obergrenze
      (nie darüber) und möglichst der niedrigeren Stufe (65 vor 85 °C). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
-  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 12 };
-  // loss: so viel kühlt das heiße Wasser auf dem Weg ab (Spritze, Messglas, Schütteln). Gemessen: 39 ml aus dem
-  // Wasserkocher (65 °C) auf 18,2 g KetoCal ergaben nach dem Schütteln 48 °C – gerechnet ohne Verlust wären es 58 °C,
-  // das heiße Wasser kam also mit ca. 53 °C an (rund 12 °C weniger).
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 20, loss: 8 };
+  // loss: so viel Wärme verliert das heiße Wasser bis zur fertigen Mahlzeit (Spritze, Messglas, Schütteln). Gemessen:
+  // 39 ml aus dem Wasserkocher (65 °C) auf 18,2 g KetoCal → 48 °C; dazu 29,5 g Compleat (2 °C) → fertig 33,5 °C.
+  // Das passt zu rund 8,5 °C Verlust am heißen Wasser (das angewärmte Messglas gibt beim Compleat wieder etwas Wärme ab).
+  // Abgerundet auf 8: die App rechnet damit eher etwas wärmer, die Mahlzeit wird also nicht heißer als angegeben.
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
