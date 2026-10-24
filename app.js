@@ -1061,20 +1061,21 @@
      beim Zubereiten verloren geht (Spritze, Becher, Mischen). Gesucht ist eine Stufe, mit der die Mischung in der Spanne
      landet (Standard 30–38 °C) – zuerst ganz ohne kaltes Wasser (dann egal, wo in der Spanne); geht das nicht, wird ein
      Teil des Wassers kalt genommen, ab 20 ml in 5-ml-Schritten (20, 25, 30 …): zuerst die niedrigste Stufe, die in die
-     Spanne kommt (65 vor 85 °C), damit möglichst knapp unter der Obergrenze (nie darüber). Werte sind Schätzungen; „Abkühlen“ unter Küche gleicht sie an. */
+     Spanne kommt (65 vor 85 °C), damit möglichst knapp unter der Obergrenze (nie darüber). Werte sind Schätzungen; „Messglas und Spritze kühlen“ unter Küche gleicht sie an. */
   // min: heißes Wasser mindestens – kälter verklumpt das Pulver beim Anrühren, solche Stufen (z. B. 45 °C) nie verwenden
-  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 26.5, loss: 16 };
-  // loss: so viel Wärme verliert das heiße Wasser bis zur fertigen Mahlzeit (Spritze, Messglas, Schütteln). Gemessen:
-  // 59 ml aus dem Wasserkocher (65 °C) auf 18,2 g KetoCal → 48 °C; dazu 29,5 g Compleat (2 °C) → fertig 33,5 °C.
-  // Das passt zu rund 16,3 °C Verlust am heißen Wasser (das angewärmte Messglas gibt beim Compleat wieder etwas Wärme ab).
-  // Abgerundet auf 16: die App rechnet damit eher etwas wärmer, die Mahlzeit wird also nicht heißer als angegeben.
+  const KETTLE_STD = { steps: [45, 65, 85, 100], min: 60, lo: 30, hi: 38, fridge: 2, room: 21, luke: 26.5, glass: 80 };
+  // glass: Messglas, Spritze und Schütteln nehmen Wärme auf – so viel wie ca. 80 ml Wasser, die von Raumtemperatur mit
+  // angewärmt werden müssen. Damit kühlt wenig heißes Wasser stärker ab als viel. Gemessen (fertige Mahlzeit):
+  //   Compleat & KetoCal: 59 ml mit 65 °C auf 18,2 g KetoCal, dazu 29,5 g Compleat (2 °C) → 33,5 °C (gerechnet 33,3 °C)
+  //   KetoCal & Pre Apta: 46 ml mit 65 °C auf 17 g KetoCal + 8,5 g Pre, dazu 35 ml kaltes Wasser (26,5 °C) → 33 °C (gerechnet 34 °C)
+  // Im Zweifel rechnet die App etwas wärmer – die Mahlzeit wird also nicht heißer als angegeben.
   function kettleSettings() {
     const s = state.settings, n = (v, d) => (v === "" || v == null || !isFinite(num(v))) ? d : num(v);
     const steps = (Array.isArray(s.kettleSteps) ? s.kettleSteps : KETTLE_STD.steps).map(num).filter(t => t >= 30 && t <= 100).sort((a, b) => a - b);
     let lo = n(s.kettleLo, KETTLE_STD.lo), hi = n(s.kettleHi, KETTLE_STD.hi); if (hi < lo) { const t = lo; lo = hi; hi = t; }
     const all = steps.length ? steps : KETTLE_STD.steps, min = n(s.kettleMin, KETTLE_STD.min);
     const usable = all.filter(t => t >= min);
-    return { steps: all, use: usable.length ? usable : [all[all.length - 1]], min, lo, hi, fridge: n(s.kettleFridge, KETTLE_STD.fridge), room: KETTLE_STD.room, luke: n(s.kettleLuke, KETTLE_STD.luke), loss: n(s.kettleLoss, KETTLE_STD.loss) };
+    return { steps: all, use: usable.length ? usable : [all[all.length - 1]], min, lo, hi, fridge: n(s.kettleFridge, KETTLE_STD.fridge), room: KETTLE_STD.room, luke: n(s.kettleLuke, KETTLE_STD.luke), glass: Math.max(0, n(s.kettleGlass, KETTLE_STD.glass)) };
   }
   // „45, 65, 85, 100“ → [45, 65, 85, 100]
   function parseKettleSteps(t) { return String(t || "").split(/[^\d]+/).map(Number).filter(v => v >= 30 && v <= 100).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b); }
@@ -1091,7 +1092,7 @@
       const c = 4.18 * wp + 1.5 * (1 - wp), T = wp >= 0.5 ? ks.fridge : ks.room;
       C += g * c; Q0 += g * c * T;
     });
-    const W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * (t - ks.loss) + L * 4.18 * ks.luke + Q0) / C;
+    const G = ks.glass * 4.18, W = Math.round(water), mix = (t, L) => ((W - L) * 4.18 * t + L * 4.18 * ks.luke + Q0 + G * ks.room) / (C + G);
     // Ziel: eher oben in der Spanne (knapp unter der Obergrenze, z. B. 37,5 °C bei 30–38 °C) – nie darüber hinaus
     const aim = Math.max(ks.lo, ks.hi - 0.5), Ls = [0];
     for (let L = 20; L <= W - 10; L += 5) Ls.push(L); // kaltes Wasser erst ab 20 ml (10 ml dazugeben wäre zu mühsam), dann in 5-ml-Schritten; mind. 10 ml heiß
@@ -1123,7 +1124,7 @@
     return "Wasserkocher <b>" + p.t + " °C</b>" + escapeHtml(t.slice(i + 3));
   }
   // Vorgaben › Küche: Felder füllen (leer = Standard, grau als Platzhalter) und Änderungen übernehmen
-  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-loss": "kettleLoss", "set-kettle-min": "kettleMin", "set-brei-wasser": "breiWasserMin" };
+  const KETTLE_FIELDS = { "set-kettle-lo": "kettleLo", "set-kettle-hi": "kettleHi", "set-kettle-fridge": "kettleFridge", "set-kettle-luke": "kettleLuke", "set-kettle-glass": "kettleGlass", "set-kettle-min": "kettleMin", "set-brei-wasser": "breiWasserMin" };
   function renderKettleSettings() {
     const s = state.settings, put = (id, v) => { const e = document.getElementById(id); if (e && document.activeElement !== e) e.value = v; };
     put("set-kettle-steps", Array.isArray(s.kettleSteps) && s.kettleSteps.length ? s.kettleSteps.join(", ") : "");
@@ -1132,7 +1133,7 @@
     if (box) { box.hidden = !own.length; document.getElementById("kitchen-own").textContent = own.length ? "Eigene Werte: " + own.join(", ") + "." : ""; }
   }
   // Küche: welche Werte weichen vom Standard ab? (für „Auf Standard zurücksetzen“)
-  const KITCHEN_KEYS = ["dampfVerdunstung", "breiWasserMin", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss", "kettleMin"];
+  const KITCHEN_KEYS = ["dampfVerdunstung", "breiWasserMin", "kettleSteps", "kettleLo", "kettleHi", "kettleFridge", "kettleLuke", "kettleLoss", "kettleGlass", "kettleMin"];
   function kitchenOwn() {
     const s = state.settings, out = [], has = (k) => s[k] !== undefined && s[k] !== "" && s[k] !== null;
     if (has("dampfVerdunstung") && num(s.dampfVerdunstung) !== DAMPF_STANDARD) out.push("Verdunstung " + fmt(num(s.dampfVerdunstung), 0) + " ml");
@@ -1142,7 +1143,7 @@
     if (has("kettleLo") || has("kettleHi")) { const ks = kettleSettings(); out.push("körperwarm " + fmtNum(ks.lo) + "–" + fmtNum(ks.hi) + " °C"); }
     if (has("kettleFridge")) out.push("Kühlschrank " + fmtNum(num(s.kettleFridge)) + " °C");
     if (has("kettleLuke")) out.push("kaltes Wasser " + fmtNum(num(s.kettleLuke)) + " °C");
-    if (has("kettleLoss")) out.push("Abkühlen " + fmtNum(num(s.kettleLoss)) + " °C");
+    if (has("kettleGlass")) out.push("Messglas wie " + fmtNum(num(s.kettleGlass)) + " ml Wasser");
     return out;
   }
   function bindKettleSettings() {

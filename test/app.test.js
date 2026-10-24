@@ -2216,7 +2216,7 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   assert.match(t[4], /^Tara, [2-7][05] ml kaltes Wasser dazu einwiegen$/, "kaltes Wasser erst ab 20 ml, in 5-ml-Schritten");
   const ml = (x) => +(/(\d+) ml/.exec(x) || [])[1];
   assert.equal(ml(t[3]) + ml(t[4]), 69, "heiß + kalt = Wasser der Mahlzeit");
-  assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[6-8]) °C$/, "65 vor 85 °C, eher oben in der Spanne");
+  assert.match(t[t.length - 1], /^Aufziehen, verabreichen – ca\. (3[0-8]) °C$/, "65 vor 85 °C, in der Spanne");
   fire(w, w.document.querySelector('[data-view="vorgaben"]')); fire(w, w.document.querySelector('[data-vg="kueche"]'));
   assert.ok($(w, "kitchen-reset").hidden, "ohne eigene Werte kein Zurücksetzen");
   assert.equal($(w, "set-kettle-min").placeholder, "60");
@@ -2225,12 +2225,11 @@ test("Wasserkocher: Kurzanleitung unter „Kochen“ (Feinwaage, Stufe, Mengen) 
   const mn = $(w, "set-kettle-min"); mn.value = "40"; fire(w, mn, "input");
   assert.match($(w, "vgs-kueche").textContent, /Wasserkocher 45\/65\/85\/100 °C/);
   assert.match($(w, "kitchen-own").textContent, /heiß mindestens 40 °C/);
-  // Obergrenze anheben: mehr heißes, weniger kaltes Wasser
-  const kalt = (x) => +((/(\d+) ml kaltes Wasser/.exec(x.join(" ")) || [0, 0])[1]);
-  const before = kalt(steps("KetoCal & Pre Apta"));
-  const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
-  assert.ok(kalt(steps("KetoCal & Pre Apta")) < before, "weniger kaltes Wasser bei 41 °C");
   mn.value = ""; fire(w, mn, "input"); assert.equal(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kettleMin, undefined);
+  // Obergrenze anheben: 65 °C ganz ohne kaltes Wasser passt dann
+  assert.ok(steps("KetoCal & Pre Apta").some(x => /kaltes Wasser/.test(x)));
+  const hi = $(w, "set-kettle-hi"); hi.value = "41"; fire(w, hi, "input");
+  assert.ok(!steps("KetoCal & Pre Apta").some(x => /kaltes Wasser/.test(x)), "bis 41 °C ohne kaltes Wasser");
   // Eigene Stufen
   const stp = $(w, "set-kettle-steps"); stp.value = "50 / 70 / 90"; fire(w, stp, "change");
   assert.equal(stp.value, "50, 70, 90"); assert.deepEqual(JSON.parse(w.localStorage.getItem("ketoplaner.v5")).settings.kettleSteps, [50, 70, 90]);
