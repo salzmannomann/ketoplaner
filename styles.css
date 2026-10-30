@@ -456,8 +456,8 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .favbtn:hover { background: var(--paper-2); }
 .empty-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 12px 0; font-size: var(--t-s); }
 /* Wischen zwischen den Gruppen: senkrecht bleibt Scrollen, waagrecht blättert; Nachbargruppe als zweite Fläche */
-.list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; }
-#recipe-list { touch-action: pan-y; user-select: none; -webkit-user-select: none; will-change: transform; }
+.list-stage { position: relative; overflow-x: hidden; overflow-x: clip; overflow-y: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+#recipe-list { will-change: transform; }
 #recipe-peek { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; will-change: transform; }
 /* Hüllen für die Desktop-Anordnung (Liste | Panel, Spalte je Gruppe) – am Handy ohne Wirkung */
 .rz-layout, .rz-main, .group { display: contents; }
@@ -1008,14 +1008,15 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   #recipe-list > .group:only-child, #recipe-peek > .group:only-child { grid-column: 1 / -1; }
   #recipe-list > .group:only-child .tiles, #recipe-peek > .group:only-child .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   #recipe-list > .tiles, #recipe-list > .empty-line, #recipe-peek > .tiles, #recipe-peek > .empty-line { grid-column: 1 / -1; }
-  /* Die Tintenlinie unter dem Gruppentitel läuft wie in der Übersicht nur über jede Spalte, nicht über den Spalt:
+  /* Nur eine Gruppe (volle Breite): die Tintenlinie unter dem Titel läuft wie in der Übersicht nur über jede Spalte, nicht über den Spalt
+     (Selektor eng gefasst – .rz-main ist selbst ein Container, sonst träfe es auch die Gruppen der Übersicht):
      Spaltenzahl wie bei auto-fill (250 px + 32 px Spalt) – 2 Spalten ab 532 px, 3 ab 814 px Breite */
   #recipe-list > .group:only-child, #recipe-peek > .group:only-child { container-type: inline-size; }
   @container (min-width: 532px) {
-    .group-head { border-bottom-color: transparent; background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 32px) / 2) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 32px) / 2) 2px no-repeat; }
+    #recipe-list > .group:only-child > .group-head, #recipe-peek > .group:only-child > .group-head { border-bottom-color: transparent; background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 32px) / 2) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 32px) / 2) 2px no-repeat; }
   }
   @container (min-width: 814px) {
-    .group-head { background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 50% 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 64px) / 3) 2px no-repeat; }
+    #recipe-list > .group:only-child > .group-head, #recipe-peek > .group:only-child > .group-head { background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 50% 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 64px) / 3) 2px no-repeat; }
   }
   #recipe-list > .tiles, #recipe-peek > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   .tile { padding: 10px 8px 10px 12px; }

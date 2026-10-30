@@ -1230,11 +1230,28 @@
     if (window.scrollY > top) window.scrollTo(0, Math.max(0, top));
     return true;
   }
+  // Die Wischfläche reicht bis zum unteren Rand des Fensters – auch wenn nur wenige Rezepte da sind, lässt sich
+  // auf dem leeren Hintergrund unter der Liste wischen.
+  function fitListStage() {
+    const stage = document.getElementById("list-stage");
+    if (!stage || !stage.getBoundingClientRect || !window.innerHeight || !stage.offsetParent) return; // nur sichtbar messen
+    // Ohne Mindesthöhe messen, was darüber und darunter liegt (Kopf, Abstand für die Leiste unten), dann nur so weit
+    // strecken, dass die Seite gerade das Fenster füllt – keine zusätzliche Scrollhöhe.
+    stage.style.minHeight = "";
+    const r = stage.getBoundingClientRect(), y = window.scrollY || 0, h0 = r.height;
+    let h = Math.round(window.innerHeight - (r.top + y));
+    if (h <= h0) return;
+    stage.style.minHeight = h + "px";
+    const excess = document.documentElement.scrollHeight - window.innerHeight;
+    if (excess > 0) { h = Math.max(h0, h - excess); stage.style.minHeight = h > h0 + 1 ? h + "px" : ""; }
+  }
   function bindFilterSwipe() {
     const list = document.getElementById("recipe-list"), fb = document.getElementById("filter-bar");
+    fitListStage();
     if (!list || !fb || list.dataset.swipe) return;
     list.dataset.swipe = "1";
     const stage = list.parentElement;
+    window.addEventListener("resize", fitListStage);
     const reduced = () => !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     let x0 = 0, y0 = 0, t0 = 0, active = false, horiz = null, dragged = false, busy = false;
     let dir = 0, curChip = null, nextChip = null, s0 = 0, s1 = 0, scrollable = false, peek = null;
@@ -1330,13 +1347,14 @@
       const go = (Math.abs(dx) > W() * 0.3 || flick) && Math.abs(dx) > Math.abs(dy) * 1.3;
       if (go && nextChip) finish(dir, dx); else cancel();
     };
-    list.addEventListener("pointerdown", start);
-    list.addEventListener("pointermove", move);
-    list.addEventListener("pointerup", end);
-    list.addEventListener("pointercancel", end);
-    list.addEventListener("pointerleave", (e) => { if (active && e.pointerType === "mouse") end(e); });
+    // Auf der ganzen Fläche (Kacheln und leerer Hintergrund darunter), nicht nur auf einer Kachel
+    stage.addEventListener("pointerdown", start);
+    stage.addEventListener("pointermove", move);
+    stage.addEventListener("pointerup", end);
+    stage.addEventListener("pointercancel", end);
+    stage.addEventListener("pointerleave", (e) => { if (active && e.pointerType === "mouse") end(e); });
     // Nach einem Zug den Klick auf die Kachel schlucken (sonst öffnet sich beim Loslassen ein Rezept)
-    list.addEventListener("click", (e) => { if (dragged) { dragged = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    stage.addEventListener("click", (e) => { if (dragged) { dragged = false; e.stopPropagation(); e.preventDefault(); } }, true);
   }
 
   // Was die Liste außer der Gruppe noch bestimmt: Vorgaben, Suchtext, Schalter, Sortierung
@@ -1533,6 +1551,7 @@
     const sort = s.sort || "kategorie";
     $("sort-select").value = sort;
     fillRecipeList($("recipe-list"), filter, { d, q, onlyQuelle, hideKeto, onlyKeto, sort });
+    fitListStage();
     // Zeile über der Suche: wie viele Rezepte passen (zur Verordnung bzw. zur Suche/Gruppe)
     const lc = $("list-count"), n = num($("recipe-list").dataset.count);
     const countTxt = n + (n === 1 ? " Rezept passt" : " Rezepte passen") + (q ? " zur Suche" : filter === "alle" && !onlyQuelle && !hideKeto && !onlyKeto ? " zur Verordnung" : " zur Auswahl");
@@ -1575,6 +1594,7 @@
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel in Rezepte und Tagesplan
     try { window.scrollTo(0, 0); } catch (e) {}
+    if (name === "rezepte" && typeof fitListStage === "function") fitListStage();
     if (typeof markChip === "function") markChip();
   }
   // Merkt sich, von wo die Pille in die Vorgaben geführt hat – ein zweiter Tipp führt zurück.
