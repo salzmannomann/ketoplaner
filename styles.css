@@ -1000,14 +1000,24 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .chips { gap: 5px; padding: 0 0 2px; }
   .chip { min-height: 30px; padding: 0 11px; font-size: var(--t-s); }
   .list-stage { grid-column: 1 / -1; }
-  #recipe-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 4px 32px; align-items: start; }
+  /* #recipe-peek (Nachbargruppe beim Wischen) bekommt dasselbe Spalten-Layout – sonst springt es nach dem Wechsel von 1 auf 2 Spalten */
+  #recipe-list, #recipe-peek { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 4px 32px; align-items: start; }
   .group { display: flex; flex-direction: column; min-width: 0; }
   .group .tiles { margin-bottom: 0; }
   /* Nur eine Gruppe sichtbar (Gruppen-Chip, Favoriten oder Suche): sie nimmt die ganze Breite, die Rezepte laufen in Spalten */
-  #recipe-list > .group:only-child { grid-column: 1 / -1; }
-  #recipe-list > .group:only-child .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
-  #recipe-list > .tiles, #recipe-list > .empty-line { grid-column: 1 / -1; }
-  #recipe-list > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
+  #recipe-list > .group:only-child, #recipe-peek > .group:only-child { grid-column: 1 / -1; }
+  #recipe-list > .group:only-child .tiles, #recipe-peek > .group:only-child .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
+  #recipe-list > .tiles, #recipe-list > .empty-line, #recipe-peek > .tiles, #recipe-peek > .empty-line { grid-column: 1 / -1; }
+  /* Die Tintenlinie unter dem Gruppentitel läuft wie in der Übersicht nur über jede Spalte, nicht über den Spalt:
+     Spaltenzahl wie bei auto-fill (250 px + 32 px Spalt) – 2 Spalten ab 532 px, 3 ab 814 px Breite */
+  #recipe-list > .group:only-child, #recipe-peek > .group:only-child { container-type: inline-size; }
+  @container (min-width: 532px) {
+    .group-head { border-bottom-color: transparent; background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 32px) / 2) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 32px) / 2) 2px no-repeat; }
+  }
+  @container (min-width: 814px) {
+    .group-head { background: linear-gradient(var(--ink), var(--ink)) 0 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 50% 100% / calc((100% - 64px) / 3) 2px no-repeat, linear-gradient(var(--ink), var(--ink)) 100% 100% / calc((100% - 64px) / 3) 2px no-repeat; }
+  }
+  #recipe-list > .tiles, #recipe-peek > .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); column-gap: 32px; }
   .tile { padding: 10px 8px 10px 12px; }
   /* Vorgaben: Kopf, links das Menü (Zeilen 56 px, aktiv dunkler), rechts die Unterseite (max. 640 px) */
   #view-vorgaben { display: grid; grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); gap: 20px 36px; align-items: start; max-width: 1040px; }
