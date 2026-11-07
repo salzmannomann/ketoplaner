@@ -2566,7 +2566,8 @@
     const pts = growthSeries(kind).map(e => [dayNum(e.d) - birth, e[kind], e]).filter(p => p[0] >= 0 && p[0] <= WHO_MAX_DAY);
     const lastDay = Math.max(pts.length ? pts[pts.length - 1][0] : 0, Math.min(WHO_MAX_DAY, dayNum(todayIso()) - birth));
     let d0 = 0, d1;
-    if (range) { d1 = Math.min(WHO_MAX_DAY, lastDay + 10); d0 = Math.max(0, d1 - range * MON); }
+    // Ausschnitt: die letzten 6 bzw. 12 Monate – ist das Kind jünger, die ersten 6 bzw. 12 Monate ab Geburt
+    if (range) { d1 = Math.min(WHO_MAX_DAY, Math.max(lastDay + 10, Math.round(range * MON))); d0 = Math.max(0, d1 - range * MON); }
     else d1 = Math.min(WHO_MAX_DAY, Math.round(Math.min(60, Math.max(12, Math.ceil((lastDay / MON + 2) / 6) * 6)) * MON));
     const vis = pts.filter(p => p[0] >= d0 && p[0] <= d1), stepD = range ? 2 : 7;
     const curve = (p) => { const a = []; for (let d = d0; d <= d1; d += stepD) a.push([d, lmsValue(whoLms(kind, sex, d), GR_Z[p])]); a.push([d1, lmsValue(whoLms(kind, sex, d1), GR_Z[p])]); return a; };

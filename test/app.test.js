@@ -2359,6 +2359,11 @@ test("Wachstum: zweites Kind – nur Wachstum, eigene Messungen, Name, Umschalte
   assert.equal(st().settings.weight, 7.3, "Verordnung rechnet weiter mit dem ersten Kind");
   assert.match($(w, "gr-facts").textContent, /^Zuletzt3,60 kg8\.1\.2026 · 7 TagePerzentile\d+WHO Buben/);
   assert.match($(w, "vgs-wachstum").textContent, /7,30 kg · 1\.7\.2024 · \+1 Kind$/);
+  // Neugeborenes: „6 Monate“ und „1 Jahr“ zeigen die ersten 6 bzw. 12 Monate ab Geburt (vorher beide gleich)
+  fire(w, w.document.querySelector('#gr-range [data-gr="6"]')); const x6 = $(w, "gr-chart").innerHTML;
+  fire(w, w.document.querySelector('#gr-range [data-gr="12"]')); const x12 = $(w, "gr-chart").innerHTML;
+  assert.notEqual(x6, x12, "1 Jahr zeigt mehr als 6 Monate");
+  fire(w, w.document.querySelector('#gr-range [data-gr="0"]'));
   // Zurück zum ersten Kind
   fire(w, $(w, "gr-kidseg").querySelector('button[data-kid=""]'));
   assert.equal(st().settings.grKid, ""); assert.match($(w, "gr-facts").textContent, /^Zuletzt7,30 kg/); assert.equal($(w, "gr-birth").value, "2024-01-01");
