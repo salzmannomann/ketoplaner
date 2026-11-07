@@ -220,7 +220,7 @@
   function backupDue() {
     const s = state.settings, every = s.backupRemind == null ? 28 : num(s.backupRemind), d = backupDays();
     if (!(every > 0)) return false;
-    if (d == null) return growthList().length > 0 || state.savedRecipes.length > 0 || state.customFoods.length > 0;
+    if (d == null) return growthList(null).length > 0 || kidList().length > 0 || state.savedRecipes.length > 0 || state.customFoods.length > 0;
     return d >= every;
   }
   function renderBackup() {

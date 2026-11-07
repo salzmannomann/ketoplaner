@@ -2010,7 +2010,7 @@ test("Wachstum: Messung eintragen, WHO-Perzentile (Mädchen/Buben), Gewicht geht
   fire(w, $(w, "gr-save"));
   assert.ok($(w, "gr-form").hidden);
   assert.equal(st().growth.length, 1); assert.equal(st().growth[0].w, 3.2322);
-  assert.match($(w, "gr-facts").textContent, /^Zuletzt3,23 kg1\.1\.2024 · 0 MPerzentile50WHO Mädchen · z 0,0$/);
+  assert.match($(w, "gr-facts").textContent, /^Zuletzt3,23 kg1\.1\.2024 · 0 TagePerzentile50WHO Mädchen · z 0,0$/);
   assert.equal(st().settings.weight, 3.2322, "zuletzt gemessenes Gewicht gilt in der Verordnung");
   assert.match($(w, "vo-view").textContent, /Körpergewichtzuletzt gewogen 1\.1\.2024 · Wachstum ›3,2 kg/);
   assert.match($(w, "toast").textContent, /Messung gespeichert/);
@@ -2085,7 +2085,7 @@ test("Wachstum: Messungen als Tabelle (CSV) – Strichpunkt, Dezimalkomma, Perze
   const lines = text.replace(/^\uFEFF/, "").split("\r\n");
   assert.equal(lines[0], "Datum;Alter;Gewicht (kg);Perzentile;Länge (cm);Perzentile;Kopfumfang (cm);Perzentile");
   assert.match(lines[1], /^15\.7\.2024;6 M;7,30;\d+;;;42,0;\d+$/);
-  assert.equal(lines[2], "1.1.2024;0 M;3,232;50;49,148;50;;", "feinere Werte ohne Verlust (bis 3 Stellen)");
+  assert.equal(lines[2], "1.1.2024;0 Tage;3,232;50;49,148;50;;", "feinere Werte ohne Verlust (bis 3 Stellen)");
   assert.match($(w, "toast").textContent, /Tabelle gespeichert: wachstum-\d{4}-\d\d-\d\d\.csv/);
   // Rundreise: dieselbe Tabelle in ein leeres Gerät importieren → dieselben Messungen
   const w2 = boot({ settings: { view: "vorgaben", bdBirth: "2024-01-01" } });
@@ -2333,4 +2333,43 @@ test("Wachstum: Import einer *.growth-Datei (App „Growth“) – Kind, Geburts
   fire(w, fi, "change");
   for (let i = 0; i < 50 && !warned; i++) await new Promise(r => setTimeout(r, 10));
   assert.match(warned, /lässt sich nicht lesen/); assert.equal(st().growth.length, 1);
+});
+
+test("Wachstum: zweites Kind – nur Wachstum, eigene Messungen, Name, Umschalten, Entfernen mit Rückgängig, Abgleich und Backup", () => {
+  // Erfundene Werte
+  const w = boot({ settings: { view: "vorgaben", weight: 8, bdBirth: "2024-01-01", bdSex: "w", mctShare: 0 }, growth: [{ id: "a1", d: "2024-07-01", w: 7.3 }] });
+  const st = () => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  fire(w, w.document.querySelector('[data-vg="wachstum"]'));
+  assert.ok($(w, "gr-kidseg").hidden, "Umschalter erst ab dem zweiten Kind"); assert.ok($(w, "gr-kidnote").hidden); assert.ok($(w, "gr-kiddel-wrap").hidden);
+  assert.equal($(w, "gr-name").placeholder, "Kind 1");
+  // Zweites Kind anlegen: leere Seite, Hinweis, Name, Geburt, Geschlecht
+  fire(w, $(w, "gr-kidadd"));
+  assert.equal(st().kids.length, 1); assert.ok(st().settings.grKid);
+  assert.ok(!$(w, "gr-kidseg").hidden); assert.ok(!$(w, "gr-kidnote").hidden); assert.ok(!$(w, "gr-kiddel-wrap").hidden);
+  assert.deepEqual([...$(w, "gr-kidseg").querySelectorAll("button")].map(b => b.textContent), ["Kind 1", "Kind 2"]);
+  assert.match($(w, "gr-list").textContent, /^Noch keine Gewichte/, "eigene, noch leere Messungen");
+  const nm = $(w, "gr-name"); nm.value = "Zweites"; fire(w, nm, "input");
+  const bi = $(w, "gr-birth"); bi.value = "2026-01-01"; fire(w, bi, "change");
+  const sx = $(w, "gr-sex"); sx.value = "m"; fire(w, sx, "change");
+  assert.deepEqual(st().kids.map(k => [k.name, k.birth, k.sex]), [["Zweites", "2026-01-01", "m"]]);
+  assert.equal(st().settings.bdBirth, "2024-01-01", "erstes Kind unverändert"); assert.equal(st().settings.bdSex, "w");
+  // Messung beim zweiten Kind: Perzentile nach Buben-Kurve, Gewicht geht NICHT in die Verordnung
+  fire(w, $(w, "gr-add")); $(w, "gr-date").value = "2026-01-08"; $(w, "gr-w").value = "3,6"; fire(w, $(w, "gr-save"));
+  assert.equal(st().kids[0].growth.length, 1); assert.equal(st().growth.length, 1);
+  assert.equal(st().settings.weight, 7.3, "Verordnung rechnet weiter mit dem ersten Kind");
+  assert.match($(w, "gr-facts").textContent, /^Zuletzt3,60 kg8\.1\.2026 · 7 TagePerzentile\d+WHO Buben/);
+  assert.match($(w, "vgs-wachstum").textContent, /7,30 kg · 1\.7\.2024 · \+1 Kind$/);
+  // Zurück zum ersten Kind
+  fire(w, $(w, "gr-kidseg").querySelector('button[data-kid=""]'));
+  assert.equal(st().settings.grKid, ""); assert.match($(w, "gr-facts").textContent, /^Zuletzt7,30 kg/); assert.equal($(w, "gr-birth").value, "2024-01-01");
+  // Abgleich und Backup kennen die Kinder; kaputte Einträge werden beim Laden verworfen
+  assert.match(CODE, /SYNC_PARTS = \[[^\]]*"kids"\]/, "Geräte-Abgleich gleicht die Kinder mit ab");
+  const w2 = boot({ kids: [{ id: "kx1", name: "A", birth: "2026-01-01", sex: "m", growth: [{ d: "2026-01-08", w: 3.6 }, { d: "kaputt", w: 3 }] }, null, "x"] });
+  assert.deepEqual(JSON.parse(w2.localStorage.getItem("ketoplaner.v5")).kids.length, 1);
+  // Entfernen (mit Rückfrage bei Messungen) und Rückgängig
+  fire(w, $(w, "gr-kidseg").querySelectorAll("button")[1]);
+  fire(w, $(w, "gr-kiddel"));
+  assert.equal(st().kids.length, 0); assert.ok($(w, "gr-kidseg").hidden);
+  fire(w, $(w, "toast").querySelector(".toast-btn"));
+  assert.equal(st().kids.length, 1); assert.equal(st().kids[0].growth.length, 1);
 });

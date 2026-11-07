@@ -8,6 +8,13 @@
   const GR_P = [1, 3, 15, 50, 85, 97, 99];
   const GR_Z = { 1: -2.326348, 3: -1.880794, 15: -1.036433, 50: 0, 85: 1.036433, 97: 1.880794, 99: 2.326348 };
   function todayIso() { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
+  // Alter am Messtag: unter 3 Monaten in Tagen bzw. Wochen (bei Neugeborenen sagt „0 M“ nichts), sonst Jahre und Monate
+  function grAgeText(iso) {
+    const birth = kidBirth(), days = dayNum(iso) - dayNum(birth), mo = ageMonths(birth, iso);
+    if (!(days >= 0) || mo == null || mo < 0) return "";
+    if (mo < 3) return days < 14 ? days + (days === 1 ? " Tag" : " Tage") : Math.floor(days / 7) + " Wochen";
+    return bdAgeText(mo);
+  }
   function grSexWord() { return growthSex() === "m" ? "Buben" : "Mädchen"; }
   // Gezeigter Zeitraum: die letzten 6 bzw. 12 Monate oder alles (0, Standard)
   function grRange() { const r = num(state.settings.grRange); return r === 6 || r === 12 ? r : 0; }
@@ -19,7 +26,7 @@
   // letzte Messung hinaus (höchstens 5 Jahre). Ausschnitt (6/12 Monate): die Werteachse rückt eng um die Messpunkte und die
   // nächsten Perzentilen darüber und darunter – so wird eine Tendenz sichtbar.
   function growthChartSvg(kind) {
-    const K = GROWTH_KINDS[kind], sex = growthSex(), birth = dayNum(state.settings.bdBirth), wide = grIsWide(), range = grRange();
+    const K = GROWTH_KINDS[kind], sex = growthSex(), birth = dayNum(kidBirth()), wide = grIsWide(), range = grRange();
     const W = wide ? 640 : 360, H = wide ? 330 : 310, ml = 34, mr = 26, mt = 20, mb = 34, PW = W - ml - mr, PH = H - mt - mb, MON = GR_MON;
     const pts = growthSeries(kind).map(e => [dayNum(e.d) - birth, e[kind], e]).filter(p => p[0] >= 0 && p[0] <= WHO_MAX_DAY);
     const lastDay = Math.max(pts.length ? pts[pts.length - 1][0] : 0, Math.min(WHO_MAX_DAY, dayNum(todayIso()) - birth));
@@ -91,23 +98,35 @@
   function grValueText(kind, v) { return fmt(v, GROWTH_KINDS[kind].dec) + " " + GROWTH_KINDS[kind].unit; }
   // Kurzfassung für die Vorgaben-Liste: letzte Werte und Datum der letzten Messung
   function growthSummary() {
-    const all = growthList(); if (!all.length) return "noch keine Messungen";
-    const parts = Object.keys(GROWTH_KINDS).map(k => { const s = growthSeries(k); return s.length ? grValueText(k, s[s.length - 1][k]) : ""; }).filter(Boolean);
-    return parts.join(" · ") + " · " + fmtDay(all[all.length - 1].d);
+    // erstes Kind; weitere Kinder nur als Anzahl
+    const more = kidList().length, tail = more ? " · +" + more + (more === 1 ? " Kind" : " Kinder") : "";
+    const all = growthList(null); if (!all.length) return "noch keine Messungen" + tail;
+    const parts = Object.keys(GROWTH_KINDS).map(k => { const s = growthSeries(k, null); return s.length ? grValueText(k, s[s.length - 1][k]) : ""; }).filter(Boolean);
+    return parts.join(" · ") + " · " + fmtDay(all[all.length - 1].d) + tail;
   }
   function renderWachstum() {
     const $ = id => document.getElementById(id), card = $("wachstum-card"); if (!card) return;
-    const s = state.settings, birthOk = !isNaN(dayNum(s.bdBirth));
+    const kid = grKid(), kidBirthIso = kidBirth(), birthOk = !isNaN(dayNum(kidBirthIso));
     const put = (id, v) => { const el = $(id); if (el && document.activeElement !== el) el.value = v; };
     card.querySelectorAll("#gr-kind button[data-gk]").forEach(b => b.classList.toggle("active", b.dataset.gk === grKind));
-    // Geburtsdatum und Geschlecht (dieselben Werte wie unter „Bedarf schätzen“)
-    put("gr-birth", s.bdBirth || ""); put("gr-sex", s.bdSex === "m" ? "m" : "w");
-    const bw = $("gr-birth") && $("gr-birth").closest(".date-wrap"); if (bw) bw.classList.toggle("empty", !s.bdBirth);
-    const mo = birthOk ? ageMonths(s.bdBirth, todayIso()) : null;
-    if ($("gr-age")) $("gr-age").textContent = mo != null && mo >= 0 ? bdAgeText(mo) : "für die Perzentilen";
+    // Kinder: Umschalter erst ab dem zweiten Kind; weitere Kinder zählen nur fürs Wachstum
+    const kids = kidList(), seg = $("gr-kidseg");
+    if (seg) {
+      seg.hidden = !kids.length;
+      seg.innerHTML = [null].concat(kids).map((k, i) => '<button type="button" data-kid="' + (k ? escapeHtml(k.id) : "") + '" class="' + (k === kid ? "active" : "") + '" aria-pressed="' + (k === kid) + '">' + escapeHtml(kidName(k, i + 1)) + "</button>").join("");
+    }
+    if ($("gr-kidnote")) $("gr-kidnote").hidden = !kid;
+    if ($("gr-kiddel-wrap")) $("gr-kiddel-wrap").hidden = !kid;
+    put("gr-name", kid ? kid.name : (state.settings.kidName || ""));
+    if ($("gr-name")) $("gr-name").placeholder = kid ? "Kind " + (kids.indexOf(kid) + 2) : "Kind 1";
+    // Geburtsdatum und Geschlecht (beim ersten Kind dieselben Werte wie unter „Bedarf schätzen“)
+    put("gr-birth", kidBirthIso); put("gr-sex", kidSexRaw());
+    const bw = $("gr-birth") && $("gr-birth").closest(".date-wrap"); if (bw) bw.classList.toggle("empty", !kidBirthIso);
+    const mo = birthOk ? ageMonths(kidBirthIso, todayIso()) : null;
+    if ($("gr-age")) $("gr-age").textContent = mo != null && mo >= 0 ? grAgeText(todayIso()) : "für die Perzentilen";
     // Formular: eine neue Messung oben, eine bestehende klappt in ihrer Zeile auf (das Formular wird dorthin verschoben)
     const form = $("gr-form"), list = $("gr-list"), open = grEditId !== null, cur = open && grEditId ? growthList().find(e => e.id === grEditId) : null;
-    if (form && list.contains(form)) card.querySelector(".vg-head").after(form);
+    if (form && list.contains(form)) ($("gr-kidnote") || card.querySelector(".vg-head")).after(form);
     if (form) form.hidden = !open;
     if ($("gr-form-title")) { $("gr-form-title").textContent = cur ? "Messung vom " + fmtDay(cur.d) : "Neue Messung"; $("gr-form-title").hidden = false; }
     if ($("gr-del")) $("gr-del").hidden = !cur;
@@ -120,7 +139,7 @@
     const fact = (label, value, sub) => '<div class="vg-fact"><small>' + label + "</small><b>" + value + "</b><span>" + sub + "</span></div>";
     if (last) {
       const f = growthFacts(grKind, last);
-      $("gr-facts").innerHTML = fact("Zuletzt", grValueText(grKind, last[grKind]), fmtDay(last.d) + (f.months != null && f.months >= 0 ? " · " + bdAgeText(f.months) : "")) +
+      $("gr-facts").innerHTML = fact("Zuletzt", grValueText(grKind, last[grKind]), fmtDay(last.d) + (f.months != null && f.months >= 0 ? " · " + grAgeText(last.d) : "")) +
         fact("Perzentile", f.p != null ? fmtPct(f.p) : "–", f.p != null ? "WHO " + grSexWord() + " · z " + fmt(f.z, 1) : !birthOk ? "Geburtsdatum fehlt" : "nur bis 5 Jahre");
     } else $("gr-facts").innerHTML = "";
     const rows = ser.slice().reverse(), shown = grShowAll ? rows : rows.slice(0, 5);
@@ -128,7 +147,7 @@
     $("gr-list").innerHTML = rows.length ? shown.map(e => {
       const f = growthFacts(grKind, e), id = escapeHtml(e.id);
       return '<div class="ms-wrap' + (e.id === grSelId ? " sel" : "") + '" data-gid="' + id + '"><button type="button" class="ms-row" data-gsel="' + id + '" aria-pressed="' + (e.id === grSelId) + '"><span><span class="d">' + fmtDay(e.d) + '</span><span class="a">' +
-        (f.months != null && f.months >= 0 ? bdAgeText(f.months) : "&nbsp;") + '</span></span><span><span class="v">' + grValueText(grKind, e[grKind]) + '</span><span class="p">' +
+        (f.months != null && f.months >= 0 ? grAgeText(e.d) : "&nbsp;") + '</span></span><span><span class="v">' + grValueText(grKind, e[grKind]) + '</span><span class="p">' +
         (f.p != null ? "Perzentile " + fmtPct(f.p) : "&nbsp;") + '</span></span></button><div class="ms-acts"><button type="button" class="ms-ed" data-ged="' + id + '">Bearbeiten</button>' +
         '<button type="button" class="ms-del" data-gdel="' + id + '">Löschen</button></div></div>';
     }).join("") : '<p class="hint">Noch keine ' + (grKind === "w" ? "Gewichte" : grKind === "h" ? "Längen" : "Kopfumfänge") + " – „+ Messung“ oder „Werte importieren“.</p>";
@@ -152,7 +171,7 @@
   function growthCsv() {
     const head = ["Datum", "Alter", "Gewicht (kg)", "Perzentile", "Länge (cm)", "Perzentile", "Kopfumfang (cm)", "Perzentile"];
     const rows = growthList().slice().reverse().map(e => {
-      const mo = ageMonths(state.settings.bdBirth, e.d), out = [fmtDay(e.d), mo != null && mo >= 0 ? bdAgeText(mo) : ""];
+      const out = [fmtDay(e.d), grAgeText(e.d)];
       Object.keys(GROWTH_KINDS).forEach(k => {
         if (e[k] == null) { out.push("", ""); return; }
         const f = growthFacts(k, e); out.push(csvNum(e[k], GROWTH_KINDS[k].dec), f.p != null ? fmtPct(f.p) : "");
@@ -183,9 +202,9 @@
   }
   // Änderungen an den Messungen mit „Rückgängig“ (Messungen und das übernommene Gewicht)
   function grCommit(change, msg) {
-    const snap = JSON.stringify({ growth: growthList(), weight: state.settings.weight });
+    const kid = grKid(), snap = JSON.stringify({ growth: growthList(), weight: state.settings.weight });
     change(); syncWeightFromGrowth(); save(); renderRezepte();
-    showToast(msg, [["Rückgängig", () => { const p = JSON.parse(snap); state.growth = p.growth; state.settings.weight = p.weight; save(); renderRezepte(); }]]);
+    showToast(msg, [["Rückgängig", () => { const p = JSON.parse(snap); setGrowth(p.growth, kid); state.settings.weight = p.weight; save(); renderRezepte(); }]]);
   }
   function bindWachstum() {
     const $ = id => document.getElementById(id), card = $("wachstum-card"); if (!card) return;
@@ -199,7 +218,7 @@
       if (ed) { grCloseSwipe(); grEdit(ed.dataset.ged); return; }
       if (del) {
         const id = del.dataset.gdel, e = growthList().find(x => x.id === id); if (!e) return;
-        grCommit(() => { state.growth = growthList().filter(x => x.id !== id); if (grSelId === id) grSelId = null; if (grEditId === id) grEditId = null; }, "Messung vom " + fmtDay(e.d) + " gelöscht");
+        grCommit(() => { setGrowth(growthList().filter(x => x.id !== id)); if (grSelId === id) grSelId = null; if (grEditId === id) grEditId = null; }, "Messung vom " + fmtDay(e.d) + " gelöscht");
         return;
       }
       if (!row || Date.now() - grSwipeAt < 400) return;
@@ -259,7 +278,8 @@
     if (window.matchMedia) { const mq = window.matchMedia("(min-width: 821px)"); const re = () => renderWachstum(); if (mq.addEventListener) mq.addEventListener("change", re); else if (mq.addListener) mq.addListener(re); }
     $("gr-csv").addEventListener("click", async () => {
       if (!growthList().length) { showToast("Noch keine Messungen."); return; }
-      const name = "wachstum-" + todayIso() + ".csv", r = await saveFile(name, growthCsv(), "text/csv");
+      const nm = String(kidName()).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const name = "wachstum-" + (kidList().length && nm ? nm + "-" : "") + todayIso() + ".csv", r = await saveFile(name, growthCsv(), "text/csv");
       if (r) showToast(r === "geteilt" ? "Tabelle gesichert" : "Tabelle gespeichert: " + escapeHtml(name));
     });
     $("gr-save").addEventListener("click", () => {
@@ -280,20 +300,41 @@
         if (editId) {
           const e = growthList().find(x => x.id === editId);
           if (e) { e.d = d; ["w", "h", "hc"].forEach(k => { if (vals[k] != null) e[k] = vals[k]; else delete e[k]; }); }
-          state.growth = cleanGrowth(growthList());
+          setGrowth(cleanGrowth(growthList()));
         } else mergeGrowth([Object.assign({ d }, vals)]);
         grEditId = null;
       }, "Messung gespeichert");
     });
     $("gr-del").addEventListener("click", () => {
       const id = grEditId; if (!id) return;
-      grCommit(() => { state.growth = growthList().filter(e => e.id !== id); grEditId = null; if (grSelId === id) grSelId = null; }, "Messung gelöscht");
+      grCommit(() => { setGrowth(growthList().filter(e => e.id !== id)); grEditId = null; if (grSelId === id) grSelId = null; }, "Messung gelöscht");
     });
     $("gr-all").addEventListener("click", () => { grShowAll = !grShowAll; renderWachstum(); });
     const birth = $("gr-birth");
     birth.addEventListener("input", () => { const w = birth.closest(".date-wrap"); if (w) w.classList.toggle("empty", !birth.value); });
-    birth.addEventListener("change", () => { state.settings.bdBirth = birth.value; save(); renderRezepte(); });
-    $("gr-sex").addEventListener("change", (e) => { state.settings.bdSex = e.target.value; save(); renderRezepte(); });
+    birth.addEventListener("change", () => { const k = grKid(); if (k) k.birth = birth.value; else state.settings.bdBirth = birth.value; save(); renderRezepte(); });
+    $("gr-sex").addEventListener("change", (e) => { const k = grKid(), v = e.target.value === "m" ? "m" : "w"; if (k) k.sex = v; else state.settings.bdSex = v; save(); renderRezepte(); });
+    // Kinder: umschalten, hinzufügen (nur Wachstum), Name, entfernen (mit Rückgängig)
+    const pickKid = (id) => { state.settings.grKid = id || ""; grEditId = null; grSelId = null; grShowAll = false; save(); renderWachstum(); };
+    $("gr-kidseg").addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("button[data-kid]"); if (b) pickKid(b.dataset.kid); });
+    $("gr-kidadd").addEventListener("click", () => {
+      if (kidList().length >= 9) return;
+      const k = { id: "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name: "", birth: "", sex: "w", growth: [] };
+      kidList().push(k); pickKid(k.id); renderRezepte();
+      try { $("gr-name").focus(); } catch (er) {}
+    });
+    $("gr-name").addEventListener("input", (e) => {
+      const k = grKid(), v = String(e.target.value).slice(0, 40);
+      if (k) k.name = v; else if (v.trim()) state.settings.kidName = v; else delete state.settings.kidName;
+      save(); const seg = $("gr-kidseg"), b = seg && seg.querySelector("button.active"); if (b) b.textContent = kidName();
+    });
+    $("gr-kiddel").addEventListener("click", () => {
+      const k = grKid(); if (!k) return;
+      const i = kidList().indexOf(k), n = k.growth.length, label = kidName(k);
+      if (n && !confirm(label + " mit " + n + (n === 1 ? " Messung" : " Messungen") + " entfernen?")) return;
+      state.kids = kidList().filter(x => x !== k); pickKid(""); renderRezepte();
+      showToast(escapeHtml(label) + " entfernt", [["Rückgängig", () => { kidList().splice(i, 0, k); pickKid(k.id); renderRezepte(); }]]);
+    });
     // Import aus der App „Growth“ (*.growth) oder einer Tabelle (*.csv, z. B. aus „Als Tabelle sichern“ und in Excel ergänzt):
     // Datei wird nur hier gelesen; vorher bestätigen, danach Rückgängig möglich
     $("gr-import").addEventListener("click", () => $("gr-file").click());
@@ -311,20 +352,24 @@
         if (!r) { alert("Diese Datei lässt sich nicht lesen – bitte eine *.growth-Datei aus der App „Growth“ oder eine Tabelle (CSV) mit den Spalten Datum, Gewicht, Länge, Kopfumfang wählen."); return; }
         const cnt = (k) => r.entries.filter(e => e[k] != null).length, days = r.entries.map(e => e.d).sort();
         const text = (r.name ? r.name + ": " : "") + cnt("w") + " Gewichte, " + cnt("h") + " Längen, " + cnt("hc") + " Kopfumfänge (" + fmtDay(days[0]) + " – " + fmtDay(days[days.length - 1]) + ")" +
-          (r.birth && !state.settings.bdBirth ? ", geboren " + fmtDay(r.birth) : "") + "." +
+          (r.birth && !kidBirth() ? ", geboren " + fmtDay(r.birth) : "") + "." +
           (r.skipped ? "\nNicht übernommen: " + r.skipped + (r.skipped === 1 ? " Eintrag" : " Einträge") + " (unlesbar, unplausibel oder in der Zukunft)." : "") +
           "\n\nÜbernehmen? Gleiche Tage werden zusammengeführt.";
         if (!confirm(text)) return;
-        const prevS = { bdBirth: state.settings.bdBirth, bdSex: state.settings.bdSex };
+        const kid = grKid(), prevS = { bdBirth: state.settings.bdBirth, bdSex: state.settings.bdSex }, prevK = kid ? { birth: kid.birth, sex: kid.sex } : null;
         const snap = JSON.stringify({ growth: growthList(), weight: state.settings.weight });
         mergeGrowth(r.entries);
-        if (r.birth && !state.settings.bdBirth) state.settings.bdBirth = r.birth;
-        if (r.sex && !state.settings.bdSex) state.settings.bdSex = r.sex;
+        if (kid) { if (r.birth && !kid.birth) kid.birth = r.birth; if (r.sex && !kid.growth.length) kid.sex = r.sex; }
+        else {
+          if (r.birth && !state.settings.bdBirth) state.settings.bdBirth = r.birth;
+          if (r.sex && !state.settings.bdSex) state.settings.bdSex = r.sex;
+        }
         syncWeightFromGrowth(); save(); renderRezepte();
         const nVals = r.entries.reduce((n, e) => n + Object.keys(GROWTH_KINDS).filter(k => e[k] != null).length, 0);
         showToast(nVals + " Werte übernommen", [["Rückgängig", () => {
-          const p = JSON.parse(snap); state.growth = p.growth; state.settings.weight = p.weight;
-          Object.keys(prevS).forEach(k => { if (prevS[k] === undefined) delete state.settings[k]; else state.settings[k] = prevS[k]; });
+          const p = JSON.parse(snap); setGrowth(p.growth, kid); state.settings.weight = p.weight;
+          if (kid) Object.assign(kid, prevK);
+          else Object.keys(prevS).forEach(k => { if (prevS[k] === undefined) delete state.settings[k]; else state.settings[k] = prevS[k]; });
           save(); renderRezepte();
         }]]);
       };

@@ -17,6 +17,7 @@
       hiddenRecipes: [], // ausgeblendete Standard-Rezepte (Rezept-Schlüssel)
       foodOverrides: {}, // geänderte Werte von Lebensmitteln der Diätologen-Liste (Name → nur die geänderten Felder)
       growth: [], // Messungen fürs Wachstum: { id, d: "JJJJ-MM-TT", w?, h?, hc? } – nur auf diesem Gerät
+      kids: [], // weitere Kinder, nur fürs Wachstum: { id, name, birth, sex, growth }
     };
   }
   // Umbenannte Standard-Rezepte: alte Schlüssel in Favoriten, Mengen, Wasser und Tagesplan nachziehen.
@@ -146,6 +147,7 @@
         hiddenRecipes: cleanFavorites(p.hiddenRecipes),
         foodOverrides: cleanFoodOverrides(p.foodOverrides),
         growth: cleanGrowth(p.growth),
+        kids: cleanKids(p.kids),
       };
     } catch (e) {
       // Unlesbare Daten nicht stillschweigend verwerfen: Rohtext zur Rettung unter eigenem Schlüssel ablegen.

@@ -19,7 +19,25 @@
     let m = (+d[1] - +b[1]) * 12 + (+d[2] - +b[2]); if (+d[3] < +b[3]) m--;
     return m;
   }
-  function growthSex() { return state.settings.bdSex === "m" ? "m" : "f"; }
+  /* Weitere Kinder – nur Wachstum (zählen nicht für Verordnung, Rezepte und Tagesplan): state.kids = [{ id, name, birth,
+     sex, growth }]. Das erste Kind sind state.growth, Geburtsdatum/Geschlecht aus den Einstellungen (bdBirth, bdSex) und
+     settings.kidName. Die Seite Wachstum zeigt das gewählte Kind (settings.grKid; leer = erstes Kind). */
+  function cleanKids(list) {
+    const seen = {};
+    return (Array.isArray(list) ? list : []).filter(k => !!k && typeof k === "object" && !Array.isArray(k)).map(k => ({
+      id: typeof k.id === "string" && /^k[\w-]{1,40}$/.test(k.id) ? k.id : "k" + Math.random().toString(36).slice(2, 9),
+      name: typeof k.name === "string" ? k.name.slice(0, 40) : "",
+      birth: typeof k.birth === "string" && /^\d{4}-\d{2}-\d{2}$/.test(k.birth) ? k.birth : "",
+      sex: k.sex === "m" ? "m" : "w",
+      growth: cleanGrowth(k.growth),
+    })).filter(k => !seen[k.id] && (seen[k.id] = true)).slice(0, 9);
+  }
+  function kidList() { return Array.isArray(state.kids) ? state.kids : (state.kids = []); }
+  function grKid() { const id = state.settings.grKid; return id ? kidList().find(k => k.id === id) || null : null; }
+  function kidBirth(k) { k = k === undefined ? grKid() : k; return k ? k.birth : (state.settings.bdBirth || ""); }
+  function kidSexRaw(k) { k = k === undefined ? grKid() : k; return (k ? k.sex : state.settings.bdSex) === "m" ? "m" : "w"; }
+  function kidName(k, i) { k = k === undefined ? grKid() : k; const n = k ? k.name : state.settings.kidName; return (typeof n === "string" && n.trim()) || "Kind " + (i || (k ? kidList().indexOf(k) + 2 : 1)); }
+  function growthSex() { return kidSexRaw() === "m" ? "m" : "f"; }
   // L, M, S für ein Alter in Tagen (linear zwischen den Stützstellen); außerhalb 0–5 Jahre: null
   function whoLms(kind, sex, day) {
     const t = WHO_LMS[kind + "_" + sex]; if (!t || !(day >= 0) || day > WHO_MAX_DAY) return null;
@@ -47,7 +65,7 @@
   // Perzentile zum Anzeigen: an den Rändern mit einer Nachkommastelle („0,8“, „99,4“), sonst ganz
   function fmtPct(p) { return p < 1 || p > 99 ? fmt(p, 1) : fmt(Math.round(p), 0); }
   function growthFacts(kind, entry) {
-    const birth = state.settings.bdBirth, day = dayNum(entry.d) - dayNum(birth);
+    const birth = kidBirth(), day = dayNum(entry.d) - dayNum(birth);
     const z = birth ? whoZ(kind, growthSex(), day, num(entry[kind])) : null;
     return { day, months: ageMonths(birth, entry.d), z, p: z == null ? null : zToPct(z) };
   }
@@ -63,10 +81,16 @@
     }).filter(e => e.d && (e.w != null || e.h != null || e.hc != null) && !seen[e.id] && (seen[e.id] = true))
       .sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
   }
-  function growthList() { return Array.isArray(state.growth) ? state.growth : (state.growth = []); }
-  function growthSeries(kind) { return growthList().filter(e => e[kind] != null); }
-  // Das zuletzt gemessene Gewicht gilt in der Verordnung (Richtwert, Eiweiß, Kalorien-Vorschlag rechnen damit)
-  function latestWeight() { const s = growthSeries("w"); return s.length ? s[s.length - 1] : null; }
+  // Messungen des gewählten Kindes (Seite Wachstum); setGrowth schreibt sie zurück (kid: bestimmtes Kind, null = erstes)
+  function growthList(kid) {
+    const k = kid === undefined ? grKid() : kid;
+    if (k) return Array.isArray(k.growth) ? k.growth : (k.growth = []);
+    return Array.isArray(state.growth) ? state.growth : (state.growth = []);
+  }
+  function setGrowth(list, kid) { const k = kid === undefined ? grKid() : kid; if (k) k.growth = list; else state.growth = list; }
+  function growthSeries(kind, kid) { return growthList(kid).filter(e => e[kind] != null); }
+  // Das zuletzt gemessene Gewicht des ersten Kindes gilt in der Verordnung (Richtwert, Eiweiß, Kalorien-Vorschlag rechnen damit)
+  function latestWeight() { const s = growthSeries("w", null); return s.length ? s[s.length - 1] : null; }
   function syncWeightFromGrowth() {
     const lw = latestWeight(); if (lw && Math.abs(num(state.settings.weight) - lw.w) > 1e-9) state.settings.weight = lw.w;
   }
@@ -77,7 +101,7 @@
       const e = byDay[n.d] || (byDay[n.d] = { id: "g" + n.d.replace(/-/g, "") + Math.random().toString(36).slice(2, 6), d: n.d });
       Object.keys(GROWTH_KINDS).forEach(k => { if (n[k] != null) e[k] = n[k]; });
     });
-    state.growth = cleanGrowth(Object.keys(byDay).map(k => byDay[k]));
+    setGrowth(cleanGrowth(Object.keys(byDay).map(k => byDay[k])));
   }
   /* Import aus der App „Growth“ (Datei *.growth): ein Protobuf-Datensatz. Feld 3 = Kind (4 Name, 5 Geschlecht – 1 ist
      ein Mädchen, 6 Geburt in Sekunden); Feld 6 = Messreihe (1 Art „w-kg“ / „h-cm“ / „hc-cm“, 2 Liste mit Einträgen:
