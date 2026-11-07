@@ -5,10 +5,19 @@
      Ein weiteres Gerät wird mit einem 8-stelligen Code gekoppelt (15 Minuten gültig, einmal verwendbar; der Schlüssel
      liegt dabei mit dem Code verschlüsselt beim Dienst).
      Zusammenführen: Jede Einheit (eine Einstellung, der Tagesplan, die Favoriten …) trägt den Zeitpunkt ihrer letzten
-     Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal. */
+     Änderung; die jüngere gewinnt. Was nur für ein Gerät gilt (Ansicht, Filter, Erinnerungen, Editor-Entwurf), bleibt lokal.
+     Schutz vor Datenverlust zwischen verschiedenen App-Versionen:
+     · Einheiten, die diese Version nicht kennt (von einer neueren Version angelegt), werden unverändert aufgehoben und
+       wieder mitgeschickt – nie stillschweigend weggelassen.
+     · Eine Einheit, die nach einem Update neu dazukommt und hier noch leer ist, gilt nicht als Änderung – sonst würde ihr
+       leerer Stand die Daten der anderen Geräte überschreiben.
+     · Vor jedem Abgleich nach dem Zurückholen der App wird geprüft, ob eine neuere App-Version bereitliegt; dann wird
+       zuerst neu geladen. Ein Stand mit höherem SYNC_SCHEMA wird nie überschrieben.
+     · Bevor ein fremder Stand übernommen wird, legt das Gerät seinen bisherigen Stand als automatische Sicherung ab. */
   const SYNC_KEY = "ketoplaner.sync";
   const SYNC_PARTS = ["favorites", "savedRecipes", "scales", "water", "waterK", "portion", "dayPlan", "basis", "customFoods", "hiddenRecipes", "foodOverrides", "growth", "kids"];
-  const SYNC_LOCAL_SETTINGS = ["view", "filter", "sort", "onlyQuelle", "hideKeto", "onlyKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
+  const SYNC_SCHEMA = 2; // erhöhen, wenn neue Einheiten dazukommen (2: Kinder)
+  const SYNC_LOCAL_SETTINGS = ["grKid", "view", "filter", "sort", "onlyQuelle", "hideKeto", "onlyKeto", "detailTab", "detailNutr", "theme", "pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"];
   const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let syncMeta = null, syncBusy = false, syncAgain = false, syncTimer = null, syncError = "", syncLastJson = null;
 
@@ -28,17 +37,23 @@
     Object.keys(state.settings).forEach(k => { if (SYNC_LOCAL_SETTINGS.indexOf(k) === -1 && state.settings[k] !== undefined) u["s:" + k] = state.settings[k]; });
     return u;
   }
+  const syncEmpty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length) || (isObj(v) && !Object.keys(v).length);
+  // Übernimmt eine Einheit; false, wenn diese Version sie nicht kennt (dann wird sie aufgehoben, nicht verworfen)
   function syncApplyUnit(name, unit) {
     if (name.indexOf("s:") === 0) {
-      const k = name.slice(2); if (SYNC_LOCAL_SETTINGS.indexOf(k) !== -1) return;
+      const k = name.slice(2); if (SYNC_LOCAL_SETTINGS.indexOf(k) !== -1) return true;
       if (unit.del) delete state.settings[k]; else state.settings[k] = unit.v;
-    } else if (SYNC_PARTS.indexOf(name) !== -1 && !unit.del) {
+      return true;
+    }
+    if (SYNC_PARTS.indexOf(name) === -1) return false;
+    if (!unit.del) {
       // Stand eines anderen Geräts prüfen wie ein Backup: falsche Formen verwerfen statt übernehmen
       const v = unit.v, clean = { favorites: cleanFavorites, savedRecipes: cleanSavedRecipes, dayPlan: cleanDayPlan,
         scales: cleanNumMap, water: cleanNumMap, waterK: cleanWaterK, portion: cleanNumMap, basis: (b) => isObj(b) ? b : {},
         customFoods: cleanCustomFoods, hiddenRecipes: cleanFavorites, foodOverrides: cleanFoodOverrides, growth: cleanGrowth, kids: cleanKids }[name];
       state[name] = clean ? clean(v) : v;
     }
+    return true;
   }
   // Geänderte Einheiten mit Zeitstempel versehen (Vergleich mit dem zuletzt bekannten Stand)
   function syncMarkChanges(now) {
@@ -48,7 +63,12 @@
     const prev = syncLastJson || m.last || {};
     m.ts = m.ts || {};
     let changed = false;
-    Object.keys(cur).forEach(k => { if (prev[k] !== cur[k]) { m.ts[k] = now; changed = true; } });
+    Object.keys(cur).forEach(k => {
+      if (prev[k] === cur[k]) return;
+      // neu bekannte, noch leere Einheit (z. B. nach einem App-Update): keine Änderung – der Stand der anderen Geräte gilt
+      if (!(k in prev) && /^(\[\]|\{\}|""|null)$/.test(cur[k])) return;
+      m.ts[k] = now; changed = true;
+    });
     Object.keys(prev).forEach(k => { if (!(k in cur)) { m.ts[k] = -now; changed = true; } }); // gelöscht: negativer Zeitstempel
     syncLastJson = cur; m.last = cur;
     if (changed) m.dirty = true;
@@ -87,9 +107,29 @@
 
   // ---- Abgleich ----
   // Holt den Stand vom Dienst, führt zusammen (jüngere Einheit gewinnt) und schickt den eigenen Stand, falls nötig.
+  // Läuft hier noch eine ältere App-Version (iPhone: App nur aus dem Hintergrund geholt, nicht neu gestartet)?
+  // Dann zuerst neu laden – sonst gleicht alter Code ab, der neuere Daten nicht kennt. Höchstens alle 5 Minuten,
+  // beim Zurückholen der App immer. Ohne Netz oder ohne erkennbare Version: weiter wie bisher.
+  let appCheckAt = 0;
+  async function appIsCurrent(force) {
+    if (!window.fetch || !document.querySelector || !window.location) return true;
+    if (!force && Date.now() - appCheckAt < 5 * 60000) return true;
+    appCheckAt = Date.now();
+    try {
+      const own = /app\.js\?v=(\w+)/.exec((document.querySelector('script[src*="app.js"]') || {}).src || ""); if (!own) return true;
+      const r = await fetch(new URL("index.html", location.href).href, { cache: "no-store" });
+      if (!r || !r.ok || typeof r.text !== "function") return true;
+      const cur = /app\.js\?v=(\w+)/.exec(await r.text());
+      if (!cur || cur[1] === own[1]) return true;
+      location.reload();
+      return false;
+    } catch (e) { return true; }
+  }
   async function syncNow(opts) {
     opts = opts || {};
     if (!syncOn() || !syncSupport() || !pushUrl()) return;
+    if (syncBusy) { syncAgain = true; return; }
+    if (!(await appIsCurrent(opts.resume))) return;
     if (syncBusy) { syncAgain = true; return; }
     syncBusy = true;
     const m = syncMeta;
@@ -101,13 +141,26 @@
         const remoteRev = got.j.rev || 0;
         let remote = null;
         if (remoteRev > 0 && got.j.data) remote = JSON.parse(await openText(key, got.j.data));
+        // Stand einer neueren App-Version: nichts übernehmen, nichts schicken – erst diese App aktualisieren
+        if (remote && num(remote.schema) > SYNC_SCHEMA) {
+          syncError = "ein anderes Gerät hat eine neuere App-Version – bitte diese App schließen und neu öffnen.";
+          appIsCurrent(true); return;
+        }
         let applied = false, needPush = !remote || m.dirty;
-        if (remote && remoteRev !== m.rev) {
+        // Erster Abgleich nach einem Update (neue Einheiten): alles noch einmal zusammenführen; was hier noch leer ist,
+        // nimmt den Stand der anderen Geräte – auch wenn eine ältere Version dessen Zeitstempel schon notiert hatte
+        const upgrade = num(m.schema || 1) < SYNC_SCHEMA;
+        const ru = (remote && remote.units) || {};
+        if (remote && (remoteRev !== m.rev || upgrade)) {
           // jüngere Einheit gewinnt; beim Koppeln (fresh) gewinnt immer der Stand der anderen Geräte
-          const ru = remote.units || {};
+          const lu0 = syncUnits();
           Object.keys(ru).forEach(name => {
-            const rt = Math.abs(ru[name].ts || 0), lt = m.fresh ? -1 : Math.abs((m.ts || {})[name] || 0);
-            if (rt > lt) { syncApplyUnit(name, ru[name]); m.ts[name] = ru[name].ts; applied = true; }
+            const emptyHere = upgrade && name in lu0 && syncEmpty(lu0[name]) && !ru[name].del && !syncEmpty(ru[name].v);
+            const rt = Math.abs(ru[name].ts || 0), lt = m.fresh || emptyHere ? -1 : Math.abs((m.ts || {})[name] || 0);
+            if (rt <= lt) return;
+            if (!applied) snapTake("vor dem Abgleich"); // bisherigen Stand sichern, bevor etwas übernommen wird
+            if (syncApplyUnit(name, ru[name])) { m.ts[name] = ru[name].ts; applied = true; if (m.keep) delete m.keep[name]; }
+            else (m.keep = m.keep || {})[name] = ru[name]; // unbekannt (neuere Version): aufheben und wieder mitschicken
           });
           const lu = syncUnits();
           Object.keys(lu).forEach(name => { if (!m.fresh && (!ru[name] || Math.abs((m.ts || {})[name] || 0) > Math.abs(ru[name].ts || 0))) needPush = true; });
@@ -121,14 +174,21 @@
           if (typeof renderRezepte === "function") renderRezepte();
         }
         m.rev = remoteRev; m.fresh = false;
-        if (!needPush) { m.dirty = false; break; }
+        if (!needPush) { m.dirty = false; m.schema = SYNC_SCHEMA; break; }
         const units = {}, cur = syncUnits();
-        Object.keys(cur).forEach(name => { units[name] = { ts: (m.ts || {})[name] || Date.now(), v: cur[name] }; });
+        // ohne Zeitstempel (nie geändert, z. B. noch leer): ältester Stand – verliert gegen jeden echten Stand
+        Object.keys(cur).forEach(name => { units[name] = { ts: (m.ts || {})[name] || 1, v: cur[name] }; });
         Object.keys(m.ts || {}).forEach(name => { if (!(name in cur) && m.ts[name] < 0) units[name] = { ts: m.ts[name], del: true }; });
-        const put = await syncPost("/api/state/put", { id, baseRev: remoteRev, data: await sealText(key, JSON.stringify({ v: 1, units })) });
+        Object.keys(m.keep || {}).forEach(name => { if (!(name in units)) units[name] = m.keep[name]; });
+        // Nie einen leeren Stand über Daten der anderen Geräte schicken, wenn er nicht jünger ist
+        Object.keys(units).forEach(name => {
+          const r = ru[name]; if (!r || r.del || units[name].del) return;
+          if (syncEmpty(units[name].v) && !syncEmpty(r.v) && Math.abs(units[name].ts) <= Math.abs(r.ts || 0)) units[name] = r;
+        });
+        const put = await syncPost("/api/state/put", { id, baseRev: remoteRev, data: await sealText(key, JSON.stringify({ v: 1, schema: SYNC_SCHEMA, units })) });
         if (put.status === 409) continue; // inzwischen neuer Stand – noch einmal holen und zusammenführen
         if (put.status !== 200) throw new Error("Dienst antwortet " + put.status);
-        m.rev = put.j.rev; m.dirty = false;
+        m.rev = put.j.rev; m.dirty = false; m.schema = SYNC_SCHEMA;
         break;
       }
       m.at = Date.now(); syncError = "";
@@ -232,7 +292,7 @@
     document.getElementById("sync-off").addEventListener("click", syncDisable);
     renderSyncCard();
     // Abgleich beim Start, beim Zurückkehren in die App, wenn wieder online und jede Minute (nur wenn eingeschaltet)
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) syncNow(); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) syncNow({ resume: true }); });
     window.addEventListener("online", () => syncNow());
     if (syncOn()) { setTimeout(() => syncNow(), 600); syncStartTimer(); }
   }

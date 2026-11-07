@@ -2378,3 +2378,83 @@ test("Wachstum: zweites Kind – nur Wachstum, eigene Messungen, Name, Umschalte
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal(st().kids.length, 1); assert.equal(st().kids[0].growth.length, 1);
 });
+
+test("Geräte-Abgleich: kein Datenverlust zwischen App-Versionen – alte Version ohne „Kinder“, unbekannte Einheiten, automatische Sicherung", async () => {
+  // Erfundene Werte
+  const W = await import("data:text/javascript;base64," + Buffer.from(read("push-worker/worker.js")).toString("base64"));
+  const kv = new Map(), env = { PUSH_KV: { get: async (k, t) => kv.has(k) ? (t === "json" ? JSON.parse(kv.get(k)) : kv.get(k)) : null, put: async (k, v) => { kv.set(k, v); }, delete: async (k) => { kv.delete(k); } } };
+  const wc = require("crypto").webcrypto;
+  const device = (stored, meta) => boot(stored, (w) => {
+    Object.defineProperty(w, "crypto", { value: wc, configurable: true });
+    w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
+    w.fetch = (url, opts) => W.handle(new Request(url, opts), env);
+    if (meta) w.localStorage.setItem("ketoplaner.sync", JSON.stringify(meta));
+  });
+  const settle = async (w, pred, what) => { for (let i = 0; i < 150; i++) { if (pred()) return; await new Promise(r => setTimeout(r, 20)); } assert.fail("Zeitüberschreitung: " + what + " · " + $(w, "sync-status").textContent); };
+  const meta = (w) => JSON.parse(w.localStorage.getItem("ketoplaner.sync") || "null");
+  const st = (w) => JSON.parse(w.localStorage.getItem("ketoplaner.v5"));
+  // Stand beim Dienst lesen/schreiben wie ein Gerät (zum Nachstellen einer alten App-Version)
+  const b64 = (u) => Buffer.from(u).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const unb64 = (s) => new Uint8Array(Buffer.from(String(s).replace(/-/g, "+").replace(/_/g, "/"), "base64"));
+  const entry = () => [...kv.entries()].find(([k]) => k.indexOf("st:") === 0);
+  const aes = async (m) => wc.subtle.importKey("raw", unb64(m.key), "AES-GCM", false, ["encrypt", "decrypt"]);
+  const serverRead = async (m) => { const e = JSON.parse(entry()[1]), [iv, ct] = e.data.split("."); return { rev: e.rev, s: JSON.parse(new TextDecoder().decode(await wc.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, await aes(m), unb64(ct)))) }; };
+  const serverWrite = async (m, s) => {
+    const [k, raw] = entry(), e = JSON.parse(raw), iv = wc.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await wc.subtle.encrypt({ name: "AES-GCM", iv }, await aes(m), new TextEncoder().encode(JSON.stringify(s))));
+    e.rev += 1; e.data = b64(iv) + "." + b64(ct); kv.set(k, JSON.stringify(e)); return e.rev;
+  };
+  const kids = [{ id: "kt1", name: "Test", birth: "2026-01-01", sex: "m", growth: [{ id: "m1", d: "2026-01-08", w: 3.6 }] }];
+  const A = device({ settings: { pushUrl: "https://dienst.test", view: "vorgaben" }, kids });
+  let B = null;
+  try {
+    fire(A, $(A, "sync-enable"));
+    await settle(A, () => meta(A) && meta(A).at && entry(), "A eingeschaltet");
+    let srv = await serverRead(meta(A));
+    assert.equal(srv.s.schema, 2, "Stand trägt die Schema-Version"); assert.equal(srv.s.units.kids.v.length, 1);
+    assert.equal(meta(A).schema, 2);
+    // Eine alte App-Version (kennt „kids“ noch nicht) hat den Stand ohne Kinder hochgeladen – und sich dabei den
+    // Zeitstempel der Kinder gemerkt. Danach läuft auf diesem Gerät die neue Version mit noch leerem Kinder-Stand.
+    const kidsTs = srv.s.units.kids.ts;
+    delete srv.s.units.kids; delete srv.s.schema;
+    const rev = await serverWrite(meta(A), srv.s);
+    const oldLast = {}; Object.keys(srv.s.units).forEach(n => { oldLast[n] = JSON.stringify(srv.s.units[n].v); });
+    const ts = {}; Object.keys(srv.s.units).forEach(n => { ts[n] = srv.s.units[n].ts; }); ts.kids = kidsTs;
+    B = device({ settings: { pushUrl: "https://dienst.test", view: "vorgaben" } }, { key: meta(A).key, rev, ts, last: oldLast, dirty: false, at: 1 });
+    await settle(B, () => meta(B).schema === 2, "B gleicht nach dem Update ab");
+    srv = await serverRead(meta(A));
+    assert.ok(!srv.s.units.kids || srv.s.units.kids.v.length === 1, "B schickt keinen leeren Kinder-Stand über die Daten von A");
+    // A hat die Kinder weiterhin und schickt sie wieder hoch – der leere Stand von B überschreibt nichts
+    fire(A, $(A, "sync-now"));
+    await settle(A, () => !meta(A).dirty && meta(A).rev >= rev, "A gleicht ab");
+    assert.equal(st(A).kids.length, 1, "Kinder auf A unverändert");
+    fire(B, $(B, "sync-now"));
+    await settle(B, () => st(B).kids.length === 1, "B bekommt die Kinder von A");
+    assert.equal(st(B).kids[0].growth[0].w, 3.6);
+    fire(A, $(A, "sync-now")); await new Promise(r => setTimeout(r, 300));
+    assert.equal(st(A).kids.length, 1, "auch danach nichts verloren");
+    // Einheit einer künftigen Version: wird nicht verworfen, sondern unverändert wieder mitgeschickt
+    srv = await serverRead(meta(A));
+    srv.s.units.zukunft = { ts: Date.now(), v: { a: 1 } };
+    await serverWrite(meta(A), srv.s);
+    const w0 = $(A, "set-weight"); w0.value = "7"; fire(A, w0, "input");
+    fire(A, $(A, "sync-now"));
+    await settle(A, () => !meta(A).dirty && meta(A).keep && meta(A).keep.zukunft, "A gleicht mit unbekannter Einheit ab");
+    await new Promise(r => setTimeout(r, 100));
+    srv = await serverRead(meta(A));
+    assert.deepEqual(srv.s.units.zukunft.v, { a: 1 }, "unbekannte Einheit bleibt beim Dienst erhalten");
+    assert.equal(srv.s.units["s:weight"].v, 7);
+    // Stand einer neueren Schema-Version wird nicht überschrieben
+    srv.s.schema = 99; const r99 = await serverWrite(meta(A), srv.s);
+    const w1 = $(A, "set-weight"); w1.value = "7,5"; fire(A, w1, "input");
+    fire(A, $(A, "sync-now"));
+    await settle(A, () => /neuere App-Version/.test($(A, "sync-status").textContent), "Hinweis auf neuere Version");
+    assert.equal(JSON.parse(entry()[1]).rev, r99, "nichts hochgeladen");
+    // Automatische Sicherungen: vor dem Übernehmen gesichert, wiederherstellbar
+    const snaps = JSON.parse(B.localStorage.getItem("ketoplaner.snaps") || "[]");
+    assert.ok(snaps.length >= 1 && snaps.some(x => x.why === "vor dem Abgleich"));
+    fire(B, B.document.querySelector('[data-vg="app"]'));
+    assert.match($(B, "snap-list").textContent, /vor dem Abgleich/);
+    assert.ok($(B, "snap-list").querySelector("button[data-snap]"));
+  } finally { await new Promise(r => setTimeout(r, 300)); A.close(); if (B) B.close(); }
+});

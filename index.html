@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="HamHam Keto" />
-  <link rel="stylesheet" href="styles.css?v=fafa72a6" />
+  <link rel="stylesheet" href="styles.css?v=697b788a" />
   <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/ibm-plex-sans-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -377,6 +377,11 @@
               <select id="backup-remind" class="line-select"><option value="14">nach 2 Wochen</option><option value="28">nach 4 Wochen</option><option value="0">nie</option></select>
             </label>
           </div>
+          <details class="more snap-box" id="snap-box">
+            <summary class="tlink">Automatische Sicherungen auf diesem Gerät</summary>
+            <p class="hint">Einmal am Tag und bevor der Geräte-Abgleich einen fremden Stand übernimmt, legt die App den bisherigen Stand hier ab (die letzten 8). Damit lässt sich ein versehentlich überschriebener Stand zurückholen.</p>
+            <div id="snap-list" class="snap-list"></div>
+          </details>
           <details class="more">
             <summary class="tlink">Wie funktioniert das?</summary>
             <p>Am Handy öffnet „Backup sichern“ das Teilen-Menü: dort <strong>Synology Drive</strong>, <strong>Google Drive</strong> oder <strong>In Dateien sichern</strong> wählen – am Computer wird die Datei heruntergeladen. Das Backup enthält alles: Vorgaben, Rezepte, Tagesplan und Messungen. „Backup laden“ stellt diesen Stand wieder her (z. B. nach dem Löschen der App oder auf einem neuen Handy); nur die Erinnerungen schaltet man auf jedem Gerät selbst wieder ein. Ein Backup auf einem abgeglichenen Gerät zählt für alle.</p>
@@ -487,7 +492,7 @@
   <script src="recipes.js?v=ae32c2ed"></script>
   <script src="vendor/jspdf.umd.min.js?v=5224faf1"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js?v=a416d9f9"></script>
-  <script src="app.js?v=c2a530bd"></script>
+  <script src="app.js?v=a28c2fb3"></script>
   <script>
     /* Zoom verhindern (Pinch-Geste auf iOS, das user-scalable teils ignoriert) */
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {

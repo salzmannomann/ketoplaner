@@ -236,8 +236,55 @@
       st.className = "note " + (due ? "attn" : "info");
       st.textContent = d == null ? "Noch kein Backup gesichert." : "Letztes Backup " + backupAgeText(d) + " (" + new Date(num(state.settings.backupAt)).toLocaleDateString("de-AT") + ").";
     }
+    renderSnaps();
     const sel = document.getElementById("backup-remind");
     if (sel) sel.value = String(state.settings.backupRemind == null ? 28 : num(state.settings.backupRemind));
+  }
+  // ---- Automatische Sicherungen auf diesem Gerät ----
+  // Einmal am Tag (beim Start) und bevor der Abgleich einen fremden Stand übernimmt, wird der bisherige Stand abgelegt:
+  // die letzten 8, gleiche Stände nur einmal; wird der Speicher knapp, fallen die ältesten weg.
+  const SNAP_KEY = "ketoplaner.snaps", SNAP_MAX = 8;
+  function snapList() {
+    try { const a = JSON.parse(localStorage.getItem(SNAP_KEY) || "[]"); return Array.isArray(a) ? a.filter(x => x && num(x.at) > 0 && typeof x.json === "string") : []; }
+    catch (e) { return []; }
+  }
+  function snapTake(why) {
+    try {
+      const json = JSON.stringify(state), list = snapList();
+      if (list.length && list[0].json === json) return;
+      list.unshift({ at: Date.now(), why: why, json: json });
+      let keep = list.slice(0, SNAP_MAX);
+      while (keep.length) { try { localStorage.setItem(SNAP_KEY, JSON.stringify(keep)); break; } catch (e) { keep.pop(); } }
+    } catch (e) {}
+  }
+  function snapDaily() { const l = snapList(), day = new Date().toDateString(); if (!l.some(x => new Date(x.at).toDateString() === day)) snapTake("täglich"); }
+  // Kurzer Inhalt eines Stands: Messungen und Kinder, eigene Rezepte, Tagesplan
+  function snapSummary(json) {
+    try {
+      const p = JSON.parse(json), g = Array.isArray(p.growth) ? p.growth.length : 0, kids = Array.isArray(p.kids) ? p.kids : [];
+      const kg = kids.reduce((n, k) => n + (Array.isArray(k.growth) ? k.growth.length : 0), 0);
+      const n = (x, one, many) => x + " " + (x === 1 ? one : many), r = Array.isArray(p.savedRecipes) ? p.savedRecipes.length : 0;
+      return n(g, "Messung", "Messungen") + (kids.length ? " + " + n(kids.length, "weiteres Kind", "weitere Kinder") + " (" + n(kg, "Messung", "Messungen") + ")" : "") +
+        " · " + n(r, "eigenes Rezept", "eigene Rezepte");
+    } catch (e) { return ""; }
+  }
+  function renderSnaps() {
+    const box = document.getElementById("snap-list"); if (!box) return;
+    const l = snapList();
+    box.innerHTML = l.length ? l.map((x, i) => '<div class="snap-row"><span><b>' + new Date(x.at).toLocaleString("de-AT", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) +
+      "</b> · " + escapeHtml(x.why || "") + "<small>" + escapeHtml(snapSummary(x.json)) + '</small></span><button type="button" class="tlink" data-snap="' + i + '">Wiederherstellen</button></div>').join("")
+      : '<p class="hint">Noch keine automatische Sicherung.</p>';
+  }
+  function snapRestore(i) {
+    const x = snapList()[i]; if (!x) return;
+    if (!confirm("Stand vom " + new Date(x.at).toLocaleString("de-AT") + " wiederherstellen? Der jetzige Stand wird vorher ebenfalls gesichert.")) return;
+    snapTake("vor dem Wiederherstellen");
+    const keep = {}; ["pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"].forEach(k => { keep[k] = state.settings[k]; });
+    state = load(x.json);
+    Object.keys(keep).forEach(k => { if (keep[k] === undefined) delete state.settings[k]; else state.settings[k] = keep[k]; });
+    rebuildFoodIndex(); migrateWaterMl(); migrateFluid();
+    save(); renderRezepte(); showView("vorgaben");
+    showToast("Stand wiederhergestellt");
   }
   function importData(text) {
     let p;
@@ -247,6 +294,7 @@
     if (!confirm("Backup importieren? Vorhandene Vorgaben, eigene Rezepte, Favoriten und gemerkte Mengen werden ersetzt.")) return;
     // Was nur zu diesem Gerät gehört (Erinnerungen und deren Dienst-Adresse), nicht aus dem Backup übernehmen
     const keep = {}; ["pushOn", "pushUrl", "pushMeals", "pushWater", "pushLead"].forEach(k => { keep[k] = state.settings[k]; });
+    snapTake("vor dem Backup-Import");
     state = load(JSON.stringify(st));
     Object.keys(keep).forEach(k => { if (keep[k] === undefined) delete state.settings[k]; else state.settings[k] = keep[k]; });
     rebuildFoodIndex(); migrateWaterMl(); migrateFluid();
@@ -374,6 +422,8 @@
       b.addEventListener("click", () => { state.settings.mahlzeiten = num(b.dataset.mahl); save(); renderRezepte(); }));
     const exp = document.getElementById("export-btn");
     if (exp) exp.addEventListener("click", exportData);
+    const sl = document.getElementById("snap-list");
+    if (sl) sl.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("button[data-snap]"); if (b) snapRestore(num(b.dataset.snap)); });
     const rem = document.getElementById("backup-remind");
     if (rem) rem.addEventListener("change", () => { state.settings.backupRemind = num(rem.value); save(); renderRezepte(); });
     const impF = document.getElementById("import-file");

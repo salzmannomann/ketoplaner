@@ -697,6 +697,12 @@ body.vg-sub .main { padding-top: calc(8px + env(safe-area-inset-top) + var(--top
 @media (min-width: 821px) { .gr-chart { max-width: none; } } /* Desktop: Querformat über die ganze Spalte */
 .gr-form[hidden] { display: none; }
 /* Zeitraum über dem Graphen: schlichte Textschalter, der gewählte fett und unterstrichen */
+/* Automatische Sicherungen (Erinnerungen und Daten) */
+.snap-list { display: flex; flex-direction: column; }
+.snap-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px dotted var(--dot); font-size: var(--t-s); }
+.snap-row > span { min-width: 0; }
+.snap-row small { display: block; color: var(--grey); }
+.snap-row .tlink { flex: 0 0 auto; }
 /* Wachstum: mehrere Kinder (Umschalter erst ab dem zweiten), Hinweis beim weiteren Kind */
 .gr-kids { display: flex; align-items: center; gap: 14px; margin: 14px 0 4px; }
 .gr-kids .seg-ink { flex: 1; min-width: 0; }

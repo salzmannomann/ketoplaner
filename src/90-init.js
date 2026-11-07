@@ -7,6 +7,7 @@
     bindSettingsBar();
     bindVgPages();
     bindPush();
+    snapDaily(); // automatische Sicherung des Stands (einmal am Tag)
     bindSync();
     bindBedarf();
     bindLebensmittel();
