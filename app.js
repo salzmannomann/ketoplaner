@@ -4613,11 +4613,12 @@
   // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute): Uhrzeit · Menge · Dauer.
   function zeitplanExtraRows(times, wp) {
     const rows = [];
-    // wie bei den Mahlzeiten: Name, dahinter grau „130 ml · ca. 10 min“ (das „ca.“ fällt in den engen Stufen weg)
+    // zweizeilig wie die Mahlzeiten: oben der Name, darunter grau „130 ml · ca. 10 min“ (das „ca.“ fällt in den engen
+    // Stufen weg; dort steht hinter der Abendgabe auch „· Schlafen 20:00“)
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
-      '<span class="zp-txt">' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' : '') +
-      '<span class="zp-vol zp-wmeta" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + fmt(wp.per, 0) + ' ml · <span class="ca">ca. </span>' + wasserMin(wp.per) + ' min</span>' +
-      (g.kind === "abend" && times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') + '</span></div>' }));
+      '<span class="zp-txt"><span class="zp-wname">' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' : '') + '</span>' +
+      '<span class="zp-vol zp-wmeta" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + fmt(wp.per, 0) + ' ml · <span class="ca">ca. </span>' + wasserMin(wp.per) + ' min' +
+      (g.kind === "abend" && times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') + '</span></span></div>' }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;
   }

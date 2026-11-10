@@ -301,7 +301,8 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .zp-row.water, .zp-row.sleep { padding: 6px 0; border-top: 1px dotted var(--dot); font-size: var(--t-s); }
 .zp-row.water { color: var(--blue); }
 .zp-row.water .zp-sub { color: var(--grey); }
-.zp-row.water .zp-wmeta { margin-left: 8px; white-space: nowrap; }
+.zp-row.water .zp-wname, .zp-row.water .zp-wmeta { display: block; }
+.zp-row.water .zp-wmeta { margin-top: 1px; }
 .zp-row.sleep { color: var(--grey); grid-template-columns: 46px minmax(0, 1fr); }
 .zp-row.water .zp-time, .zp-row.sleep .zp-time { font-size: var(--t-s); }
 .zp-hints { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }

@@ -796,7 +796,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   fire(w, $(w, "zp-toggle"));
   hc = $(w, "heute-content");
   assert.ok(!hc.querySelector(".zp-set").hidden, "⏰ klappt die Uhrzeiten auf");
-  const waters = [...hc.querySelectorAll(".zp-row.water .zp-wmeta")].map(e => e.textContent);
+  const waters = [...hc.querySelectorAll(".zp-row.water .zp-wmeta")].map(e => e.textContent.replace(/ · Schlafen .*$/, ""));
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
   assert.ok(waters.every(x => x === waters[0] && /^\d+ ml · ca\. \d+ min$/.test(x)), waters.join(" | "));
   assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00Compleat & KetoCal125 ml · ca\. 25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
@@ -807,11 +807,12 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ ml$/, ingTxt);
   assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
   assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
-  // Wassergaben einzeilig, Menge und Dauer wie bei den Mahlzeiten grau dahinter (etwa 15 ml pro Minute, mindestens 5 Minuten)
+  // Wassergaben zweizeilig wie die Mahlzeiten: Name, darunter grau Menge und Dauer (etwa 15 ml pro Minute, mindestens 5 Minuten)
   assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^Wasser oder Tee \(ungesüßt\)\d+ ml · ca\. \d+ min$/);
   assert.match(hc.querySelector(".zp-row.water .zp-time").textContent, /^\d+:\d\d$/);
   assert.equal(hc.querySelector(".zp-row.water .zp-wmin"), null, "keine Minuten mehr rechts");
-  assert.equal(hc.querySelectorAll(".zp-row.water .zp-txt br, .zp-row.water div").length, 0, "Wassergaben einzeilig");
+  assert.equal(hc.querySelector(".zp-row.water .zp-wname").textContent, "Wasser oder Tee (ungesüßt)");
+  assert.ok(hc.querySelector(".zp-row.water .zp-wname + .zp-wmeta"), "Menge und Dauer in der zweiten Zeile");
   const tot = numDe(fluidStat(w).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);
   assert.equal(hc.querySelectorAll(".zeitplan .hint.warn").length, 0, "keine Warnung bei 3 h 30 min Abstand");
