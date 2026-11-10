@@ -50,8 +50,8 @@
     const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
     return { i, label, panel, t };
   }
-  // Das Nächste im Plan hinterlegen – eine Mahlzeit oder eine Wassergabe, je nachdem, was als Nächstes kommt (am Desktop
-  // mit Panel ohne Strich; dort trägt den Strich die Mahlzeit, deren Rezept rechts steht). Es bleibt hinterlegt, bis es 30 Minuten
+  // Das Nächste im Plan hinterlegen – eine Mahlzeit oder eine Wassergabe, je nachdem, was als Nächstes kommt; auf allen
+  // Geräten gleich (die Mahlzeit im Panel bekommt keine eigene Markierung, der Panel-Kopf nennt sie). Es bleibt hinterlegt, bis es 30 Minuten
   // (Wasser 15 Minuten) vorbei ist; nach dem letzten Eintrag des Tages der erste von morgen.
   // Die Uhr läuft weiter – einmal pro Minute und beim Zurückholen der App nachziehen.
   let planNextTimer = null;
@@ -71,6 +71,7 @@
       if (!/jsdom/i.test(navigator.userAgent || "")) planNextTimer = setInterval(markPlanNext, 60000);
     }
   }
+  // Mahlzeit im Panel als Klasse „sel“ (nur zum Wiederfinden, ohne eigene Darstellung)
   function markPlanSel(i) {
     document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("sel", i != null && num(r.dataset.open) === i));
   }

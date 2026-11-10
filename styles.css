@@ -1057,17 +1057,15 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
    festes Panel; die Markierung des gewählten Rezepts gibt es nur hier. Darunter kein Panel – das Rezept öffnet als Fenster. */
 .rz-panel { display: none; }
 .hp-layout { display: contents; }
-/* Handy und schmale Fenster (ohne Rezept-Panel): das Nächste im Plan (Mahlzeit oder Wasser) hinterlegt wie am Desktop die gewählte Mahlzeit */
+/* Tagesplan, auf allen Geräten gleich: das Nächste im Plan (Mahlzeit oder Wassergabe) mit Fläche und Strich links */
 .zp-row.next-meal { background: var(--paper-2); box-shadow: -12px 0 0 var(--paper-2), -15px 0 0 var(--ink), 12px 0 0 var(--paper-2); }
 @media (min-width: 1100px) {
   /* Tagesplan wie Rezepte: Plan (wächst doppelt so schnell) und daneben das Rezept der Mahlzeit */
   .hp-layout { display: flex; gap: 36px; align-items: flex-start; max-width: 1240px; }
   .hp-layout > #heute-content { flex: 2 1 420px; min-width: 0; }
   .hp-layout .zeitplan.dk { max-width: none; }
-  /* Mit Panel: die Fläche heißt überall „als Nächstes“ (Mahlzeit oder Wasser, ohne Strich); die Mahlzeit, deren Rezept
-     rechts im Panel steht, trägt nur den dunklen Strich links */
-  .zp-row.next-meal { box-shadow: -12px 0 0 var(--paper-2), 12px 0 0 var(--paper-2); }
-  .zp-row.slot.sel::before { content: ""; position: absolute; left: -15px; top: 0; bottom: 0; width: 3px; background: var(--ink); }
+  /* Die Mahlzeit im Panel trägt keine eigene Markierung (der Panel-Kopf nennt sie) – Fläche und Strich heißen überall
+     „als Nächstes“ (.next-meal, oben) */
   .rz-panel .dh-when { margin-bottom: 4px; }
   .rz-layout { flex-wrap: nowrap; }
   .rz-main { flex: 2 1 420px; }
