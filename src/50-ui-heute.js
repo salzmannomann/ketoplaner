@@ -56,9 +56,11 @@
   function markPlanNext() {
     const i = state.settings.view === "heute" && !panelMode() ? (planNext() || {}).i : null;
     document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("next-meal", i != null && num(r.dataset.open) === i));
-    if (!planNextTimer && typeof setInterval === "function") {
-      planNextTimer = setInterval(markPlanNext, 60000);
+    if (!planNextTimer) {
+      planNextTimer = true;
       document.addEventListener("visibilitychange", () => { if (!document.hidden) markPlanNext(); });
+      // Minutentakt nur im echten Browser (in der Testumgebung jsdom hielte er den Prozess am Leben)
+      if (!/jsdom/i.test(navigator.userAgent || "")) planNextTimer = setInterval(markPlanNext, 60000);
     }
   }
   function markPlanSel(i) {
