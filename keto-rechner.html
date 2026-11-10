@@ -1068,8 +1068,8 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
    festes Panel; die Markierung des gewählten Rezepts gibt es nur hier. Darunter kein Panel – das Rezept öffnet als Fenster. */
 .rz-panel { display: none; }
 .hp-layout { display: contents; }
-/* Handy und schmale Fenster (ohne Rezept-Panel): die nächste Mahlzeit hinterlegt wie am Desktop die gewählte */
-.zp-row.slot.next-meal { background: var(--paper-2); box-shadow: -12px 0 0 var(--paper-2), -15px 0 0 var(--ink), 12px 0 0 var(--paper-2); }
+/* Handy und schmale Fenster (ohne Rezept-Panel): das Nächste im Plan (Mahlzeit oder Wasser) hinterlegt wie am Desktop die gewählte Mahlzeit */
+.zp-row.next-meal { background: var(--paper-2); box-shadow: -12px 0 0 var(--paper-2), -15px 0 0 var(--ink), 12px 0 0 var(--paper-2); }
 @media (min-width: 1100px) {
   /* Tagesplan wie Rezepte: Plan (wächst doppelt so schnell) und daneben das Rezept der Mahlzeit */
   .hp-layout { display: flex; gap: 36px; align-items: flex-start; max-width: 1240px; }
@@ -6593,12 +6593,20 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
     return { i, label, panel, t };
   }
-  // Ohne Panel (Handy, schmales Fenster): die nächste Mahlzeit so hinterlegen wie am Desktop die gewählte.
+  // Ohne Panel (Handy, schmales Fenster): das Nächste im Plan so hinterlegen wie am Desktop die gewählte Mahlzeit –
+  // eine Mahlzeit oder eine Wassergabe, je nachdem, was als Nächstes kommt. Es bleibt hinterlegt, bis es 30 Minuten
+  // (Wasser 15 Minuten) vorbei ist; nach dem letzten Eintrag des Tages der erste von morgen.
   // Die Uhr läuft weiter – einmal pro Minute und beim Zurückholen der App nachziehen.
   let planNextTimer = null;
   function markPlanNext() {
-    const i = state.settings.view === "heute" && !panelMode() ? (planNext() || {}).i : null;
-    document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("next-meal", i != null && num(r.dataset.open) === i));
+    const rows = [...document.querySelectorAll("#heute-content .zp-row.slot[data-open], #heute-content .zp-row.water")];
+    let next = null;
+    if (state.settings.view === "heute" && !panelMode() && rows.length) {
+      const now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+      const at = (r) => { const x = /(\d{1,2}):(\d{2})/.exec((r.querySelector(".zp-time") || {}).textContent || ""); return x ? +x[1] * 60 + +x[2] : null; };
+      next = rows.find(r => { const t = at(r); return t != null && t + (r.classList.contains("water") ? 15 : PLAN_NOW_MIN) > m; }) || rows[0];
+    }
+    rows.forEach(r => r.classList.toggle("next-meal", r === next));
     if (!planNextTimer) {
       planNextTimer = true;
       document.addEventListener("visibilitychange", () => { if (!document.hidden) markPlanNext(); });
