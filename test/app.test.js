@@ -780,8 +780,8 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.ok(hc.firstElementChild.classList.contains("zeitplan"), "Zeitplan steht oben");
   const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
   assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
-  assert.deepEqual([...hc.querySelectorAll(".zp-row")].slice(-2).map(r => r.textContent), ["18:45" + [...hc.querySelectorAll(".zp-row.water .zp-txt")].pop().textContent + "10 min", "20:00Schlafen"]);
-  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser oder Tee \(ungesüßt\) vor dem Schlafen · Schlafen 20:00$/, "Abendgabe vor dem Schlafen (Schlafen dort nur in der knappsten Stufe sichtbar), danach eigene Zeile Schlafen");
+  assert.deepEqual([...hc.querySelectorAll(".zp-row")].slice(-2).map(r => r.textContent), ["18:45" + [...hc.querySelectorAll(".zp-row.water .zp-txt")].pop().textContent, "20:00Schlafen"]);
+  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^Wasser oder Tee \(ungesüßt\) vor dem Schlafen\d+ ml · ca\. 10 min · Schlafen 20:00$/, "Abendgabe vor dem Schlafen (Schlafen dort nur in der knappsten Stufe sichtbar), danach eigene Zeile Schlafen");
   assert.equal(hc.querySelector(".zp-row.water .zp-sleep").title, "Schlafen 20:00");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
@@ -796,11 +796,10 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   fire(w, $(w, "zp-toggle"));
   hc = $(w, "heute-content");
   assert.ok(!hc.querySelector(".zp-set").hidden, "⏰ klappt die Uhrzeiten auf");
-  const waters = [...hc.querySelectorAll(".zp-row.water .zp-txt")].map(e => e.firstChild.textContent);
+  const waters = [...hc.querySelectorAll(".zp-row.water .zp-wmeta")].map(e => e.textContent);
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
-  assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser oder Tee \(ungesüßt\)$/.test(x)), waters.join(" | "));
+  assert.ok(waters.every(x => x === waters[0] && /^\d+ ml · ca\. \d+ min$/.test(x)), waters.join(" | "));
   assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00Compleat & KetoCal125 ml · ca\. 25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
-  assert.equal(hc.querySelectorAll(".zp-row.water .zp-vol").length, 0, "beim Wasser keine Zeitangabe");
   assert.equal(hc.querySelector(".zp-row.meal .zp-warn"), null, "ohne Warnung keine Warnzeile");
   // kcal/Eiweiß je Mahlzeit nur, wenn Platz ist (Klasse „more“ von fitHeute; jsdom misst nicht → kompakt)
   assert.match(hc.querySelector(".zp-row.meal .zp-more").textContent, /^ · \d+ kcal · Eiweiß [\d,]+ g$/);
@@ -808,10 +807,10 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.match(ingTxt, /^Ketocal 3:1 [\d,]+ g · Compleat [\d,]+ g · Wasser [\d,]+ ml$/, ingTxt);
   assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
   assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
-  // Wassergaben einzeilig, Dauer rechts in der Spalte der Mahlzeiten-Dauer (etwa 15 ml pro Minute, mindestens 5 Minuten)
-  assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^\d+ ml Wasser oder Tee \(ungesüßt\)$/);
+  // Wassergaben einzeilig, Menge und Dauer wie bei den Mahlzeiten grau dahinter (etwa 15 ml pro Minute, mindestens 5 Minuten)
+  assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^Wasser oder Tee \(ungesüßt\)\d+ ml · ca\. \d+ min$/);
   assert.match(hc.querySelector(".zp-row.water .zp-time").textContent, /^\d+:\d\d$/);
-  assert.match(hc.querySelector(".zp-row.water .zp-wmin").textContent, /^\d+ min$/);
+  assert.equal(hc.querySelector(".zp-row.water .zp-wmin"), null, "keine Minuten mehr rechts");
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-txt br, .zp-row.water div").length, 0, "Wassergaben einzeilig");
   const tot = numDe(fluidStat(w).querySelector(".v").textContent.replace(/[^\d.,]/g, ""));
   assert.ok(Math.abs(tot - 850) <= 10, "Tagessumme ≈ 850: " + tot);

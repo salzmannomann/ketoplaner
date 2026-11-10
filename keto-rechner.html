@@ -312,7 +312,7 @@ body.slot-dragging, body.slot-dragging * { cursor: grabbing !important; }
 .zp-row.water, .zp-row.sleep { padding: 6px 0; border-top: 1px dotted var(--dot); font-size: var(--t-s); }
 .zp-row.water { color: var(--blue); }
 .zp-row.water .zp-sub { color: var(--grey); }
-.zp-row.water .zp-wmin { font-family: var(--f-mono); white-space: nowrap; }
+.zp-row.water .zp-wmeta { margin-left: 8px; white-space: nowrap; }
 .zp-row.sleep { color: var(--grey); grid-template-columns: 46px minmax(0, 1fr); }
 .zp-row.water .zp-time, .zp-row.sleep .zp-time { font-size: var(--t-s); }
 .zp-hints { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }
@@ -7295,10 +7295,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute): Uhrzeit · Menge · Dauer.
   function zeitplanExtraRows(times, wp) {
     const rows = [];
+    // wie bei den Mahlzeiten: Name, dahinter grau „130 ml · ca. 10 min“ (das „ca.“ fällt in den engen Stufen weg)
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
-      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml ' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
-        (times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') : '') + '</span>' +
-      '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
+      '<span class="zp-txt">' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' : '') +
+      '<span class="zp-vol zp-wmeta" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + fmt(wp.per, 0) + ' ml · <span class="ca">ca. </span>' + wasserMin(wp.per) + ' min</span>' +
+      (g.kind === "abend" && times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') + '</span></div>' }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });
     return rows;
   }
