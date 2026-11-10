@@ -66,10 +66,26 @@
     rows.forEach(r => r.classList.toggle("next-meal", r === next));
     if (!planNextTimer) {
       planNextTimer = true;
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) markPlanNext(); });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) { markPlanNext(); scrollPlanToNext(); } });
       // Minutentakt nur im echten Browser (in der Testumgebung jsdom hielte er den Prozess am Leben)
       if (!/jsdom/i.test(navigator.userAgent || "")) planNextTimer = setInterval(markPlanNext, 60000);
     }
+  }
+  // Beim Öffnen des Tagesplans und beim Zurückholen der App: liegt das Nächste (hinterlegt) unter dem sichtbaren Bereich,
+  // dorthin scrollen – darüber bleibt ein Stück des vorigen Eintrags zur Orientierung. Passt es schon, bleibt alles stehen.
+  // Nie während man liest: der Minutentakt und Klicks scrollen nicht.
+  function scrollPlanToNext() {
+    if (state.settings.view !== "heute") return;
+    const go = () => {
+      const row = document.querySelector("#heute-content .zp-row.next-meal"); if (!row || !row.getBoundingClientRect) return;
+      const r = row.getBoundingClientRect(); if (!(r.height > 0)) return;
+      const tb = document.querySelector(".tabbar"), tbr = tb && getComputedStyle(tb).display !== "none" ? tb.getBoundingClientRect() : null;
+      const bottom = tbr && tbr.height ? tbr.top - 8 : window.innerHeight;
+      if (r.top >= 0 && r.bottom <= bottom) return;
+      const prev = row.previousElementSibling, peek = prev && prev.classList && prev.classList.contains("zp-row") ? Math.min(prev.offsetHeight, 56) : 0;
+      try { window.scrollTo(0, Math.max(0, Math.round(window.scrollY + r.top - peek - 8))); } catch (e) {}
+    };
+    if (window.requestAnimationFrame) requestAnimationFrame(go); else go();
   }
   // Mahlzeit im Panel als Klasse „sel“ (nur zum Wiederfinden, ohne eigene Darstellung)
   function markPlanSel(i) {

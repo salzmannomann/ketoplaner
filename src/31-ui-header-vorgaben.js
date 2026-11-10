@@ -17,6 +17,7 @@
     if (name === "heute" && typeof renderHeute === "function") renderHeute();
     if (typeof syncDetailPanel === "function") syncDetailPanel(); // Desktop: Rezept-Panel in Rezepte und Tagesplan
     try { window.scrollTo(0, 0); } catch (e) {}
+    if (name === "heute" && typeof scrollPlanToNext === "function") scrollPlanToNext(); // zum Nächsten im Tagesplan
     if (name === "rezepte" && typeof fitListStage === "function") fitListStage();
     if (typeof markChip === "function") markChip();
   }
