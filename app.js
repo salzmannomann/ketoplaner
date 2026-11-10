@@ -3911,6 +3911,17 @@
     const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
     return { i, label, panel, t };
   }
+  // Ohne Panel (Handy, schmales Fenster): die nächste Mahlzeit so hinterlegen wie am Desktop die gewählte.
+  // Die Uhr läuft weiter – einmal pro Minute und beim Zurückholen der App nachziehen.
+  let planNextTimer = null;
+  function markPlanNext() {
+    const i = state.settings.view === "heute" && !panelMode() ? (planNext() || {}).i : null;
+    document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("next-meal", i != null && num(r.dataset.open) === i));
+    if (!planNextTimer && typeof setInterval === "function") {
+      planNextTimer = setInterval(markPlanNext, 60000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) markPlanNext(); });
+    }
+  }
   function markPlanSel(i) {
     document.querySelectorAll("#heute-content .zp-row.slot[data-open]").forEach(r => r.classList.toggle("sel", i != null && num(r.dataset.open) === i));
   }
@@ -4095,6 +4106,7 @@
       showToast("Tagesplan geleert", [["Rückgängig", () => { state.dayPlan = prev; save(); renderRezepte(); }]]);
     });
     fitHeute();
+    markPlanNext();
     // Direkte Aufrufe (Verschieben, Leeren, Auswahl): Panel und Markierung nachziehen
     if (state.settings.view === "heute" && typeof syncDetailPanel === "function") syncDetailPanel();
   }
