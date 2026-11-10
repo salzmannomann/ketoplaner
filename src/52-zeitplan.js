@@ -106,11 +106,13 @@
     return '<div class="zp-set"' + (zpEdit || times.bad ? "" : " hidden") + '>' +
       field("zp-erste", "Erste", times.z.erste) + field("zp-letzte", "Letzte", times.z.letzte) + field("zp-schlaf", "Schlafen", times.z.schlaf) + '</div>';
   }
+  // Was zwischen den Mahlzeiten gegeben wird (Tagesplan, Ausdruck, Erinnerungen) – Tee nur ungesüßt (keine Kohlenhydrate)
+  const GIFT_DRINK = "Wasser oder Tee (ungesüßt)";
   // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute): Uhrzeit · Menge · Dauer.
   function zeitplanExtraRows(times, wp) {
     const rows = [];
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
-      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml Wasser' + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
+      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml ' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
         (times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') : '') + '</span>' +
       '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });

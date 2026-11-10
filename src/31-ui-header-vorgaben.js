@@ -39,7 +39,7 @@
     if (d.fluidDay > 0) {
       // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
       const wg = waterGiftsText(d);
-      l2 = fmt(d.fluidDay, 0) + " ml/Tag · Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
+      l2 = fmt(d.fluidDay, 0) + " ml/Tag · Wasser oder Tee (ungesüßt) zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
       if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
     }
     chip.innerHTML = '<span class="rx-pill">' + escapeHtml(fmtRx(d.ratio)) + '</span><span class="rx-sub">' + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + "</span>";
@@ -181,7 +181,7 @@
       // Flüssigkeit: Wassergaben laut Tagesplan (Rest bis zur Tagesmenge) und der Richtwert nach Gewicht zum Vergleich
       if (d.fluidDay > 0) {
         const wg = waterGiftsText(d);
-        facts.push(fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+        facts.push(fact("gabe", "Wasser oder Tee", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "ungesüßt, zwischen den Mahlzeiten" : "derzeit nicht nötig",
           fmt(d.fluidDay, 0) + " ml/Tag abzüglich der Flüssigkeit in den Mahlzeiten"));
       }
       if (d.fluidAuto > 0) facts.push(fact("richtwert", "Richtwert Flüssigkeit", fmt(d.fluidAuto, 0) + " ml", "nach Gewicht · 100 ml/kg", "Holliday-Segar: 100 ml je kg bis 10 kg, darüber 50 ml je weiterem kg"));

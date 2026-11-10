@@ -4324,7 +4324,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (d.fluidDay > 0) {
       // Wassergaben laut Zeitplan (offene Mahlzeiten geschätzt); ▲ wenn eine Gabe über der Höchstmenge liegt.
       const wg = waterGiftsText(d);
-      l2 = fmt(d.fluidDay, 0) + " ml/Tag · Wasser zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
+      l2 = fmt(d.fluidDay, 0) + " ml/Tag · Wasser oder Tee (ungesüßt) zwischen den Mahlzeiten: " + (wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keines nötig");
       if (wg.wp.over) l2 += " · ▲ zu viel auf einmal";
     }
     chip.innerHTML = '<span class="rx-pill">' + escapeHtml(fmtRx(d.ratio)) + '</span><span class="rx-sub">' + fmt(d.kcal, 0) + " kcal" + (d.fluidDay > 0 ? " · " + fmt(d.fluidDay, 0) + " ml" : "") + "</span>";
@@ -4466,7 +4466,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       // Flüssigkeit: Wassergaben laut Tagesplan (Rest bis zur Tagesmenge) und der Richtwert nach Gewicht zum Vergleich
       if (d.fluidDay > 0) {
         const wg = waterGiftsText(d);
-        facts.push(fact("gabe", "Wassergaben", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "zwischen den Mahlzeiten" : "derzeit nicht nötig",
+        facts.push(fact("gabe", "Wasser oder Tee", wg.wp.per > 0 ? (wg.est ? "ca. " : "") + wg.text : "keine", wg.wp.per > 0 ? "ungesüßt, zwischen den Mahlzeiten" : "derzeit nicht nötig",
           fmt(d.fluidDay, 0) + " ml/Tag abzüglich der Flüssigkeit in den Mahlzeiten"));
       }
       if (d.fluidAuto > 0) facts.push(fact("richtwert", "Richtwert Flüssigkeit", fmt(d.fluidAuto, 0) + " ml", "nach Gewicht · 100 ml/kg", "Holliday-Segar: 100 ml je kg bis 10 kg, darüber 50 ml je weiterem kg"));
@@ -5886,7 +5886,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
     if (wp.per === 0) return '<div class="note tip">' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml ' + GIFT_DRINK + '</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
       (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {
@@ -7152,7 +7152,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (note) dn.suffix = (dn.suffix ? dn.suffix + " · " : "") + note;
       if (g) g.times.push(t); else groups.push({ sig, dn, items, times: [t], rec: f.rec, kettle: f.rec.angeruehrt ? kettlePlan(items) : null });
     });
-    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>Wasser</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
+    if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, h: "<div class='r wa'><span class='t'>" + fmtHM(g.t) + "</span><span class='w'><span class='n'>" + GIFT_DRINK + "</span> <i class='d'>" + (g.kind === "abend" ? "vor dem Schlafen · " : "") + wasserMin(wp.per) + " min</i></span><span class='m'>" + fmt(wp.per, 0) + " ml</span></div>" }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, h: "<div class='r sl'><span class='t'>" + fmtHM(times.schlaf) + "</span><span class='w'><span class='n'>Schlafen</span></span><span class='m'></span></div>" });
     rows.sort((a, b) => a.t - b.t);
     // Rezeptname groß, Zusatz „· mit KetoCal“ klein und grau daneben (.rt hält beides links zusammen)
@@ -7290,11 +7290,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return '<div class="zp-set"' + (zpEdit || times.bad ? "" : " hidden") + '>' +
       field("zp-erste", "Erste", times.z.erste) + field("zp-letzte", "Letzte", times.z.letzte) + field("zp-schlaf", "Schlafen", times.z.schlaf) + '</div>';
   }
+  // Was zwischen den Mahlzeiten gegeben wird (Tagesplan, Ausdruck, Erinnerungen) – Tee nur ungesüßt (keine Kohlenhydrate)
+  const GIFT_DRINK = "Wasser oder Tee (ungesüßt)";
   // Wasser- und Schlafzeilen der Zeitleiste (die Mahlzeiten-Zeilen baut renderHeute): Uhrzeit · Menge · Dauer.
   function zeitplanExtraRows(times, wp) {
     const rows = [];
     if (wp.per > 0) times.gifts.forEach(g => rows.push({ t: g.t, html: '<div class="zp-row water"><span class="zp-time">' + fmtHM(g.t) + '</span>' +
-      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml Wasser' + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
+      '<span class="zp-txt">' + fmt(wp.per, 0) + ' ml ' + GIFT_DRINK + (g.kind === "abend" ? '<span class="zp-sub"> vor dem Schlafen</span>' +
         (times.schlaf != null ? '<span class="zp-sleep" title="Schlafen ' + fmtHM(times.schlaf) + '"> · Schlafen ' + fmtHM(times.schlaf) + '</span>' : '') : '') + '</span>' +
       '<span class="zp-wmin" title="etwa ' + WASSER_ML_MIN + ' ml pro Minute">' + wasserMin(wp.per) + ' min</span></div>' }));
     if (times.schlaf != null) rows.push({ t: times.schlaf, html: '<div class="zp-row sleep"><span class="zp-time">' + fmtHM(times.schlaf) + '</span><span class="zp-txt">Schlafen</span></div>' });
@@ -7335,7 +7337,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ca. " : "Rezept noch offen · ca. ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
-      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
+      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser oder Tee · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml " + GIFT_DRINK + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
     });
     return items;
   }

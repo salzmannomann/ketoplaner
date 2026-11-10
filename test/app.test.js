@@ -566,7 +566,7 @@ test("Vorgaben: Verhältnis händisch (nur die vordere Zahl, „:1“ fix) wirkt
   assert.equal(ri.parentElement.querySelector(".ratio-suffix").textContent, ": 1");
   assert.ok($(w, "eiweiss-manual").hidden, "Gramm-Feld nur bei manuell");
   assert.match($(w, "src-protein").textContent, /Standard · 12 g\/Tag/, "Eiweiß-Ergebnis in der Zeile unter der Auswahl");
-  assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /800 ml\/Tag · Wasser oder Tee \(ungesüßt\) zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
   assert.equal($(w, "set-mctshare").value, "10"); assert.ok(!$(w, "mct-rule-row").hidden, "Regel nur mit MCT");
   // Abwiegen: Tages-Check = Portion × Mahlzeiten, unabhängig von der Zubereitungsmenge; Waage-Tabelle folgt der Menge
   {
@@ -695,9 +695,9 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   // Ansicht: Tagesmenge ohne Verhältnis, Übersicht mit Wassergaben und Richtwert
   const vrow = [...$(w, "vo-view").querySelectorAll(".vo-row")].find(r => /Flüssigkeit pro Tag/.test(r.textContent));
   assert.equal(vrow.textContent, "Flüssigkeit pro Tagwächst mit den Kalorien850 ml");
-  assert.match(fact(w, "verordnung-summary", "gabe"), /^Wassergabenca\. 4 × \d+ mlzwischen den Mahlzeiten/);
+  assert.match(fact(w, "verordnung-summary", "gabe"), /^Wasser oder Teeca\. 4 × \d+ mlungesüßt, zwischen den Mahlzeiten/);
   assert.match(fact(w, "verordnung-summary", "richtwert"), /^Richtwert Flüssigkeit850 mlnach Gewicht · 100 ml\/kg/);
-  assert.match($(w, "rx-chip").getAttribute("aria-label"), /850 ml\/Tag · Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /850 ml\/Tag · Wasser oder Tee \(ungesüßt\) zwischen den Mahlzeiten: ca\. \d × \d+ ml/);
   const volOf = (cc) => numDe([...cc.querySelectorAll(".pane[data-pane=mahlzeit] .dstat")].find(t => /Volumen/.test(t.textContent)).querySelector(".v").textContent.replace(/[^\d,.]/g, ""));
   // Rezept: Wasser bis etwa 1,5 kcal/ml verringert, Verhältnis Nahrung : Wasser sichtbar, Rest als Wassergaben
   let c = openRecipe(w, "Hendl & Erbsen");
@@ -705,7 +705,7 @@ test("Flüssigkeit: Tagesmenge über das Verhältnis Kalorien : Flüssigkeit, w�
   assert.match(c.querySelector(".pane[data-pane=mahlzeit] .ratio-line").textContent, /^Fertig \d+ ml für 17\d kcal \(Nahrung \d+ g \+ Wasser \d+ ml\) – bei mehr Kalorien wächst alles im gleichen Verhältnis$/);
   assert.match(c.querySelector(".pane[data-pane=mahlzeit] .fluid-line").textContent, /Wasser so weit verringert, dass die Mahlzeit 1,5 kcal\/ml hat, der Rest der Tagesmenge kommt als Wassergaben/);
   assert.ok(Math.abs(171 / volOf(c) - 1.5) < 0.04, "ca. 1,5 kcal/ml: " + volOf(c));
-  assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser ca\. \d+ ml am Tag/);
+  assert.match(rechnenText(c), /Mahlzeiten 4 × \d+ ml \+ 4 × \d+ ml Wasser oder Tee \(ungesüßt\) ca\. \d+ ml am Tag/);
   assert.ok(Math.abs(ratioOf(c) - 1.8) <= 0.02);
   fire(w, $(w, "detail-close"));
   // Kalorien steigern: Tagesmenge und Rezept-Wasser wachsen im gleichen Maß
@@ -781,7 +781,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   const times = () => [...$(w, "heute-content").querySelectorAll(".zp-row .zp-time")].map(e => e.textContent);
   assert.deepEqual(times(), ["7:00", "8:45", "10:30", "12:15", "14:00", "15:45", "17:30", "18:45", "20:00"]);
   assert.deepEqual([...hc.querySelectorAll(".zp-row")].slice(-2).map(r => r.textContent), ["18:45" + [...hc.querySelectorAll(".zp-row.water .zp-txt")].pop().textContent + "10 min", "20:00Schlafen"]);
-  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser vor dem Schlafen · Schlafen 20:00$/, "Abendgabe vor dem Schlafen (Schlafen dort nur in der knappsten Stufe sichtbar), danach eigene Zeile Schlafen");
+  assert.match(hc.querySelector(".zp-row.water:nth-last-child(2) .zp-txt").textContent, /^\d+ ml Wasser oder Tee \(ungesüßt\) vor dem Schlafen · Schlafen 20:00$/, "Abendgabe vor dem Schlafen (Schlafen dort nur in der knappsten Stufe sichtbar), danach eigene Zeile Schlafen");
   assert.equal(hc.querySelector(".zp-row.water .zp-sleep").title, "Schlafen 20:00");
   assert.equal($(w, "zp-erste").value, "07:00"); assert.equal($(w, "zp-letzte").value, "17:30"); assert.equal($(w, "zp-schlaf").value, "20:00");
   assert.ok(hc.querySelector(".zp-set").hidden, "Uhrzeiten eingeklappt");
@@ -798,7 +798,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.ok(!hc.querySelector(".zp-set").hidden, "⏰ klappt die Uhrzeiten auf");
   const waters = [...hc.querySelectorAll(".zp-row.water .zp-txt")].map(e => e.firstChild.textContent);
   assert.equal(waters.length, 4, "3 Pausen + 1 Abendgabe");
-  assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser$/.test(x)), waters.join(" | "));
+  assert.ok(waters.every(x => x === waters[0] && /^\d+ ml Wasser oder Tee \(ungesüßt\)$/.test(x)), waters.join(" | "));
   assert.match(hc.querySelector(".zp-row.meal").textContent, /^7:00Compleat & KetoCal125 ml · ca\. 25 min/, "Menge und Sondierdauer (≈ 5 ml/min)");
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-vol").length, 0, "beim Wasser keine Zeitangabe");
   assert.equal(hc.querySelector(".zp-row.meal .zp-warn"), null, "ohne Warnung keine Warnzeile");
@@ -809,7 +809,7 @@ test("Heute → Zeitplan: Uhrzeiten aus erster und letzter Mahlzeit, Wasser in d
   assert.doesNotMatch(ingTxt, /,0 g/, "Gramm ohne „,0“");
   assert.ok(!/roomy|more|tight/.test(hc.querySelector(".zp-list").className), "ohne Messung bleibt es bei der Grundstufe");
   // Wassergaben einzeilig, Dauer rechts in der Spalte der Mahlzeiten-Dauer (etwa 15 ml pro Minute, mindestens 5 Minuten)
-  assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^\d+ ml Wasser$/);
+  assert.match(hc.querySelector(".zp-row.water .zp-txt").textContent, /^\d+ ml Wasser oder Tee \(ungesüßt\)$/);
   assert.match(hc.querySelector(".zp-row.water .zp-time").textContent, /^\d+:\d\d$/);
   assert.match(hc.querySelector(".zp-row.water .zp-wmin").textContent, /^\d+ min$/);
   assert.equal(hc.querySelectorAll(".zp-row.water .zp-txt br, .zp-row.water div").length, 0, "Wassergaben einzeilig");
@@ -1341,7 +1341,7 @@ test("Audit: Rundung verfälscht kcal nicht, unpassende Rezepte im Tagesplan mar
   fire(w, $(w, "heute-content").querySelector('.zp-row.slot [data-pick="1"]')); fire(w, $(w, "picker-clear"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 1);
   assert.notEqual($(w, "rx-chip").getAttribute("aria-label"), pill0, "Pille zeigt die neue Wassermenge");
-  assert.match($(w, "rx-chip").getAttribute("aria-label"), /Wasser zwischen den Mahlzeiten: ca\. \d × \d+ ml/, "ca., solange eine Mahlzeit geschätzt ist");
+  assert.match($(w, "rx-chip").getAttribute("aria-label"), /Wasser oder Tee \(ungesüßt\) zwischen den Mahlzeiten: ca\. \d × \d+ ml/, "ca., solange eine Mahlzeit geschätzt ist");
   assert.match($(w, "toast").textContent, /Mahlzeit 2 geleert/);
   fire(w, $(w, "toast").querySelector(".toast-btn"));
   assert.equal($(w, "heute-content").querySelectorAll(".slot.empty-slot").length, 0, "Rückgängig");

@@ -239,7 +239,7 @@
     const wp = waterPlan(d, mealFluidPer * d.mahl, zeitTimes(d));
     const base = 'Mahlzeiten ' + d.mahl + ' × ' + fmt(mealFluidPer, 0) + ' ml';
     if (wp.per === 0) return '<div class="note tip">' + base + ' – das Tagesziel ist damit schon erreicht, keine Wassergaben nötig.</div>';
-    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml Wasser</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
+    return '<div class="note ' + (wp.over ? 'warn' : 'tip') + '">' + (wp.over ? '▲ ' : '') + base + ' + <strong>' + wp.n + ' × ' + fmt(wp.per, 0) + ' ml ' + GIFT_DRINK + '</strong> ca. ' + fmt(wp.total, 0) + ' ml am Tag' +
       (wp.over ? ' · über ' + fmt(d.maxMahlMl, 0) + ' ml je Gabe' : '') + '</div>';
   }
   function regelZeile(d) {

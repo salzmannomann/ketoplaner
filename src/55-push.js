@@ -23,7 +23,7 @@
         body: (m.rec ? displayText(m.rec) + (slotNote(state.dayPlan[i], m.f) ? " · " + slotNote(state.dayPlan[i], m.f) : "") + " · ca. " : "Rezept noch offen · ca. ") + fmt(m.vol, 0) + " ml · " + sondierMin(m.vol) + " min" });
     });
     if (o.water && wp.per > 0) times.gifts.forEach((g, k) => {
-      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml Wasser" + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
+      items.push({ at: fmtHM(g.t - o.lead), tag: "w" + (k + 1), title: "Wasser oder Tee · " + fmtHM(g.t), body: fmt(wp.per, 0) + " ml " + GIFT_DRINK + (g.kind === "abend" ? " vor dem Schlafen" : "") + " · " + wasserMin(wp.per) + " min" });
     });
     return items;
   }
