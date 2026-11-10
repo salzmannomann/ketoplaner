@@ -1064,8 +1064,10 @@ body[data-view="heute"] .footnote, body.vg-sub .footnote { display: none; }
   .hp-layout { display: flex; gap: 36px; align-items: flex-start; max-width: 1240px; }
   .hp-layout > #heute-content { flex: 2 1 420px; min-width: 0; }
   .hp-layout .zeitplan.dk { max-width: none; }
-  /* gewählte Mahlzeit: Fläche wie bei der Rezeptkachel, seitlich etwas über die Zeile hinaus (Inhalt bleibt stehen) */
-  .zp-row.slot.sel { background: var(--paper-2); box-shadow: -12px 0 0 var(--paper-2), -15px 0 0 var(--ink), 12px 0 0 var(--paper-2); }
+  /* Mit Panel: die Fläche heißt überall „als Nächstes“ (Mahlzeit oder Wasser, ohne Strich); die Mahlzeit, deren Rezept
+     rechts im Panel steht, trägt nur den dunklen Strich links */
+  .zp-row.next-meal { box-shadow: -12px 0 0 var(--paper-2), 12px 0 0 var(--paper-2); }
+  .zp-row.slot.sel::before { content: ""; position: absolute; left: -15px; top: 0; bottom: 0; width: 3px; background: var(--ink); }
   .rz-panel .dh-when { margin-bottom: 4px; }
   .rz-layout { flex-wrap: nowrap; }
   .rz-main { flex: 2 1 420px; }

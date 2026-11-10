@@ -50,15 +50,15 @@
     const label = n && n.i === i ? (n.tomorrow ? "Morgen · " : n.now ? "Jetzt · " : "Nächste Mahlzeit · ") + t : "Mahlzeit um " + t;
     return { i, label, panel, t };
   }
-  // Ohne Panel (Handy, schmales Fenster): das Nächste im Plan so hinterlegen wie am Desktop die gewählte Mahlzeit –
-  // eine Mahlzeit oder eine Wassergabe, je nachdem, was als Nächstes kommt. Es bleibt hinterlegt, bis es 30 Minuten
+  // Das Nächste im Plan hinterlegen – eine Mahlzeit oder eine Wassergabe, je nachdem, was als Nächstes kommt (am Desktop
+  // mit Panel ohne Strich; dort trägt den Strich die Mahlzeit, deren Rezept rechts steht). Es bleibt hinterlegt, bis es 30 Minuten
   // (Wasser 15 Minuten) vorbei ist; nach dem letzten Eintrag des Tages der erste von morgen.
   // Die Uhr läuft weiter – einmal pro Minute und beim Zurückholen der App nachziehen.
   let planNextTimer = null;
   function markPlanNext() {
     const rows = [...document.querySelectorAll("#heute-content .zp-row.slot[data-open], #heute-content .zp-row.water")];
     let next = null;
-    if (state.settings.view === "heute" && !panelMode() && rows.length) {
+    if (state.settings.view === "heute" && rows.length) {
       const now = new Date(), m = now.getHours() * 60 + now.getMinutes();
       const at = (r) => { const x = /(\d{1,2}):(\d{2})/.exec((r.querySelector(".zp-time") || {}).textContent || ""); return x ? +x[1] * 60 + +x[2] : null; };
       next = rows.find(r => { const t = at(r); return t != null && t + (r.classList.contains("water") ? 15 : PLAN_NOW_MIN) > m; }) || rows[0];
